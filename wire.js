@@ -42,7 +42,11 @@ export function writeObject(writer, obj) {
             writer.writeString(obj);
             break;
         case 'object':
-            if (obj instanceof Buffer) {
+            if (Array.isArray(obj)) {
+                obj.forEach(val => {
+                    writeObject(writer, val);
+                })
+            } else if (obj instanceof Buffer) {
                 writeBytes(writer, obj);
             } else {
                 const entry = findTypeEntry(obj);
