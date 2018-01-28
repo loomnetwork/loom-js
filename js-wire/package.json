@@ -1,0 +1,19 @@
+{
+  "name": "js-wire",
+  "version": "0.0.3",
+  "description": "Javascript library for go-wire",
+  "main": "index.js",
+  "scripts": {
+  },
+  "devDependencies": {
+  },
+  "dependencies": {
+  },
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/tendermint/js-wire.git"
+  },
+  "author": "jae@tendermint.com",
+  "license": "Apache2.0",
+  "homepage": "https://github.com/tendermint/js-wire"
+}
