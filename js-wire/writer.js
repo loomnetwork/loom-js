@@ -78,14 +78,15 @@ Writer.prototype.writeUint64 = function(v) {
 
 function uvarintSize(i) {
   verifuint(i, 0x001FFFFFFFFFFFFf);
-  return i < 0x100 ? 1
-    : i < 0x0000000000010000 ? 2
-      : i < 0x0000000001000000 ? 3
-        : i < 0x0000000100000000 ? 4
-          : i < 0x0000010000000000 ? 5
-            : i < 0x0001000000000000 ? 6
-              : i < 0x0100000000000000 ? 7
-                : 8;
+  return i == 0 ? 0
+    : i < 0x100 ? 1
+      : i < 0x0000000000010000 ? 2
+        : i < 0x0000000001000000 ? 3
+          : i < 0x0000000100000000 ? 4
+            : i < 0x0000010000000000 ? 5
+              : i < 0x0001000000000000 ? 6
+                : i < 0x0100000000000000 ? 7
+                  : 8;
 }
 
 Writer.prototype.writeVarint = function(v) {
