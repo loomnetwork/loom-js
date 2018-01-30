@@ -1,5 +1,5 @@
 import test from 'tape';
-import { pubKeyFromPrivKey, pubKeyAddress } from './crypto';
+import { pubKeyFromPrivKey, pubKeyAddress } from './signature';
 
 // https://gist.github.com/tauzen/3d18825ae41ff3fc8981
 function bytesToHex(uint8arr) {
