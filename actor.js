@@ -1,5 +1,7 @@
-class Actor {
-    constructor(chainId, app, address) {
+import { registerType } from './wire';
+
+export default class Actor {
+    constructor(address, app = 'sigs', chainId = '') {
         this.chainId = chainId;
         this.app = app;
         this.address = address;

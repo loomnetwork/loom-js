@@ -1,17 +1,17 @@
-import wire from './js-wire';
+export { Reader, Writer } from './js-wire';
 
 const unexportedType = 0x00;
 
-const typeRegistry = {};
+const typeRegistry = new Map();
 
 export function registerType(type, fields, id = unexportedType) {
-    typeRegistrar[type] = {'id': id, 'fields': fields};
+    typeRegistry.set(type, {'id': id, 'fields': fields});
 }
 
 function findTypeEntry(obj) {
-    for (type in typeRegistry) {
+    for (let [type, entry] of typeRegistry) {
         if (obj instanceof type) {
-            return typeRegistrar[type];
+            return entry;
         }
     }
 
@@ -46,7 +46,7 @@ export function writeObject(writer, obj) {
                 obj.forEach(val => {
                     writeObject(writer, val);
                 })
-            } else if (obj instanceof Buffer) {
+            } else if (obj instanceof Buffer || obj instanceof Uint8Array) {
                 writeBytes(writer, obj);
             } else {
                 const entry = findTypeEntry(obj);
@@ -59,7 +59,6 @@ export function writeObject(writer, obj) {
         default:
             throw 'unknown obj type';
     }
-}
 
-exports.Reader = wire.Reader;
-exports.Writer = wire.Writer;
+    return writer;
+}

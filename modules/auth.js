@@ -1,4 +1,6 @@
-class Signed {
+import { registerType } from '../wire';
+
+export class Signed {
     constructor(sig, pubkey) {
         this.sig = sig;
         this.pubkey = pubkey;
@@ -7,7 +9,7 @@ class Signed {
 
 registerType(Signed, ['sig', 'pubkey']);
 
-class OneSigTx {
+export class OneSigTx {
     constructor(tx, signed) {
         this.tx = tx;
         this.signed = signed;
