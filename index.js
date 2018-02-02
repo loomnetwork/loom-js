@@ -1,2 +1,2 @@
-export { Actor } from './actor';
-export { Client } from './client';
+export { default as Actor } from './actor';
+export { default as Client } from './client';

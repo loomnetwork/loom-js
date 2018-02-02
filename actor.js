@@ -4,7 +4,7 @@ export default class Actor {
     constructor(address, app = 'sigs', chainId = '') {
         this.chainId = chainId;
         this.app = app;
-        this.address = address;
+        this.address = new Buffer(address);
     }
 }
 

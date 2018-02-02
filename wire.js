@@ -19,7 +19,6 @@ function findTypeEntry(obj) {
 }
 
 function writeBytes(writer, bytes) {
-    writer.writeUvarint(bytes.length);
     for (var i = 0; i < bytes.length; i++) {
         writer.writeUint8(bytes[i]);
     }
@@ -46,11 +45,16 @@ export function writeObject(writer, obj) {
                 obj.forEach(val => {
                     writeObject(writer, val);
                 })
-            } else if (obj instanceof Buffer || obj instanceof Uint8Array) {
+            } else if (obj instanceof Buffer) {
+                writer.writeUvarint(obj.length);
+                writeBytes(writer, obj);
+            } else if (obj instanceof Uint8Array) {
                 writeBytes(writer, obj);
             } else {
                 const entry = findTypeEntry(obj);
-                writeType(writer, entry.id);
+                if (entry.id !== unexportedType) {
+                    writeType(writer, entry.id);
+                }
                 entry.fields.forEach(field => {
                     writeObject(writer, obj[field]);
                 });
