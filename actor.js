@@ -8,4 +8,4 @@ export default class Actor {
     }
 }
 
-registerType(Actor, ['chainId', 'app', 'address']);
+registerType(Actor, ['chainId', 'app', 'address'], 0x00);

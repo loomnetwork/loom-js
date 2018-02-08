@@ -7,7 +7,7 @@ export class Signed {
     }
 }
 
-registerType(Signed, ['sig', 'pubkey']);
+registerType(Signed, ['sig', 'pubkey'], 0x00);
 
 export class OneSigTx {
     constructor(tx, signed) {

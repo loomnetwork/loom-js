@@ -4,7 +4,7 @@ const unexportedType = 0x00;
 
 const typeRegistry = new Map();
 
-export function registerType(type, fields, id = unexportedType) {
+export function registerType(type, fields, id) {
     typeRegistry.set(type, {'id': id, 'fields': fields});
 }
 
