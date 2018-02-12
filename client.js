@@ -9,7 +9,7 @@ export default class Client {
   constructor(url) {
     this.rpcId = 0;
     this.openPromise = null;
-    this.rpcClient = new RPCClient(url, {
+    this.rpcClient = new RPCClient('ws://' + url, {
       autoconnect: true,
       reconnect: true,
       reconnect_interval: 1000,
@@ -61,5 +61,13 @@ export default class Client {
     const bytes = writeObject(writer, tx).getBuffer();
     console.log(bytes.toString('hex'));
     return this._call(method, [encodeBytes(bytes)]);
+  }
+
+  nonceForAddress(address) {
+    const url = this.url + '/nonce/' + address;
+    const stuff = fetch(url, {
+      method: 'post',
+    });
+    return stuff;
   }
 }

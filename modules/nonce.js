@@ -1,3 +1,5 @@
+import { registerType } from '../wire';
+
 class NonceTx {
     constructor(tx, sequence, signers) {
         this.tx = tx;
