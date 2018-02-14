@@ -42,6 +42,7 @@ export function writeObject(writer, obj) {
             break;
         case 'object':
             if (Array.isArray(obj)) {
+                writer.writeUvarint(obj.length);
                 obj.forEach(val => {
                     writeObject(writer, val);
                 })
