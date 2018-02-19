@@ -9,7 +9,7 @@ export default class Client {
   constructor(url) {
     this.rpcId = 0;
     this.openPromise = null;
-    this.rpcClient = new RPCClient('ws://' + url, {
+    this.rpcClient = new RPCClient(url, {
       autoconnect: true,
       reconnect: true,
       reconnect_interval: 1000,
