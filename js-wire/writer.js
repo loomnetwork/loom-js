@@ -9,7 +9,7 @@ var assert = require('assert');
 
 var Writer = function(buf) {
   if (typeof buf == 'undefined') {
-    buf = new Buffer(1024);
+    buf = new Buffer(8192);
   }
   this.buf = buf;
   this.offset = 0;
