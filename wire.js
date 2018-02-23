@@ -26,7 +26,7 @@ function writeBytes(writer, bytes) {
 
 function writeNull(writer) {
     writer.writeUint8(0);
-}
+}1
 
 function writeType(writer, type) {
     writer.writeUint8(type);
@@ -39,6 +39,9 @@ export function writeObject(writer, obj) {
             break;
         case 'string':
             writer.writeString(obj);
+            break;
+        case 'boolean':
+            obj ? writer.writeUint8(1) : writer.writeUint8(0);
             break;
         case 'object':
             if (Array.isArray(obj)) {
