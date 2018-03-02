@@ -1,6 +1,6 @@
 import { registerType } from '../wire';
 
-class NonceTx {
+export class NonceTx {
     constructor(tx, sequence, signers) {
         this.tx = tx;
         this.sequence = sequence;
