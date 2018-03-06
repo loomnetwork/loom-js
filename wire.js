@@ -43,6 +43,9 @@ export function writeObject(writer, obj) {
         case 'boolean':
             obj ? writer.writeUint8(1) : writer.writeUint8(0);
             break;
+        case 'number':
+            writer.writeUint32(obj);
+            break;
         case 'object':
             if (Array.isArray(obj)) {
                 writer.writeUvarint(obj.length);
