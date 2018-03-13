@@ -6,10 +6,12 @@ function encodeBytes(bytes) {
 }
 
 export default class Client {
-  constructor(url) {
+  constructor(nodeUrl, proxyUrl) {
+    this.nodeUrl = nodeUrl;
+    this.proxyUrl = proxyUrl;
     this.rpcId = 0;
     this.openPromise = null;
-    this.rpcClient = new RPCClient(url, {
+    this.rpcClient = new RPCClient(nodeUrl, {
       autoconnect: true,
       reconnect: true,
       reconnect_interval: 1000,
@@ -63,11 +65,21 @@ export default class Client {
     return this._call(method, [encodeBytes(bytes)]);
   }
 
-  nonceForAddress(address) {
-    const url = this.url + '/nonce/' + address;
-    const stuff = fetch(url, {
-      method: 'post',
-    });
-    return stuff;
+  async nonce(addr) {
+    const hexAddr = addr.toString('hex');
+    const res = await this._proxyReq(`/query/nonce/${hexAddr}`);
+    return res.data;
   }
+
+  state(key) {
+    const encKey = encodeURIComponent(encodeBytes(key));
+    return this._proxyReq(`/state/${encKey}`);
+  }
+
+  async _proxyReq(path) {
+    const url = `${this.proxyUrl}${path}`;
+    const resp = await fetch(url);
+    return await resp.json();
+  }
+
 }
