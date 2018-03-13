@@ -26,3 +26,29 @@ export function hexToBytes(str) {
   
   return new Uint8Array(a);
 }
+
+export class Writer {
+  constructor(capacity) {
+    this.buf = new Buffer(capacity);
+    this.offset = 0;
+  }
+
+  ensureBuf(needBytes) {
+    if (this.buf.length < this.offset + needBytes) {
+      var newBuf = new Buffer(this.buf.length + 1024);
+      this.buf = Buffer.concat([this.buf, newBuf]);
+    }
+  }
+
+  write(str) {
+    this.offset += this.buf.write(str);
+  }
+
+  writeUInt8(b) {
+    this.offset = this.buf.writeUInt8(b, this.offset);
+  }
+
+  get buffer() {
+    return this.buf.slice(0, this.offset);
+  }
+}
