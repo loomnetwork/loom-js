@@ -1,5 +1,6 @@
 import { Client as RPCClient } from 'rpc-websockets';
 import { Writer, writeObject } from './wire';
+import { hexToBytes } from './util';
 
 function encodeBytes(bytes) {
   return bytes.toString('base64');
@@ -71,9 +72,10 @@ export default class Client {
     return res.data;
   }
 
-  state(key) {
+  async state(key) {
     const encKey = encodeURIComponent(encodeBytes(key));
-    return this._proxyReq(`/state/${encKey}`);
+    const resp = await this._proxyReq(`/state/${encKey}`);
+    return hexToBytes(resp.data);
   }
 
   async _proxyReq(path) {
