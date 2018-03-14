@@ -1,8 +1,12 @@
 import nacl from 'tweetnacl';
 import ripemd160 from 'ripemd160';
-import { Writer, writeObject, registerType } from './wire';
+import { Writer, writeObject, registerType, TypeArray, TypeByte } from './wire';
 
 const typeEd25519 = 0x01;
+
+export const signatureLength = nacl.sign.signatureLength;
+export const privateKeyLength = nacl.sign.privateKeyLength;
+export const publicKeyLength = nacl.sign.publicKeyLength;
 
 export class SignatureEd25519 {
     constructor(inner) {
@@ -10,7 +14,9 @@ export class SignatureEd25519 {
     }
 }
 
-registerType(SignatureEd25519, ['inner'], typeEd25519);
+registerType(SignatureEd25519, [
+    ['inner', TypeArray(TypeByte, signatureLength)],
+], typeEd25519);
 
 export class PubKeyEd25519 {
     constructor(inner) {
@@ -18,7 +24,9 @@ export class PubKeyEd25519 {
     }
 }
 
-registerType(PubKeyEd25519, ['inner'], typeEd25519);
+registerType(PubKeyEd25519, [
+    ['inner', TypeArray(TypeByte, publicKeyLength)],
+], typeEd25519);
 
 export function genPrivKey() {
     const pair = nacl.sign.keyPair();
@@ -27,7 +35,7 @@ export function genPrivKey() {
 
 export function sign(msg, privKey) {
     const sigMsg = nacl.sign(msg, privKey);
-    const sig = sigMsg.slice(0, nacl.sign.signatureLength);
+    const sig = sigMsg.slice(0, signatureLength);
     return new SignatureEd25519(sig);
 }
 
