@@ -41,10 +41,12 @@ export class Writer {
   }
 
   write(str) {
-    this.offset += this.buf.write(str);
+    this.ensureBuf(str.length * 2);
+    this.offset += this.buf.write(str, this.offset);
   }
 
   writeUInt8(b) {
+    this.ensureBuf(1);
     this.offset = this.buf.writeUInt8(b, this.offset);
   }
 
