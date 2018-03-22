@@ -75,6 +75,10 @@ export default class Client {
   async state(key) {
     const encKey = encodeURIComponent(encodeBytes(key));
     const resp = await this._proxyReq(`/state/${encKey}`);
+    const error = resp.error;
+    if (error && error.startsWith('empty data for key')) {
+      return undefined;
+    }
     return hexToBytes(resp.data);
   }
 
