@@ -69,6 +69,10 @@ export default class Client {
   async nonce(addr) {
     const hexAddr = addr.toString('hex');
     const res = await this._proxyReq(`/query/nonce/${hexAddr}`);
+    const error = res.error;
+    if (error && error.startsWith('nonce empty for address')) {
+      return 0;
+    }
     return res.data;
   }
 
