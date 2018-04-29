@@ -1,16 +1,32 @@
 {
   "name": "loom",
-  "version": "0.0.2",
+  "description": "NodeJS & browser client for Loom DAppChains.",
+  "author": {
+    "name": "Loom Network",
+    "url": "https://loomx.io"
+  },
+  "version": "1.0.0",
+  "license": "LicenseRef-LICENSE",
   "main": "index.js",
+  "scripts": {
+    "format": "prettier --write \"src/**/*.ts\"",
+  },
   "dependencies": {
     "crypto-browserify": "^3.12.0",
     "ripemd160": "^2.0.1",
     "rpc-websockets": "^3.6.1",
-    "tweetnacl": "^1.0.0"
+    "tweetnacl": "^1.0.0",
+    "wretch": "^1.1.2"
   },
   "devDependencies": {
+    "@types/google-protobuf": "^3.2.7",
     "babel-cli": "^6.26.0",
     "babel-preset-es2015": "^6.24.1",
-    "tape": "^4.8.0"
+    "prettier": "1.12.1",
+    "tape": "^4.8.0",
+    "ts-protoc-gen": "^0.6.0",
+    "tslint-config-prettier": "^1.12.0",
+    "tslint-config-standard": "^7.0.0",
+    "typescript": "^2.8.3"
   }
 }
