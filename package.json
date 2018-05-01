@@ -6,9 +6,10 @@
     "url": "https://loomx.io"
   },
   "version": "1.0.0",
-  "license": "LicenseRef-LICENSE",
-  "main": "index.js",
+  "license": "SEE LICENSE IN License.md",
+  "main": "dist/index.js",
   "scripts": {
+    "build": "tsc",
     "format": "prettier --write \"src/**/*.ts\"",
   },
   "dependencies": {
@@ -25,6 +26,7 @@
     "prettier": "1.12.1",
     "tape": "^4.8.0",
     "ts-protoc-gen": "^0.6.0",
+    "tslint": "^5.9.1",
     "tslint-config-prettier": "^1.12.0",
     "tslint-config-standard": "^7.0.0",
     "typescript": "^2.8.3"

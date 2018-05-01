@@ -34,11 +34,6 @@ export function generatePrivateKey(): Uint8Array {
   return pair.secretKey
 }
 
-export function publicKeyFromPrivateKey(privateKey: Uint8Array): Uint8Array {
-  const pair = nacl.sign.keyPair.fromSecretKey(privateKey)
-  return pair.publicKey
-}
-
 export function sign(msg: Uint8Array, privateKey: Uint8Array) {
   const sigMsg = nacl.sign(msg, privateKey)
   return sigMsg.slice(0, signatureLength)
@@ -51,8 +46,8 @@ export function sign(msg: Uint8Array, privateKey: Uint8Array) {
  */
 export function localAddressFromPublicKey(publicKey: Uint8Array): Uint8Array {
   const hasher = new ripemd160()
-  hasher.update(publicKey.getBuffer())
-  return new Uint8Array(hasher.digest())
+  hasher.update(publicKey)
+  return hasher.digest()
 }
 
 export function JsonToUint8Array(json: string) {
@@ -72,6 +67,6 @@ export function B64ToUint8Array(s: string): Uint8Array {
   return new Uint8Array(
     atob(s)
       .split('')
-      .map(c => c.charCodeAt(0))
+      .map((c: string) => c.charCodeAt(0))
   )
 }
