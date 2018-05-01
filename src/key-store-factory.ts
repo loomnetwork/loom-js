@@ -15,7 +15,7 @@ export class VaultStoreConfig {
     return this._vaultPrefix
   }
   set vaultPrefix(value: string | undefined) {
-    this._vaultPrefix = value.EndsWith('/') ? value : value + '/'
+    this._vaultPrefix = value!.endsWith('/') ? value : value + '/'
   }
 
   // Access token obtained from AuthClient (required).

@@ -60,7 +60,8 @@ export class Contract {
     request.setBody(methodTx.serializeBinary())
 
     const callTx = new CallTx()
-    callTx.setVmType(VMType.PLUGIN), callTx.setInput(request.serializeBinary())
+    callTx.setVmType(VMType.PLUGIN)
+    callTx.setInput(request.serializeBinary())
 
     const msgTx = new MessageTx()
     msgTx.setFrom(this.caller)
