@@ -29,12 +29,32 @@ export const signatureLength = nacl.sign.signatureLength
 export const privateKeyLength = nacl.sign.secretKeyLength
 export const publicKeyLength = nacl.sign.publicKeyLength
 
+/**
+ * Generates a private key for signing.
+ * @returns 64-byte private key.
+ */
 export function generatePrivateKey(): Uint8Array {
   const pair = nacl.sign.keyPair()
   return pair.secretKey
 }
 
-export function sign(msg: Uint8Array, privateKey: Uint8Array) {
+/**
+ * Generates the public key that corresponds to the given private key.
+ * @param privateKey 64-byte private key.
+ * @returns 32-byte public key.
+ */
+export function publicKeyFromPrivateKey(privateKey: Uint8Array): Uint8Array {
+  const pair = nacl.sign.keyPair.fromSecretKey(privateKey);
+  return pair.publicKey;
+}
+
+/**
+ * Signs a message with the given private key.
+ * @param msg Message to be signed.
+ * @param privateKey 64-byte private key to sign with.
+ * @returns The generated signature.
+ */
+export function sign(msg: Uint8Array, privateKey: Uint8Array): Uint8Array {
   const sigMsg = nacl.sign(msg, privateKey)
   return sigMsg.slice(0, signatureLength)
 }
@@ -50,19 +70,20 @@ export function localAddressFromPublicKey(publicKey: Uint8Array): Uint8Array {
   return hasher.digest()
 }
 
-export function JsonToUint8Array(json: string) {
-  const str = JSON.parse(json)
-  const ret = new Uint8Array(str.length)
-  for (var i = 0; i < str.length; i++) {
-    ret[i] = str.charCodeAt(i)
-  }
-  return ret
-}
-
-export function Uint8ArrayToB64(bytes: Uint8Array) {
+/**
+ * Encodes bytes to a base64 string.
+ * @param bytes Array of bytes to encode to string.
+ * @returns base64 encoded string.
+ */
+export function Uint8ArrayToB64(bytes: Uint8Array): string {
   return btoa(String.fromCharCode.apply(null, bytes))
 }
 
+/**
+ * Decodes bytes from a base64 string.
+ * @param s String to decode.
+ * @returns Array of bytes.
+ */
 export function B64ToUint8Array(s: string): Uint8Array {
   return new Uint8Array(
     atob(s)

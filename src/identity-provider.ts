@@ -1,7 +1,7 @@
 import nacl from 'tweetnacl'
 
 import { IKeyStore } from './key-store-factory'
-import { generatePrivateKey } from './crypto-utils'
+import { generatePrivateKey, publicKeyFromPrivateKey } from './crypto-utils'
 
 export class Identity {
   username: string
@@ -11,17 +11,17 @@ export class Identity {
     this.privateKey = privateKey
   }
 
-  // 32-byte private key.
+  // 64-byte private key.
   get privateKey(): Uint8Array | undefined {
-    return this._privateKey32
+    return this._privateKey64
   }
 
   set privateKey(value: Uint8Array | undefined) {
     if (value) {
-        this._privateKey32 = value
-        this._publicKey32 = nacl.sign.keyPair.fromSeed(this._privateKey32).publicKey;
+        this._privateKey64 = value
+        this._publicKey32 = publicKeyFromPrivateKey(this._privateKey64);
     } else {
-        this._privateKey32 = undefined;
+        this._privateKey64 = undefined;
         this._publicKey32 = undefined;
     }
   }
@@ -37,7 +37,7 @@ export class Identity {
     this._publicKey32 = value
   }
 
-  private _privateKey32?: Uint8Array
+  private _privateKey64?: Uint8Array
   private _publicKey32?: Uint8Array
 }
 
