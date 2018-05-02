@@ -1,6 +1,6 @@
 import { SignedTx } from '../proto/loom_pb'
 import { ITxMiddlewareHandler } from '../client'
-import { sign } from '../crypto-utils'
+import { sign, publicKeyFromPrivateKey } from '../crypto-utils'
 
 /**
  * Signs transactions.
@@ -21,8 +21,8 @@ export class SignedTxMiddleware implements ITxMiddlewareHandler {
     const sig = sign(txData as Uint8Array, this.privateKey)
     const signedTx = new SignedTx()
     signedTx.setInner(txData as Uint8Array)
-    signedTx.setSignature(sig.Signature)
-    signedTx.setPublicKey(sig.PublicKey)
+    signedTx.setSignature(sig)
+    signedTx.setPublicKey(publicKeyFromPrivateKey(this.privateKey))
     return Promise.resolve(signedTx.serializeBinary())
   }
 }
