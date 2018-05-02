@@ -42,7 +42,11 @@ export class KeyStoreFactory {
     var resp = await vaultClient.putAsync<IVaultCreateTokenResponse>('auth/auth0/create_token', {
       access_token: cfg.accessToken
     })
-    vaultClient.token = resp.auth.client_token
+    if (resp) {
+        vaultClient.token = resp.auth.client_token
+    } else {
+        throw new Error('Failed to obtain Vault client token.')
+    }
     return new VaultStore(vaultClient, cfg.vaultPrefix)
   }
 }
