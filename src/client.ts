@@ -3,7 +3,7 @@ import { Message } from 'google-protobuf'
 import wretch from 'wretch'
 
 import { ContractMethodCall, Address } from './proto/loom_pb'
-import { bytesToBase64String, bytesToHexAddr } from './crypto-utils'
+import { Uint8ArrayToB64, bytesToHexAddr } from './crypto-utils'
 
 /**
  * Middleware handlers are expected to transform the input data and return the result.
@@ -61,7 +61,7 @@ export class Client {
     for (let i = 0; i < this.TxMiddleware.length; i++) {
       txBytes = await this.TxMiddleware[i].Handle(txBytes)
     }
-    const payload = bytesToBase64String(txBytes)
+    const payload = Uint8ArrayToB64(txBytes)
     await this._connect()
     const resp = await this._rpcClient('broadcast_tx_commit', [payload])
     const result = resp.Result
