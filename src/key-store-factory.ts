@@ -43,9 +43,9 @@ export class KeyStoreFactory {
       access_token: cfg.accessToken
     })
     if (resp) {
-        vaultClient.token = resp.auth.client_token
+      vaultClient.token = resp.auth.client_token
     } else {
-        throw new Error('Failed to obtain Vault client token.')
+      throw new Error('Failed to obtain Vault client token.')
     }
     return new VaultStore(vaultClient, cfg.vaultPrefix)
   }

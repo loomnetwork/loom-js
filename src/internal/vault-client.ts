@@ -58,7 +58,7 @@ export class VaultClient {
   async putAsync<T>(
     path: string,
     data: IVaultCreateTokenRequest | IVaultStorePrivateKeyRequest
-  ): Promise<T|void> {
+  ): Promise<T | void> {
     const body = await this._endpoint
       .url(path)
       .json(data)

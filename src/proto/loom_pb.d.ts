@@ -1,5 +1,5 @@
 // package: 
-// file: src/proto/loom.proto
+// file: proto/loom.proto
 
 import * as jspb from "google-protobuf";
 

@@ -18,11 +18,11 @@ export class Identity {
 
   set privateKey(value: Uint8Array | undefined) {
     if (value) {
-        this._privateKey64 = value
-        this._publicKey32 = publicKeyFromPrivateKey(this._privateKey64);
+      this._privateKey64 = value
+      this._publicKey32 = publicKeyFromPrivateKey(this._privateKey64)
     } else {
-        this._privateKey64 = undefined;
-        this._publicKey32 = undefined;
+      this._privateKey64 = undefined
+      this._publicKey32 = undefined
     }
   }
 
