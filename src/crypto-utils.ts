@@ -1,8 +1,9 @@
 import nacl from 'tweetnacl'
-import ripemd160 from 'ripemd160'
 
 export function bytesToHex(uint8arr: Uint8Array): string {
-  return Buffer.from(uint8arr).toString('hex').toUpperCase()
+  return Buffer.from(uint8arr.buffer)
+    .toString('hex')
+    .toUpperCase()
 }
 
 export function bytesToHexAddr(bytes: Uint8Array): string {
@@ -28,8 +29,8 @@ export function generatePrivateKey(): Uint8Array {
  * @returns 32-byte public key.
  */
 export function publicKeyFromPrivateKey(privateKey: Uint8Array): Uint8Array {
-  const pair = nacl.sign.keyPair.fromSecretKey(privateKey);
-  return pair.publicKey;
+  const pair = nacl.sign.keyPair.fromSecretKey(privateKey)
+  return pair.publicKey
 }
 
 /**
@@ -49,7 +50,7 @@ export function sign(msg: Uint8Array, privateKey: Uint8Array): Uint8Array {
  * @returns base64 encoded string.
  */
 export function Uint8ArrayToB64(bytes: Uint8Array): string {
-  return Buffer.from(bytes).toString('base64')
+  return Buffer.from(bytes.buffer).toString('base64')
 }
 
 /**
