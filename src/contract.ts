@@ -1,7 +1,9 @@
+import { Message } from 'google-protobuf'
+import { Any } from 'google-protobuf/google/protobuf/any_pb'
+
 import { Client } from './client'
 import {
   EncodingType,
-  Address,
   ContractMethodCall,
   Request,
   MessageTx,
@@ -9,8 +11,7 @@ import {
   CallTx,
   VMType
 } from './proto/loom_pb'
-import { Message } from 'google-protobuf'
-import { Any } from 'google-protobuf/google/protobuf/any_pb'
+import { Address } from './address'
 
 export interface ContractConstructorParams {
   // Address of a contract on the Loom DAppChain.
@@ -22,8 +23,6 @@ export interface ContractConstructorParams {
   // Client to use to call the contract.
   client: Client
 }
-
-const utf8Encoder = new TextEncoder()
 
 /**
  * Thin abstraction over Client that makes easier to call/query a specific contract running on a
@@ -48,15 +47,16 @@ export class Contract {
    * The call into the contract is accomplished by committing a tx to the DAppChain.
    * @param method Contract method to call.
    * @param args Arguments to pass to the contract method.
-   * @returns A promise that will be resolved with tx commit metadata.
+   * @returns A promise that will be resolved with return value (if any) of the contract method.
    */
-  async Call<T extends Message, U>(method: string, args: T): Promise<U> {
+  async callAsync<T extends Message | void>(method: string, args: Message): Promise<T | void> {
     const methodTx = new ContractMethodCall()
-    methodTx.setMethod(method)
-    methodTx.setArgs(utf8Encoder.encode(JSON.stringify(args)))
+    methodTx.setMethod(`${this.name}.${method}`)
+    methodTx.setArgs(args.serializeBinary())
 
     const request = new Request()
     request.setContentType(EncodingType.PROTOBUF3)
+    request.setAccept(EncodingType.PROTOBUF3)
     request.setBody(methodTx.serializeBinary())
 
     const callTx = new CallTx()
@@ -64,14 +64,18 @@ export class Contract {
     callTx.setInput(request.serializeBinary())
 
     const msgTx = new MessageTx()
-    msgTx.setFrom(this.caller)
-    msgTx.setTo(this.address)
+    msgTx.setFrom(this.caller.MarshalPB())
+    msgTx.setTo(this.address.MarshalPB())
     msgTx.setData(callTx.serializeBinary())
 
     const tx = new Transaction()
     tx.setId(2)
     tx.setData(msgTx.serializeBinary())
-    return await this._client.CommitTx<Transaction, U>(tx)
+
+    const result = await this._client.commitTxAsync<Transaction>(tx)
+    if (result) {
+      return Message.deserializeBinary(result) as T
+    }
   }
 
   /**
@@ -80,10 +84,13 @@ export class Contract {
    * @param args Arguments to pass to the contract method.
    * @returns A promise that will be resolved with the return value of the contract method.
    */
-  async StaticCall<T, U>(method: string, args: T): Promise<U> {
+  async staticCallAsync<T extends Message>(method: string, args: Message): Promise<T | void> {
     const query = new ContractMethodCall()
-    query.setMethod(method)
-    query.setArgs(utf8Encoder.encode(JSON.stringify(args)))
-    return await this._client.Query<U>(this.address, query)
+    query.setMethod(`${this.name}.${method}`)
+    query.setArgs(args.serializeBinary())
+    const result = await this._client.queryAsync(this.address, query)
+    if (result) {
+      return Message.deserializeBinary(result) as T
+    }
   }
 }
