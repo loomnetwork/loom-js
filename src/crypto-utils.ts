@@ -44,17 +44,6 @@ export function sign(msg: Uint8Array, privateKey: Uint8Array): Uint8Array {
 }
 
 /**
- * Converts a public key to a local address (which is used as unique identifier within a DAppChain).
- * @param publicKey 32-byte public key.
- * @returns Array of bytes representing a local address.
- */
-export function localAddressFromPublicKey(publicKey: Uint8Array): Uint8Array {
-  const hasher = new ripemd160()
-  hasher.update(publicKey)
-  return hasher.digest()
-}
-
-/**
  * Encodes bytes to a base64 string.
  * @param bytes Array of bytes to encode to string.
  * @returns base64 encoded string.

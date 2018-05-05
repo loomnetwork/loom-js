@@ -1,0 +1,14 @@
+syntax = "proto3";
+
+message Dummy {
+    string key = 1;
+    string value = 2;
+}
+
+message HelloRequest {
+    string in = 1;
+}
+
+message HelloResponse {
+    string out = 1;
+}
