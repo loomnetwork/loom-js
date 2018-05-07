@@ -13,9 +13,10 @@ declare module 'rpc-websockets' {
     constructor(
       address: string,
       options?: IClientOptions,
-      generate_request_id?: (method: string, params: any) => string
+      generate_request_id?: (method: string, params: object | any[]) => string
     )
     call<T>(method: string, params?: any, timeout?: number, options?: any): Promise<T>
     on(event: string, listener: (...args: any[]) => void): this
+    close(code: number, data?: string): void
   }
 }

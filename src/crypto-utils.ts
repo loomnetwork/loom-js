@@ -1,7 +1,7 @@
 import nacl from 'tweetnacl'
 
-export function bytesToHex(uint8arr: Uint8Array): string {
-  return Buffer.from(uint8arr.buffer)
+export function bytesToHex(bytes: Uint8Array): string {
+  return Buffer.from(bytes.buffer, bytes.byteOffset, bytes.byteLength)
     .toString('hex')
     .toUpperCase()
 }
@@ -50,7 +50,7 @@ export function sign(msg: Uint8Array, privateKey: Uint8Array): Uint8Array {
  * @returns base64 encoded string.
  */
 export function Uint8ArrayToB64(bytes: Uint8Array): string {
-  return Buffer.from(bytes.buffer).toString('base64')
+  return Buffer.from(bytes.buffer, bytes.byteOffset, bytes.byteLength).toString('base64')
 }
 
 /**
@@ -60,4 +60,13 @@ export function Uint8ArrayToB64(bytes: Uint8Array): string {
  */
 export function B64ToUint8Array(s: string): Uint8Array {
   return Buffer.from(s, 'base64')
+}
+
+export function bufferToProtobufBytes(input: Buffer | Uint8Array): Uint8Array {
+  // Buffer in Node is a Uint8Array, but someone broke it in Protobuf 3.4.0, so have to wait
+  // for https://github.com/google/protobuf/pull/4378 to make into a release (maybe 3.5.3)
+  // so that https://github.com/google/protobuf/issues/1319 is fixed... no one seems to be
+  // in any rush to push out a new release though.
+  // In the meantime work around the issue by copying the Buffer into a plain Uint8Array
+  return (<any>input).constructor === Buffer ? new Uint8Array(input) : input
 }
