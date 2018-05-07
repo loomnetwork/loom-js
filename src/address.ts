@@ -1,5 +1,6 @@
 import ripemd160 from 'ripemd160'
 
+import { bufferToProtobufBytes } from './crypto-utils'
 import * as pb from './proto/loom_pb'
 
 export class LocalAddress {
@@ -11,7 +12,10 @@ export class LocalAddress {
 
   toString(): string {
     // TODO: checksum encoding like go-loom
-    return '0x' + Buffer.from(this.bytes.buffer).toString('hex')
+    return (
+      '0x' +
+      Buffer.from(this.bytes.buffer, this.bytes.byteOffset, this.bytes.byteLength).toString('hex')
+    )
   }
 
   static fromHexString(hexAddr: string): LocalAddress {
@@ -35,7 +39,7 @@ export class LocalAddress {
       throw new Error(`Invalid public key, expected 32 bytes, go ${publicKey.length}`)
     }
     const hasher = new ripemd160()
-    hasher.update(Buffer.from(publicKey.buffer))
+    hasher.update(Buffer.from(publicKey.buffer, publicKey.byteOffset, publicKey.byteLength))
     return new LocalAddress(hasher.digest())
   }
 }
@@ -54,16 +58,7 @@ export class Address {
   MarshalPB(): pb.Address {
     const addr = new pb.Address()
     addr.setChainId(this.chainId)
-    // Buffer in Node is a Uint8Array, but someone broke it in Protobuf 3.4.0, so have to wait
-    // for https://github.com/google/protobuf/pull/4378 to make into a release (maybe 3.5.3)
-    // so that https://github.com/google/protobuf/issues/1319 is fixed... no one seems to be
-    // in any rush to push out a new release though.
-    // In the meantime work around the issue by copying the Buffer into a plain Uint8Array
-    if ((<any>this.local.bytes).constructor === Buffer) {
-      addr.setLocal(new Uint8Array(this.local.bytes))
-    } else {
-      addr.setLocal(this.local.bytes)
-    }
+    addr.setLocal(bufferToProtobufBytes(this.local.bytes))
     return addr
   }
 

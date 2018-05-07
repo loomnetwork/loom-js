@@ -12,6 +12,7 @@ import {
   VMType
 } from './proto/loom_pb'
 import { Address } from './address'
+import { bufferToProtobufBytes } from './crypto-utils'
 
 export interface ContractConstructorParams {
   // Address of a contract on the Loom DAppChain.
@@ -49,7 +50,11 @@ export class Contract {
    * @param args Arguments to pass to the contract method.
    * @returns A promise that will be resolved with return value (if any) of the contract method.
    */
-  async callAsync<T extends Message | void>(method: string, args: Message): Promise<T | void> {
+  async callAsync<T extends Message | void>(
+    method: string,
+    args: Message,
+    output?: T
+  ): Promise<T | void> {
     const methodTx = new ContractMethodCall()
     methodTx.setMethod(`${this.name}.${method}`)
     methodTx.setArgs(args.serializeBinary())
@@ -73,9 +78,14 @@ export class Contract {
     tx.setData(msgTx.serializeBinary())
 
     const result = await this._client.commitTxAsync<Transaction>(tx)
-    if (result) {
-      return Message.deserializeBinary(result) as T
+    if (result && output) {
+      const msgClass = (<any>output).constructor as typeof Message
+      Message.copyInto(
+        msgClass.deserializeBinary(bufferToProtobufBytes(result)),
+        output as Message
+      )
     }
+    return output
   }
 
   /**
@@ -84,13 +94,15 @@ export class Contract {
    * @param args Arguments to pass to the contract method.
    * @returns A promise that will be resolved with the return value of the contract method.
    */
-  async staticCallAsync<T extends Message>(method: string, args: Message): Promise<T | void> {
+  async staticCallAsync<T extends Message>(method: string, args: Message, output: T): Promise<T> {
     const query = new ContractMethodCall()
     query.setMethod(`${this.name}.${method}`)
     query.setArgs(args.serializeBinary())
     const result = await this._client.queryAsync(this.address, query)
-    if (result) {
-      return Message.deserializeBinary(result) as T
+    if (result && output) {
+      const msgClass = (<any>output).constructor as typeof Message
+      Message.copyInto(msgClass.deserializeBinary(bufferToProtobufBytes(result)), output)
     }
+    return output
   }
 }

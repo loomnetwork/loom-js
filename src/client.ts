@@ -32,20 +32,31 @@ interface IRPCClientOptions {
   reconnect?: boolean
   reconnectInterval?: number
   maxReconnects?: number
-  generateRequestId?: (method: string, params: object | any[]) => string | number
+  generateRequestId?: (method: string, params: object | any[]) => string
 }
 
 class RPCClient {
   private _client: WSClient
   private _openPromise?: Promise<void>
+  private _rpcId: number = 0
+
+  private _getNextRequestId = () => (++this._rpcId).toString()
 
   constructor(public url: string, opts: IRPCClientOptions = {}) {
-    this._client = new WSClient(url, {
-      autoconnect: opts.autoConnect,
-      reconnect: opts.reconnect,
-      reconnect_interval: opts.reconnectInterval,
-      max_reconnects: opts.maxReconnects
-    })
+    this._client = new WSClient(
+      url,
+      {
+        autoconnect: opts.autoConnect,
+        reconnect: opts.reconnect,
+        reconnect_interval: opts.reconnectInterval,
+        max_reconnects: opts.maxReconnects
+      },
+      opts.generateRequestId || this._getNextRequestId
+    )
+  }
+
+  disconnect() {
+    this._client.close(0)
   }
 
   private _ensureConnectionAsync(): Promise<void> {
@@ -66,6 +77,7 @@ class RPCClient {
 
   async sendAsync<T>(method: string, params: object | any[]): Promise<T> {
     await this._ensureConnectionAsync()
+    console.log(`Sending RPC msg to ${this.url}, method ${method}`)
     return this._client.call<T>(method, params)
   }
 }
@@ -76,7 +88,7 @@ class RPCClient {
 export class Client {
   public readonly chainId: string
   private _writeClient: RPCClient
-  private _readClient: RPCClient
+  private _readClient!: RPCClient
 
   txMiddleware: ITxMiddlewareHandler[] = []
 
@@ -97,6 +109,13 @@ export class Client {
     }
   }
 
+  disconnect() {
+    this._writeClient.disconnect()
+    if (this._readClient && this._readClient != this._writeClient) {
+      this._readClient.disconnect()
+    }
+  }
+
   /**
    * Commits a transaction to the DAppChain.
    *
@@ -108,19 +127,18 @@ export class Client {
     for (let i = 0; i < this.txMiddleware.length; i++) {
       txBytes = await this.txMiddleware[i].Handle(txBytes)
     }
-    const payload = Uint8ArrayToB64(txBytes)
     const result = await this._writeClient.sendAsync<IBroadcastTxCommitResult>(
       'broadcast_tx_commit',
-      [payload]
+      [Uint8ArrayToB64(txBytes)]
     )
     if (result) {
-      if (result.check_tx.code != 0) {
+      if ((result.check_tx.code || 0) != 0) {
         if (!result.check_tx.log) {
           throw new Error(`Failed to commit Tx: ${result.check_tx.code}`)
         }
         throw new Error(`Failed to commit Tx: ${result.check_tx.log}`)
       }
-      if (result.deliver_tx.code != 0) {
+      if ((result.deliver_tx.code || 0) != 0) {
         if (!result.deliver_tx.log) {
           throw new Error(`Failed to commit Tx: ${result.deliver_tx.code}`)
         }
@@ -138,7 +156,7 @@ export class Client {
   async queryAsync(contract: Address, query?: Message): Promise<Uint8Array | void> {
     const result = await this._readClient.sendAsync<string>('query', {
       contract: contract.local.toString(),
-      query: query ? query.serializeBinary() : undefined
+      query: query ? Uint8ArrayToB64(query.serializeBinary()) : undefined
     })
     if (result) {
       return B64ToUint8Array(result)
