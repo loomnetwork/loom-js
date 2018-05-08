@@ -11,9 +11,15 @@
   "browser": "dist/loom.umd.js",
   "scripts": {
     "build": "tsc",
-    "build:browser": "webpack",
+    "build:browser": "tsc && webpack",
     "format": "prettier --write \"src/**/*.ts\"",
-    "test": "tsc && tape dist/tests/*.js",
+    "test": "yarn test:node && yarn test:browser",
+    "test:node": "yarn proto && tsc && tape dist/tests/*.js",
+    "test:node:win": "yarn proto:win && tsc && tape dist/tests/*.js",
+    "test:browser": "yarn proto && tsc && webpack --config webpack.test.config.js",
+    "test:browser:win": "yarn proto:win && tsc && webpack --config webpack.test.config.js",
+    "proto": "cd src && protoc --plugin=\"protoc-gen-ts=../node_modules/.bin/protoc-gen-ts.cmd\" --js_out=\"import_style=commonjs,binary:../dist/\" --ts_out=\".\" ./proto/loom.proto ./tests/tests.proto",
+    "proto:win": "cd src && protoc --plugin=\"protoc-gen-ts=..\\node_modules\\.bin\\protoc-gen-ts.cmd\" --js_out=\"import_style=commonjs,binary:..\\dist/\" --ts_out=\".\" ./proto/loom.proto ./tests/tests.proto"
   },
   "dependencies": {
     "crypto-browserify": "^3.12.0",
@@ -41,7 +47,8 @@
     "tslint-config-standard": "^7.0.0",
     "typescript": "^2.8.3",
     "webpack": "^4.6.0",
-    "webpack-cli": "^2.1.2"
+    "webpack-cli": "^2.1.2",
+    "webpack-tape-run": "^0.0.7"
   },
   "files": [
     "dist"
