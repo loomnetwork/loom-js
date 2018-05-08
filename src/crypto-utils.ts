@@ -63,10 +63,11 @@ export function B64ToUint8Array(s: string): Uint8Array {
 }
 
 export function bufferToProtobufBytes(input: Buffer | Uint8Array): Uint8Array {
-  // Buffer in Node is a Uint8Array, but someone broke it in Protobuf 3.4.0, so have to wait
-  // for https://github.com/google/protobuf/pull/4378 to make into a release (maybe 3.5.3)
+  // Buffer in Node is a Uint8Array, but someone broke a runtime type check in Protobuf 3.4.0,
+  // so Protobuf fails to serialize/deserialize Buffer(s). Have to wait for
+  // https://github.com/google/protobuf/pull/4378 to make into a release (maybe 3.5.3)
   // so that https://github.com/google/protobuf/issues/1319 is fixed... no one seems to be
   // in any rush to push out a new release though.
-  // In the meantime work around the issue by copying the Buffer into a plain Uint8Array
+  // In the meantime work around the issue by copying the Buffer into a plain Uint8Array:
   return (<any>input).constructor === Buffer ? new Uint8Array(input) : input
 }

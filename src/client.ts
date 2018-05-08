@@ -1,13 +1,12 @@
-import { Client as WSClient } from 'rpc-websockets'
 import { Message } from 'google-protobuf'
-// import wretch from 'wretch'
 
 import { ContractMethodCall } from './proto/loom_pb'
 import { Uint8ArrayToB64, B64ToUint8Array, bytesToHexAddr } from './crypto-utils'
 import { Address } from './address'
+import { WSRPCClient } from './internal/ws-rpc-client'
 
 interface ITxHandlerResult {
-  code: number
+  code?: number
   log?: string // error message if code != 0
   data?: string
 }
@@ -27,85 +26,31 @@ export interface ITxMiddlewareHandler {
   Handle(txData: Readonly<Uint8Array>): Promise<Uint8Array>
 }
 
-interface IRPCClientOptions {
-  autoConnect?: boolean
-  reconnect?: boolean
-  reconnectInterval?: number
-  maxReconnects?: number
-  generateRequestId?: (method: string, params: object | any[]) => string
-}
-
-class RPCClient {
-  private _client: WSClient
-  private _openPromise?: Promise<void>
-  private _rpcId: number = 0
-
-  private _getNextRequestId = () => (++this._rpcId).toString()
-
-  constructor(public url: string, opts: IRPCClientOptions = {}) {
-    this._client = new WSClient(
-      url,
-      {
-        autoconnect: opts.autoConnect,
-        reconnect: opts.reconnect,
-        reconnect_interval: opts.reconnectInterval,
-        max_reconnects: opts.maxReconnects
-      },
-      opts.generateRequestId || this._getNextRequestId
-    )
-  }
-
-  disconnect() {
-    this._client.close(0)
-  }
-
-  private _ensureConnectionAsync(): Promise<void> {
-    if (this._client.ready) {
-      return Promise.resolve()
-    }
-    if (!this._openPromise) {
-      this._openPromise = new Promise((resolve, reject) => {
-        this._client.on('open', () => resolve())
-        this._client.on('error', err => {
-          console.log(err)
-          reject(err)
-        })
-      })
-    }
-    return this._openPromise
-  }
-
-  async sendAsync<T>(method: string, params: object | any[]): Promise<T> {
-    await this._ensureConnectionAsync()
-    console.log(`Sending RPC msg to ${this.url}, method ${method}`)
-    return this._client.call<T>(method, params)
-  }
-}
-
 /**
  * Writes to & reads from a Loom DAppChain.
  */
 export class Client {
   public readonly chainId: string
-  private _writeClient: RPCClient
-  private _readClient!: RPCClient
+  private _writeClient: WSRPCClient
+  private _readClient!: WSRPCClient
 
+  // Middleware to apply to transactions before they are transmitted to the DAppChain.
   txMiddleware: ITxMiddlewareHandler[] = []
 
   /**
    * Constructs a new client to read & write data from/to a Loom DAppChain.
    * @param chainId DAppChain identifier.
-   * @param writeUrl Host & port to send txs, specified as "<protocoL>://<host>:<port>".
+   * @param writeUrl Host & port to send txs, specified as "<protocol>://<host>:<port>".
    * @param readUrl Host & port of the DAppChain read/query interface.
    */
   constructor(chainId: string, writeUrl: string, readUrl?: string) {
     this.chainId = chainId
     // TODO: basic validation of the URIs to ensure they have all required components.
-    this._writeClient = new RPCClient(writeUrl)
+    this._writeClient = new WSRPCClient(writeUrl)
     if (!readUrl || writeUrl === readUrl) {
       this._readClient = this._writeClient
     } else {
-      this._readClient = new RPCClient(readUrl)
+      this._readClient = new WSRPCClient(readUrl)
     }
   }
 
@@ -118,6 +63,8 @@ export class Client {
 
   /**
    * Commits a transaction to the DAppChain.
+   *
+   * Consider using Contract.callAsync() instead.
    *
    * @param tx Transaction to commit.
    * @returns Result (if any) returned by the tx handler in the contract that processed the tx.
@@ -152,6 +99,8 @@ export class Client {
 
   /**
    * Queries the current state of a contract.
+   *
+   * Consider using Contract.staticCallAsync() instead.
    */
   async queryAsync(contract: Address, query?: Message): Promise<Uint8Array | void> {
     const result = await this._readClient.sendAsync<string>('query', {
@@ -165,6 +114,8 @@ export class Client {
 
   /**
    * Gets a nonce for the given public key.
+   *
+   * This should only be called by NonceTxMiddleware.
    *
    * @param key A hex encoded public key.
    * @return The nonce.
