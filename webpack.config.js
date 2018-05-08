@@ -1,3 +1,5 @@
+// This config is used for the browser build of loom-js.
+
 const path = require('path');
 
 module.exports = {
