@@ -18,7 +18,7 @@
     "test:node:win": "yarn proto:win && tsc && tape dist/tests/*.js",
     "test:browser": "yarn proto && tsc && webpack --config webpack.test.config.js",
     "test:browser:win": "yarn proto:win && tsc && webpack --config webpack.test.config.js",
-    "proto": "cd src && protoc --plugin=\"protoc-gen-ts=../node_modules/.bin/protoc-gen-ts.cmd\" --js_out=\"import_style=commonjs,binary:../dist/\" --ts_out=\".\" ./proto/loom.proto ./tests/tests.proto",
+    "proto": "cd src && protoc --plugin=\"protoc-gen-ts=../node_modules/.bin/protoc-gen-ts\" --js_out=\"import_style=commonjs,binary:../dist/\" --ts_out=\".\" ./proto/loom.proto ./tests/tests.proto",
     "proto:win": "cd src && protoc --plugin=\"protoc-gen-ts=..\\node_modules\\.bin\\protoc-gen-ts.cmd\" --js_out=\"import_style=commonjs,binary:..\\dist/\" --ts_out=\".\" ./proto/loom.proto ./tests/tests.proto"
   },
   "dependencies": {
