@@ -4,8 +4,6 @@ JS library for building browser apps & NodeJS services that interact with Loom D
 
 This is currently in private beta, please join our Telegram to find out more [https://t.me/loomnetwork](https://t.me/loomnetwork)
 
-NOTE: Vault key store functionality currently only works in browsers (this will be fixed soon).
-
 ## Install
 
 TBD: npm/yarn/CDN instructions
