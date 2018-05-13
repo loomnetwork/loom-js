@@ -50,8 +50,5 @@
     "webpack-cli": "^2.1.2",
     "webpack-tape-run": "^0.0.7"
   },
-  "files": [
-    "dist"
-  ],
   "browserslist": "last 2 versions"
 }

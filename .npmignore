@@ -1,0 +1,14 @@
+/.vscode/
+/dist/tests/
+/dist/browser_tests.js
+/src/
+.babelrc
+.editorconfig
+.prettierignore
+.prettierrc
+tsconfig.json
+tslint.json
+webpack.config.js
+webpack.test.config.js
+yarn-error.log
+yarn.lock
