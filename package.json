@@ -26,8 +26,7 @@
     "google-protobuf": "^3.5.0",
     "ripemd160": "^2.0.1",
     "rpc-websockets": "^3.6.1",
-    "tweetnacl": "^1.0.0",
-    "wretch": "^1.1.2"
+    "tweetnacl": "^1.0.0"
   },
   "devDependencies": {
     "@babel/core": "^7.0.0-beta.46",
