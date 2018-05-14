@@ -1,0 +1,16 @@
+syntax = "proto3";
+
+message EthTransaction {
+	uint32 version = 1;
+	bytes data = 2;
+}
+
+message EthCall {
+	uint32 version = 1;
+	bytes data = 2;
+}
+
+message EthCallResult {
+    uint32 version = 1;
+    bytes data = 2;
+}
