@@ -28,8 +28,7 @@ test('Contract Calls', async t => {
       contractAddr,
       contractName: 'helloworld',
       callerAddr,
-      client,
-      vmType: VMType.PLUGIN
+      client
     })
 
     const value = '456'

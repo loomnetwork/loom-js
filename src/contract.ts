@@ -41,13 +41,13 @@ export class Contract {
     contractName: string
     callerAddr: Address
     client: Client
-    vmType: VMType
+    vmType?: VMType
   }) {
     this._client = params.client
     this.name = params.contractName
     this.address = params.contractAddr
     this.caller = params.callerAddr
-    this.vmType = params.vmType
+    this.vmType = params.vmType || VMType.PLUGIN
   }
 
   /**
