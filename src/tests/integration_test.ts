@@ -6,6 +6,7 @@ import { Client } from '../client'
 import { generatePrivateKey, publicKeyFromPrivateKey } from '../crypto-utils'
 import { NonceTxMiddleware, SignedTxMiddleware } from '../middleware'
 import { Dummy, HelloRequest, HelloResponse } from './tests_pb'
+import { VMType } from '../proto/loom_pb'
 
 test('Contract Calls', async t => {
   try {
@@ -23,7 +24,13 @@ test('Contract Calls', async t => {
       LocalAddress.fromHexString('0x005B17864f3adbF53b1384F2E6f2120c6652F779')
     )
     const callerAddr = new Address(client.chainId, LocalAddress.fromPublicKey(pubKey))
-    const contract = new Contract({ contractAddr, contractName: 'helloworld', callerAddr, client })
+    const contract = new Contract({
+      contractAddr,
+      contractName: 'helloworld',
+      callerAddr,
+      client,
+      vmType: VMType.PLUGIN
+    })
 
     const value = '456'
     const msg = new Dummy()
