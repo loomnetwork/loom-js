@@ -25,6 +25,7 @@ export class Contract {
   name: string
   address: Address
   caller: Address
+  vmType: VMType
 
   /**
    * @param params Parameters.
@@ -33,17 +34,20 @@ export class Contract {
    * @param params.callerAddr: Address of the caller, generated from the public key of the tx signer,
    *                           e.g. `new Address(client.chainId, LocalAddress.fromPublicKey(pubKey))`
    * @param params.client: Client to use to communicate with the contract.
+   * @param params.vmType: Which virtual machine to use. Plugin or Evm.
    */
   constructor(params: {
     contractAddr: Address
     contractName: string
     callerAddr: Address
     client: Client
+    vmType: VMType
   }) {
     this._client = params.client
     this.name = params.contractName
     this.address = params.contractAddr
     this.caller = params.callerAddr
+    this.vmType = params.vmType
   }
 
   /**
@@ -68,7 +72,7 @@ export class Contract {
     request.setBody(methodTx.serializeBinary())
 
     const callTx = new CallTx()
-    callTx.setVmType(VMType.PLUGIN)
+    callTx.setVmType(this.vmType)
     callTx.setInput(request.serializeBinary())
 
     const msgTx = new MessageTx()
