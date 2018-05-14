@@ -9,7 +9,8 @@ import {
   MessageTx,
   Transaction,
   CallTx,
-  VMType
+  VMType,
+  Response
 } from './proto/loom_pb'
 import { Address } from './address'
 import { bufferToProtobufBytes } from './crypto-utils'
@@ -82,11 +83,9 @@ export class Contract {
 
     const result = await this._client.commitTxAsync<Transaction>(tx)
     if (result && output) {
+      const resp = Response.deserializeBinary(bufferToProtobufBytes(result))
       const msgClass = (<any>output).constructor as typeof Message
-      Message.copyInto(
-        msgClass.deserializeBinary(bufferToProtobufBytes(result)),
-        output as Message
-      )
+      Message.copyInto(msgClass.deserializeBinary(resp.getBody_asU8()), output as Message)
     }
     return output
   }

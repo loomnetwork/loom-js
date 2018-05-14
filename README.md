@@ -6,7 +6,20 @@ This is currently in private beta, please join our Telegram to find out more [ht
 
 ## Install
 
-TBD: npm/yarn/CDN instructions
+### NodeJS
+
+```
+# NPM
+npm install loom-js
+# Yarn
+yarn add loom-js
+```
+
+### Browser
+
+```html
+<script src="https://cdn.jsdelivr.net/npm/loom-js@1.0.0/dist/loom.umd.js"></script>
+```
 
 ## Development
 

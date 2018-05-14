@@ -1,11 +1,11 @@
 {
-  "name": "loom",
+  "name": "loom-js",
   "description": "NodeJS & browser client for Loom DAppChains.",
   "author": {
     "name": "Loom Network",
     "url": "https://loomx.io"
   },
-  "version": "1.0.0",
+  "version": "1.0.1",
   "license": "SEE LICENSE IN License.md",
   "main": "dist/index.js",
   "browser": "dist/loom.umd.js",
