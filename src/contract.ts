@@ -26,7 +26,6 @@ export class Contract {
   name: string
   address: Address
   caller: Address
-  vmType: VMType
 
   /**
    * @param params Parameters.
@@ -42,13 +41,11 @@ export class Contract {
     contractName: string
     callerAddr: Address
     client: Client
-    vmType?: VMType
   }) {
     this._client = params.client
     this.name = params.contractName
     this.address = params.contractAddr
     this.caller = params.callerAddr
-    this.vmType = params.vmType || VMType.PLUGIN
   }
 
   /**
@@ -73,7 +70,7 @@ export class Contract {
     request.setBody(methodTx.serializeBinary())
 
     const callTx = new CallTx()
-    callTx.setVmType(this.vmType)
+    callTx.setVmType(VMType.PLUGIN)
     callTx.setInput(request.serializeBinary())
 
     const msgTx = new MessageTx()
@@ -89,10 +86,7 @@ export class Contract {
     if (result && output) {
       const resp = Response.deserializeBinary(bufferToProtobufBytes(result))
       const msgClass = (<any>output).constructor as typeof Message
-      Message.copyInto(
-        msgClass.deserializeBinary(resp.getBody_asU8()),
-        output as Message
-      )
+      Message.copyInto(msgClass.deserializeBinary(resp.getBody_asU8()), output as Message)
     }
     return output
   }
