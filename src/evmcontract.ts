@@ -24,7 +24,6 @@ export class EvmContract {
    * @param params.callerAddr: Address of the caller, generated from the public key of the tx signer,
    *                           e.g. `new Address(client.chainId, LocalAddress.fromPublicKey(pubKey))`
    * @param params.client: Client to use to communicate with the contract.
-   * @param params.vmType: Which virtual machine to use. Plugin or Evm.
    */
   constructor(params: { contractAddr: Address; callerAddr: Address; client: Client }) {
     this._client = params.client
