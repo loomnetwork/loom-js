@@ -5,7 +5,7 @@ import { Address, LocalAddress } from '../address'
 import { Client } from '../client'
 import { generatePrivateKey, publicKeyFromPrivateKey } from '../crypto-utils'
 import { NonceTxMiddleware, SignedTxMiddleware } from '../middleware'
-import { Dummy, HelloRequest, HelloResponse } from './tests_pb'
+import { MapEntry, HelloRequest, HelloResponse } from './tests_pb'
 import { VMType } from '../proto/loom_pb'
 
 test('Contract Calls', async t => {
@@ -33,12 +33,12 @@ test('Contract Calls', async t => {
 
     const msgKey = '123'
     const msgValue = '456'
-    const msg = new Dummy()
+    const msg = new MapEntry()
     msg.setKey(msgKey)
     msg.setValue(msgValue)
     await contract.callAsync<void>('SetMsg', msg)
 
-    const retVal = await contract.callAsync<Dummy>('SetMsgEcho', msg, new Dummy())
+    const retVal = await contract.callAsync<MapEntry>('SetMsgEcho', msg, new MapEntry())
     t.ok(retVal, 'Value must be returned from helloworld.SetMsgEcho')
     if (retVal) {
       t.equal(retVal.getKey(), msgKey, 'Key must match the one that was sent')
@@ -46,7 +46,7 @@ test('Contract Calls', async t => {
     }
 
     msg.setValue('')
-    const result = await contract.staticCallAsync<Dummy>('GetMsg', msg, new Dummy())
+    const result = await contract.staticCallAsync<MapEntry>('GetMsg', msg, new MapEntry())
     t.ok(result, 'Value must be returned from helloworld.GetMsg')
     if (result) {
       t.equal(result.getValue(), msgValue, 'Query result must match previously set value')
