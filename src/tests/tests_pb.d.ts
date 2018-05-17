@@ -3,7 +3,7 @@
 
 import * as jspb from "google-protobuf";
 
-export class Dummy extends jspb.Message {
+export class MapEntry extends jspb.Message {
   getKey(): string;
   setKey(value: string): void;
 
@@ -11,16 +11,16 @@ export class Dummy extends jspb.Message {
   setValue(value: string): void;
 
   serializeBinary(): Uint8Array;
-  toObject(includeInstance?: boolean): Dummy.AsObject;
-  static toObject(includeInstance: boolean, msg: Dummy): Dummy.AsObject;
+  toObject(includeInstance?: boolean): MapEntry.AsObject;
+  static toObject(includeInstance: boolean, msg: MapEntry): MapEntry.AsObject;
   static extensions: {[key: number]: jspb.ExtensionFieldInfo<jspb.Message>};
   static extensionsBinary: {[key: number]: jspb.ExtensionFieldBinaryInfo<jspb.Message>};
-  static serializeBinaryToWriter(message: Dummy, writer: jspb.BinaryWriter): void;
-  static deserializeBinary(bytes: Uint8Array): Dummy;
-  static deserializeBinaryFromReader(message: Dummy, reader: jspb.BinaryReader): Dummy;
+  static serializeBinaryToWriter(message: MapEntry, writer: jspb.BinaryWriter): void;
+  static deserializeBinary(bytes: Uint8Array): MapEntry;
+  static deserializeBinaryFromReader(message: MapEntry, reader: jspb.BinaryReader): MapEntry;
 }
 
-export namespace Dummy {
+export namespace MapEntry {
   export type AsObject = {
     key: string,
     value: string,
