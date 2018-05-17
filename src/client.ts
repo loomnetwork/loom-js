@@ -1,6 +1,6 @@
 import { Message } from 'google-protobuf'
 
-import { ContractMethodCall } from './proto/loom_pb'
+import { ContractMethodCall, VMType } from './proto/loom_pb'
 import { Uint8ArrayToB64, B64ToUint8Array, bytesToHexAddr } from './crypto-utils'
 import { Address } from './address'
 import { WSRPCClient } from './internal/ws-rpc-client'
@@ -105,7 +105,24 @@ export class Client {
   async queryAsync(contract: Address, query?: Message): Promise<Uint8Array | void> {
     const result = await this._readClient.sendAsync<string>('query', {
       contract: contract.local.toString(),
-      query: query ? Uint8ArrayToB64(query.serializeBinary()) : undefined
+      query: query ? Uint8ArrayToB64(query.serializeBinary()) : undefined,
+      vmType: VMType.PLUGIN
+    })
+    if (result) {
+      return B64ToUint8Array(result)
+    }
+  }
+
+  /**
+   * Queries the current state of a contract deployed on an EVM.
+   *
+   * Consider using Contract.staticCallAsync() instead.
+   */
+  async queryAsyncEVM(contract: Address, query?: Uint8Array): Promise<Uint8Array | void> {
+    const result = await this._readClient.sendAsync<string>('query', {
+      contract: contract.local.toString(),
+      query: query ? Uint8ArrayToB64(query) : undefined,
+      vmType: VMType.EVM
     })
     if (result) {
       return B64ToUint8Array(result)
