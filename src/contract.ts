@@ -23,7 +23,7 @@ import { bufferToProtobufBytes } from './crypto-utils'
 export class Contract {
   private _client: Client
 
-  name: string
+  name?: string
   address: Address
   caller: Address
 
@@ -37,7 +37,7 @@ export class Contract {
    */
   constructor(params: {
     contractAddr: Address
-    contractName: string
+    contractName?: string
     callerAddr: Address
     client: Client
   }) {
@@ -60,7 +60,7 @@ export class Contract {
     output?: T
   ): Promise<T | void> {
     const methodTx = new ContractMethodCall()
-    methodTx.setMethod(`${this.name}.${method}`)
+    methodTx.setMethod(method)
     methodTx.setArgs(args.serializeBinary())
 
     const request = new Request()
@@ -99,7 +99,7 @@ export class Contract {
    */
   async staticCallAsync<T extends Message>(method: string, args: Message, output: T): Promise<T> {
     const query = new ContractMethodCall()
-    query.setMethod(`${this.name}.${method}`)
+    query.setMethod(method)
     query.setArgs(args.serializeBinary())
     const result = await this._client.queryAsync(this.address, query)
     if (result && output) {
