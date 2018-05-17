@@ -6,7 +6,7 @@
     "url": "https://loomx.io"
   },
   "version": "1.0.1",
-  "license": "SEE LICENSE IN License.md",
+  "license": "BSD-3-Clause",
   "main": "dist/index.js",
   "browser": "dist/loom.umd.js",
   "scripts": {
