@@ -1,4 +1,4 @@
-import { EvmContract } from './evmcontract'
+import { EvmContract } from './evm-contract'
 import { Transaction } from './proto/loom_pb'
 
 /**
