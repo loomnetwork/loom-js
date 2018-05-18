@@ -19,17 +19,13 @@ test('Contract Calls', async t => {
     )
     client.txMiddleware = [new NonceTxMiddleware(pubKey, client), new SignedTxMiddleware(privKey)]
 
-    const contractAddr = new Address(
-      client.chainId,
-      LocalAddress.fromHexString('0x005B17864f3adbF53b1384F2E6f2120c6652F779')
-    )
+    const contractAddr = await client.getContractAddressAsync('BluePrint')
+    if (!contractAddr) {
+      t.fail('Failed to resolve contract address')
+      return
+    }
     const callerAddr = new Address(client.chainId, LocalAddress.fromPublicKey(pubKey))
-    const contract = new Contract({
-      contractAddr,
-      contractName: 'helloworld',
-      callerAddr,
-      client
-    })
+    const contract = new Contract({ contractAddr, callerAddr, client })
 
     const msgKey = '123'
     const msgValue = '456'
