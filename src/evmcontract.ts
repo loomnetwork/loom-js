@@ -37,10 +37,11 @@ export class EvmContract {
    * @param args ABI encoded function signature and input paramters.
    * @returns A promise that will be resolved with return value (if any) of the contract method.
    */
-  async callAsync<T extends Message | void>(args: Message, output?: T): Promise<T | void> {
+
+  async callAsync<T extends Message | void>(args: string, output?: T): Promise<T | void> {
     const callTx = new CallTx()
-    callTx.setVmType(VMType.PLUGIN)
-    callTx.setInput(args.serializeBinary())
+    callTx.setVmType(VMType.EVM)
+    callTx.setInput(new Uint8Array([].map.call(args, (x: string) => x.charCodeAt(0))))
 
     const msgTx = new MessageTx()
     msgTx.setFrom(this.caller.MarshalPB())
