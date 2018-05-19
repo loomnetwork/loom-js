@@ -1,10 +1,8 @@
 import { Message } from 'google-protobuf'
-import { Any } from 'google-protobuf/google/protobuf/any_pb'
 
 import { Client } from './client'
-import { MessageTx, Transaction, CallTx, VMType, Response } from './proto/loom_pb'
+import { CallTx, MessageTx, Transaction, VMType } from './proto/loom_pb'
 import { Address } from './address'
-import { bufferToProtobufBytes } from './crypto-utils'
 
 /**
  * The EvmContract class streamlines interaction with a contract that was
@@ -37,11 +35,11 @@ export class EvmContract {
    * @param args ABI encoded function signature and input paramters.
    * @returns A promise that will be resolved with return value (if any) of the contract method.
    */
-
-  async callAsync<T extends Message | void>(args: string, output?: T): Promise<T | void> {
+  async callAsync(args: number[], output?: Uint8Array): Promise<Uint8Array | void> {
+    const ui8InData = Uint8Array.from(args)
     const callTx = new CallTx()
     callTx.setVmType(VMType.EVM)
-    callTx.setInput(new Uint8Array([].map.call(args, (x: string) => x.charCodeAt(0))))
+    callTx.setInput(ui8InData)
 
     const msgTx = new MessageTx()
     msgTx.setFrom(this.caller.MarshalPB())
@@ -52,12 +50,16 @@ export class EvmContract {
     tx.setId(2)
     tx.setData(msgTx.serializeBinary())
 
-    const result = await this._client.commitTxAsync<Transaction>(tx)
-    if (result && output) {
-      const resp = Response.deserializeBinary(bufferToProtobufBytes(result))
-      const msgClass = (<any>output).constructor as typeof Message
-      Message.copyInto(msgClass.deserializeBinary(resp.getBody_asU8()), output as Message)
-    }
-    return output
+    return this._client.commitTxAsync<Transaction>(tx)
+  }
+  /**
+   * Calls a method of a contract running on an EVM that doesn't mutate state.
+   * This method is usually used to query the current contract state, it doesn't commit any txs.
+   * @param args ABI encoded function signature and input paramters.
+   * @returns A promise that will be resolved with the return value of the contract method.
+   */
+  async staticCallAsync(args: number[], output?: Uint8Array): Promise<Uint8Array | void> {
+    const ui8InData = Uint8Array.from(args)
+    return this._client.queryAsync(this.address, ui8InData, VMType.EVM)
   }
 }

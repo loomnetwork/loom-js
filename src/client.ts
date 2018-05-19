@@ -1,6 +1,6 @@
 import { Message } from 'google-protobuf'
 
-import { ContractMethodCall } from './proto/loom_pb'
+import { ContractMethodCall, VMType } from './proto/loom_pb'
 import { Uint8ArrayToB64, B64ToUint8Array, bytesToHexAddr } from './crypto-utils'
 import { Address } from './address'
 import { WSRPCClient } from './internal/ws-rpc-client'
@@ -102,10 +102,15 @@ export class Client {
    *
    * Consider using Contract.staticCallAsync() instead.
    */
-  async queryAsync(contract: Address, query?: Message): Promise<Uint8Array | void> {
+  async queryAsync(
+    contract: Address,
+    query?: Uint8Array,
+    vmType: VMType = VMType.PLUGIN
+  ): Promise<Uint8Array | void> {
     const result = await this._readClient.sendAsync<string>('query', {
       contract: contract.local.toString(),
-      query: query ? Uint8ArrayToB64(query.serializeBinary()) : undefined
+      query: query ? Uint8ArrayToB64(query) : undefined,
+      vmType: vmType
     })
     if (result) {
       return B64ToUint8Array(result)
