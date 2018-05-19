@@ -123,4 +123,18 @@ export class Client {
   getNonceAsync(key: string): Promise<number> {
     return this._readClient.sendAsync<number>('nonce', { key })
   }
+
+  /**
+   * Tries to resolve a contract name to an address.
+   *
+   * @param contractName Name of a smart contract on a Loom DAppChain.
+   * @returns Contract address, or null if a contract matching the given name wasn't found.
+   */
+  async getContractAddressAsync(contractName: string): Promise<Address | null> {
+    const addrStr = await this._readClient.sendAsync<string>('resolve', { name: contractName })
+    if (!addrStr) {
+      return null
+    }
+    return Address.fromString(addrStr)
+  }
 }
