@@ -28,18 +28,26 @@ yarn add loom-js
 yarn build
 # build for Browser
 yarn build:browser
-# run tests on Node & Browser
+# run unit tests on Node & Browser
 yarn test
 # auto-format source files
 yarn format
-# run tests in Node
+# run unit tests in Node
 yarn test:node
 # same as above but on Windows
 yarn test:node:win
-# run tests in Electon
+# run unit tests in Electon
 yarn test:browser
 # same as above but on Windows
 yarn test:browser:win
+# run e2e test in Node (local DAppChain node must be running first)
+yarn e2e:node
+# same as above but on Windows
+yarn e2e:node:win
+# run e2e test in Electron (local DAppChain node must be running first)
+yarn e2e:browser
+# same as above but on Windows
+yarn e2e:browser:win
 ```
 
 ### Regenerating Protobufs
