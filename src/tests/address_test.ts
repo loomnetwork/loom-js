@@ -13,7 +13,11 @@ test('Address', t => {
     t.equal(addr.chainId, chainId, 'Address.fromString() returns correct chain ID')
     t.deepEqual(addr.local, localAddr, 'Address.fromString() returns correct bytes')
     // TODO: make this a case sensitive comparison
-    t.equal(addr.toString(), addrStr.toLowerCase(), 'Address.toString() formats the address correctly')
+    t.equal(
+      addr.toString(),
+      addrStr.toLowerCase(),
+      'Address.toString() formats the address correctly'
+    )
   } catch (err) {
     console.log(err)
   }

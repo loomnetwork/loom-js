@@ -70,13 +70,11 @@ export class Address {
    * Converts a string to an address.
    * @param address String representation of an address, in the format "chain:0x...".
    */
-  static fromString(address: string): Address
-  {
-    const parts = address.split(':');
-    if (parts.length != 2)
-    {
-        throw new Error("Invalid address string");
+  static fromString(address: string): Address {
+    const parts = address.split(':')
+    if (parts.length != 2) {
+      throw new Error('Invalid address string')
     }
-    return new Address(parts[0], LocalAddress.fromHexString(parts[1]));
+    return new Address(parts[0], LocalAddress.fromHexString(parts[1]))
   }
 }
