@@ -1,17 +1,8 @@
 import { Message } from 'google-protobuf'
-import { Any } from 'google-protobuf/google/protobuf/any_pb'
 
 import { Client } from './client'
-import {
-  MessageTx,
-  Transaction,
-  CallTx,
-  VMType,
-  Response,
-  ContractMethodCall
-} from './proto/loom_pb'
+import { CallTx, MessageTx, Transaction, VMType } from './proto/loom_pb'
 import { Address } from './address'
-import { bufferToProtobufBytes } from './crypto-utils'
 
 /**
  * The EvmContract class streamlines interaction with a contract that was
@@ -69,6 +60,6 @@ export class EvmContract {
    */
   async staticCallAsync<T extends Message>(args: number[]): Promise<Uint8Array | void> {
     const ui8InData = Uint8Array.from(args)
-    return this._client.queryAsyncEVM(this.address, ui8InData)
+    return this._client.queryAsync(this.address, ui8InData, VMType.EVM)
   }
 }

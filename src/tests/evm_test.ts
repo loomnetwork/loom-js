@@ -5,7 +5,6 @@ import { Address, LocalAddress } from '../address'
 import { Client } from '../client'
 import { generatePrivateKey, publicKeyFromPrivateKey } from '../crypto-utils'
 import { NonceTxMiddleware, SignedTxMiddleware } from '../middleware'
-import { types } from 'util'
 
 test('Contract Calls', async t => {
   try {
@@ -20,7 +19,7 @@ test('Contract Calls', async t => {
 
     const contractAddr = new Address(
       client.chainId,
-      LocalAddress.fromHexString('0xbD770416A3345f91E4b34576Cb804a576Fa48eB1')
+      LocalAddress.fromHexString('0x4Dd841b5B4F69507C7E93ca23D2A72c7f28217a8')
     )
     const callerAddr = new Address(client.chainId, LocalAddress.fromPublicKey(pubKey))
     const evmContract = new EvmContract({
@@ -68,8 +67,20 @@ test('Contract Calls', async t => {
       219
     ]
     const inputGetArray: number[] = [109, 76, 230, 60]
+    const numRepeats = 10
+    let results: Uint8Array[] = []
 
-    const rtv = await evmContract.callAsync(inputSet987Array)
+    for (let i = 0; i < numRepeats; i++) {
+      let rtv = await evmContract.callAsync(inputSet987Array)
+      if (rtv) {
+        for (let result of results) {
+          t.notDeepEqual(result, rtv, 'A different tx hash sould be returned' + ' each time')
+        }
+        results.push(rtv)
+      } else {
+        t.fail('Should return a tx hash, check loomchain is running')
+      }
+    }
 
     const retVal = await evmContract.staticCallAsync(inputGetArray)
 

@@ -102,27 +102,16 @@ export class Client {
    *
    * Consider using Contract.staticCallAsync() instead.
    */
-  async queryAsync(contract: Address, query?: Message): Promise<Uint8Array | void> {
-    const result = await this._readClient.sendAsync<string>('query', {
-      contract: contract.local.toString(),
-      query: query ? Uint8ArrayToB64(query.serializeBinary()) : undefined,
-      vmType: VMType.PLUGIN
-    })
-    if (result) {
-      return B64ToUint8Array(result)
-    }
-  }
 
-  /**
-   * Queries the current state of a contract deployed on an EVM.
-   *
-   * Consider using Contract.staticCallAsync() instead.
-   */
-  async queryAsyncEVM(contract: Address, query?: Uint8Array): Promise<Uint8Array | void> {
+  async queryAsync(
+    contract: Address,
+    query?: Uint8Array,
+    vmType: VMType = VMType.PLUGIN
+  ): Promise<Uint8Array | void> {
     const result = await this._readClient.sendAsync<string>('query', {
       contract: contract.local.toString(),
       query: query ? Uint8ArrayToB64(query) : undefined,
-      vmType: VMType.EVM
+      vmType: vmType
     })
     if (result) {
       return B64ToUint8Array(result)

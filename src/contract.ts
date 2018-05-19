@@ -101,7 +101,11 @@ export class Contract {
     const query = new ContractMethodCall()
     query.setMethod(`${this.name}.${method}`)
     query.setArgs(args.serializeBinary())
-    const result = await this._client.queryAsync(this.address, query)
+    const result = await this._client.queryAsync(
+      this.address,
+      query.serializeBinary(),
+      VMType.PLUGIN
+    )
     if (result && output) {
       const msgClass = (<any>output).constructor as typeof Message
       Message.copyInto(msgClass.deserializeBinary(bufferToProtobufBytes(result)), output)
