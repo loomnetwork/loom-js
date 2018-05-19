@@ -22,6 +22,8 @@
     "e2e:node:win": "yarn proto:win && tsc && tape dist/tests/integration_test.js",
     "e2e:browser": "yarn proto && tsc && webpack --config webpack.e2e.test.config.js",
     "e2e:browser:win": "yarn proto:win && tsc && webpack --config webpack.e2e.test.config.js",
+    "proto": "cd src && protoc --plugin=\"protoc-gen-ts=../node_modules/.bin/protoc-gen-ts\" --js_out=\"import_style=commonjs,binary:../dist/\" --ts_out=\".\" ./proto/loom.proto ./tests/tests.proto",
+    "proto:win": "cd src && protoc --plugin=\"protoc-gen-ts=..\\node_modules\\.bin\\protoc-gen-ts.cmd\" --js_out=\"import_style=commonjs,binary:..\\dist/\" --ts_out=\".\" ./proto/loom.proto ./tests/tests.proto"
   },
   "dependencies": {
     "crypto-browserify": "^3.12.0",
