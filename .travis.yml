@@ -1,10 +1,4 @@
 language: node_js
-sudo: required
-addons:
-  apt:
-    packages:
-    - unzip
-    - curl
 before_install:
 - yarn install
 script:
