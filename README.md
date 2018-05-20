@@ -1,4 +1,4 @@
-# [Loom.js](https://loomx.io)
+# [Loom.js](https://loomx.io) [![Build Status](https://travis-ci.org/loomnetwork/loom-js.svg?branch=master)](https://travis-ci.org/loomnetwork/loom-js)
 
 JS library for building browser apps & NodeJS services that interact with Loom DAppChains.
 
