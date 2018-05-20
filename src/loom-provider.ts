@@ -13,11 +13,13 @@ export class LoomProvider {
   constructor(protected contract: EvmContract) {}
 
   _callAsync(data: string): Promise<any> {
-    return this.contract.callAsync<void>(data)
+    //return this.contract.callAsync<void>(data)
+    return Promise.reject(Error('Not implemented'))
   }
 
   _callStaticAsync(data: string): Promise<any> {
-    return this.contract.callAsync<Transaction>(data, new Transaction())
+    //return this.contract.callAsync<Transaction>(data, new Transaction())
+    return Promise.reject(Error('Not implemented'))
   }
 
   // Basic response to web3js
