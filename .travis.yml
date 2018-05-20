@@ -1,6 +1,6 @@
 language: node_js
 before_install:
-- yarn install
+- "./.travis_before_install.sh"
 script:
 - yarn test
 node_js:
