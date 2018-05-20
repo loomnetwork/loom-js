@@ -19,5 +19,3 @@ sudo mv protoc3/bin/* /usr/local/bin/
 
 # Move protoc3/include to /usr/local/include/
 sudo mv protoc3/include/* /usr/local/include/
-
-c
