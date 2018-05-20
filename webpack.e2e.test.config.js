@@ -5,14 +5,14 @@ const WebpackTapeRun = require('webpack-tape-run');
 
 module.exports = {
   mode: 'production',
-  entry: './dist/tests/integration_test.js',
+  entry: './dist/tests/e2e_tests.js',
   output: {
     path: path.resolve(__dirname, './dist'),
-    filename: 'browser_tests.js',
+    filename: 'browser_e2e_tests.js',
     libraryTarget: 'umd',
     globalObject: 'this',
     // libraryExport: 'default',
-    library: 'loom_tests'
+    library: 'loom_e2e_tests'
   },
   node: {
     fs: 'empty',
