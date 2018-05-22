@@ -1,5 +1,7 @@
-import { EvmContract } from './evm-contract'
-import { Transaction } from './proto/loom_pb'
+import { Client } from './client'
+import { CallTx, MessageTx, Transaction, VMType } from './proto/loom_pb'
+import { Address, LocalAddress } from './address'
+
 
 /**
  * The provider manages the web3 calls to a endpoint, however the LoomProvider
@@ -7,24 +9,23 @@ import { Transaction } from './proto/loom_pb'
  * into a Loom call for a Loom Contract
  */
 export class LoomProvider {
+  // Satisfy the provider requirement
+  public responseCallbacks: any = null
+  public notificationCallbacks: any = null
+  public connection: any = null
+  public addDefaultEvents: any = null
+  public on: any = null
+  public removeListener: any = null
+  public removeAllListeners: any = null
+  public reset: any = null
+
+  private _client: Client
+
   /**
-   * @param contract: The contract which wraps an ethereum EVM
+   * @param client: The client which calls Ethereum EVM
    */
-  constructor(protected contract: EvmContract) {}
-
-  _callAsync(data: string): Promise<any> {
-    //return this.contract.callAsync<void>(data)
-    return Promise.reject(Error('Not implemented'))
-  }
-
-  _callStaticAsync(data: string): Promise<any> {
-    //return this.contract.callAsync<Transaction>(data, new Transaction())
-    return Promise.reject(Error('Not implemented'))
-  }
-
-  // Basic response to web3js
-  _okResponse(result: any = 0): any {
-    return { id: 0, jsonrpc: '2.0', result: [result] }
+  constructor(client: Client) {
+    this._client = client
   }
 
   /**
@@ -52,15 +53,15 @@ export class LoomProvider {
 
     // Sending transaction to Loom DAppChain
     else if (payload.method === 'eth_sendTransaction') {
-      this._callAsync(payload.params[0].data)
+      this._callAsync(payload.params[0])
         .then((result: any) => callback(null, this._okResponse()))
         .catch((err: Error) => callback(err, null))
     }
 
     // Sending a static call to Loom DAppChain
     else if (payload.method === 'eth_call') {
-      this._callStaticAsync(payload.params[0].data)
-        .then((result: Transaction) => callback(null, this._okResponse(result.getData())))
+      this._callStaticAsync(payload.params[0])
+        .then((result: any) => callback(null, this._okResponse(this._Uint8ArrayToHexString(result))))
         .catch((err: Error) => callback(err, null))
     }
 
@@ -90,5 +91,49 @@ export class LoomProvider {
     }
 
     if (ret) callback(null, ret)
+  }
+
+  protected _callAsync(payload: any): Promise<any> {
+    const caller = new Address(this._client.chainId, LocalAddress.fromHexString(payload.from))
+    const address = new Address(this._client.chainId, LocalAddress.fromHexString(payload.to))
+    const ui8InData = this._hexStringToUint8Array(payload.data.substring(2))
+
+    const callTx = new CallTx()
+    callTx.setVmType(VMType.EVM)
+    callTx.setInput(ui8InData)
+
+    const msgTx = new MessageTx()
+    msgTx.setFrom(caller.MarshalPB())
+    msgTx.setTo(address.MarshalPB())
+    msgTx.setData(callTx.serializeBinary())
+
+    const tx = new Transaction()
+    tx.setId(2)
+    tx.setData(msgTx.serializeBinary())
+
+    return this._client.commitTxAsync<Transaction>(tx)
+  }
+
+  protected _callStaticAsync(payload: any): Promise<any> {
+    const address = new Address(this._client.chainId, LocalAddress.fromHexString(payload.to))
+    const ui8InData = this._hexStringToUint8Array(payload.data.substring(2))
+    return this._client.queryAsync(address, ui8InData, VMType.EVM)
+  }
+
+  protected _hexStringToUint8Array(hexInput:string): Uint8Array {
+    const bytes = new Uint8Array(Math.ceil(hexInput.length / 2))
+    for (let i = 0; i < bytes.length; i++) {
+      bytes[i] = parseInt(hexInput.substr(i * 2, 2), 16)
+    }
+    return bytes
+  }
+
+  protected _Uint8ArrayToHexString(data: Uint16Array): string {
+    return '0x' + Array.prototype.map.call(data, (x: any) => ('00' + x.toString(16)).slice(-2)).join('');
+  }
+
+  // Basic response to web3js
+  protected _okResponse(result: any = 0): any {
+    return { id: 0, jsonrpc: '2.0', result }
   }
 }
