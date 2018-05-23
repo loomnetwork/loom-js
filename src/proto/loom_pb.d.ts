@@ -309,6 +309,102 @@ export namespace ContractMethodCall {
   }
 }
 
+export class Event extends jspb.Message {
+  hasContract(): boolean;
+  clearContract(): void;
+  getContract(): Address | undefined;
+  setContract(value?: Address): void;
+
+  clearTopicsList(): void;
+  getTopicsList(): Array<Uint8Array | string>;
+  getTopicsList_asU8(): Array<Uint8Array>;
+  getTopicsList_asB64(): Array<string>;
+  setTopicsList(value: Array<Uint8Array | string>): void;
+  addTopics(value: Uint8Array | string, index?: number): Uint8Array | string;
+
+  getData(): Uint8Array | string;
+  getData_asU8(): Uint8Array;
+  getData_asB64(): string;
+  setData(value: Uint8Array | string): void;
+
+  serializeBinary(): Uint8Array;
+  toObject(includeInstance?: boolean): Event.AsObject;
+  static toObject(includeInstance: boolean, msg: Event): Event.AsObject;
+  static extensions: {[key: number]: jspb.ExtensionFieldInfo<jspb.Message>};
+  static extensionsBinary: {[key: number]: jspb.ExtensionFieldBinaryInfo<jspb.Message>};
+  static serializeBinaryToWriter(message: Event, writer: jspb.BinaryWriter): void;
+  static deserializeBinary(bytes: Uint8Array): Event;
+  static deserializeBinaryFromReader(message: Event, reader: jspb.BinaryReader): Event;
+}
+
+export namespace Event {
+  export type AsObject = {
+    contract?: Address.AsObject,
+    topicsList: Array<Uint8Array | string>,
+    data: Uint8Array | string,
+  }
+}
+
+export class EvmTxReciept extends jspb.Message {
+  getTransactionindex(): number;
+  setTransactionindex(value: number): void;
+
+  getBlockhash(): Uint8Array | string;
+  getBlockhash_asU8(): Uint8Array;
+  getBlockhash_asB64(): string;
+  setBlockhash(value: Uint8Array | string): void;
+
+  getBlocknumber(): number;
+  setBlocknumber(value: number): void;
+
+  getCumulativegasused(): number;
+  setCumulativegasused(value: number): void;
+
+  getGasused(): number;
+  setGasused(value: number): void;
+
+  getContractaddress(): Uint8Array | string;
+  getContractaddress_asU8(): Uint8Array;
+  getContractaddress_asB64(): string;
+  setContractaddress(value: Uint8Array | string): void;
+
+  clearLogsList(): void;
+  getLogsList(): Array<Event>;
+  setLogsList(value: Array<Event>): void;
+  addLogs(value?: Event, index?: number): Event;
+
+  getLogsbloom(): Uint8Array | string;
+  getLogsbloom_asU8(): Uint8Array;
+  getLogsbloom_asB64(): string;
+  setLogsbloom(value: Uint8Array | string): void;
+
+  getStatus(): number;
+  setStatus(value: number): void;
+
+  serializeBinary(): Uint8Array;
+  toObject(includeInstance?: boolean): EvmTxReciept.AsObject;
+  static toObject(includeInstance: boolean, msg: EvmTxReciept): EvmTxReciept.AsObject;
+  static extensions: {[key: number]: jspb.ExtensionFieldInfo<jspb.Message>};
+  static extensionsBinary: {[key: number]: jspb.ExtensionFieldBinaryInfo<jspb.Message>};
+  static serializeBinaryToWriter(message: EvmTxReciept, writer: jspb.BinaryWriter): void;
+  static deserializeBinary(bytes: Uint8Array): EvmTxReciept;
+  static deserializeBinaryFromReader(message: EvmTxReciept, reader: jspb.BinaryReader): EvmTxReciept;
+}
+
+export namespace EvmTxReciept {
+  export type AsObject = {
+    transactionindex: number,
+    blockhash: Uint8Array | string,
+    blocknumber: number,
+    cumulativegasused: number,
+    gasused: number,
+    contractaddress: Uint8Array | string,
+    logsList: Array<Event.AsObject>,
+    logsbloom: Uint8Array | string,
+    status: number,
+  }
+}
+
 export enum VMType {
   PLUGIN = 0,
   EVM = 1,

@@ -118,6 +118,19 @@ export class Client {
   }
 
   /**
+   * Queries the receipt corresponding to a transaction hash
+   *
+   */
+  async txReceiptAsync(txHash: Uint8Array): Promise<Uint8Array | void> {
+    const result = await this._readClient.sendAsync<string>('txreceipt', {
+      txHash: Uint8ArrayToB64(txHash)
+    })
+    if (result) {
+      return B64ToUint8Array(result)
+    }
+  }
+
+  /**
    * Gets a nonce for the given public key.
    *
    * This should only be called by NonceTxMiddleware.

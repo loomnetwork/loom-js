@@ -67,3 +67,21 @@ message ContractMethodCall {
 	string method = 1;
 	bytes args = 2;
 }
+
+message Event {
+    Address contract = 1;
+    repeated bytes topics = 2;
+    bytes data = 3;
+}
+
+message EvmTxReciept {
+    int32 transactionIndex = 1;
+    bytes blockHash = 2;
+    int64 blockNumber = 3;
+    int32 cumulativeGasUsed = 4;
+    int32 gasUsed = 5 ;
+    bytes contractAddress = 6;
+    repeated Event logs = 7;
+    bytes logsBloom = 8;
+    int32 status = 9;
+}
