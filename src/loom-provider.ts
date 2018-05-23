@@ -128,7 +128,7 @@ export class LoomProvider {
     return bytes
   }
 
-  protected _Uint8ArrayToHexString(data: Uint16Array): string {
+  protected _Uint8ArrayToHexString(data: Uint8Array): string {
     return '0x' + Array.prototype.map.call(data, (x: any) => ('00' + x.toString(16)).slice(-2)).join('');
   }
 
