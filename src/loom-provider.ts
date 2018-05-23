@@ -1,24 +1,21 @@
 import { Client } from './client'
 import { CallTx, MessageTx, Transaction, VMType } from './proto/loom_pb'
 import { Address, LocalAddress } from './address'
-import * as CryptoUtils from './crypto-utils'
-
+import { bytesToHexAddr, bufferToProtobufBytes } from './crypto-utils'
 
 /**
- * The provider manages the web3 calls to a endpoint, however the LoomProvider
- * wraps the web3 call which intent to be sent to an Ethereum node and turn it
- * into a Loom call for a Loom Contract
+ * Web3 provider that interacts with EVM contracts deployed on Loom DAppChains.
  */
 export class LoomProvider {
   // Satisfy the provider requirement
-  public responseCallbacks: any = null
-  public notificationCallbacks: any = null
-  public connection: any = null
-  public addDefaultEvents: any = null
-  public on: any = null
-  public removeListener: any = null
-  public removeAllListeners: any = null
-  public reset: any = null
+  responseCallbacks: any = null
+  notificationCallbacks: any = null
+  connection: any = null
+  addDefaultEvents: any = null
+  on: any = null
+  removeListener: any = null
+  removeAllListeners: any = null
+  reset: any = null
 
   private _client: Client
 
@@ -62,7 +59,7 @@ export class LoomProvider {
     // Sending a static call to Loom DAppChain
     else if (payload.method === 'eth_call') {
       this._callStaticAsync(payload.params[0])
-        .then((result: any) => callback(null, this._okResponse(this._Uint8ArrayToHexString(result))))
+        .then((result: any) => callback(null, this._okResponse(bytesToHexAddr(result))))
         .catch((err: Error) => callback(err, null))
     }
 
@@ -94,14 +91,14 @@ export class LoomProvider {
     if (ret) callback(null, ret)
   }
 
-  protected _callAsync(payload: any): Promise<any> {
+  protected _callAsync(payload: { to: string; from: string; data: string }): Promise<any> {
     const caller = new Address(this._client.chainId, LocalAddress.fromHexString(payload.from))
     const address = new Address(this._client.chainId, LocalAddress.fromHexString(payload.to))
-    const ui8InData = this._hexStringToUint8Array(payload.data.substring(2))
+    const data = Buffer.from(payload.data.substring(2), 'hex')
 
     const callTx = new CallTx()
     callTx.setVmType(VMType.EVM)
-    callTx.setInput(ui8InData)
+    callTx.setInput(bufferToProtobufBytes(data))
 
     const msgTx = new MessageTx()
     msgTx.setFrom(caller.MarshalPB())
@@ -115,18 +112,10 @@ export class LoomProvider {
     return this._client.commitTxAsync<Transaction>(tx)
   }
 
-  protected _callStaticAsync(payload: any): Promise<any> {
+  protected _callStaticAsync(payload: { to: string; data: string }): Promise<any> {
     const address = new Address(this._client.chainId, LocalAddress.fromHexString(payload.to))
-    const ui8InData = this._hexStringToUint8Array(payload.data.substring(2))
-    return this._client.queryAsync(address, ui8InData, VMType.EVM)
-  }
-
-  protected _hexStringToUint8Array(hexInput:string): Uint8Array {
-    return new Uint8Array(Buffer.from(hexInput, 'hex'))
-  }
-
-  protected _Uint8ArrayToHexString(data: Uint8Array): string {
-    return CryptoUtils.bytesToHex(data)
+    const data = Buffer.from(payload.data.substring(2), 'hex')
+    return this._client.queryAsync(address, data, VMType.EVM)
   }
 
   // Basic response to web3js
