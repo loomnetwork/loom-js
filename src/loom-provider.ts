@@ -1,6 +1,7 @@
 import { Client } from './client'
 import { CallTx, MessageTx, Transaction, VMType } from './proto/loom_pb'
 import { Address, LocalAddress } from './address'
+import * as CryptoUtils from './crypto-utils'
 
 
 /**
@@ -121,15 +122,11 @@ export class LoomProvider {
   }
 
   protected _hexStringToUint8Array(hexInput:string): Uint8Array {
-    const bytes = new Uint8Array(Math.ceil(hexInput.length / 2))
-    for (let i = 0; i < bytes.length; i++) {
-      bytes[i] = parseInt(hexInput.substr(i * 2, 2), 16)
-    }
-    return bytes
+    return new Uint8Array(Buffer.from(hexInput, 'hex'))
   }
 
   protected _Uint8ArrayToHexString(data: Uint8Array): string {
-    return '0x' + Array.prototype.map.call(data, (x: any) => ('00' + x.toString(16)).slice(-2)).join('');
+    return CryptoUtils.bytesToHex(data)
   }
 
   // Basic response to web3js
