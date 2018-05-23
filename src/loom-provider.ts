@@ -1,7 +1,19 @@
 import { Client } from './client'
-import { CallTx, MessageTx, Transaction, VMType } from './proto/loom_pb'
+import { CallTx, MessageTx, Transaction, VMType, EvmTxReceipt, Event } from './proto/loom_pb'
 import { Address, LocalAddress } from './address'
-import { bytesToHexAddr, bufferToProtobufBytes } from './crypto-utils'
+import { bytesToHexAddr, numberToHex, bufferToProtobufBytes } from './crypto-utils'
+
+interface EthReceipt {
+  transactionHash: string
+  transactionIndex: string
+  blockHash: string
+  blockNumber: string
+  gasUsed: string
+  cumulativeGasUsed: string
+  contractAddress: string
+  logs: Array<any>
+  status: string
+}
 
 /**
  * Web3 provider that interacts with EVM contracts deployed on Loom DAppChains.
@@ -52,7 +64,7 @@ export class LoomProvider {
     // Sending transaction to Loom DAppChain
     else if (payload.method === 'eth_sendTransaction') {
       this._callAsync(payload.params[0])
-        .then((result: any) => callback(null, this._okResponse()))
+        .then((result: any) => callback(null, this._okResponse(bytesToHexAddr(result))))
         .catch((err: Error) => callback(err, null))
     }
 
@@ -65,22 +77,9 @@ export class LoomProvider {
 
     // Required to avoid web3js error, because web3js always want to know about a transaction
     else if (payload.method === 'eth_getTransactionReceipt') {
-      // TODO: Wrap this correctly to return real status of transaction
-      ret = {
-        id: 0,
-        jsonrpc: '2.0',
-        result: {
-          transactionHash: '0x0000000000000000000000000000000000000000000000000000000000000000',
-          transactionIndex: '0x00',
-          blockHash: '0x0000000000000000000000000000000000000000000000000000000000000000',
-          blockNumber: '0x00',
-          gasUsed: '0x0',
-          cumulativeGasUsed: '0x0',
-          contractAddress: null,
-          logs: [],
-          status: '0x01'
-        }
-      }
+      this._getReceipt(payload.params[0])
+        .then((result: any) => callback(null, this._okResponse(result)))
+        .catch((err: Error) => callback(err, null))
     }
 
     // Warn the user about we don't support other methods
@@ -116,6 +115,47 @@ export class LoomProvider {
     const address = new Address(this._client.chainId, LocalAddress.fromHexString(payload.to))
     const data = Buffer.from(payload.data.substring(2), 'hex')
     return this._client.queryAsync(address, data, VMType.EVM)
+  }
+
+  protected _getReceipt(txHash: string): Promise<any> {
+    const data = Buffer.from(txHash.substring(2), 'hex')
+    return this._client.txReceiptAsync(bufferToProtobufBytes(data))
+      .then((result: any) => {
+        const receipt = EvmTxReceipt.deserializeBinary(bufferToProtobufBytes(result))
+        const transactionHash = '0x0000000000000000000000000000000000000000000000000000000000000000'
+        const transactionIndex = numberToHex(receipt.getTransactionindex())
+        const blockHash = bytesToHexAddr(receipt.getBlockhash_asU8())
+        const blockNumber = numberToHex(receipt.getBlocknumber())
+        const contractAddress = bytesToHexAddr(receipt.getContractaddress_asU8())
+
+        const logs = receipt.getLogsList().map((logEvent: Event, index: number) => {
+          const logIndex = numberToHex(index)
+
+          return {
+            logIndex,
+            address: contractAddress,
+            blockHash,
+            blockNumber,
+            transactionHash,
+            transactionIndex,
+            type: 'mined',
+            data: bytesToHexAddr(logEvent.getData_asU8()).toLowerCase(),
+            topics: logEvent.getTopicsList_asU8().map((topic: Uint8Array) => bytesToHexAddr(topic).toLowerCase())
+          }
+        })
+
+        return {
+          transactionHash,
+          transactionIndex,
+          blockHash,
+          blockNumber,
+          contractAddress,
+          gasUsed: numberToHex(receipt.getGasused()),
+          cumulativeGasUsed: numberToHex(receipt.getCumulativegasused()),
+          logs,
+          status: numberToHex(receipt.getStatus()),
+        } as EthReceipt
+      })
   }
 
   // Basic response to web3js
