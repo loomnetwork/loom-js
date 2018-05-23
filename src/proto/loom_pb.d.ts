@@ -345,7 +345,7 @@ export namespace Event {
   }
 }
 
-export class EvmTxReciept extends jspb.Message {
+export class EvmTxReceipt extends jspb.Message {
   getTransactionindex(): number;
   setTransactionindex(value: number): void;
 
@@ -382,16 +382,16 @@ export class EvmTxReciept extends jspb.Message {
   setStatus(value: number): void;
 
   serializeBinary(): Uint8Array;
-  toObject(includeInstance?: boolean): EvmTxReciept.AsObject;
-  static toObject(includeInstance: boolean, msg: EvmTxReciept): EvmTxReciept.AsObject;
+  toObject(includeInstance?: boolean): EvmTxReceipt.AsObject;
+  static toObject(includeInstance: boolean, msg: EvmTxReceipt): EvmTxReceipt.AsObject;
   static extensions: {[key: number]: jspb.ExtensionFieldInfo<jspb.Message>};
   static extensionsBinary: {[key: number]: jspb.ExtensionFieldBinaryInfo<jspb.Message>};
-  static serializeBinaryToWriter(message: EvmTxReciept, writer: jspb.BinaryWriter): void;
-  static deserializeBinary(bytes: Uint8Array): EvmTxReciept;
-  static deserializeBinaryFromReader(message: EvmTxReciept, reader: jspb.BinaryReader): EvmTxReciept;
+  static serializeBinaryToWriter(message: EvmTxReceipt, writer: jspb.BinaryWriter): void;
+  static deserializeBinary(bytes: Uint8Array): EvmTxReceipt;
+  static deserializeBinaryFromReader(message: EvmTxReceipt, reader: jspb.BinaryReader): EvmTxReceipt;
 }
 
-export namespace EvmTxReciept {
+export namespace EvmTxReceipt {
   export type AsObject = {
     transactionindex: number,
     blockhash: Uint8Array | string,

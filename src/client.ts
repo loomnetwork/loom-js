@@ -120,6 +120,8 @@ export class Client {
   /**
    * Queries the receipt corresponding to a transaction hash
    *
+   * @param Transaction hash returned by call transaction
+   * @return EvmTxReceipt protobuf
    */
   async txReceiptAsync(txHash: Uint8Array): Promise<Uint8Array | void> {
     const result = await this._readClient.sendAsync<string>('txreceipt', {

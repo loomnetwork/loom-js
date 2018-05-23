@@ -74,7 +74,7 @@ message Event {
     bytes data = 3;
 }
 
-message EvmTxReciept {
+message EvmTxReceipt {
     int32 transactionIndex = 1;
     bytes blockHash = 2;
     int64 blockNumber = 3;
