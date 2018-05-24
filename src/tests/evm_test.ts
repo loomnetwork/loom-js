@@ -104,13 +104,13 @@ test('EVM Contract Calls', async t => {
     if (rtv) {
       let rProto = await client.txReceiptAsync(rtv)
       if (rProto) {
-        let reciept = EvmTxReceipt.deserializeBinary(bufferToProtobufBytes(rProto))
+        let receipt = EvmTxReceipt.deserializeBinary(bufferToProtobufBytes(rProto))
         t.deepEqual(
-          Array.prototype.slice.call(reciept.getContractaddress_asU8(), 0),
+          Array.prototype.slice.call(receipt.getContractaddress_asU8(), 0),
           contractAddr.local.bytes,
           'Contract address should match'
         )
-        t.equal(reciept.getStatus(), 1, 'Should return status 1 success')
+        t.equal(receipt.getStatus(), 1, 'Should return status 1 success')
       }
     }
 
