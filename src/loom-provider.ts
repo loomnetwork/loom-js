@@ -91,11 +91,11 @@ export class LoomProvider {
 
     // Warn the user about we don't support other methods
     else {
-      return callback(Error(`Method "${payload.method}" not supported on this provider`), null)
+      callback(Error(`Method "${payload.method}" not supported on this provider`), null)
     }
   }
 
-  protected _callAsync(payload: { to: string; from: string; data: string }): Promise<any> {
+  private _callAsync(payload: { to: string; from: string; data: string }): Promise<any> {
     const caller = new Address(this._client.chainId, LocalAddress.fromHexString(payload.from))
     const address = new Address(this._client.chainId, LocalAddress.fromHexString(payload.to))
     const data = Buffer.from(payload.data.substring(2), 'hex')
@@ -116,13 +116,13 @@ export class LoomProvider {
     return this._client.commitTxAsync<Transaction>(tx)
   }
 
-  protected _callStaticAsync(payload: { to: string; data: string }): Promise<any> {
+  private _callStaticAsync(payload: { to: string; data: string }): Promise<any> {
     const address = new Address(this._client.chainId, LocalAddress.fromHexString(payload.to))
     const data = Buffer.from(payload.data.substring(2), 'hex')
     return this._client.queryAsync(address, data, VMType.EVM)
   }
 
-  protected async _getReceipt(txHash: string): Promise<any> {
+  private async _getReceipt(txHash: string): Promise<EthReceipt> {
     const data = Buffer.from(txHash.substring(2), 'hex')
     const result = await this._client.getTxReceiptAsync(bufferToProtobufBytes(data))
     const receipt = EvmTxReceipt.deserializeBinary(bufferToProtobufBytes(result as Uint8Array))
@@ -162,7 +162,7 @@ export class LoomProvider {
   }
 
   // Basic response to web3js
-  protected _okResponse(result: any = 0): any {
+  private _okResponse(result: any = 0): any {
     return { id: 0, jsonrpc: '2.0', result }
   }
 }
