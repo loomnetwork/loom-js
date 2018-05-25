@@ -6,6 +6,10 @@ export function bytesToHex(bytes: Uint8Array): string {
     .toUpperCase()
 }
 
+export function numberToHex(num: number): string {
+  return `0x${parseInt(num.toString(), 16)}`
+}
+
 export function bytesToHexAddr(bytes: Uint8Array): string {
   return '0x' + bytesToHex(bytes)
 }
