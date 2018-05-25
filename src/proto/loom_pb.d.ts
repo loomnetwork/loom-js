@@ -346,37 +346,37 @@ export namespace Event {
 }
 
 export class EvmTxReceipt extends jspb.Message {
-  getTransactionindex(): number;
-  setTransactionindex(value: number): void;
+  getTransactionIndex(): number;
+  setTransactionIndex(value: number): void;
 
-  getBlockhash(): Uint8Array | string;
-  getBlockhash_asU8(): Uint8Array;
-  getBlockhash_asB64(): string;
-  setBlockhash(value: Uint8Array | string): void;
+  getBlockHash(): Uint8Array | string;
+  getBlockHash_asU8(): Uint8Array;
+  getBlockHash_asB64(): string;
+  setBlockHash(value: Uint8Array | string): void;
 
-  getBlocknumber(): number;
-  setBlocknumber(value: number): void;
+  getBlockNumber(): number;
+  setBlockNumber(value: number): void;
 
-  getCumulativegasused(): number;
-  setCumulativegasused(value: number): void;
+  getCumulativeGasUsed(): number;
+  setCumulativeGasUsed(value: number): void;
 
-  getGasused(): number;
-  setGasused(value: number): void;
+  getGasUsed(): number;
+  setGasUsed(value: number): void;
 
-  getContractaddress(): Uint8Array | string;
-  getContractaddress_asU8(): Uint8Array;
-  getContractaddress_asB64(): string;
-  setContractaddress(value: Uint8Array | string): void;
+  getContractAddress(): Uint8Array | string;
+  getContractAddress_asU8(): Uint8Array;
+  getContractAddress_asB64(): string;
+  setContractAddress(value: Uint8Array | string): void;
 
   clearLogsList(): void;
   getLogsList(): Array<Event>;
   setLogsList(value: Array<Event>): void;
   addLogs(value?: Event, index?: number): Event;
 
-  getLogsbloom(): Uint8Array | string;
-  getLogsbloom_asU8(): Uint8Array;
-  getLogsbloom_asB64(): string;
-  setLogsbloom(value: Uint8Array | string): void;
+  getLogsBloom(): Uint8Array | string;
+  getLogsBloom_asU8(): Uint8Array;
+  getLogsBloom_asB64(): string;
+  setLogsBloom(value: Uint8Array | string): void;
 
   getStatus(): number;
   setStatus(value: number): void;
@@ -393,14 +393,14 @@ export class EvmTxReceipt extends jspb.Message {
 
 export namespace EvmTxReceipt {
   export type AsObject = {
-    transactionindex: number,
-    blockhash: Uint8Array | string,
-    blocknumber: number,
-    cumulativegasused: number,
-    gasused: number,
-    contractaddress: Uint8Array | string,
+    transactionIndex: number,
+    blockHash: Uint8Array | string,
+    blockNumber: number,
+    cumulativeGasUsed: number,
+    gasUsed: number,
+    contractAddress: Uint8Array | string,
     logsList: Array<Event.AsObject>,
-    logsbloom: Uint8Array | string,
+    logsBloom: Uint8Array | string,
     status: number,
   }
 }
