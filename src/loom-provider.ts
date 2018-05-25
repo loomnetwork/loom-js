@@ -1,7 +1,7 @@
 import { Client } from './client'
 import { CallTx, MessageTx, Transaction, VMType, EvmTxReceipt, Event } from './proto/loom_pb'
 import { Address, LocalAddress } from './address'
-import { bytesToHexAddr, numberToHex, bufferToProtobufBytes } from './crypto-utils'
+import { bytesToHexAddr, numberToHex, bufferToProtobufBytes, getGUID } from './crypto-utils'
 
 interface EthReceipt {
   transactionHash: string
@@ -15,27 +15,95 @@ interface EthReceipt {
   status: string
 }
 
+const errors = {
+  ErrorResponse: function (result: any) {
+    const message = !!result && !!result.error && !!result.error.message ? result.error.message : JSON.stringify(result);
+    return new Error('Returned error: ' + message);
+  },
+  InvalidNumberOfParams: function (got: any, expected: any, method: any) {
+    return new Error('Invalid number of parameters for "'+ method +'". Got '+ got +' expected '+ expected +'!');
+  },
+  Invalid_Connection: function (host: any) {
+    return new Error('_CONNECTION ERROR: Couldn\'t connect to node '+ host +'.');
+  },
+  InvalidProvider: function () {
+    return new Error('Provider not set or invalid');
+  },
+  InvalidResponse: function (result: any) {
+    const message = !!result && !!result.error && !!result.error.message ? result.error.message : 'Invalid JSON RPC response: ' + JSON.stringify(result);
+    return new Error(message);
+  },
+  _ConnectionTimeout: function (ms: any) {
+    return new Error('_CONNECTION TIMEOUT: timeout of ' + ms + ' ms achived');
+  }
+}
+
 /**
  * Web3 provider that interacts with EVM contracts deployed on Loom DAppChains.
  */
 export class LoomProvider {
-  // Satisfy the provider requirement
-  responseCallbacks: any = null
-  notificationCallbacks: any = null
-  connection: any = null
-  addDefaultEvents: any = null
-  on: any = null
-  removeListener: any = null
-  removeAllListeners: any = null
-  reset: any = null
-
   private _client: Client
+  private _connection?: WebSocket
+  private _subscriptionID: string
+  private _topicsList: Array<string>
+  protected notificationCallbacks: Array<Function>
+  protected responseCallbacks: any
 
   /**
    * @param client: The client which calls Ethereum EVM
    */
   constructor(client: Client) {
+    this.notificationCallbacks = new Array()
     this._client = client
+    this._subscriptionID = getGUID()
+    this._topicsList = []
+    this._subscribeWS(client.readUrl)
+  }
+
+  on(type: string, callback: any) {
+    if (!this._connection) return
+
+    switch(type) {
+      case 'data':
+          this.notificationCallbacks.push(callback);
+          break;
+
+      case 'connect':
+          this._connection.onopen = callback;
+          break;
+
+      case 'end':
+          this._connection.onclose = callback;
+          break;
+
+      case 'error':
+          this._connection.onerror = callback;
+          break;
+    }
+  }
+
+  addDefaultEvents() {
+    if (!this._connection) return
+
+    this._connection.onerror = () => this._timeout()
+    this._connection.onclose = () => {
+        this._timeout()
+        // reset all requests and callbacks
+        this.reset();
+    };
+  }
+
+  removeListener() {
+    this.reset()
+  }
+
+  removeAllListeners(type: any) {
+    this.reset()
+  }
+
+  reset() {
+    this._topicsList = []
+    this.notificationCallbacks = []
   }
 
   /**
@@ -87,6 +155,11 @@ export class LoomProvider {
       } catch (err) {
         callback(err, null)
       }
+    }
+
+    else if (payload.method === 'eth_subscribe') {
+      this._topicsList = this._topicsList.concat(payload.params[1].topics)
+      callback(null, this._okResponse(payload.params[1].topics[0]))
     }
 
     // Warn the user about we don't support other methods
@@ -163,6 +236,70 @@ export class LoomProvider {
       logs,
       status: numberToHex(receipt.getStatus()),
     } as EthReceipt
+  }
+
+  protected _subscribeWS(readUrl?: string) {
+    if (readUrl) {
+      this._connection = new WebSocket(readUrl)
+      this._connection.onopen = () => {
+        if (!this._connection) return
+        this._connection.send(JSON.stringify({
+          method: 'subevents',
+          jsonrpc: '2.0',
+          params: [],
+          id: this._subscriptionID
+        }))
+
+        this._connection.onmessage = (msg: MessageEvent) => this._onWebSocketMessage(msg)
+      }
+    }
+  }
+
+  protected _onWebSocketMessage(msgEvent: MessageEvent) {
+    const data = JSON.parse(msgEvent.data)
+    const encodedData = data.result.encodedData
+    if (encodedData) {
+      const event = Event.deserializeBinary(encodedData)
+      this.notificationCallbacks.forEach((callback: Function) => {
+        const topics = event.getTopicsList_asU8().map((topic: Uint8Array) => bytesToHexAddr(topic).toLowerCase())
+        const topicIdxFound = this._topicsList.indexOf(topics[0])
+
+        if (topicIdxFound !== -1) {
+          const topicFound = this._topicsList[topicIdxFound]
+          const JSONRPCResult = {
+            jsonrpc: "2.0",
+            method: "eth_subscription",
+            params: {
+              // TODO: This ID Should came from loomchain events
+              subscription: topicFound,
+              result: {
+                // TODO: Values bellow should be fix in the future
+                logIndex: '0x00',
+                transactionIndex: '0x00',
+                transactionHash: '0x0000000000000000000000000000000000000000000000000000000000000000',
+                blockHash: '0x0000000000000000000000000000000000000000000000000000000000000000',
+                blockNumber: '0x0',
+                address: '0x0000000000000000000000000000000000000000',
+                type: 'mined',
+                data: bytesToHexAddr(event.getData_asU8()).toLowerCase(),
+                topics
+              }
+            }
+          }
+
+          callback(JSONRPCResult)
+        }
+      })
+    }
+  }
+
+  protected _timeout() {
+    for(let key in this.responseCallbacks) {
+      if(this.responseCallbacks.hasOwnProperty(key)) {
+          this.responseCallbacks[key](errors.Invalid_Connection('on WS'));
+          delete this.responseCallbacks[key];
+      }
+    }
   }
 
   // Basic response to web3js
