@@ -123,7 +123,7 @@ export class Client {
    * @param Transaction hash returned by call transaction
    * @return EvmTxReceipt protobuf
    */
-  async txReceiptAsync(txHash: Uint8Array): Promise<Uint8Array | void> {
+  async getTxReceiptAsync(txHash: Uint8Array): Promise<Uint8Array | void> {
     const result = await this._readClient.sendAsync<string>('txreceipt', {
       txHash: Uint8ArrayToB64(txHash)
     })
