@@ -31,6 +31,7 @@ export interface ITxMiddlewareHandler {
  */
 export class Client {
   public readonly chainId: string
+  public readonly readUrl?: string
   private _writeClient: WSRPCClient
   private _readClient!: WSRPCClient
 
@@ -50,6 +51,7 @@ export class Client {
     if (!readUrl || writeUrl === readUrl) {
       this._readClient = this._writeClient
     } else {
+      this.readUrl = readUrl
       this._readClient = new WSRPCClient(readUrl)
     }
   }

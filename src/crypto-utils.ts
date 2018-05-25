@@ -14,6 +14,15 @@ export function bytesToHexAddr(bytes: Uint8Array): string {
   return '0x' + bytesToHex(bytes)
 }
 
+export function getGUID(): string {
+  function s4() {
+    return Math.floor((1 + Math.random()) * 0x10000)
+      .toString(16)
+      .substring(1);
+  }
+  return s4() + s4() + '-' + s4() + '-' + s4() + '-' + s4() + '-' + s4() + s4() + s4();
+}
+
 export const SIGNATURE_LENGTH = nacl.sign.signatureLength
 export const PRIVATE_KEY_LENGTH = nacl.sign.secretKeyLength
 export const PUBLIC_KEY_LENGTH = nacl.sign.publicKeyLength
