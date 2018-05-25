@@ -124,8 +124,12 @@ export class LoomProvider {
 
   private async _getReceipt(txHash: string): Promise<EthReceipt> {
     const data = Buffer.from(txHash.substring(2), 'hex')
-    const result = await this._client.getTxReceiptAsync(bufferToProtobufBytes(data))
-    const receipt = EvmTxReceipt.deserializeBinary(bufferToProtobufBytes(result as Uint8Array))
+    const receipt = await this._client.getTxReceiptAsync(bufferToProtobufBytes(data))
+
+    if (!receipt) {
+      throw Error('Receipt cannot be empty')
+    }
+
     const transactionHash = '0x0000000000000000000000000000000000000000000000000000000000000000'
     const transactionIndex = numberToHex(receipt.getTransactionindex())
     const blockHash = bytesToHexAddr(receipt.getBlockhash_asU8())
