@@ -1,7 +1,7 @@
 import { Message } from 'google-protobuf'
 
-import { VMType } from './proto/loom_pb'
-import { Uint8ArrayToB64, B64ToUint8Array } from './crypto-utils'
+import { VMType, EvmTxReceipt } from './proto/loom_pb'
+import { Uint8ArrayToB64, B64ToUint8Array, bufferToProtobufBytes } from './crypto-utils'
 import { Address } from './address'
 import { WSRPCClient } from './internal/ws-rpc-client'
 
@@ -120,15 +120,15 @@ export class Client {
   /**
    * Queries the receipt corresponding to a transaction hash
    *
-   * @param txHash Transaction hash returned by call transaction
-   * @return EvmTxReceipt protobuf
+   * @param txHash Transaction hash returned by call transaction.
+   * @return EvmTxReceipt The corresponding transaction receipt.
    */
-  async getTxReceiptAsync(txHash: Uint8Array): Promise<Uint8Array | null> {
+  async getTxReceiptAsync(txHash: Uint8Array): Promise<EvmTxReceipt | null> {
     const result = await this._readClient.sendAsync<string>('txreceipt', {
       txHash: Uint8ArrayToB64(txHash)
     })
     if (result) {
-      return B64ToUint8Array(result)
+      return EvmTxReceipt.deserializeBinary(bufferToProtobufBytes(B64ToUint8Array(result)))
     } else {
       return null
     }

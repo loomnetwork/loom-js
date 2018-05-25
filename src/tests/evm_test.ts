@@ -1,12 +1,10 @@
 import test from 'tape'
-import { EvmTxReceipt } from '../proto/loom_pb'
 import { EvmContract } from '../evm-contract'
 import { Address, LocalAddress } from '../address'
 import { Client } from '../client'
 import {
   generatePrivateKey,
   publicKeyFromPrivateKey,
-  bufferToProtobufBytes
 } from '../crypto-utils'
 import { NonceTxMiddleware, SignedTxMiddleware } from '../middleware'
 
@@ -106,9 +104,8 @@ test('EVM Contract Calls', async t => {
     }
 
     if (rtv) {
-      let rProto = await client.getTxReceiptAsync(rtv)
-      if (rProto) {
-        let receipt = EvmTxReceipt.deserializeBinary(bufferToProtobufBytes(rProto))
+      let receipt = await client.getTxReceiptAsync(rtv)
+      if (receipt) {
         t.deepEqual(
           receipt.getContractaddress_asU8().slice(),
           contractAddr.local.bytes,
@@ -122,9 +119,11 @@ test('EVM Contract Calls', async t => {
 
     const staticCallRtv = await evmContract.staticCallAsync(inputGetArray)
     if (staticCallRtv) {
-      const retArr = Array.prototype.slice.call(staticCallRtv, 0)
-      const expectedRtv = inputSet987Array.slice(-32)
-      t.deepEqual(retArr, expectedRtv, 'Query result must match the value' + ' previously set')
+      t.deepEqual(
+        staticCallRtv,
+        Buffer.from(inputSet987Array.slice(-32)),
+        'Query result must match the value previously set'
+      )
     } else {
       t.fail('staticCallAsync should return a result')
     }
