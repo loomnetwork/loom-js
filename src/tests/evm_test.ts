@@ -2,10 +2,7 @@ import test from 'tape'
 import { EvmContract } from '../evm-contract'
 import { Address, LocalAddress } from '../address'
 import { Client } from '../client'
-import {
-  generatePrivateKey,
-  publicKeyFromPrivateKey,
-} from '../crypto-utils'
+import { generatePrivateKey, publicKeyFromPrivateKey } from '../crypto-utils'
 import { NonceTxMiddleware, SignedTxMiddleware } from '../middleware'
 
 /**

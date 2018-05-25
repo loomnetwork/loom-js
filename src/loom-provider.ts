@@ -158,8 +158,12 @@ export class LoomProvider {
     }
 
     else if (payload.method === 'eth_subscribe') {
-      this._topicsList = this._topicsList.concat(payload.params[1].topics)
-      callback(null, this._okResponse(payload.params[1].topics[0]))
+      if (payload.params[0] === 'logs') {
+        this._topicsList = this._topicsList.concat(payload.params[1].topics)
+        callback(null, this._okResponse(payload.params[1].topics[0]))
+      } else {
+        callback(null, this._okResponse())
+      }
     }
 
     // Warn the user about we don't support other methods
