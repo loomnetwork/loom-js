@@ -75,13 +75,13 @@ message Event {
 }
 
 message EvmTxReceipt {
-    int32 transactionIndex = 1;
-    bytes blockHash = 2;
-    int64 blockNumber = 3;
-    int32 cumulativeGasUsed = 4;
-    int32 gasUsed = 5 ;
-    bytes contractAddress = 6;
+    int32 transaction_index = 1;
+    bytes block_hash = 2;
+    int64 block_number = 3;
+    int32 cumulative_gas_used = 4;
+    int32 gas_used = 5 ;
+    bytes contract_address = 6;
     repeated Event logs = 7;
-    bytes logsBloom = 8;
+    bytes logs_bloom = 8;
     int32 status = 9;
 }

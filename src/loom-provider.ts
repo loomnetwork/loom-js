@@ -131,10 +131,10 @@ export class LoomProvider {
     }
 
     const transactionHash = '0x0000000000000000000000000000000000000000000000000000000000000000'
-    const transactionIndex = numberToHex(receipt.getTransactionindex())
-    const blockHash = bytesToHexAddr(receipt.getBlockhash_asU8())
-    const blockNumber = numberToHex(receipt.getBlocknumber())
-    const contractAddress = bytesToHexAddr(receipt.getContractaddress_asU8())
+    const transactionIndex = numberToHex(receipt.getTransactionIndex())
+    const blockHash = bytesToHexAddr(receipt.getBlockHash_asU8())
+    const blockNumber = numberToHex(receipt.getBlockNumber())
+    const contractAddress = bytesToHexAddr(receipt.getContractAddress_asU8())
 
     const logs = receipt.getLogsList().map((logEvent: Event, index: number) => {
       const logIndex = numberToHex(index)
@@ -158,8 +158,8 @@ export class LoomProvider {
       blockHash,
       blockNumber,
       contractAddress,
-      gasUsed: numberToHex(receipt.getGasused()),
-      cumulativeGasUsed: numberToHex(receipt.getCumulativegasused()),
+      gasUsed: numberToHex(receipt.getGasUsed()),
+      cumulativeGasUsed: numberToHex(receipt.getCumulativeGasUsed()),
       logs,
       status: numberToHex(receipt.getStatus()),
     } as EthReceipt
