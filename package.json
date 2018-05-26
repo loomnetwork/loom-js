@@ -5,7 +5,7 @@
     "name": "Loom Network",
     "url": "https://loomx.io"
   },
-  "version": "1.3.0",
+  "version": "1.3.1",
   "license": "BSD-3-Clause",
   "main": "dist/index.js",
   "scripts": {
@@ -14,15 +14,11 @@
     "format": "prettier --write \"src/**/*.ts\"",
     "test": "yarn test:node && yarn test:browser",
     "test:node": "yarn proto && tsc && tape dist/tests/unit_tests.js",
-    "test:node:win": "yarn proto:win && tsc && tape dist/tests/unit_tests.js",
     "test:browser": "yarn proto && tsc && webpack --config webpack.unit.tests.config.js",
-    "test:browser:win": "yarn proto:win && tsc && webpack --config webpack.unit.tests.config.js",
     "e2e:node": "yarn proto && tsc && tape dist/tests/e2e_tests.js",
-    "e2e:node:win": "yarn proto:win && tsc && tape dist/tests/e2e_tests.js",
     "e2e:browser": "yarn proto && tsc && webpack --config webpack.e2e.test.config.js",
-    "e2e:browser:win": "yarn proto:win && tsc && webpack --config webpack.e2e.test.config.js",
-    "proto": "mkdir -p dist && cd src && protoc --plugin=\"protoc-gen-ts=../node_modules/.bin/protoc-gen-ts\" --js_out=\"import_style=commonjs,binary:../dist/\" --ts_out=\".\" ./proto/loom.proto ./tests/tests.proto",
-    "proto:win": "if not exist dist mkdir dist && cd src && protoc --plugin=\"protoc-gen-ts=..\\node_modules\\.bin\\protoc-gen-ts.cmd\" --js_out=\"import_style=commonjs,binary:..\\dist/\" --ts_out=\".\" ./proto/loom.proto ./tests/tests.proto"
+    "proto": "node ./scripts/gen-proto.js",
+    "prepublish": "yarn proto && yarn build && webpack"
   },
   "dependencies": {
     "crypto-browserify": "^3.12.0",
@@ -42,6 +38,7 @@
     "babel-cli": "^6.26.0",
     "babel-loader": "^8.0.0-beta.2",
     "prettier": "1.12.1",
+    "shelljs": "^0.8.2",
     "tape": "4.9",
     "ts-protoc-gen": "^0.6.0",
     "tslint": "^5.9.1",
