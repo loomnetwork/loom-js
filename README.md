@@ -48,10 +48,7 @@ Whenever you change `src/proto/loom.proto`, or `src/tests/tests.proto` you will 
 the corresponding `*_pb.js` by running:
 
 ```shell
-# Mac / Linux
 yarn proto
-# Windows
-yarn proto:win
 ```
 
 The shell must be able to locate the `protoc` binary, which can be obtained from https://github.com/google/protobuf/releases
