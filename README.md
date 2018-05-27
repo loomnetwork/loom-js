@@ -2,8 +2,6 @@
 
 JS library for building browser apps & NodeJS services that interact with Loom DAppChains.
 
-This is currently in private beta, please join our Telegram to find out more [https://t.me/loomnetwork](https://t.me/loomnetwork)
-
 ## Install
 
 ### NodeJS
@@ -55,4 +53,4 @@ The shell must be able to locate the `protoc` binary, which can be obtained from
 
 ## License
 
-See `License.md`.
+BSD 3-Clause, see `LICENSE` file for details.
