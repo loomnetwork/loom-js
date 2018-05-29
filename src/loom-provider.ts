@@ -244,7 +244,16 @@ export class LoomProvider {
 
   protected _subscribeWS(readUrl?: string) {
     if (readUrl) {
-      this._connection = new WebSocket(readUrl)
+      if (typeof window !== 'undefined') {
+        this._connection = new WebSocket(readUrl)
+      } else {
+        const WS = require('websocket').w3cwebsocket
+        this._connection = new WS(readUrl)
+      }
+
+      if (!this._connection) return
+
+
       this._connection.onopen = () => {
         if (!this._connection) return
         this._connection.send(JSON.stringify({
