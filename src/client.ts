@@ -1,9 +1,10 @@
 import { Message } from 'google-protobuf'
+import EventEmitter from 'events'
 
 import { VMType, EvmTxReceipt } from './proto/loom_pb'
 import { Uint8ArrayToB64, B64ToUint8Array, bufferToProtobufBytes } from './crypto-utils'
-import { Address } from './address'
-import { WSRPCClient } from './internal/ws-rpc-client'
+import { Address, LocalAddress } from './address'
+import { WSRPCClient, IEventData } from './internal/ws-rpc-client'
 
 interface ITxHandlerResult {
   code?: number
@@ -26,10 +27,21 @@ export interface ITxMiddlewareHandler {
   Handle(txData: Readonly<Uint8Array>): Promise<Uint8Array>
 }
 
+export enum ClientEvent {
+  Contract = 'contractEvent'
+}
+
+export interface IChainEventArgs {
+  contractAddress: Address
+  callerAddress: Address
+  blockHeight: string
+  data: Uint8Array
+}
+
 /**
  * Writes to & reads from a Loom DAppChain.
  */
-export class Client {
+export class Client extends EventEmitter {
   public readonly chainId: string
   public readonly readUrl?: string
   private _writeClient: WSRPCClient
@@ -45,6 +57,7 @@ export class Client {
    * @param readUrl Host & port of the DAppChain read/query interface.
    */
   constructor(chainId: string, writeUrl: string, readUrl?: string) {
+    super()
     this.chainId = chainId
     // TODO: basic validation of the URIs to ensure they have all required components.
     this._writeClient = new WSRPCClient(writeUrl)
@@ -54,6 +67,20 @@ export class Client {
       this.readUrl = readUrl
       this._readClient = new WSRPCClient(readUrl)
     }
+
+    const emitContractEvent = this._emitContractEvent.bind(this)
+
+    this.on('newListener', (event: string) => {
+      if (event === ClientEvent.Contract && this.listenerCount(ClientEvent.Contract) === 0) {
+        this._readClient.subscribeAsync(emitContractEvent)
+      }
+    })
+
+    this.on('removeListener', (event: string) => {
+      if (event === ClientEvent.Contract && this.listenerCount(ClientEvent.Contract) === 0) {
+        this._readClient.unsubscribeAsync(emitContractEvent)
+      }
+    })
   }
 
   disconnect() {
@@ -160,5 +187,20 @@ export class Client {
       return null
     }
     return Address.fromString(addrStr)
+  }
+
+  private _emitContractEvent(event: IEventData) {
+    this.emit(ClientEvent.Contract, {
+      contractAddress: new Address(
+        event.address.ChainID,
+        new LocalAddress(B64ToUint8Array(event.address.Local))
+      ),
+      callerAddress: new Address(
+        event.caller.ChainID,
+        new LocalAddress(B64ToUint8Array(event.caller.Local))
+      ),
+      blockHeight: event.blockHeight,
+      data: B64ToUint8Array(event.encodedData)
+    } as IChainEventArgs)
   }
 }

@@ -1,6 +1,7 @@
 import { Message } from 'google-protobuf'
+import EventEmitter from 'events'
 
-import { Client } from './client'
+import { Client, ClientEvent, IChainEventArgs } from './client'
 import {
   CallTx,
   ContractMethodCall,
@@ -19,7 +20,9 @@ import { bufferToProtobufBytes } from './crypto-utils'
  * Each instance of this class is bound to a specific contract, and provides a simple way of calling
  * into and querying that contract.
  */
-export class Contract {
+export class Contract extends EventEmitter {
+  static readonly EVENT = 'event'
+
   private _client: Client
 
   name?: string
@@ -40,10 +43,25 @@ export class Contract {
     callerAddr: Address
     client: Client
   }) {
+    super()
     this._client = params.client
     this.name = params.contractName
     this.address = params.contractAddr
     this.caller = params.callerAddr
+
+    const emitContractEvent = this._emitContractEvent.bind(this)
+
+    this.on('newListener', (event: string) => {
+      if (event === Contract.EVENT && this.listenerCount(event) === 0) {
+        this._client.on(ClientEvent.Contract, emitContractEvent)
+      }
+    })
+
+    this.on('removeListener', (event: string) => {
+      if (event === Contract.EVENT && this.listenerCount(event) === 0) {
+        this._client.removeListener(ClientEvent.Contract, emitContractEvent)
+      }
+    })
   }
 
   /**
@@ -110,5 +128,11 @@ export class Contract {
       Message.copyInto(msgClass.deserializeBinary(bufferToProtobufBytes(result)), output)
     }
     return output
+  }
+
+  private _emitContractEvent(event: IChainEventArgs) {
+    if (event.contractAddress.equals(this.address)) {
+      this.emit(Contract.EVENT, event)
+    }
   }
 }

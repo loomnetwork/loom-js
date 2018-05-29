@@ -2,7 +2,7 @@ import test from 'tape'
 
 import { Contract } from '../contract'
 import { Address, LocalAddress } from '../address'
-import { Client } from '../client'
+import { Client, IChainEventArgs } from '../client'
 import { generatePrivateKey, publicKeyFromPrivateKey } from '../crypto-utils'
 import { NonceTxMiddleware, SignedTxMiddleware } from '../middleware'
 import { MapEntry, HelloRequest, HelloResponse } from './tests_pb'
@@ -32,6 +32,14 @@ test('Contract Calls', async t => {
     const msg = new MapEntry()
     msg.setKey(msgKey)
     msg.setValue(msgValue)
+
+    contract.once(Contract.EVENT, (event: IChainEventArgs) => {
+      t.deepEqual(event.contractAddress, contractAddr, 'IChainEventArgs.contractAddress matches')
+      t.deepEqual(event.callerAddress, callerAddr, 'IChainEventArgs.callerAddress matches')
+      t.ok(event.blockHeight, 'IChainEventArgs.blockHeight is set')
+      t.ok(event.data.length > 0, 'IChainEventArgs.data is set')
+      // TODO: verify data is correct
+    })
     await contract.callAsync<void>('SetMsg', msg)
 
     const retVal = await contract.callAsync<MapEntry>('SetMsgEcho', msg, new MapEntry())

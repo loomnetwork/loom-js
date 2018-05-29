@@ -12,6 +12,14 @@ test('Address', t => {
     const addr = Address.fromString(addrStr)
     t.equal(addr.chainId, chainId, 'Address.fromString() returns correct chain ID')
     t.deepEqual(addr.local, localAddr, 'Address.fromString() returns correct bytes')
+    t.ok(
+      addr.equals(new Address(chainId, LocalAddress.fromHexString(localAddrStr))),
+      'Address.equals() equality'
+    )
+    t.notOk(
+      addr.equals(new Address('other', LocalAddress.fromHexString(localAddrStr))),
+      'Address.equals() inequality'
+    )
     // TODO: make this a case sensitive comparison
     t.equal(
       addr.toString(),

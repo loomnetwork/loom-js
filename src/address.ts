@@ -18,6 +18,11 @@ export class LocalAddress {
     )
   }
 
+  equals(other: LocalAddress): boolean {
+    // Node API docs say parameters can be Buffer | Uint8Array... so shush TypeScript
+    return Buffer.compare(this.bytes as Buffer, other.bytes as Buffer) === 0
+  }
+
   static fromHexString(hexAddr: string): LocalAddress {
     if (!hexAddr.startsWith('0x')) {
       throw new Error('hexAddr argument has no 0x prefix')
@@ -60,6 +65,10 @@ export class Address {
     addr.setChainId(this.chainId)
     addr.setLocal(bufferToProtobufBytes(this.local.bytes))
     return addr
+  }
+
+  equals(other: Address): boolean {
+    return this.chainId === other.chainId && this.local.equals(other.local)
   }
 
   static UmarshalPB(pb: pb.Address): Address {
