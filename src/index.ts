@@ -1,4 +1,4 @@
-export { Client, ITxMiddlewareHandler } from './client'
+export { Client, IChainEventArgs, ITxMiddlewareHandler } from './client'
 export { Contract } from './contract'
 export { EvmContract } from './evm-contract'
 export { Address, LocalAddress } from './address'

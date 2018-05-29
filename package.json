@@ -24,7 +24,7 @@
     "crypto-browserify": "^3.12.0",
     "google-protobuf": "^3.5.0",
     "ripemd160": "^2.0.1",
-    "rpc-websockets": "^3.6.1",
+    "rpc-websockets": "^4.1.1",
     "tweetnacl": "^1.0.0"
   },
   "devDependencies": {
