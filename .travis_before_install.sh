@@ -2,8 +2,6 @@
 
 set -euxo pipefail
 
-yarn install
-
 PROTOBUF_VERSION=3.5.1
 
 cd /tmp
@@ -19,3 +17,5 @@ sudo mv protoc3/bin/* /usr/local/bin/
 
 # Move protoc3/include to /usr/local/include/
 sudo mv protoc3/include/* /usr/local/include/
+
+yarn install
