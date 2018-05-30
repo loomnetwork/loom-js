@@ -1,4 +1,4 @@
-import { Client } from './client'
+import { Client, ClientEvent, IChainEventArgs } from './client'
 import { CallTx, MessageTx, Transaction, VMType, EvmTxReceipt, Event } from './proto/loom_pb'
 import { Address, LocalAddress } from './address'
 import { bytesToHexAddr, numberToHex, bufferToProtobufBytes, getGUID } from './crypto-utils'
@@ -57,40 +57,24 @@ export class LoomProvider {
     this._client = client
     this._subscriptionID = getGUID()
     this._topicsList = []
-    this._subscribeWS(client.readUrl)
+    this._client.on(ClientEvent.Contract, (msg: IChainEventArgs) => this._onWebSocketMessage(msg))
   }
 
   on(type: string, callback: any) {
-    if (!this._connection) return
-
-    switch(type) {
-      case 'data':
-          this.notificationCallbacks.push(callback);
-          break;
-
-      case 'connect':
-          this._connection.onopen = callback;
-          break;
-
-      case 'end':
-          this._connection.onclose = callback;
-          break;
-
-      case 'error':
-          this._connection.onerror = callback;
-          break;
+    if (type === 'data') {
+      this.notificationCallbacks.push(callback);
+    } else {
+      this._client.on(type, callback)
     }
   }
 
   addDefaultEvents() {
-    if (!this._connection) return
-
-    this._connection.onerror = () => this._timeout()
-    this._connection.onclose = () => {
+    this._client.on('error', () => this._timeout())
+    this._client.on('close', () => {
         this._timeout()
         // reset all requests and callbacks
-        this.reset();
-    };
+        this.reset()
+    })
   }
 
   removeListener() {
@@ -242,28 +226,9 @@ export class LoomProvider {
     } as EthReceipt
   }
 
-  protected _subscribeWS(readUrl?: string) {
-    if (readUrl) {
-      this._connection = new WebSocket(readUrl)
-      this._connection.onopen = () => {
-        if (!this._connection) return
-        this._connection.send(JSON.stringify({
-          method: 'subevents',
-          jsonrpc: '2.0',
-          params: [],
-          id: this._subscriptionID
-        }))
-
-        this._connection.onmessage = (msg: MessageEvent) => this._onWebSocketMessage(msg)
-      }
-    }
-  }
-
-  protected _onWebSocketMessage(msgEvent: MessageEvent) {
-    const data = JSON.parse(msgEvent.data)
-    const encodedData = data.result.encodedData
-    if (encodedData) {
-      const event = Event.deserializeBinary(encodedData)
+  protected _onWebSocketMessage(msgEvent: IChainEventArgs) {
+    if (msgEvent.data) {
+      const event = Event.deserializeBinary(bufferToProtobufBytes(msgEvent.data))
       this.notificationCallbacks.forEach((callback: Function) => {
         const topics = event.getTopicsList_asU8().map((topic: Uint8Array) => bytesToHexAddr(topic).toLowerCase())
         const topicIdxFound = this._topicsList.indexOf(topics[0])
