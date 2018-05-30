@@ -10,6 +10,10 @@ import { Address } from './address'
  * deployed on a Loom DAppChain EVM.
  * Each instance of this class is bound to a specific contract, and provides a simple way of calling
  * into and querying that contract.
+ *
+ * A contract instance can be used to listen to events emitted by the corresponding smart contract,
+ * there is currently only one type of event. The event subscription API matches the NodeJS
+ * EventEmitter API.
  */
 export class EvmContract extends EventEmitter {
   static readonly EVENT = 'event'

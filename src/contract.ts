@@ -19,6 +19,18 @@ import { bufferToProtobufBytes } from './crypto-utils'
  * The Contract class streamlines interaction with a contract that was deployed on a Loom DAppChain.
  * Each instance of this class is bound to a specific contract, and provides a simple way of calling
  * into and querying that contract.
+ *
+ * A contract instance can be used to listen to events emitted by the corresponding smart contract,
+ * there is currently only one type of event. The event subscription API matches the NodeJS
+ * EventEmitter API. For example...
+ *
+ * function subscribeToEvents(contract: Contract) {
+ *   contract.on(Contract.EVENT, (event: IChainEventArgs) => {
+ *     const dataStr = Buffer.from(event.data as Buffer).toString('utf8')
+ *     const dataObj = JSON.parse(dataStr)
+ *     console.log('Contract Event: ' + dataStr)
+ *   })
+ * }
  */
 export class Contract extends EventEmitter {
   static readonly EVENT = 'event'

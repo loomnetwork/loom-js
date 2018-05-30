@@ -31,15 +31,31 @@ export enum ClientEvent {
   Contract = 'contractEvent'
 }
 
+/**
+ * Generic event emitted by smart contracts.
+ */
 export interface IChainEventArgs {
+  // Address of the contract that emitted the event.
   contractAddress: Address
+  // Address of the caller that caused the event to be emitted.
   callerAddress: Address
   blockHeight: string
+  // The data emitted by the smart contract, the format and structure is defined by that contract.
   data: Uint8Array
 }
 
 /**
  * Writes to & reads from a Loom DAppChain.
+ *
+ * The client can listen to events emitted by smart contracts running on a DAppChain,
+ * there is currently only one type of event. The event subscription API matches the NodeJS
+ * EventEmitter API. For example...
+ *
+ * function subscribeToEvents(client: Client) {
+ *   client.on(ClientEvent.Contract, (event: IChainEventArgs) => {
+ *     // handle event
+ *   }
+ * }
  */
 export class Client extends EventEmitter {
   public readonly chainId: string
