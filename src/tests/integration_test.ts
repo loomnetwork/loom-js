@@ -8,24 +8,28 @@ import { NonceTxMiddleware, SignedTxMiddleware } from '../middleware'
 import { MapEntry, HelloRequest, HelloResponse } from './tests_pb'
 import { VMType } from '../proto/loom_pb'
 
+async function getClientAndContract(): Promise<{ client: Client; contract: Contract }> {
+  const privKey = generatePrivateKey()
+  const pubKey = publicKeyFromPrivateKey(privKey)
+  const client = new Client(
+    'default',
+    'ws://127.0.0.1:46657/websocket',
+    'ws://127.0.0.1:9999/queryws'
+  )
+  client.txMiddleware = [new NonceTxMiddleware(pubKey, client), new SignedTxMiddleware(privKey)]
+
+  const contractAddr = await client.getContractAddressAsync('BluePrint')
+  if (!contractAddr) {
+    throw new Error('Failed to resolve contract address')
+  }
+  const callerAddr = new Address(client.chainId, LocalAddress.fromPublicKey(pubKey))
+  const contract = new Contract({ contractAddr, callerAddr, client })
+  return { client, contract }
+}
+
 test('Contract Calls', async t => {
   try {
-    const privKey = generatePrivateKey()
-    const pubKey = publicKeyFromPrivateKey(privKey)
-    const client = new Client(
-      'default',
-      'ws://127.0.0.1:46657/websocket',
-      'ws://127.0.0.1:9999/queryws'
-    )
-    client.txMiddleware = [new NonceTxMiddleware(pubKey, client), new SignedTxMiddleware(privKey)]
-
-    const contractAddr = await client.getContractAddressAsync('BluePrint')
-    if (!contractAddr) {
-      t.fail('Failed to resolve contract address')
-      return
-    }
-    const callerAddr = new Address(client.chainId, LocalAddress.fromPublicKey(pubKey))
-    const contract = new Contract({ contractAddr, callerAddr, client })
+    const { client, contract } = await getClientAndContract()
 
     const msgKey = '123'
     const msgValue = '456'
@@ -33,13 +37,6 @@ test('Contract Calls', async t => {
     msg.setKey(msgKey)
     msg.setValue(msgValue)
 
-    contract.once(Contract.EVENT, (event: IChainEventArgs) => {
-      t.deepEqual(event.contractAddress, contractAddr, 'IChainEventArgs.contractAddress matches')
-      t.deepEqual(event.callerAddress, callerAddr, 'IChainEventArgs.callerAddress matches')
-      t.ok(event.blockHeight, 'IChainEventArgs.blockHeight is set')
-      t.ok(event.data.length > 0, 'IChainEventArgs.data is set')
-      // TODO: verify data is correct
-    })
     await contract.callAsync<void>('SetMsg', msg)
 
     const retVal = await contract.callAsync<MapEntry>('SetMsgEcho', msg, new MapEntry())
@@ -58,7 +55,66 @@ test('Contract Calls', async t => {
 
     client.disconnect()
   } catch (err) {
-    console.log(err)
+    t.fail(err)
+  }
+  t.end()
+})
+
+test('Contract Events', async t => {
+  try {
+    const { client, contract } = await getClientAndContract()
+
+    const msgKey = '123'
+    const msgValue = '456'
+    const msg = new MapEntry()
+    msg.setKey(msgKey)
+    msg.setValue(msgValue)
+
+    let listener1InvokeCount = 0
+    let listener2InvokeCount = 0
+
+    const listener1 = (event: IChainEventArgs) => {
+      t.deepEqual(
+        event.contractAddress,
+        contract.address,
+        'IChainEventArgs.contractAddress matches'
+      )
+      t.deepEqual(event.callerAddress, contract.caller, 'IChainEventArgs.callerAddress matches')
+      t.ok(event.blockHeight, 'IChainEventArgs.blockHeight is set')
+      t.ok(event.data.length > 0, 'IChainEventArgs.data is set')
+      const dataStr = Buffer.from(event.data as Buffer).toString('utf8')
+      const dataObj = JSON.parse(dataStr)
+      t.deepEqual(
+        dataObj,
+        { Method: 'SetMsg', Key: msgKey, Value: msgValue },
+        'IChainEventArgs.data is correct'
+      )
+      listener1InvokeCount++
+    }
+    contract.once(Contract.EVENT, listener1)
+
+    await contract.callAsync<void>('SetMsg', msg)
+
+    const listener2 = (event: IChainEventArgs) => {
+      listener2InvokeCount++
+    }
+    contract.on(Contract.EVENT, listener2)
+
+    await contract.callAsync<void>('SetMsg', msg)
+    await contract.callAsync<void>('SetMsg', msg)
+
+    t.isEqual(listener1InvokeCount, 1, 'Contract.once listener invoked only once')
+    t.isEqual(listener2InvokeCount, 2, 'Contract.on listener invoked multiple times')
+
+    contract.removeListener(Contract.EVENT, listener2)
+
+    await contract.callAsync<void>('SetMsg', msg)
+
+    t.isEqual(listener2InvokeCount, 2, 'Contract.on listener not invoked after removal')
+
+    client.disconnect()
+  } catch (err) {
+    t.fail(err)
   }
   t.end()
 })
