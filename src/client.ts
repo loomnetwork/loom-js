@@ -1,5 +1,6 @@
 import { Message } from 'google-protobuf'
 import EventEmitter from 'events'
+import retry from 'retry'
 
 import { VMType, EvmTxReceipt } from './proto/loom_pb'
 import { Uint8ArrayToB64, B64ToUint8Array, bufferToProtobufBytes } from './crypto-utils'
@@ -44,6 +45,8 @@ export interface IChainEventArgs {
   data: Uint8Array
 }
 
+const INVALID_TX_NONCE = 'Invalid tx nonce'
+
 /**
  * Writes to & reads from a Loom DAppChain.
  *
@@ -58,13 +61,27 @@ export interface IChainEventArgs {
  * }
  */
 export class Client extends EventEmitter {
-  public readonly chainId: string
-  public readonly readUrl?: string
+  readonly chainId: string
+  readonly readUrl?: string
+
   private _writeClient: WSRPCClient
   private _readClient!: WSRPCClient
 
-  // Middleware to apply to transactions before they are transmitted to the DAppChain.
+  /** Middleware to apply to transactions before they are transmitted to the DAppChain. */
   txMiddleware: ITxMiddlewareHandler[] = []
+
+  /**
+   * The retry strategy that should be used to resend a tx when it's rejected because of a bad nonce.
+   * Default is a binary exponential retry strategy with 5 retries.
+   * To understand how to tweak the retry strategy see
+   * https://github.com/tim-kos/node-retry#retrytimeoutsoptions
+   */
+  nonceRetryStrategy: retry.OperationOptions = {
+    retries: 5,
+    minTimeout: 500, // 0.5s
+    maxTimeout: 5000, // 5s
+    randomize: true
+  }
 
   /**
    * Constructs a new client to read & write data from/to a Loom DAppChain.
@@ -99,6 +116,10 @@ export class Client extends EventEmitter {
     })
   }
 
+  /**
+   * Cleans up all underlying network resources.
+   * Once disconnected the client can no longer be used to interact with the DAppChain.
+   */
   disconnect() {
     this._writeClient.disconnect()
     if (this._readClient && this._readClient != this._writeClient) {
@@ -114,7 +135,27 @@ export class Client extends EventEmitter {
    * @param tx Transaction to commit.
    * @returns Result (if any) returned by the tx handler in the contract that processed the tx.
    */
-  async commitTxAsync<T extends Message>(tx: T): Promise<Uint8Array | void> {
+  commitTxAsync<T extends Message>(tx: T): Promise<Uint8Array | void> {
+    const op = retry.operation(this.nonceRetryStrategy)
+    return new Promise<Uint8Array | void>((resolve, reject) => {
+      op.attempt(currentAttempt => {
+        this._commitTxAsync<T>(tx)
+          .then(resolve)
+          .catch(err => {
+            if (err instanceof Error && err.message === INVALID_TX_NONCE) {
+              if (!op.retry(err)) {
+                reject(err)
+              }
+            } else {
+              op.stop()
+              reject(err)
+            }
+          })
+      })
+    })
+  }
+
+  private async _commitTxAsync<T extends Message>(tx: T): Promise<Uint8Array | void> {
     let txBytes = tx.serializeBinary()
     for (let i = 0; i < this.txMiddleware.length; i++) {
       txBytes = await this.txMiddleware[i].Handle(txBytes)
@@ -127,6 +168,12 @@ export class Client extends EventEmitter {
       if ((result.check_tx.code || 0) != 0) {
         if (!result.check_tx.log) {
           throw new Error(`Failed to commit Tx: ${result.check_tx.code}`)
+        }
+        if (
+          result.check_tx.code === 1 &&
+          result.check_tx.log === 'sequence number does not match'
+        ) {
+          throw new Error(INVALID_TX_NONCE)
         }
         throw new Error(`Failed to commit Tx: ${result.check_tx.log}`)
       }
