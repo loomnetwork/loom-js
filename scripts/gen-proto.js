@@ -4,7 +4,7 @@ const shell = require('shelljs')
 const os = require('os')
 const path = require('path')
 
-shell.mkdir('-p', './dist')
+shell.mkdir('-p', './dist/proto')
 // copy the proto so end users can import it from node_modules in their own proto files
 shell.cp('./src/proto/loom.proto', './dist/proto/loom.proto')
 
