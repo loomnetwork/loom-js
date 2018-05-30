@@ -1,7 +1,8 @@
 import { Message } from 'google-protobuf'
+import EventEmitter from 'events'
 
-import { Client } from './client'
-import { CallTx, MessageTx, Transaction, VMType } from './proto/loom_pb'
+import { Client, ClientEvent, IChainEventArgs } from './client'
+import { CallTx, MessageTx, Transaction, VMType, Event } from './proto/loom_pb'
 import { Address } from './address'
 
 /**
@@ -10,7 +11,9 @@ import { Address } from './address'
  * Each instance of this class is bound to a specific contract, and provides a simple way of calling
  * into and querying that contract.
  */
-export class EvmContract {
+export class EvmContract extends EventEmitter {
+  static readonly EVENT = 'event'
+
   private _client: Client
 
   address: Address
@@ -24,9 +27,24 @@ export class EvmContract {
    * @param params.client: Client to use to communicate with the contract.
    */
   constructor(params: { contractAddr: Address; callerAddr: Address; client: Client }) {
+    super()
     this._client = params.client
     this.address = params.contractAddr
     this.caller = params.callerAddr
+
+    const emitContractEvent = this._emitContractEvent.bind(this)
+
+    this.on('newListener', (event: string) => {
+      if (event === EvmContract.EVENT && this.listenerCount(event) === 0) {
+        this._client.on(ClientEvent.Contract, emitContractEvent)
+      }
+    })
+
+    this.on('removeListener', (event: string) => {
+      if (event === EvmContract.EVENT && this.listenerCount(event) === 0) {
+        this._client.removeListener(ClientEvent.Contract, emitContractEvent)
+      }
+    })
   }
 
   /**
@@ -61,5 +79,11 @@ export class EvmContract {
   async staticCallAsync(args: number[], output?: Uint8Array): Promise<Uint8Array | void> {
     const ui8InData = Uint8Array.from(args)
     return this._client.queryAsync(this.address, ui8InData, VMType.EVM)
+  }
+
+  private _emitContractEvent(event: IChainEventArgs) {
+    if (event.contractAddress.equals(this.address)) {
+      this.emit(EvmContract.EVENT, event)
+    }
   }
 }
