@@ -2,6 +2,7 @@
 
 const path = require('path');
 const WebpackTapeRun = require('webpack-tape-run');
+const WebpackDotEnv = require('dotenv-webpack');
 
 module.exports = {
   mode: 'production',
@@ -30,6 +31,10 @@ module.exports = {
     ]
   },
   plugins: [
+    new WebpackDotEnv({
+      path: './.env.test',
+      safe: './.env.test.example'
+    }),
     // Be default tests will run in Electron, but can use other browsers too,
     // see https://github.com/syarul/webpack-tape-run for plugin settings.
     new WebpackTapeRun()

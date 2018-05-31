@@ -40,6 +40,9 @@ yarn e2e:node
 yarn e2e:browser
 ```
 
+The e2e test environment can be configured by changing `.env.test` (see `.env.test.example` for
+default values).
+
 ### Regenerating Protobufs
 
 Whenever you change `src/proto/loom.proto`, or `src/tests/tests.proto` you will need to regenerate
