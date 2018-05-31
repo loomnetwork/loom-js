@@ -15,7 +15,7 @@
     "test": "yarn test:node && yarn test:browser",
     "test:node": "yarn proto && tsc && tape dist/tests/unit_tests.js",
     "test:browser": "yarn proto && tsc && webpack --config webpack.unit.tests.config.js",
-    "e2e:node": "yarn proto && tsc && tape dist/tests/e2e_tests.js",
+    "e2e:node": "yarn proto && tsc && tape -r dotenv/config dotenv_config_path=./.env.test dist/tests/e2e_tests.js",
     "e2e:browser": "yarn proto && tsc && webpack --config webpack.e2e.test.config.js",
     "proto": "node ./scripts/gen-proto.js",
     "prepublish": "yarn proto && yarn build && webpack"
@@ -39,6 +39,8 @@
     "@types/tape": "^4.2.32",
     "babel-cli": "^6.26.0",
     "babel-loader": "^8.0.0-beta.2",
+    "dotenv": "^5.0.1",
+    "dotenv-webpack": "^1.5.5",
     "prettier": "1.12.1",
     "shelljs": "^0.8.2",
     "tape": "4.9",

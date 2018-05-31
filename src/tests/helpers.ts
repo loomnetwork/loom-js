@@ -2,7 +2,8 @@ import { Client } from '../client'
 
 /**
  * Creates a client for tests, the default read/write URLs can be overriden by setting the env vars
- * TEST_LOOM_DAPP_WRITE_URL and TEST_LOOM_DAPP_READ_URL.
+ * TEST_LOOM_DAPP_WRITE_URL and TEST_LOOM_DAPP_READ_URL. These env vars can be set by modifying
+ * the .env.test (see .env.test.example for default values).
  */
 export function createTestClient(): Client {
   return new Client(

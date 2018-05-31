@@ -6,19 +6,21 @@ import { Client, IChainEventArgs } from '../client'
 import { generatePrivateKey, publicKeyFromPrivateKey } from '../crypto-utils'
 import { NonceTxMiddleware, SignedTxMiddleware } from '../middleware'
 import { MapEntry } from './tests_pb'
+import { createTestClient } from './helpers'
 
 async function getClientAndContract(): Promise<{ client: Client; contract: Contract }> {
   const privKey = generatePrivateKey()
   const pubKey = publicKeyFromPrivateKey(privKey)
-  const client = new Client(
-    'default',
-    'ws://127.0.0.1:46657/websocket',
-    'ws://127.0.0.1:9999/queryws'
-  )
+  const client = createTestClient()
   client.txMiddleware = [new NonceTxMiddleware(pubKey, client), new SignedTxMiddleware(privKey)]
 
-  const contractAddr = await client.getContractAddressAsync('BluePrint')
-  if (!contractAddr) {
+  let contractAddr: Address | null = null
+  try {
+    contractAddr = await client.getContractAddressAsync('BluePrint')
+    if (!contractAddr) {
+      throw new Error()
+    }
+  } catch {
     throw new Error('Failed to resolve contract address')
   }
   const callerAddr = new Address(client.chainId, LocalAddress.fromPublicKey(pubKey))
