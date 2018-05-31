@@ -5,8 +5,7 @@ import { Address, LocalAddress } from '../address'
 import { Client, IChainEventArgs } from '../client'
 import { generatePrivateKey, publicKeyFromPrivateKey } from '../crypto-utils'
 import { NonceTxMiddleware, SignedTxMiddleware } from '../middleware'
-import { MapEntry, HelloRequest, HelloResponse } from './tests_pb'
-import { VMType } from '../proto/loom_pb'
+import { MapEntry } from './tests_pb'
 
 async function getClientAndContract(): Promise<{ client: Client; contract: Contract }> {
   const privKey = generatePrivateKey()

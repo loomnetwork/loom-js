@@ -45,7 +45,11 @@ export interface IChainEventArgs {
   data: Uint8Array
 }
 
-const INVALID_TX_NONCE = 'Invalid tx nonce'
+const INVALID_TX_NONCE_ERROR = 'Invalid tx nonce'
+
+export function isInvalidTxNonceError(err: any): boolean {
+  return err instanceof Error && err.message === INVALID_TX_NONCE_ERROR
+}
 
 /**
  * Writes to & reads from a Loom DAppChain.
@@ -142,7 +146,7 @@ export class Client extends EventEmitter {
         this._commitTxAsync<T>(tx)
           .then(resolve)
           .catch(err => {
-            if (err instanceof Error && err.message === INVALID_TX_NONCE) {
+            if (err instanceof Error && err.message === INVALID_TX_NONCE_ERROR) {
               if (!op.retry(err)) {
                 reject(err)
               }
@@ -173,7 +177,7 @@ export class Client extends EventEmitter {
           result.check_tx.code === 1 &&
           result.check_tx.log === 'sequence number does not match'
         ) {
-          throw new Error(INVALID_TX_NONCE)
+          throw new Error(INVALID_TX_NONCE_ERROR)
         }
         throw new Error(`Failed to commit Tx: ${result.check_tx.log}`)
       }
