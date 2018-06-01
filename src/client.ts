@@ -5,12 +5,7 @@ import retry from 'retry'
 import { VMType, EvmTxReceipt } from './proto/loom_pb'
 import { Uint8ArrayToB64, B64ToUint8Array, bufferToProtobufBytes } from './crypto-utils'
 import { Address, LocalAddress } from './address'
-import {
-  WSRPCClient,
-  WSRPCClientEvent,
-  IJSONRPCEvent,
-  IJSONRPCError
-} from './internal/ws-rpc-client'
+import { WSRPCClient, WSRPCClientEvent, IJSONRPCEvent } from './internal/ws-rpc-client'
 
 interface ITxHandlerResult {
   code?: number
@@ -69,7 +64,7 @@ export interface IClientEventArgs {
 export interface IClientErrorEventArgs extends IClientEventArgs {
   kind: ClientEvent.Error
   /** May contain additional information in case of an RPC error. */
-  error?: IJSONRPCError
+  error?: any // could be IJSONRPCError, or something else
 }
 
 /** Generic event containing data emitted by smart contracts. */
@@ -155,8 +150,8 @@ export class Client extends EventEmitter {
     this._writeClient.on(WSRPCClientEvent.Disconnected, () =>
       this._emitNetEvent(writeUrl, ClientEvent.Disconnected)
     )
-    this._writeClient.on(WSRPCClientEvent.Error, () =>
-      this._emitNetEvent(writeUrl, ClientEvent.Error)
+    this._writeClient.on(WSRPCClientEvent.Error, err =>
+      this._emitNetEvent(writeUrl, ClientEvent.Error, err)
     )
 
     if (!readUrl || writeUrl === readUrl) {
@@ -169,8 +164,8 @@ export class Client extends EventEmitter {
       this._readClient.on(WSRPCClientEvent.Disconnected, () =>
         this._emitNetEvent(readUrl, ClientEvent.Disconnected)
       )
-      this._readClient.on(WSRPCClientEvent.Error, () =>
-        this._emitNetEvent(readUrl, ClientEvent.Error)
+      this._readClient.on(WSRPCClientEvent.Error, err =>
+        this._emitNetEvent(readUrl, ClientEvent.Error, err)
       )
     }
 
@@ -179,14 +174,17 @@ export class Client extends EventEmitter {
 
     this.on('newListener', (event: string) => {
       if (event === ClientEvent.Contract && this.listenerCount(ClientEvent.Contract) === 0) {
-        // TODO: emit the error that occurs if sub fails
-        this._readClient.subscribeAsync(emitContractEvent)
+        this._readClient
+          .subscribeAsync(emitContractEvent)
+          .catch(err => this._emitNetEvent(this._readClient.url, ClientEvent.Error, err))
       }
     })
 
     this.on('removeListener', (event: string) => {
       if (event === ClientEvent.Contract && this.listenerCount(ClientEvent.Contract) === 0) {
-        this._readClient.unsubscribeAsync(emitContractEvent)
+        this._readClient
+          .unsubscribeAsync(emitContractEvent)
+          .catch(err => this._emitNetEvent(this._readClient.url, ClientEvent.Error, err))
       }
     })
   }
@@ -353,9 +351,15 @@ export class Client extends EventEmitter {
 
   private _emitNetEvent(
     url: string,
-    kind: ClientEvent.Connected | ClientEvent.Disconnected | ClientEvent.Error
+    kind: ClientEvent.Connected | ClientEvent.Disconnected | ClientEvent.Error,
+    error?: any
   ) {
-    const eventArgs: IClientEventArgs = { kind, url }
-    this.emit(kind, eventArgs)
+    if (kind === ClientEvent.Error) {
+      const eventArgs: IClientErrorEventArgs = { kind, url, error }
+      this.emit(kind, eventArgs)
+    } else {
+      const eventArgs: IClientEventArgs = { kind, url }
+      this.emit(kind, eventArgs)
+    }
   }
 }
