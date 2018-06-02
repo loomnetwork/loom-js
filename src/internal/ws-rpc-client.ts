@@ -35,7 +35,13 @@ export enum WSRPCClientEvent {
   /** Emitted when an error is encountered that can't be propagated in a more sensible fashion. */
   Error = 'error',
   /** Emitted when an event message (not a response message) is received from the server. */
-  Message = 'message'
+  Message = 'message',
+  /**
+   * Emitted when chain events subscription status changes.
+   * Listener will receive a single boolean value, `true` indicates that the event subscription is
+   * active, `false` indicates that it's inactive.
+   */
+  Subscribed = 'subscribed'
 }
 
 /**
@@ -44,9 +50,15 @@ export enum WSRPCClientEvent {
 export class WSRPCClient extends EventEmitter {
   private _client: WSClient
   private _rpcId: number = 0
-  private _requestTimeout: number
+  private _isSubcribed: boolean = false
 
   private _getNextRequestId = () => (++this._rpcId).toString()
+
+  requestTimeout: number
+
+  get isSubscribed(): boolean {
+    return this._isSubcribed
+  }
 
   /**
    *
@@ -85,17 +97,63 @@ export class WSRPCClient extends EventEmitter {
       generateRequestId
     )
 
-    this._requestTimeout = requestTimeout
+    this.requestTimeout = requestTimeout
+
+    this.on('newListener', (event: string) => {
+      if (event === WSRPCClientEvent.Message && this.listenerCount(event) === 0) {
+        // rpc-websockets is just going to throw away the event messages from the DAppChain because
+        // they don't conform to it's idea of notifications or events... fortunately few things in
+        // javascript are truly private... so we'll just handle those event message ourselves ;)
+        ;((this._client as any).socket as EventEmitter).on('message', this._onEventMessage)
+        if (this._client.ready) {
+          this._client
+            .call('subevents', {}, this.requestTimeout)
+            .then(() => {
+              this._isSubcribed = true
+              this.emit(WSRPCClientEvent.Subscribed, true)
+            })
+            .catch(err => this.emit(WSRPCClientEvent.Error, err))
+        }
+      }
+    })
+
+    this.on('removeListener', (event: string) => {
+      if (event === WSRPCClientEvent.Message && this.listenerCount(event) === 0) {
+        ;((this._client as any).socket as EventEmitter).removeListener(
+          'message',
+          this._onEventMessage
+        )
+        if (this._client.ready) {
+          this._client
+            .call('unsubevents', {}, this.requestTimeout)
+            .then(() => {
+              this._isSubcribed = false
+              this.emit(WSRPCClientEvent.Subscribed, false)
+            })
+            .catch(err => this.emit(WSRPCClientEvent.Error, err))
+        }
+      }
+    })
 
     this._client.on('open', () => {
       this.emit(WSRPCClientEvent.Connected)
       if (this.listenerCount(WSRPCClientEvent.Message) > 0) {
         this._client
-          .call('subevents', {}, this._requestTimeout)
+          .call('subevents', {}, this.requestTimeout)
+          .then(() => {
+            this._isSubcribed = true
+            this.emit(WSRPCClientEvent.Subscribed, true)
+          })
           .catch(err => this.emit(WSRPCClientEvent.Error, err))
       }
     })
-    this._client.on('close', () => this.emit(WSRPCClientEvent.Disconnected))
+    this._client.on('close', () => {
+      if (this.listenerCount(WSRPCClientEvent.Message) > 0) {
+        this._isSubcribed = false
+        this.emit(WSRPCClientEvent.Subscribed, false)
+      }
+      this.emit(WSRPCClientEvent.Disconnected)
+    })
     this._client.on('error', err => this.emit(WSRPCClientEvent.Error, err))
   }
 
@@ -111,12 +169,15 @@ export class WSRPCClient extends EventEmitter {
    * Waits for a connection to be established to the server (if it isn't already).
    * @returns A promise that will be resolved when a connection is established.
    */
-  private _ensureConnectionAsync(): Promise<void> {
+  ensureConnectionAsync(): Promise<void> {
     if (this._client.ready) {
       return Promise.resolve()
     }
     return new Promise((resolve, reject) => {
-      const timeout = setTimeout(reject, this._requestTimeout)
+      const timeout = setTimeout(
+        () => reject(new Error('[WSRPCClient] Timeout while waiting for connection')),
+        this.requestTimeout
+      )
       this._client.once('open', () => {
         clearTimeout(timeout)
         resolve()
@@ -132,37 +193,9 @@ export class WSRPCClient extends EventEmitter {
    *          JSON-RPC response message.
    */
   async sendAsync<T>(method: string, params: object | any[]): Promise<T> {
-    await this._ensureConnectionAsync()
+    await this.ensureConnectionAsync()
     console.log(`Sending RPC msg to ${this.url}, method ${method}`)
-    return this._client.call<T>(method, params, this._requestTimeout)
-  }
-
-  async subscribeAsync(listener: WSRPCClientEventListener): Promise<void> {
-    if (this.listeners(WSRPCClientEvent.Message).indexOf(listener) !== -1) {
-      return
-    }
-    this.on(WSRPCClientEvent.Message, listener)
-    if (this.listenerCount(WSRPCClientEvent.Message) === 1) {
-      // rpc-websockets is just going to throw away the event messages from the DAppChain because
-      // they don't conform to it's idea of notifications or events... fortunately few things in
-      // javascript are truly private... so we'll just handle those event message ourselves ;)
-      ;((this._client as any).socket as EventEmitter).on('message', this._onEventMessage)
-
-      if (this._client.ready) {
-        await this._client.call('subevents', {}, this._requestTimeout)
-      }
-    }
-  }
-
-  async unsubscribeAsync(listener: WSRPCClientEventListener): Promise<void> {
-    this.removeListener(WSRPCClientEvent.Message, listener)
-    if (this.listenerCount(WSRPCClientEvent.Message) === 0) {
-      ;((this._client as any).socket as EventEmitter).removeListener(
-        'message',
-        this._onEventMessage
-      )
-      await this.sendAsync('unsubevents', {})
-    }
+    return this._client.call<T>(method, params, this.requestTimeout)
   }
 
   private _onEventMessage = (message: string | ArrayBuffer): void => {
