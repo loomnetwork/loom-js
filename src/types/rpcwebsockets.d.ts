@@ -9,6 +9,7 @@ declare module 'rpc-websockets' {
 
   export class Client {
     ready: boolean
+    reconnect: boolean
 
     constructor(
       address: string,
@@ -17,6 +18,7 @@ declare module 'rpc-websockets' {
     )
     call<T>(method: string, params?: any, timeout?: number, options?: any): Promise<T>
     on(event: string, listener: (...args: any[]) => void): this
+    once(event: string, listener: (...args: any[]) => void): this
     close(code: number, data?: string): void
   }
 }

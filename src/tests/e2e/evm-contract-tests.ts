@@ -1,9 +1,15 @@
 import test from 'tape'
-import { EvmContract } from '../evm-contract'
-import { Address, LocalAddress } from '../address'
-import { Client } from '../client'
-import { generatePrivateKey, publicKeyFromPrivateKey } from '../crypto-utils'
-import { NonceTxMiddleware, SignedTxMiddleware } from '../middleware'
+
+import {
+  EvmContract,
+  Address,
+  LocalAddress,
+  Client,
+  NonceTxMiddleware,
+  SignedTxMiddleware,
+  CryptoUtils
+} from '../../index'
+import { createTestClient } from '../helpers'
 
 /**
  * Requires the SimpleStore solidity contract deployed on a loomchain.
@@ -24,13 +30,9 @@ import { NonceTxMiddleware, SignedTxMiddleware } from '../middleware'
 
 test('EVM Contract Calls', async t => {
   try {
-    const privKey = generatePrivateKey()
-    const pubKey = publicKeyFromPrivateKey(privKey)
-    const client = new Client(
-      'default',
-      'ws://127.0.0.1:46657/websocket',
-      'ws://127.0.0.1:9999/queryws'
-    )
+    const privKey = CryptoUtils.generatePrivateKey()
+    const pubKey = CryptoUtils.publicKeyFromPrivateKey(privKey)
+    const client = createTestClient()
     client.txMiddleware = [new NonceTxMiddleware(pubKey, client), new SignedTxMiddleware(privKey)]
 
     const contractAddr = await client.getContractAddressAsync('SimpleStore')

@@ -1,10 +1,11 @@
 import { Message } from 'google-protobuf'
 import EventEmitter from 'events'
+import retry from 'retry'
 
 import { VMType, EvmTxReceipt } from './proto/loom_pb'
 import { Uint8ArrayToB64, B64ToUint8Array, bufferToProtobufBytes } from './crypto-utils'
 import { Address, LocalAddress } from './address'
-import { WSRPCClient, IEventData } from './internal/ws-rpc-client'
+import { WSRPCClient, WSRPCClientEvent, IJSONRPCEvent } from './internal/ws-rpc-client'
 
 interface ITxHandlerResult {
   code?: number
@@ -28,20 +29,64 @@ export interface ITxMiddlewareHandler {
 }
 
 export enum ClientEvent {
-  Contract = 'contractEvent'
+  /**
+   * Emitted when an event is received from a smart contract.
+   * Listener will receive IChainEventArgs.
+   */
+  Contract = 'contractEvent',
+  /**
+   * Emitted when an error occurs that can't be relayed by other means.
+   * Listener will receive IClientErrorEventArgs.
+   */
+  Error = 'error',
+  /**
+   * Emitted when a connection is established to the DAppChain.
+   * Listener will receive INetEventArgs.
+   */
+  Connected = 'connected',
+  /**
+   * Emitted when a connection with the DAppChain is closed.
+   * Listener will receive INetEventArgs.
+   */
+  Disconnected = 'disconnected'
+}
+
+export interface IClientEventArgs {
+  kind: ClientEvent
+  /** URL that corresponds to the RPC client this event originated from. */
+  url: string
 }
 
 /**
- * Generic event emitted by smart contracts.
+ * Event that's emitted when some kind of error occurs that can't be relayed by other means,
+ * e.g. socket error that occurs while listening for RPC events.
  */
-export interface IChainEventArgs {
-  // Address of the contract that emitted the event.
+export interface IClientErrorEventArgs extends IClientEventArgs {
+  kind: ClientEvent.Error
+  /** May contain additional information in case of an RPC error. */
+  error?: any // could be IJSONRPCError, or something else
+}
+
+/** Generic event containing data emitted by smart contracts. */
+export interface IChainEventArgs extends IClientEventArgs {
+  kind: ClientEvent.Contract
+  /** Address of the contract that emitted the event. */
   contractAddress: Address
-  // Address of the caller that caused the event to be emitted.
+  /** Address of the caller that caused the event to be emitted. */
   callerAddress: Address
+  /** The block containing the tx that caused this event to be emitted. */
   blockHeight: string
-  // The data emitted by the smart contract, the format and structure is defined by that contract.
+  /**
+   * Data that was actually emitted by the smart contract,
+   * the format and structure is defined by that contract.
+   */
   data: Uint8Array
+}
+
+const INVALID_TX_NONCE_ERROR = 'Invalid tx nonce'
+
+export function isInvalidTxNonceError(err: any): boolean {
+  return err instanceof Error && err.message === INVALID_TX_NONCE_ERROR
 }
 
 /**
@@ -58,47 +103,92 @@ export interface IChainEventArgs {
  * }
  */
 export class Client extends EventEmitter {
-  public readonly chainId: string
-  public readonly readUrl?: string
+  readonly chainId: string
+
   private _writeClient: WSRPCClient
   private _readClient!: WSRPCClient
 
-  // Middleware to apply to transactions before they are transmitted to the DAppChain.
+  /** Middleware to apply to transactions before they are transmitted to the DAppChain. */
   txMiddleware: ITxMiddlewareHandler[] = []
+
+  /**
+   * The retry strategy that should be used to resend a tx when it's rejected because of a bad nonce.
+   * Default is a binary exponential retry strategy with 5 retries.
+   * To understand how to tweak the retry strategy see
+   * https://github.com/tim-kos/node-retry#retrytimeoutsoptions
+   */
+  nonceRetryStrategy: retry.OperationOptions = {
+    retries: 5,
+    minTimeout: 500, // 0.5s
+    maxTimeout: 5000, // 5s
+    randomize: true
+  }
+
+  get readUrl(): string {
+    return this._readClient.url
+  }
+
+  get writeUrl(): string {
+    return this._writeClient.url
+  }
 
   /**
    * Constructs a new client to read & write data from/to a Loom DAppChain.
    * @param chainId DAppChain identifier.
    * @param writeUrl Host & port to send txs, specified as "<protocol>://<host>:<port>".
-   * @param readUrl Host & port of the DAppChain read/query interface.
+   * @param readUrl Host & port of the DAppChain read/query interface, this should only be provided
+   *                if it's not the same as `writeUrl`.
    */
   constructor(chainId: string, writeUrl: string, readUrl?: string) {
     super()
     this.chainId = chainId
     // TODO: basic validation of the URIs to ensure they have all required components.
     this._writeClient = new WSRPCClient(writeUrl)
+    this._writeClient.on(WSRPCClientEvent.Connected, () =>
+      this._emitNetEvent(writeUrl, ClientEvent.Connected)
+    )
+    this._writeClient.on(WSRPCClientEvent.Disconnected, () =>
+      this._emitNetEvent(writeUrl, ClientEvent.Disconnected)
+    )
+    this._writeClient.on(WSRPCClientEvent.Error, err =>
+      this._emitNetEvent(writeUrl, ClientEvent.Error, err)
+    )
+
     if (!readUrl || writeUrl === readUrl) {
       this._readClient = this._writeClient
     } else {
-      this.readUrl = readUrl
       this._readClient = new WSRPCClient(readUrl)
+      this._readClient.on(WSRPCClientEvent.Connected, () =>
+        this._emitNetEvent(readUrl, ClientEvent.Connected)
+      )
+      this._readClient.on(WSRPCClientEvent.Disconnected, () =>
+        this._emitNetEvent(readUrl, ClientEvent.Disconnected)
+      )
+      this._readClient.on(WSRPCClientEvent.Error, err =>
+        this._emitNetEvent(readUrl, ClientEvent.Error, err)
+      )
     }
 
-    const emitContractEvent = this._emitContractEvent.bind(this)
+    const emitContractEvent = (event: IJSONRPCEvent) =>
+      this._emitContractEvent(this._readClient.url, event)
 
     this.on('newListener', (event: string) => {
       if (event === ClientEvent.Contract && this.listenerCount(ClientEvent.Contract) === 0) {
-        this._readClient.subscribeAsync(emitContractEvent)
+        this._readClient.on(WSRPCClientEvent.Message, emitContractEvent)
       }
     })
 
     this.on('removeListener', (event: string) => {
       if (event === ClientEvent.Contract && this.listenerCount(ClientEvent.Contract) === 0) {
-        this._readClient.unsubscribeAsync(emitContractEvent)
+        this._readClient.removeListener(WSRPCClientEvent.Message, emitContractEvent)
       }
     })
   }
 
+  /**
+   * Cleans up all underlying network resources.
+   * Once disconnected the client can no longer be used to interact with the DAppChain.
+   */
   disconnect() {
     this._writeClient.disconnect()
     if (this._readClient && this._readClient != this._writeClient) {
@@ -114,7 +204,27 @@ export class Client extends EventEmitter {
    * @param tx Transaction to commit.
    * @returns Result (if any) returned by the tx handler in the contract that processed the tx.
    */
-  async commitTxAsync<T extends Message>(tx: T): Promise<Uint8Array | void> {
+  commitTxAsync<T extends Message>(tx: T): Promise<Uint8Array | void> {
+    const op = retry.operation(this.nonceRetryStrategy)
+    return new Promise<Uint8Array | void>((resolve, reject) => {
+      op.attempt(currentAttempt => {
+        this._commitTxAsync<T>(tx)
+          .then(resolve)
+          .catch(err => {
+            if (err instanceof Error && err.message === INVALID_TX_NONCE_ERROR) {
+              if (!op.retry(err)) {
+                reject(err)
+              }
+            } else {
+              op.stop()
+              reject(err)
+            }
+          })
+      })
+    })
+  }
+
+  private async _commitTxAsync<T extends Message>(tx: T): Promise<Uint8Array | void> {
     let txBytes = tx.serializeBinary()
     for (let i = 0; i < this.txMiddleware.length; i++) {
       txBytes = await this.txMiddleware[i].Handle(txBytes)
@@ -127,6 +237,12 @@ export class Client extends EventEmitter {
       if ((result.check_tx.code || 0) != 0) {
         if (!result.check_tx.log) {
           throw new Error(`Failed to commit Tx: ${result.check_tx.code}`)
+        }
+        if (
+          result.check_tx.code === 1 &&
+          result.check_tx.log === 'sequence number does not match'
+        ) {
+          throw new Error(INVALID_TX_NONCE_ERROR)
         }
         throw new Error(`Failed to commit Tx: ${result.check_tx.log}`)
       }
@@ -205,18 +321,41 @@ export class Client extends EventEmitter {
     return Address.fromString(addrStr)
   }
 
-  private _emitContractEvent(event: IEventData) {
-    this.emit(ClientEvent.Contract, {
-      contractAddress: new Address(
-        event.address.ChainID,
-        new LocalAddress(B64ToUint8Array(event.address.Local))
-      ),
-      callerAddress: new Address(
-        event.caller.ChainID,
-        new LocalAddress(B64ToUint8Array(event.caller.Local))
-      ),
-      blockHeight: event.blockHeight,
-      data: B64ToUint8Array(event.encodedData)
-    } as IChainEventArgs)
+  private _emitContractEvent(url: string, event: IJSONRPCEvent): void {
+    const { error, result } = event
+    if (error) {
+      const eventArgs: IClientErrorEventArgs = { kind: ClientEvent.Error, url, error }
+      this.emit(ClientEvent.Error, eventArgs)
+    } else if (result) {
+      const eventArgs: IChainEventArgs = {
+        kind: ClientEvent.Contract,
+        url,
+        contractAddress: new Address(
+          result.address.ChainID,
+          new LocalAddress(B64ToUint8Array(result.address.Local))
+        ),
+        callerAddress: new Address(
+          result.caller.ChainID,
+          new LocalAddress(B64ToUint8Array(result.caller.Local))
+        ),
+        blockHeight: result.blockHeight,
+        data: B64ToUint8Array(result.encodedData)
+      }
+      this.emit(ClientEvent.Contract, eventArgs)
+    }
+  }
+
+  private _emitNetEvent(
+    url: string,
+    kind: ClientEvent.Connected | ClientEvent.Disconnected | ClientEvent.Error,
+    error?: any
+  ) {
+    if (kind === ClientEvent.Error) {
+      const eventArgs: IClientErrorEventArgs = { kind, url, error }
+      this.emit(kind, eventArgs)
+    } else {
+      const eventArgs: IClientEventArgs = { kind, url }
+      this.emit(kind, eventArgs)
+    }
   }
 }

@@ -1,6 +1,6 @@
 import test from 'tape'
 
-import { Address, LocalAddress } from '../address'
+import { Address, LocalAddress } from '../../address'
 
 test('Address', t => {
   try {

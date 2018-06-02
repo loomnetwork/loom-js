@@ -6,3 +6,5 @@ node_modules
 package-lock.json
 /dist/*
 loom.umd.js
+/.env.test
+/yarn-error.log
