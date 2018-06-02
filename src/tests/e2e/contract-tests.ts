@@ -1,16 +1,21 @@
 import test from 'tape'
 
-import { Contract } from '../contract'
-import { Address, LocalAddress } from '../address'
-import { Client, IChainEventArgs } from '../client'
-import { generatePrivateKey, publicKeyFromPrivateKey } from '../crypto-utils'
-import { NonceTxMiddleware, SignedTxMiddleware } from '../middleware'
-import { MapEntry } from './tests_pb'
-import { createTestClient } from './helpers'
+import {
+  Contract,
+  Address,
+  LocalAddress,
+  Client,
+  IChainEventArgs,
+  NonceTxMiddleware,
+  SignedTxMiddleware,
+  CryptoUtils
+} from '../../index'
+import { MapEntry } from '../tests_pb'
+import { createTestClient } from '../helpers'
 
 async function getClientAndContract(): Promise<{ client: Client; contract: Contract }> {
-  const privKey = generatePrivateKey()
-  const pubKey = publicKeyFromPrivateKey(privKey)
+  const privKey = CryptoUtils.generatePrivateKey()
+  const pubKey = CryptoUtils.publicKeyFromPrivateKey(privKey)
   const client = createTestClient()
   client.txMiddleware = [new NonceTxMiddleware(pubKey, client), new SignedTxMiddleware(privKey)]
 

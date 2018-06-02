@@ -1,13 +1,19 @@
 import test from 'tape'
 
-import { MapEntry } from './tests_pb'
-import { Client, ITxMiddlewareHandler, isInvalidTxNonceError } from '../client'
-import { Contract } from '../contract'
-import { Address, LocalAddress } from '../address'
-import { generatePrivateKey, publicKeyFromPrivateKey } from '../crypto-utils'
-import { NonceTxMiddleware, SignedTxMiddleware } from '../middleware'
-import { NonceTx } from '../proto/loom_pb'
-import { createTestClient } from './helpers'
+import {
+  Client,
+  ITxMiddlewareHandler,
+  Contract,
+  Address,
+  LocalAddress,
+  NonceTxMiddleware,
+  SignedTxMiddleware,
+  CryptoUtils
+} from '../../index'
+import { MapEntry } from '../tests_pb'
+import { isInvalidTxNonceError } from '../../client'
+import { NonceTx } from '../../proto/loom_pb'
+import { createTestClient } from '../helpers'
 
 // Tx middleware that will generate a tx with an invalid nonce the first X times it's used.
 class InvalidNonceTxMiddleware implements ITxMiddlewareHandler {
@@ -34,8 +40,8 @@ class InvalidNonceTxMiddleware implements ITxMiddlewareHandler {
 
 test('Client nonce retry strategy', async t => {
   try {
-    const privKey = generatePrivateKey()
-    const pubKey = publicKeyFromPrivateKey(privKey)
+    const privKey = CryptoUtils.generatePrivateKey()
+    const pubKey = CryptoUtils.publicKeyFromPrivateKey(privKey)
     const client = createTestClient()
 
     const nonceMiddlware = new InvalidNonceTxMiddleware(pubKey, client)

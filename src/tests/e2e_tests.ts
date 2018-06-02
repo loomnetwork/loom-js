@@ -1,4 +1,4 @@
 import './e2e/ws-rpc-client-tests'
-import './integration_test'
-import './client_e2e_tests'
-import './evm_test'
+import './e2e/client-tests'
+import './e2e/contract-tests'
+import './e2e/evm-contract-tests'
