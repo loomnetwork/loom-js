@@ -174,17 +174,13 @@ export class Client extends EventEmitter {
 
     this.on('newListener', (event: string) => {
       if (event === ClientEvent.Contract && this.listenerCount(ClientEvent.Contract) === 0) {
-        this._readClient
-          .subscribeAsync(emitContractEvent)
-          .catch(err => this._emitNetEvent(this._readClient.url, ClientEvent.Error, err))
+        this._readClient.on(WSRPCClientEvent.Message, emitContractEvent)
       }
     })
 
     this.on('removeListener', (event: string) => {
       if (event === ClientEvent.Contract && this.listenerCount(ClientEvent.Contract) === 0) {
-        this._readClient
-          .unsubscribeAsync(emitContractEvent)
-          .catch(err => this._emitNetEvent(this._readClient.url, ClientEvent.Error, err))
+        this._readClient.removeListener(WSRPCClientEvent.Message, emitContractEvent)
       }
     })
   }
