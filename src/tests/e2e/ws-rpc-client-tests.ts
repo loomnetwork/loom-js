@@ -4,7 +4,7 @@ import { WSRPCClient, WSRPCClientEvent } from '../../internal/ws-rpc-client'
 import { getTestUrls } from '../helpers'
 
 function closeSocket(client: WSRPCClient) {
-  ;(client as any)._client.close(1001)
+  ;(client as any)._client.close(3000)
 }
 
 function ensureSubscriptionAsync(client: WSRPCClient): Promise<void> {
