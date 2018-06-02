@@ -1,8 +1,7 @@
-import { Message } from 'google-protobuf'
 import EventEmitter from 'events'
 
 import { Client, ClientEvent, IChainEventArgs } from './client'
-import { CallTx, MessageTx, Transaction, VMType, Event } from './proto/loom_pb'
+import { CallTx, MessageTx, Transaction, VMType } from './proto/loom_pb'
 import { Address } from './address'
 
 /**
