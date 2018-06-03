@@ -190,6 +190,7 @@ export class Client extends EventEmitter {
    * Once disconnected the client can no longer be used to interact with the DAppChain.
    */
   disconnect() {
+    this.removeAllListeners()
     this._writeClient.disconnect()
     if (this._readClient && this._readClient != this._writeClient) {
       this._readClient.disconnect()

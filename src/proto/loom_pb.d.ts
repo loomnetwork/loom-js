@@ -158,6 +158,9 @@ export class DeployTx extends jspb.Message {
   getCode_asB64(): string;
   setCode(value: Uint8Array | string): void;
 
+  getName(): string;
+  setName(value: string): void;
+
   serializeBinary(): Uint8Array;
   toObject(includeInstance?: boolean): DeployTx.AsObject;
   static toObject(includeInstance: boolean, msg: DeployTx): DeployTx.AsObject;
@@ -172,6 +175,63 @@ export namespace DeployTx {
   export type AsObject = {
     vmType: VMType,
     code: Uint8Array | string,
+    name: string,
+  }
+}
+
+export class DeployResponse extends jspb.Message {
+  hasContract(): boolean;
+  clearContract(): void;
+  getContract(): Address | undefined;
+  setContract(value?: Address): void;
+
+  getOutput(): Uint8Array | string;
+  getOutput_asU8(): Uint8Array;
+  getOutput_asB64(): string;
+  setOutput(value: Uint8Array | string): void;
+
+  serializeBinary(): Uint8Array;
+  toObject(includeInstance?: boolean): DeployResponse.AsObject;
+  static toObject(includeInstance: boolean, msg: DeployResponse): DeployResponse.AsObject;
+  static extensions: {[key: number]: jspb.ExtensionFieldInfo<jspb.Message>};
+  static extensionsBinary: {[key: number]: jspb.ExtensionFieldBinaryInfo<jspb.Message>};
+  static serializeBinaryToWriter(message: DeployResponse, writer: jspb.BinaryWriter): void;
+  static deserializeBinary(bytes: Uint8Array): DeployResponse;
+  static deserializeBinaryFromReader(message: DeployResponse, reader: jspb.BinaryReader): DeployResponse;
+}
+
+export namespace DeployResponse {
+  export type AsObject = {
+    contract?: Address.AsObject,
+    output: Uint8Array | string,
+  }
+}
+
+export class DeployResponseData extends jspb.Message {
+  getTxHash(): Uint8Array | string;
+  getTxHash_asU8(): Uint8Array;
+  getTxHash_asB64(): string;
+  setTxHash(value: Uint8Array | string): void;
+
+  getBytecode(): Uint8Array | string;
+  getBytecode_asU8(): Uint8Array;
+  getBytecode_asB64(): string;
+  setBytecode(value: Uint8Array | string): void;
+
+  serializeBinary(): Uint8Array;
+  toObject(includeInstance?: boolean): DeployResponseData.AsObject;
+  static toObject(includeInstance: boolean, msg: DeployResponseData): DeployResponseData.AsObject;
+  static extensions: {[key: number]: jspb.ExtensionFieldInfo<jspb.Message>};
+  static extensionsBinary: {[key: number]: jspb.ExtensionFieldBinaryInfo<jspb.Message>};
+  static serializeBinaryToWriter(message: DeployResponseData, writer: jspb.BinaryWriter): void;
+  static deserializeBinary(bytes: Uint8Array): DeployResponseData;
+  static deserializeBinaryFromReader(message: DeployResponseData, reader: jspb.BinaryReader): DeployResponseData;
+}
+
+export namespace DeployResponseData {
+  export type AsObject = {
+    txHash: Uint8Array | string,
+    bytecode: Uint8Array | string,
   }
 }
 
