@@ -7,6 +7,7 @@ const path = require('path')
 shell.mkdir('-p', './dist/proto')
 // copy the proto so end users can import it from node_modules in their own proto files
 shell.cp('./src/proto/loom.proto', './dist/proto/loom.proto')
+shell.cp('./src/proto/loom_pb.d.ts', './dist/proto/loom_pb.d.ts')
 
 shell.pushd('./src')
 try {
