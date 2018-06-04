@@ -198,20 +198,22 @@ export class Client extends EventEmitter {
    *
    * Consider using Contract.staticCallAsync() instead.
    */
-  async queryAsync(
-    contract: Address,
-    query?: Uint8Array,
-    vmType: VMType = VMType.PLUGIN
-  ): Promise<Uint8Array | void> {
-    const result = await this._readClient.sendAsync<string>('query', {
-      contract: contract.local.toString(),
-      query: query ? Uint8ArrayToB64(query) : undefined,
-      vmType: vmType
-    })
-    if (result) {
-      return B64ToUint8Array(result)
-    }
+async queryAsync(
+  caller?: Address
+  contract: Address,
+  query?: Uint8Array,
+  vmType: VMType = VMType.PLUGIN
+): Promise<Uint8Array | void> {
+  const result = await this._readClient.sendAsync<string>('query', {
+    caller: caller ? caller.local.toString : ""
+    contract: contract.local.toString(),
+    query: query ? Uint8ArrayToB64(query) : undefined,
+    vmType: vmType
+  })
+  if (result) {
+    return B64ToUint8Array(result)
   }
+}
 
   /**
    * Queries the receipt corresponding to a transaction hash
