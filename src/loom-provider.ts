@@ -1,7 +1,24 @@
-import { Client } from './client'
-import { CallTx, MessageTx, Transaction, VMType, EvmTxReceipt, Event } from './proto/loom_pb'
+import { Client, ClientEvent, IChainEventArgs } from './client'
+import {
+  CallTx,
+  MessageTx,
+  Transaction,
+  VMType,
+  EvmTxReceipt,
+  Event,
+  DeployTx,
+  DeployResponse,
+  DeployResponseData,
+  Address as ProtoAddress
+} from './proto/loom_pb'
 import { Address, LocalAddress } from './address'
-import { bytesToHexAddr, numberToHex, bufferToProtobufBytes, getGUID } from './crypto-utils'
+import {
+  bytesToHexAddr,
+  numberToHex,
+  bufferToProtobufBytes,
+  getGUID,
+  B64ToUint8Array
+} from './crypto-utils'
 
 interface EthReceipt {
   transactionHash: string
@@ -15,27 +32,12 @@ interface EthReceipt {
   status: string
 }
 
-const errors = {
-  ErrorResponse: function (result: any) {
-    const message = !!result && !!result.error && !!result.error.message ? result.error.message : JSON.stringify(result);
-    return new Error('Returned error: ' + message);
-  },
-  InvalidNumberOfParams: function (got: any, expected: any, method: any) {
-    return new Error('Invalid number of parameters for "'+ method +'". Got '+ got +' expected '+ expected +'!');
-  },
-  Invalid_Connection: function (host: any) {
-    return new Error('_CONNECTION ERROR: Couldn\'t connect to node '+ host +'.');
-  },
-  InvalidProvider: function () {
-    return new Error('Provider not set or invalid');
-  },
-  InvalidResponse: function (result: any) {
-    const message = !!result && !!result.error && !!result.error.message ? result.error.message : 'Invalid JSON RPC response: ' + JSON.stringify(result);
-    return new Error(message);
-  },
-  _ConnectionTimeout: function (ms: any) {
-    return new Error('_CONNECTION TIMEOUT: timeout of ' + ms + ' ms achived');
-  }
+const bytesToHexAddrLC = (bytes: Uint8Array): string => {
+  return bytesToHexAddr(bytes).toLowerCase()
+}
+
+const numberToHexLC = (num: number): string => {
+  return numberToHex(num).toLowerCase()
 }
 
 /**
@@ -44,66 +46,97 @@ const errors = {
 export class LoomProvider {
   private _client: Client
   private _connection?: WebSocket
-  private _subscriptionID: string
   private _topicsList: Array<string>
+  private _deployedCodes: any
+  private _accounts: Array<string>
   protected notificationCallbacks: Array<Function>
-  protected responseCallbacks: any
 
   /**
    * @param client: The client which calls Ethereum EVM
    */
   constructor(client: Client) {
     this.notificationCallbacks = new Array()
+    this._deployedCodes = new Object()
+    this._accounts = new Array()
     this._client = client
-    this._subscriptionID = getGUID()
     this._topicsList = []
-    this._subscribeWS(client.readUrl)
+    this._client.addListener(ClientEvent.Contract, (msg: IChainEventArgs) =>
+      this._onWebSocketMessage(msg)
+    )
+    this.addDefaultEvents()
+  }
+
+  addAccounts(accounts: string | Array<string>): void {
+    if (Array.isArray(accounts)) {
+      this._accounts = this._accounts.concat(accounts)
+    } else {
+      this._accounts.push(accounts)
+    }
   }
 
   on(type: string, callback: any) {
-    if (!this._connection) return
-
-    switch(type) {
+    switch (type) {
       case 'data':
-          this.notificationCallbacks.push(callback);
-          break;
-
+        this.notificationCallbacks.push(callback)
+        break
       case 'connect':
-          this._connection.onopen = callback;
-          break;
-
+        this._client.addListener(ClientEvent.Connected, callback)
+        break
       case 'end':
-          this._connection.onclose = callback;
-          break;
-
+        this._client.addListener(ClientEvent.Disconnected, callback)
+        break
       case 'error':
-          this._connection.onerror = callback;
-          break;
+        this._client.addListener(ClientEvent.Error, callback)
+        break
     }
   }
 
   addDefaultEvents() {
-    if (!this._connection) return
-
-    this._connection.onerror = () => this._timeout()
-    this._connection.onclose = () => {
-        this._timeout()
-        // reset all requests and callbacks
-        this.reset();
-    };
+    this._client.addListener(ClientEvent.Disconnected, () => {
+      // reset all requests and callbacks
+      this.reset()
+    })
   }
 
-  removeListener() {
-    this.reset()
+  removeListener(type: string, callback: (...args: any[]) => void) {
+    switch (type) {
+      case 'data':
+        this.notificationCallbacks = []
+        break
+      case 'connect':
+        this._client.removeListener(ClientEvent.Connected, callback)
+        break
+      case 'end':
+        this._client.removeListener(ClientEvent.Disconnected, callback)
+        break
+      case 'error':
+        this._client.removeListener(ClientEvent.Error, callback)
+        break
+    }
   }
 
-  removeAllListeners(type: any) {
-    this.reset()
+  removeAllListeners(type: string, callback: Function) {
+    if (type === 'data') {
+      this.notificationCallbacks.forEach((cb, index) => {
+        if (cb === callback) {
+          this.notificationCallbacks.splice(index, 1)
+        }
+      })
+    }
   }
 
   reset() {
     this._topicsList = []
     this.notificationCallbacks = []
+  }
+
+  disconnect() {
+    this._client.disconnect()
+  }
+
+  // Adapter function for sendAsync from truffle provider
+  async sendAsync(payload: any, callback: Function) {
+    await this.send(payload, callback)
   }
 
   /**
@@ -114,8 +147,13 @@ export class LoomProvider {
    * @param callback Triggered on end with (err, result)
    */
   async send(payload: any, callback: Function) {
+    const isArray = Array.isArray(payload)
+    if (isArray) {
+      payload = payload[0]
+    }
+
     // Methods frequently called by web3js added just to follow the web3 requirements
-    const okMethods = ['eth_estimateGas', 'eth_gasPrice']
+    const okMethods = ['eth_estimateGas', 'eth_gasPrice', 'eth_blockNumber']
 
     /**
      * NOTE: _okResponse and okMethods array are mocks, only to allow web3js think that is talking
@@ -124,52 +162,131 @@ export class LoomProvider {
 
     // Ok just avoids web3js issues
     if (okMethods.indexOf(payload.method) !== -1) {
-      callback(null, this._okResponse())
+      return callback(null, this._okResponse(payload.id, null, isArray))
     }
 
-    // Sending transaction to Loom DAppChain
-    else if (payload.method === 'eth_sendTransaction') {
-      try {
-        const result = await this._callAsync(payload.params[0])
-        callback(null, this._okResponse(bytesToHexAddr(result)))
-      } catch (err) {
-        callback(err, null)
-      }
-    }
+    switch (payload.method) {
+      case 'net_version':
+        // Fixed network version 474747
+        callback(null, this._okResponse(payload.id, '474747', isArray))
+        break
+      case 'eth_accounts':
+        // TODO: Should return some real account from loom
+        const accounts =
+          this._accounts.length > 0
+            ? this._accounts
+            : ['0x0000000000000000000000000000000000000000']
+        callback(null, this._okResponse(payload.id, accounts))
+        break
+      case 'eth_newBlockFilter':
+        // Simulate subscribe for new block filter
+        callback(null, this._okResponse(payload.id, '0x01', isArray))
+        break
+      case 'eth_getBlockByNumber':
+        // Simulate get block by number
+        callback(null, this._okResponse(payload.id, this._simulateEmptyBlock(), isArray))
+        break
+      case 'eth_getFilterChanges':
+        // Simulate return from block filter
+        callback(null, [
+          this._okResponse(payload.id, [
+            '0x0000000000000000000000000000000000000000000000000000000000000001'
+          ])
+        ])
+        break
+      case 'eth_sendTransaction':
+        // Sending transaction to Loom DAppChain
+        try {
+          let result
 
-    // Sending a static call to Loom DAppChain
-    else if (payload.method === 'eth_call') {
-      try {
-        const result = await this._callStaticAsync(payload.params[0])
-        callback(null, this._okResponse(bytesToHexAddr(result)))
-      } catch (err) {
-        callback(err, null)
-      }
-    }
+          if (payload.params[0].to) {
+            result = await this._callAsync(payload.params[0])
+          } else {
+            result = await this._deployAsync(payload.params[0])
+          }
 
-    // Required to avoid web3js error, because web3js always want to know about a transaction
-    else if (payload.method === 'eth_getTransactionReceipt') {
-      try {
-        const result = await this._getReceipt(payload.params[0])
-        callback(null, this._okResponse(result))
-      } catch (err) {
-        callback(err, null)
-      }
+          callback(null, this._okResponse(payload.id, bytesToHexAddrLC(result), isArray))
+        } catch (err) {
+          callback(err, null)
+        }
+        break
+      case 'eth_getCode':
+        // Simulate the get code
+        callback(
+          null,
+          this._okResponse(payload.id, this._deployedCodes[payload.params[0]], isArray)
+        )
+        break
+      case 'eth_call':
+        // Sending a static call to Loom DAppChain
+        try {
+          const result = await this._callStaticAsync(payload.params[0])
+          callback(null, this._okResponse(payload.id, bytesToHexAddrLC(result), isArray))
+        } catch (err) {
+          callback(err, null)
+        }
+        break
+      case 'eth_getTransactionReceipt':
+        try {
+          const result = await this._getReceipt(payload.params[0])
+          callback(null, this._okResponse(payload.id, result, isArray))
+        } catch (err) {
+          callback(err, null)
+        }
+        break
+      case 'eth_subscribe':
+        // Required to avoid web3js error, because web3js always want to know about a transaction
+        if (payload.params[0] === 'logs') {
+          this._topicsList = this._topicsList.concat(payload.params[1].topics)
+          callback(null, this._okResponse(payload.params[1].topics[0], isArray))
+        } else {
+          callback(null, this._okResponse(payload.id, isArray))
+        }
+        break
+      case 'eth_uninstallFilter':
+        callback(null, this._okResponse(payload.id, true, isArray))
+        break
+      default:
+        // Warn the user about we don't support other methods
+        callback(Error(`Method "${payload.method}" not supported on this provider`), null)
+        break
     }
+  }
 
-    else if (payload.method === 'eth_subscribe') {
-      if (payload.params[0] === 'logs') {
-        this._topicsList = this._topicsList.concat(payload.params[1].topics)
-        callback(null, this._okResponse(payload.params[1].topics[0]))
-      } else {
-        callback(null, this._okResponse())
-      }
-    }
+  private _deployAsync(payload: { from: string; data: string }): Promise<any> {
+    const caller = new Address(this._client.chainId, LocalAddress.fromHexString(payload.from))
+    const address = new Address(
+      this._client.chainId,
+      LocalAddress.fromHexString('0x0000000000000000000000000000000000000000')
+    )
 
-    // Warn the user about we don't support other methods
-    else {
-      callback(Error(`Method "${payload.method}" not supported on this provider`), null)
-    }
+    const data = Buffer.from(payload.data.substring(2), 'hex')
+
+    const deployTx = new DeployTx()
+    deployTx.setVmType(VMType.EVM)
+    deployTx.setCode(bufferToProtobufBytes(data))
+
+    const msgTx = new MessageTx()
+    msgTx.setFrom(caller.MarshalPB())
+    msgTx.setTo(address.MarshalPB())
+    msgTx.setData(deployTx.serializeBinary())
+
+    const tx = new Transaction()
+    tx.setId(1)
+    tx.setData(msgTx.serializeBinary())
+
+    return this._client.commitTxAsync<Transaction>(tx).then(ret => {
+      const response = DeployResponse.deserializeBinary(bufferToProtobufBytes(ret as Uint8Array))
+      const address = bytesToHexAddrLC(
+        (response.getContract() as ProtoAddress).getLocal() as Uint8Array
+      )
+
+      const responseData = DeployResponseData.deserializeBinary(
+        bufferToProtobufBytes(response.getOutput_asU8())
+      )
+      this._deployedCodes[address] = bytesToHexAddrLC(responseData.getBytecode_asU8())
+      return responseData.getTxHash_asU8()
+    })
   }
 
   private _callAsync(payload: { to: string; from: string; data: string }): Promise<any> {
@@ -208,13 +325,13 @@ export class LoomProvider {
     }
 
     const transactionHash = '0x0000000000000000000000000000000000000000000000000000000000000000'
-    const transactionIndex = numberToHex(receipt.getTransactionIndex())
-    const blockHash = bytesToHexAddr(receipt.getBlockHash_asU8())
-    const blockNumber = numberToHex(receipt.getBlockNumber())
-    const contractAddress = bytesToHexAddr(receipt.getContractAddress_asU8())
+    const transactionIndex = numberToHexLC(receipt.getTransactionIndex())
+    const blockHash = bytesToHexAddrLC(receipt.getBlockHash_asU8())
+    const blockNumber = numberToHexLC(receipt.getBlockNumber())
+    const contractAddress = bytesToHexAddrLC(receipt.getContractAddress_asU8())
 
     const logs = receipt.getLogsList().map((logEvent: Event, index: number) => {
-      const logIndex = numberToHex(index)
+      const logIndex = numberToHexLC(index)
 
       return {
         logIndex,
@@ -224,8 +341,8 @@ export class LoomProvider {
         transactionHash,
         transactionIndex,
         type: 'mined',
-        data: bytesToHexAddr(logEvent.getData_asU8()).toLowerCase(),
-        topics: logEvent.getTopicsList_asU8().map((topic: Uint8Array) => bytesToHexAddr(topic).toLowerCase())
+        data: bytesToHexAddrLC(logEvent.getData_asU8()),
+        topics: logEvent.getTopicsList_asU8().map((topic: Uint8Array) => bytesToHexAddrLC(topic))
       }
     })
 
@@ -235,44 +352,27 @@ export class LoomProvider {
       blockHash,
       blockNumber,
       contractAddress,
-      gasUsed: numberToHex(receipt.getGasUsed()),
-      cumulativeGasUsed: numberToHex(receipt.getCumulativeGasUsed()),
+      gasUsed: numberToHexLC(receipt.getGasUsed()),
+      cumulativeGasUsed: numberToHexLC(receipt.getCumulativeGasUsed()),
       logs,
-      status: numberToHex(receipt.getStatus()),
+      status: numberToHexLC(receipt.getStatus())
     } as EthReceipt
   }
 
-  protected _subscribeWS(readUrl?: string) {
-    if (readUrl) {
-      this._connection = new WebSocket(readUrl)
-      this._connection.onopen = () => {
-        if (!this._connection) return
-        this._connection.send(JSON.stringify({
-          method: 'subevents',
-          jsonrpc: '2.0',
-          params: [],
-          id: this._subscriptionID
-        }))
-
-        this._connection.onmessage = (msg: MessageEvent) => this._onWebSocketMessage(msg)
-      }
-    }
-  }
-
-  protected _onWebSocketMessage(msgEvent: MessageEvent) {
-    const data = JSON.parse(msgEvent.data)
-    const encodedData = data.result.encodedData
-    if (encodedData) {
-      const event = Event.deserializeBinary(encodedData)
+  protected _onWebSocketMessage(msgEvent: IChainEventArgs) {
+    if (msgEvent.data) {
+      const event = Event.deserializeBinary(bufferToProtobufBytes(msgEvent.data))
       this.notificationCallbacks.forEach((callback: Function) => {
-        const topics = event.getTopicsList_asU8().map((topic: Uint8Array) => bytesToHexAddr(topic).toLowerCase())
+        const topics = event
+          .getTopicsList_asU8()
+          .map((topic: Uint8Array) => bytesToHexAddrLC(topic))
         const topicIdxFound = this._topicsList.indexOf(topics[0])
 
         if (topicIdxFound !== -1) {
           const topicFound = this._topicsList[topicIdxFound]
           const JSONRPCResult = {
-            jsonrpc: "2.0",
-            method: "eth_subscription",
+            jsonrpc: '2.0',
+            method: 'eth_subscription',
             params: {
               // TODO: This ID Should came from loomchain events
               subscription: topicFound,
@@ -280,12 +380,13 @@ export class LoomProvider {
                 // TODO: Values bellow should be fix in the future
                 logIndex: '0x00',
                 transactionIndex: '0x00',
-                transactionHash: '0x0000000000000000000000000000000000000000000000000000000000000000',
+                transactionHash:
+                  '0x0000000000000000000000000000000000000000000000000000000000000000',
                 blockHash: '0x0000000000000000000000000000000000000000000000000000000000000000',
                 blockNumber: '0x0',
                 address: '0x0000000000000000000000000000000000000000',
                 type: 'mined',
-                data: bytesToHexAddr(event.getData_asU8()).toLowerCase(),
+                data: bytesToHexAddrLC(event.getData_asU8()),
                 topics
               }
             }
@@ -297,17 +398,38 @@ export class LoomProvider {
     }
   }
 
-  protected _timeout() {
-    for(let key in this.responseCallbacks) {
-      if(this.responseCallbacks.hasOwnProperty(key)) {
-          this.responseCallbacks[key](errors.Invalid_Connection('on WS'));
-          delete this.responseCallbacks[key];
-      }
-    }
+  protected _simulateEmptyBlock(block: any = {}) {
+    return Object.assign(
+      {
+        number: '0x0',
+        hash: '0x0000000000000000000000000000000000000000000000000000000000000000',
+        parentHash: '0x0000000000000000000000000000000000000000000000000000000000000000',
+        mixHash: '0x1010101010101010101010101010101010101010101010101010101010101010',
+        nonce: '0x0000000000000000',
+        sha3Uncles: '0x0000000000000000000000000000000000000000000000000000000000000000',
+        logsBloom:
+          '0x00000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000',
+        transactionsRoot: '0x0000000000000000000000000000000000000000000000000000000000000000',
+        stateRoot: '0x0000000000000000000000000000000000000000000000000000000000000000',
+        receiptsRoot: '0x0000000000000000000000000000000000000000000000000000000000000000',
+        miner: '0x0000000000000000000000000000000000000000',
+        difficulty: '0x0',
+        totalDifficulty: '0x0',
+        extraData: '0x00',
+        size: '0x0',
+        gasLimit: '0x0',
+        gasUsed: '0x0',
+        timestamp: '0x0',
+        transactions: []
+      },
+      block
+    )
   }
 
   // Basic response to web3js
-  private _okResponse(result: any = 0): any {
-    return { id: 0, jsonrpc: '2.0', result }
+  private _okResponse(id: string, result: any = 0, isArray = false): any {
+    const response = { id, jsonrpc: '2.0', result }
+    const ret = isArray ? [response] : response
+    return ret
   }
 }

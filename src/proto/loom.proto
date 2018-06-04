@@ -35,6 +35,17 @@ message MessageTx {
 message DeployTx {
     VMType vm_type = 1;
     bytes code = 2;
+    string name = 3;
+}
+
+message DeployResponse {
+    Address contract = 1;
+    bytes output = 2;
+}
+
+message DeployResponseData {
+    bytes tx_hash = 1;
+    bytes bytecode = 2;
 }
 
 message CallTx {
