@@ -66,7 +66,7 @@ export class LoomProvider {
     this.addDefaultEvents()
   }
 
-  addAccounts(accounts: string | Array<string>):void {
+  addAccounts(accounts: string | Array<string>): void {
     if (Array.isArray(accounts)) {
       this._accounts = this._accounts.concat(accounts)
     } else {
@@ -172,7 +172,10 @@ export class LoomProvider {
         break
       case 'eth_accounts':
         // TODO: Should return some real account from loom
-        const accounts = this._accounts.length > 0 ? this._accounts : ['0x0000000000000000000000000000000000000000']
+        const accounts =
+          this._accounts.length > 0
+            ? this._accounts
+            : ['0x0000000000000000000000000000000000000000']
         callback(null, this._okResponse(payload.id, accounts))
         break
       case 'eth_newBlockFilter':
@@ -209,7 +212,10 @@ export class LoomProvider {
         break
       case 'eth_getCode':
         // Simulate the get code
-        callback(null, this._okResponse(payload.id, this._deployedCodes[payload.params[0]], isArray))
+        callback(
+          null,
+          this._okResponse(payload.id, this._deployedCodes[payload.params[0]], isArray)
+        )
         break
       case 'eth_call':
         // Sending a static call to Loom DAppChain
@@ -275,7 +281,9 @@ export class LoomProvider {
         (response.getContract() as ProtoAddress).getLocal() as Uint8Array
       )
 
-      const responseData = DeployResponseData.deserializeBinary(bufferToProtobufBytes(response.getOutput_asU8()))
+      const responseData = DeployResponseData.deserializeBinary(
+        bufferToProtobufBytes(response.getOutput_asU8())
+      )
       this._deployedCodes[address] = bytesToHexAddrLC(responseData.getBytecode_asU8())
       return responseData.getTxHash_asU8()
     })
@@ -334,9 +342,7 @@ export class LoomProvider {
         transactionIndex,
         type: 'mined',
         data: bytesToHexAddrLC(logEvent.getData_asU8()),
-        topics: logEvent
-          .getTopicsList_asU8()
-          .map((topic: Uint8Array) => bytesToHexAddrLC(topic))
+        topics: logEvent.getTopicsList_asU8().map((topic: Uint8Array) => bytesToHexAddrLC(topic))
       }
     })
 
@@ -393,28 +399,31 @@ export class LoomProvider {
   }
 
   protected _simulateEmptyBlock(block: any = {}) {
-    return Object.assign({
-      number: '0x0',
-      hash: '0x0000000000000000000000000000000000000000000000000000000000000000',
-      parentHash: '0x0000000000000000000000000000000000000000000000000000000000000000',
-      mixHash: '0x1010101010101010101010101010101010101010101010101010101010101010',
-      nonce: '0x0000000000000000',
-      sha3Uncles: '0x0000000000000000000000000000000000000000000000000000000000000000',
-      logsBloom:
-        '0x00000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000',
-      transactionsRoot: '0x0000000000000000000000000000000000000000000000000000000000000000',
-      stateRoot: '0x0000000000000000000000000000000000000000000000000000000000000000',
-      receiptsRoot: '0x0000000000000000000000000000000000000000000000000000000000000000',
-      miner: '0x0000000000000000000000000000000000000000',
-      difficulty: '0x0',
-      totalDifficulty: '0x0',
-      extraData: '0x00',
-      size: '0x0',
-      gasLimit: '0x0',
-      gasUsed: '0x0',
-      timestamp: '0x0',
-      transactions: []
-    }, block)
+    return Object.assign(
+      {
+        number: '0x0',
+        hash: '0x0000000000000000000000000000000000000000000000000000000000000000',
+        parentHash: '0x0000000000000000000000000000000000000000000000000000000000000000',
+        mixHash: '0x1010101010101010101010101010101010101010101010101010101010101010',
+        nonce: '0x0000000000000000',
+        sha3Uncles: '0x0000000000000000000000000000000000000000000000000000000000000000',
+        logsBloom:
+          '0x00000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000',
+        transactionsRoot: '0x0000000000000000000000000000000000000000000000000000000000000000',
+        stateRoot: '0x0000000000000000000000000000000000000000000000000000000000000000',
+        receiptsRoot: '0x0000000000000000000000000000000000000000000000000000000000000000',
+        miner: '0x0000000000000000000000000000000000000000',
+        difficulty: '0x0',
+        totalDifficulty: '0x0',
+        extraData: '0x00',
+        size: '0x0',
+        gasLimit: '0x0',
+        gasUsed: '0x0',
+        timestamp: '0x0',
+        transactions: []
+      },
+      block
+    )
   }
 
   // Basic response to web3js
