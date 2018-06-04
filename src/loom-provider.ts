@@ -181,7 +181,7 @@ export class LoomProvider {
         break
       case 'eth_getBlockByNumber':
         // Simulate get block by number
-        callback(null, this._okResponse(payload.id, this._simulteEmptyBlock(), isArray))
+        callback(null, this._okResponse(payload.id, this._simulateEmptyBlock(), isArray))
         break
       case 'eth_getFilterChanges':
         // Simulate return from block filter
@@ -392,7 +392,7 @@ export class LoomProvider {
     }
   }
 
-  protected _simulteEmptyBlock(block: any = {}) {
+  protected _simulateEmptyBlock(block: any = {}) {
     return Object.assign({
       number: '0x0',
       hash: '0x0000000000000000000000000000000000000000000000000000000000000000',
