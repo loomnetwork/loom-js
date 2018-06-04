@@ -267,13 +267,13 @@ export class Client extends EventEmitter {
   async queryAsync(
     contract: Address,
     query?: Uint8Array,
-    caller?: Address,
-    vmType: VMType = VMType.PLUGIN
+    vmType: VMType = VMType.PLUGIN,
+    caller?: Address
   ): Promise<Uint8Array | void> {
     const result = await this._readClient.sendAsync<string>('query', {
-      caller: caller,
       query: query ? Uint8ArrayToB64(query) : undefined,
-      vmType: vmType
+      vmType: vmType,
+      caller: caller ? caller.toString() : undefined
     })
     if (result) {
       return B64ToUint8Array(result)
