@@ -314,10 +314,11 @@ export class LoomProvider {
     return this._client.commitTxAsync<Transaction>(tx)
   }
 
-  private _callStaticAsync(payload: { to: string; data: string }): Promise<any> {
+  private _callStaticAsync(payload: { to: string; from: string; data: string }): Promise<any> {
+    const caller = new Address(this._client.chainId, LocalAddress.fromHexString(payload.from))
     const address = new Address(this._client.chainId, LocalAddress.fromHexString(payload.to))
     const data = Buffer.from(payload.data.substring(2), 'hex')
-    return this._client.queryAsync(address, data, VMType.EVM)
+    return this._client.queryAsync(address, data, VMType.EVM, caller)
   }
 
   private async _getReceipt(txHash: string): Promise<EthReceipt> {

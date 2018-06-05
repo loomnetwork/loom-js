@@ -81,7 +81,7 @@ export class EvmContract extends EventEmitter {
    */
   async staticCallAsync(args: number[], output?: Uint8Array): Promise<Uint8Array | void> {
     const ui8InData = Uint8Array.from(args)
-    return this._client.queryAsync(this.address, ui8InData, VMType.EVM)
+    return this._client.queryAsync(this.address, ui8InData, VMType.EVM, this.caller)
   }
 
   private _emitContractEvent(event: IChainEventArgs) {

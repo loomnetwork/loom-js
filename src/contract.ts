@@ -133,7 +133,8 @@ export class Contract extends EventEmitter {
     const result = await this._client.queryAsync(
       this.address,
       query.serializeBinary(),
-      VMType.PLUGIN
+      VMType.PLUGIN,
+      this.caller
     )
     if (result && output) {
       const msgClass = (<any>output).constructor as typeof Message
