@@ -180,7 +180,8 @@ export class LoomProvider {
         break
       case 'eth_newBlockFilter':
         // Simulate subscribe for new block filter
-        callback(null, this._okResponse(payload.id, '0x01', isArray))
+        const GUIDHex = Buffer.from(getGUID()).toString('hex')
+        callback(null, this._okResponse(payload.id, `0x${GUIDHex}`, isArray))
         break
       case 'eth_getBlockByNumber':
         // Simulate get block by number
@@ -245,6 +246,9 @@ export class LoomProvider {
         break
       case 'eth_uninstallFilter':
         callback(null, this._okResponse(payload.id, true, isArray))
+        break
+      case 'eth_getLogs':
+        callback(null, this._okResponse(payload.id, [], isArray))
         break
       default:
         // Warn the user about we don't support other methods
@@ -319,17 +323,14 @@ export class LoomProvider {
   private async _getReceipt(txHash: string): Promise<EthReceipt> {
     const data = Buffer.from(txHash.substring(2), 'hex')
     const receipt = await this._client.getTxReceiptAsync(bufferToProtobufBytes(data))
-
     if (!receipt) {
       throw Error('Receipt cannot be empty')
     }
-
     const transactionHash = '0x0000000000000000000000000000000000000000000000000000000000000000'
     const transactionIndex = numberToHexLC(receipt.getTransactionIndex())
     const blockHash = bytesToHexAddrLC(receipt.getBlockHash_asU8())
     const blockNumber = numberToHexLC(receipt.getBlockNumber())
     const contractAddress = bytesToHexAddrLC(receipt.getContractAddress_asU8())
-
     const logs = receipt.getLogsList().map((logEvent: Event, index: number) => {
       const logIndex = numberToHexLC(index)
 
