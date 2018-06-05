@@ -299,6 +299,23 @@ export class Client extends EventEmitter {
   }
 
   /**
+   * Queries the code corresponding to a contract
+   *
+   * @param contractAddress Contract address returned by deploy.
+   * @return Uint8Array The corresponding contract code
+   */
+  async getCodeAsync(contractAddress: Address): Promise<any> {
+    const result = await this._readClient.sendAsync<string>('getcode', {
+      contract: contractAddress.toString()
+    })
+    if (result) {
+      return B64ToUint8Array(result)
+    } else {
+      return null
+    }
+  }
+
+  /**
    * Gets a nonce for the given public key.
    *
    * This should only be called by NonceTxMiddleware.
