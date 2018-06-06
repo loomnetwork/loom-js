@@ -9,7 +9,9 @@ import {
   DeployTx,
   DeployResponse,
   DeployResponseData,
-  Address as ProtoAddress
+  Address as ProtoAddress,
+  NonceTx,
+  SignedTx
 } from './proto/loom_pb'
 import { Address, LocalAddress } from './address'
 import {
@@ -17,10 +19,13 @@ import {
   numberToHex,
   bufferToProtobufBytes,
   getGUID,
-  B64ToUint8Array
+  publicKeyFromPrivateKey,
+  bytesToHex,
+  sign
 } from './crypto-utils'
+import { NonceTxMiddleware, SignedTxMiddleware } from './middleware'
 
-interface EthReceipt {
+export interface IEthReceipt {
   transactionHash: string
   transactionIndex: string
   blockHash: string
@@ -45,32 +50,49 @@ const numberToHexLC = (num: number): string => {
  */
 export class LoomProvider {
   private _client: Client
-  private _connection?: WebSocket
   private _topicsList: Array<string>
-  private _accounts: Array<string>
   protected notificationCallbacks: Array<Function>
+  readonly accounts: Map<string, Uint8Array>
+  readonly accountsAddrList: Array<any>
 
   /**
-   * @param client: The client which calls Ethereum EVM
+   * Constructs the LoomProvider to bridges communication between Web3 and Loom DappChains
+   *
+   * @param client Client from LoomJS
+   * @param privateKey Account private key
    */
-  constructor(client: Client) {
-    this.notificationCallbacks = new Array()
-    this._accounts = new Array()
+  constructor(client: Client, privateKey: Uint8Array) {
     this._client = client
     this._topicsList = []
+    this.notificationCallbacks = new Array()
+    this.accounts = new Map<string, Uint8Array>()
+    this.accountsAddrList = new Array()
+
     this._client.addListener(ClientEvent.Contract, (msg: IChainEventArgs) =>
       this._onWebSocketMessage(msg)
     )
+
     this.addDefaultEvents()
+    this.addAccounts([privateKey])
   }
 
-  addAccounts(accounts: string | Array<string>): void {
-    if (Array.isArray(accounts)) {
-      this._accounts = this._accounts.concat(accounts)
-    } else {
-      this._accounts.push(accounts)
-    }
+  /**
+   * Creates new accounts by passing the private key array
+   *
+   * Accounts will be available on public properties accounts and accountsAddrList
+   *
+   * @param accountsPrivateKey Array of private keys to create new accounts
+   */
+  addAccounts(accountsPrivateKey: Array<Uint8Array>) {
+    accountsPrivateKey.forEach(accountPrivateKey => {
+      const publicKey = publicKeyFromPrivateKey(accountPrivateKey)
+      const accountAddress = LocalAddress.fromPublicKey(publicKey).toString()
+      this.accountsAddrList.push(accountAddress)
+      this.accounts.set(accountAddress, accountPrivateKey)
+    })
   }
+
+  // PUBLIC FUNCTION TO SUPPORT WEB3
 
   on(type: string, callback: any) {
     switch (type) {
@@ -165,28 +187,30 @@ export class LoomProvider {
 
     switch (payload.method) {
       case 'net_version':
+        // TODO: Create call for supply on Loom DappChain
         // Fixed network version 474747
         callback(null, this._okResponse(payload.id, '474747', isArray))
         break
       case 'eth_accounts':
-        // TODO: Should return some real account from loom
-        const accounts =
-          this._accounts.length > 0
-            ? this._accounts
-            : ['0x0000000000000000000000000000000000000000']
-        callback(null, this._okResponse(payload.id, accounts))
+        if (this.accountsAddrList.length === 0) {
+          throw Error('No account available')
+        }
+        callback(null, this._okResponse(payload.id, this.accountsAddrList))
         break
       case 'eth_newBlockFilter':
         // Simulate subscribe for new block filter
+        // TODO: Create call for supply on Loom DappChain
         const GUIDHex = Buffer.from(getGUID()).toString('hex')
         callback(null, this._okResponse(payload.id, `0x${GUIDHex}`, isArray))
         break
       case 'eth_getBlockByNumber':
         // Simulate get block by number
+        // TODO: Create call for supply on Loom DappChain
         callback(null, this._okResponse(payload.id, this._simulateEmptyBlock(), isArray))
         break
       case 'eth_getFilterChanges':
         // Simulate return from block filter
+        // TODO: Create call for supply on Loom DappChain
         callback(null, [
           this._okResponse(payload.id, [
             '0x0000000000000000000000000000000000000000000000000000000000000001'
@@ -244,9 +268,11 @@ export class LoomProvider {
         }
         break
       case 'eth_uninstallFilter':
+        // TODO: Create call for supply on Loom DappChain
         callback(null, this._okResponse(payload.id, true, isArray))
         break
       case 'eth_getLogs':
+        // TODO: Create call for supply on Loom DappChain
         callback(null, this._okResponse(payload.id, [], isArray))
         break
       default:
@@ -256,13 +282,15 @@ export class LoomProvider {
     }
   }
 
+  // PRIVATE FUNCTIONS
+
   private _getCode(contractAddress: string): Promise<any> {
     const address = new Address(this._client.chainId, LocalAddress.fromHexString(contractAddress))
 
     return this._client.getCodeAsync(address)
   }
 
-  private _deployAsync(payload: { from: string; data: string }): Promise<any> {
+  private async _deployAsync(payload: { from: string; data: string }): Promise<any> {
     const caller = new Address(this._client.chainId, LocalAddress.fromHexString(payload.from))
     const address = new Address(
       this._client.chainId,
@@ -284,13 +312,13 @@ export class LoomProvider {
     tx.setId(1)
     tx.setData(msgTx.serializeBinary())
 
-    return this._client.commitTxAsync<Transaction>(tx).then(ret => {
-      const response = DeployResponse.deserializeBinary(bufferToProtobufBytes(ret as Uint8Array))
-      const responseData = DeployResponseData.deserializeBinary(
-        bufferToProtobufBytes(response.getOutput_asU8())
-      )
-      return responseData.getTxHash_asU8()
-    })
+    const ret = await this._commitTransaction(payload.from, tx)
+    const response = DeployResponse.deserializeBinary(bufferToProtobufBytes(ret as Uint8Array))
+    const responseData = DeployResponseData.deserializeBinary(
+      bufferToProtobufBytes(response.getOutput_asU8())
+    )
+
+    return responseData.getTxHash_asU8()
   }
 
   private _callAsync(payload: { to: string; from: string; data: string }): Promise<any> {
@@ -311,7 +339,7 @@ export class LoomProvider {
     tx.setId(2)
     tx.setData(msgTx.serializeBinary())
 
-    return this._client.commitTxAsync<Transaction>(tx)
+    return this._commitTransaction(payload.from, tx)
   }
 
   private _callStaticAsync(payload: { to: string; from: string; data: string }): Promise<any> {
@@ -321,7 +349,7 @@ export class LoomProvider {
     return this._client.queryAsync(address, data, VMType.EVM, caller)
   }
 
-  private async _getReceipt(txHash: string): Promise<EthReceipt> {
+  private async _getReceipt(txHash: string): Promise<IEthReceipt> {
     const data = Buffer.from(txHash.substring(2), 'hex')
     const receipt = await this._client.getTxReceiptAsync(bufferToProtobufBytes(data))
     if (!receipt) {
@@ -358,10 +386,10 @@ export class LoomProvider {
       cumulativeGasUsed: numberToHexLC(receipt.getCumulativeGasUsed()),
       logs,
       status: numberToHexLC(receipt.getStatus())
-    } as EthReceipt
+    } as IEthReceipt
   }
 
-  protected _onWebSocketMessage(msgEvent: IChainEventArgs) {
+  private _onWebSocketMessage(msgEvent: IChainEventArgs) {
     if (msgEvent.data) {
       const event = Event.deserializeBinary(bufferToProtobufBytes(msgEvent.data))
       this.notificationCallbacks.forEach((callback: Function) => {
@@ -400,7 +428,36 @@ export class LoomProvider {
     }
   }
 
-  protected _simulateEmptyBlock(block: any = {}) {
+  private async _commitTransaction(
+    fromPublicAddr: string,
+    txTransaction: Transaction
+  ): Promise<Uint8Array | void> {
+    const txBytes = txTransaction.serializeBinary()
+
+    const privateKey = this.accounts.get(fromPublicAddr)
+
+    if (!privateKey) {
+      throw Error(`Account not found for address ${fromPublicAddr}`)
+    }
+
+    const key = publicKeyFromPrivateKey(privateKey)
+    const nonce = await this._client.getNonceAsync(bytesToHex(key))
+
+    const nonceTx = new NonceTx()
+    nonceTx.setInner(txBytes as Uint8Array)
+    nonceTx.setSequence(nonce + 1)
+    const nonceTxData: Uint8Array = nonceTx.serializeBinary()
+
+    const sig = sign(nonceTxData as Uint8Array, privateKey)
+    const signedTx = new SignedTx()
+    signedTx.setInner(nonceTxData as Uint8Array)
+    signedTx.setSignature(sig)
+    signedTx.setPublicKey(key)
+
+    return this._client.commitTxAsync<SignedTx>(signedTx)
+  }
+
+  private _simulateEmptyBlock(block: any = {}) {
     return Object.assign(
       {
         number: '0x0',
