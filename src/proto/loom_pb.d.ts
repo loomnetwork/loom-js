@@ -369,6 +369,60 @@ export namespace ContractMethodCall {
   }
 }
 
+export class EventData extends jspb.Message {
+  clearTopicsList(): void;
+  getTopicsList(): Array<string>;
+  setTopicsList(value: Array<string>): void;
+  addTopics(value: string, index?: number): string;
+
+  hasCaller(): boolean;
+  clearCaller(): void;
+  getCaller(): Address | undefined;
+  setCaller(value?: Address): void;
+
+  hasAddress(): boolean;
+  clearAddress(): void;
+  getAddress(): Address | undefined;
+  setAddress(value?: Address): void;
+
+  getPluginName(): string;
+  setPluginName(value: string): void;
+
+  getBlockHeight(): number;
+  setBlockHeight(value: number): void;
+
+  getEncodedBody(): Uint8Array | string;
+  getEncodedBody_asU8(): Uint8Array;
+  getEncodedBody_asB64(): string;
+  setEncodedBody(value: Uint8Array | string): void;
+
+  getOriginalRequest(): Uint8Array | string;
+  getOriginalRequest_asU8(): Uint8Array;
+  getOriginalRequest_asB64(): string;
+  setOriginalRequest(value: Uint8Array | string): void;
+
+  serializeBinary(): Uint8Array;
+  toObject(includeInstance?: boolean): EventData.AsObject;
+  static toObject(includeInstance: boolean, msg: EventData): EventData.AsObject;
+  static extensions: {[key: number]: jspb.ExtensionFieldInfo<jspb.Message>};
+  static extensionsBinary: {[key: number]: jspb.ExtensionFieldBinaryInfo<jspb.Message>};
+  static serializeBinaryToWriter(message: EventData, writer: jspb.BinaryWriter): void;
+  static deserializeBinary(bytes: Uint8Array): EventData;
+  static deserializeBinaryFromReader(message: EventData, reader: jspb.BinaryReader): EventData;
+}
+
+export namespace EventData {
+  export type AsObject = {
+    topicsList: Array<string>,
+    caller?: Address.AsObject,
+    address?: Address.AsObject,
+    pluginName: string,
+    blockHeight: number,
+    encodedBody: Uint8Array | string,
+    originalRequest: Uint8Array | string,
+  }
+}
+
 export class Event extends jspb.Message {
   hasContract(): boolean;
   clearContract(): void;

@@ -2,7 +2,7 @@ import { Message } from 'google-protobuf'
 import EventEmitter from 'events'
 import retry from 'retry'
 
-import { VMType, EvmTxReceipt } from './proto/loom_pb'
+import { VMType, EvmTxReceipt, EventData } from './proto/loom_pb'
 import { Uint8ArrayToB64, B64ToUint8Array, bufferToProtobufBytes } from './crypto-utils'
 import { Address, LocalAddress } from './address'
 import { WSRPCClient, WSRPCClientEvent, IJSONRPCEvent } from './internal/ws-rpc-client'
@@ -330,19 +330,21 @@ export class Client extends EventEmitter {
       const eventArgs: IClientErrorEventArgs = { kind: ClientEvent.Error, url, error }
       this.emit(ClientEvent.Error, eventArgs)
     } else if (result) {
+      // Ugh, no built-in JSON->Protobuf marshaller apparently
+      // https://github.com/google/protobuf/issues/1591 so gotta do this manually
       const eventArgs: IChainEventArgs = {
         kind: ClientEvent.Contract,
         url,
         contractAddress: new Address(
-          result.address.ChainID,
-          new LocalAddress(B64ToUint8Array(result.address.Local))
+          result.address.chain_id,
+          new LocalAddress(B64ToUint8Array(result.address.local))
         ),
         callerAddress: new Address(
-          result.caller.ChainID,
-          new LocalAddress(B64ToUint8Array(result.caller.Local))
+          result.caller.chain_id,
+          new LocalAddress(B64ToUint8Array(result.caller.local))
         ),
-        blockHeight: result.blockHeight,
-        data: B64ToUint8Array(result.encodedData)
+        blockHeight: result.block_height,
+        data: B64ToUint8Array(result.encoded_body)
       }
       this.emit(ClientEvent.Contract, eventArgs)
     }
