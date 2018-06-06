@@ -304,7 +304,7 @@ export class Client extends EventEmitter {
    * @param contractAddress Contract address returned by deploy.
    * @return Uint8Array The corresponding contract code
    */
-  async getCodeAsync(contractAddress: Address): Promise<any> {
+  async getCodeAsync(contractAddress: Address): Promise<Uint8Array | null> {
     const result = await this._readClient.sendAsync<string>('getcode', {
       contract: contractAddress.toString()
     })
