@@ -47,7 +47,6 @@ export class LoomProvider {
   private _client: Client
   private _connection?: WebSocket
   private _topicsList: Array<string>
-  private _deployedCodes: any
   private _accounts: Array<string>
   protected notificationCallbacks: Array<Function>
 
@@ -56,7 +55,6 @@ export class LoomProvider {
    */
   constructor(client: Client) {
     this.notificationCallbacks = new Array()
-    this._deployedCodes = new Object()
     this._accounts = new Array()
     this._client = client
     this._topicsList = []
@@ -212,11 +210,12 @@ export class LoomProvider {
         }
         break
       case 'eth_getCode':
-        // Simulate the get code
-        callback(
-          null,
-          this._okResponse(payload.id, this._deployedCodes[payload.params[0]], isArray)
-        )
+        try {
+          const result = await this._getCode(payload.params[0])
+          callback(null, this._okResponse(payload.id, bytesToHexAddrLC(result), isArray))
+        } catch (err) {
+          callback(err, null)
+        }
         break
       case 'eth_call':
         // Sending a static call to Loom DAppChain
@@ -257,6 +256,12 @@ export class LoomProvider {
     }
   }
 
+  private _getCode(contractAddress: string): Promise<any> {
+    const address = new Address(this._client.chainId, LocalAddress.fromHexString(contractAddress))
+
+    return this._client.getCodeAsync(address)
+  }
+
   private _deployAsync(payload: { from: string; data: string }): Promise<any> {
     const caller = new Address(this._client.chainId, LocalAddress.fromHexString(payload.from))
     const address = new Address(
@@ -281,14 +286,9 @@ export class LoomProvider {
 
     return this._client.commitTxAsync<Transaction>(tx).then(ret => {
       const response = DeployResponse.deserializeBinary(bufferToProtobufBytes(ret as Uint8Array))
-      const address = bytesToHexAddrLC(
-        (response.getContract() as ProtoAddress).getLocal() as Uint8Array
-      )
-
       const responseData = DeployResponseData.deserializeBinary(
         bufferToProtobufBytes(response.getOutput_asU8())
       )
-      this._deployedCodes[address] = bytesToHexAddrLC(responseData.getBytecode_asU8())
       return responseData.getTxHash_asU8()
     })
   }
