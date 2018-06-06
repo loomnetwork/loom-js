@@ -257,10 +257,7 @@ export class LoomProvider {
   }
 
   private _getCode(contractAddress: string): Promise<any> {
-    const address = new Address(
-      this._client.chainId,
-      LocalAddress.fromHexString(contractAddress)
-    )
+    const address = new Address(this._client.chainId, LocalAddress.fromHexString(contractAddress))
 
     return this._client.getCodeAsync(address)
   }
