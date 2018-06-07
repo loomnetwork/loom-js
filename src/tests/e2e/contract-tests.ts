@@ -8,7 +8,8 @@ import {
   IChainEventArgs,
   NonceTxMiddleware,
   SignedTxMiddleware,
-  CryptoUtils
+  CryptoUtils,
+  createDefaultTxMiddleware
 } from '../../index'
 import { MapEntry } from '../tests_pb'
 import { createTestClient } from '../helpers'
@@ -17,7 +18,7 @@ async function getClientAndContract(): Promise<{ client: Client; contract: Contr
   const privKey = CryptoUtils.generatePrivateKey()
   const pubKey = CryptoUtils.publicKeyFromPrivateKey(privKey)
   const client = createTestClient()
-  client.txMiddleware = [new NonceTxMiddleware(pubKey, client), new SignedTxMiddleware(privKey)]
+  client.txMiddleware = createDefaultTxMiddleware(client, privKey)
 
   let contractAddr: Address | null = null
   try {

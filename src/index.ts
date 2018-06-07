@@ -10,6 +10,7 @@ export { Contract } from './contract'
 export { EvmContract } from './evm-contract'
 export { Address, LocalAddress } from './address'
 export { SignedTxMiddleware, NonceTxMiddleware } from './middleware'
+export { createDefaultTxMiddleware } from './helpers'
 export { LoomProvider } from './loom-provider'
 
 import * as CryptoUtils from './crypto-utils'
