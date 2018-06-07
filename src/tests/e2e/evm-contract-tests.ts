@@ -7,7 +7,8 @@ import {
   Client,
   NonceTxMiddleware,
   SignedTxMiddleware,
-  CryptoUtils
+  CryptoUtils,
+  createDefaultTxMiddleware
 } from '../../index'
 import { createTestClient } from '../helpers'
 
@@ -33,7 +34,7 @@ test('EVM Contract Calls', async t => {
     const privKey = CryptoUtils.generatePrivateKey()
     const pubKey = CryptoUtils.publicKeyFromPrivateKey(privKey)
     const client = createTestClient()
-    client.txMiddleware = [new NonceTxMiddleware(pubKey, client), new SignedTxMiddleware(privKey)]
+    client.txMiddleware = createDefaultTxMiddleware(client, privKey)
 
     const contractAddr = await client.getContractAddressAsync('SimpleStore')
     if (!contractAddr) {

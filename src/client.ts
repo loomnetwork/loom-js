@@ -2,7 +2,7 @@ import { Message } from 'google-protobuf'
 import EventEmitter from 'events'
 import retry from 'retry'
 
-import { VMType, EvmTxReceipt } from './proto/loom_pb'
+import { VMType, EvmTxReceipt, EventData } from './proto/loom_pb'
 import { Uint8ArrayToB64, B64ToUint8Array, bufferToProtobufBytes } from './crypto-utils'
 import { Address, LocalAddress } from './address'
 import { WSRPCClient, WSRPCClientEvent, IJSONRPCEvent } from './internal/ws-rpc-client'
@@ -203,13 +203,21 @@ export class Client extends EventEmitter {
    * Consider using Contract.callAsync() instead.
    *
    * @param tx Transaction to commit.
+   * @param opts Options object.
+   * @param opts.middleware Middleware to apply before sending the tx to the DAppChain, setting this
+   *                        option will override the default set of middleware specified in
+   *                        the `Client.txMiddleware` property.
    * @returns Result (if any) returned by the tx handler in the contract that processed the tx.
    */
-  commitTxAsync<T extends Message>(tx: T): Promise<Uint8Array | void> {
+  commitTxAsync<T extends Message>(
+    tx: T,
+    opts: { middleware?: ITxMiddlewareHandler[] } = {}
+  ): Promise<Uint8Array | void> {
+    const { middleware = this.txMiddleware } = opts
     const op = retry.operation(this.nonceRetryStrategy)
     return new Promise<Uint8Array | void>((resolve, reject) => {
       op.attempt(currentAttempt => {
-        this._commitTxAsync<T>(tx)
+        this._commitTxAsync<T>(tx, middleware)
           .then(resolve)
           .catch(err => {
             if (err instanceof Error && err.message === INVALID_TX_NONCE_ERROR) {
@@ -225,10 +233,13 @@ export class Client extends EventEmitter {
     })
   }
 
-  private async _commitTxAsync<T extends Message>(tx: T): Promise<Uint8Array | void> {
+  private async _commitTxAsync<T extends Message>(
+    tx: T,
+    middleware: ITxMiddlewareHandler[]
+  ): Promise<Uint8Array | void> {
     let txBytes = tx.serializeBinary()
-    for (let i = 0; i < this.txMiddleware.length; i++) {
-      txBytes = await this.txMiddleware[i].Handle(txBytes)
+    for (let i = 0; i < middleware.length; i++) {
+      txBytes = await middleware[i].Handle(txBytes)
     }
     const result = await this._writeClient.sendAsync<IBroadcastTxCommitResult>(
       'broadcast_tx_commit',
@@ -347,19 +358,21 @@ export class Client extends EventEmitter {
       const eventArgs: IClientErrorEventArgs = { kind: ClientEvent.Error, url, error }
       this.emit(ClientEvent.Error, eventArgs)
     } else if (result) {
+      // Ugh, no built-in JSON->Protobuf marshaller apparently
+      // https://github.com/google/protobuf/issues/1591 so gotta do this manually
       const eventArgs: IChainEventArgs = {
         kind: ClientEvent.Contract,
         url,
         contractAddress: new Address(
-          result.address.ChainID,
-          new LocalAddress(B64ToUint8Array(result.address.Local))
+          result.address.chain_id,
+          new LocalAddress(B64ToUint8Array(result.address.local))
         ),
         callerAddress: new Address(
-          result.caller.ChainID,
-          new LocalAddress(B64ToUint8Array(result.caller.Local))
+          result.caller.chain_id,
+          new LocalAddress(B64ToUint8Array(result.caller.local))
         ),
-        blockHeight: result.blockHeight,
-        data: B64ToUint8Array(result.encodedData)
+        blockHeight: result.block_height,
+        data: B64ToUint8Array(result.encoded_body)
       }
       this.emit(ClientEvent.Contract, eventArgs)
     }
