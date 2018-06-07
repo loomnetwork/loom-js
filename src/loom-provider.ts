@@ -1,4 +1,5 @@
 import { Client, ClientEvent, IChainEventArgs } from './client'
+import { createDefaultTxMiddleware } from './helpers'
 import {
   CallTx,
   MessageTx,
@@ -53,7 +54,7 @@ export class LoomProvider {
   private _topicsList: Array<string>
   protected notificationCallbacks: Array<Function>
   readonly accounts: Map<string, Uint8Array>
-  readonly accountsAddrList: Array<any>
+  readonly accountsAddrList: Array<string>
 
   /**
    * Constructs the LoomProvider to bridges communication between Web3 and Loom DappChains
@@ -432,29 +433,14 @@ export class LoomProvider {
     fromPublicAddr: string,
     txTransaction: Transaction
   ): Promise<Uint8Array | void> {
-    const txBytes = txTransaction.serializeBinary()
-
     const privateKey = this.accounts.get(fromPublicAddr)
 
     if (!privateKey) {
       throw Error(`Account not found for address ${fromPublicAddr}`)
     }
 
-    const key = publicKeyFromPrivateKey(privateKey)
-    const nonce = await this._client.getNonceAsync(bytesToHex(key))
-
-    const nonceTx = new NonceTx()
-    nonceTx.setInner(txBytes as Uint8Array)
-    nonceTx.setSequence(nonce + 1)
-    const nonceTxData: Uint8Array = nonceTx.serializeBinary()
-
-    const sig = sign(nonceTxData as Uint8Array, privateKey)
-    const signedTx = new SignedTx()
-    signedTx.setInner(nonceTxData as Uint8Array)
-    signedTx.setSignature(sig)
-    signedTx.setPublicKey(key)
-
-    return this._client.commitTxAsync<SignedTx>(signedTx)
+    const middleware = createDefaultTxMiddleware(this._client, privateKey)
+    return this._client.commitTxAsync<Transaction>(txTransaction, {middleware})
   }
 
   private _simulateEmptyBlock(block: any = {}) {
