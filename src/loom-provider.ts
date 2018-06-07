@@ -5,14 +5,10 @@ import {
   MessageTx,
   Transaction,
   VMType,
-  EvmTxReceipt,
   Event,
   DeployTx,
   DeployResponse,
-  DeployResponseData,
-  Address as ProtoAddress,
-  NonceTx,
-  SignedTx
+  DeployResponseData
 } from './proto/loom_pb'
 import { Address, LocalAddress } from './address'
 import {
@@ -20,11 +16,8 @@ import {
   numberToHex,
   bufferToProtobufBytes,
   getGUID,
-  publicKeyFromPrivateKey,
-  bytesToHex,
-  sign
+  publicKeyFromPrivateKey
 } from './crypto-utils'
-import { NonceTxMiddleware, SignedTxMiddleware } from './middleware'
 
 export interface IEthReceipt {
   transactionHash: string
@@ -440,7 +433,7 @@ export class LoomProvider {
     }
 
     const middleware = createDefaultTxMiddleware(this._client, privateKey)
-    return this._client.commitTxAsync<Transaction>(txTransaction, {middleware})
+    return this._client.commitTxAsync<Transaction>(txTransaction, { middleware })
   }
 
   private _simulateEmptyBlock(block: any = {}) {
