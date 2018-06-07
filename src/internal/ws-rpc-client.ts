@@ -107,7 +107,7 @@ export class WSRPCClient extends EventEmitter {
         ;((this._client as any).socket as EventEmitter).on('message', this._onEventMessage)
         if (this._client.ready) {
           this._client
-            .call('subevents', { topic: null }, this.requestTimeout)
+            .call('subevents', { topics: null }, this.requestTimeout)
             .then(() => {
               this._isSubcribed = true
               this.emit(WSRPCClientEvent.Subscribed, true)
@@ -125,7 +125,7 @@ export class WSRPCClient extends EventEmitter {
         )
         if (this._client.ready) {
           this._client
-            .call('unsubevents', { topic: null }, this.requestTimeout)
+            .call('unsubevents', { topics: null }, this.requestTimeout)
             .then(() => {
               this._isSubcribed = false
               this.emit(WSRPCClientEvent.Subscribed, false)
@@ -139,7 +139,7 @@ export class WSRPCClient extends EventEmitter {
       this.emit(WSRPCClientEvent.Connected)
       if (this.listenerCount(WSRPCClientEvent.Message) > 0) {
         this._client
-          .call('subevents', { topic: null }, this.requestTimeout)
+          .call('subevents', { topics: null }, this.requestTimeout)
           .then(() => {
             this._isSubcribed = true
             this.emit(WSRPCClientEvent.Subscribed, true)
