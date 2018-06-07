@@ -256,9 +256,9 @@ export class LoomProvider {
         // Required to avoid web3js error, because web3js always want to know about a transaction
         if (payload.params[0] === 'logs') {
           this._topicsList = this._topicsList.concat(payload.params[1].topics)
-          callback(null, this._okResponse(payload.params[1].topics[0], isArray))
+          callback(null, this._okResponse(payload.id, payload.params[1].topics[0], isArray))
         } else {
-          callback(null, this._okResponse(payload.id, isArray))
+          callback(null, this._okResponse(payload.id, [], isArray))
         }
         break
       case 'eth_uninstallFilter':
