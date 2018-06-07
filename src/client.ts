@@ -203,13 +203,21 @@ export class Client extends EventEmitter {
    * Consider using Contract.callAsync() instead.
    *
    * @param tx Transaction to commit.
+   * @param opts Options object.
+   * @param opts.middleware Middleware to apply before sending the tx to the DAppChain, setting this
+   *                        option will override the default set of middleware specified in
+   *                        the `Client.txMiddleware` property.
    * @returns Result (if any) returned by the tx handler in the contract that processed the tx.
    */
-  commitTxAsync<T extends Message>(tx: T): Promise<Uint8Array | void> {
+  commitTxAsync<T extends Message>(
+    tx: T,
+    opts: { middleware?: ITxMiddlewareHandler[] } = {}
+  ): Promise<Uint8Array | void> {
+    const { middleware = this.txMiddleware } = opts
     const op = retry.operation(this.nonceRetryStrategy)
     return new Promise<Uint8Array | void>((resolve, reject) => {
       op.attempt(currentAttempt => {
-        this._commitTxAsync<T>(tx)
+        this._commitTxAsync<T>(tx, middleware)
           .then(resolve)
           .catch(err => {
             if (err instanceof Error && err.message === INVALID_TX_NONCE_ERROR) {
@@ -225,10 +233,13 @@ export class Client extends EventEmitter {
     })
   }
 
-  private async _commitTxAsync<T extends Message>(tx: T): Promise<Uint8Array | void> {
+  private async _commitTxAsync<T extends Message>(
+    tx: T,
+    middleware: ITxMiddlewareHandler[]
+  ): Promise<Uint8Array | void> {
     let txBytes = tx.serializeBinary()
-    for (let i = 0; i < this.txMiddleware.length; i++) {
-      txBytes = await this.txMiddleware[i].Handle(txBytes)
+    for (let i = 0; i < middleware.length; i++) {
+      txBytes = await middleware[i].Handle(txBytes)
     }
     const result = await this._writeClient.sendAsync<IBroadcastTxCommitResult>(
       'broadcast_tx_commit',
