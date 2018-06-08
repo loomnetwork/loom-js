@@ -1,7 +1,9 @@
 import test from 'tape'
 
-import { WSRPCClient, WSRPCClientEvent } from '../../internal/ws-rpc-client'
+import { WSRPCClient } from '../../internal/ws-rpc-client'
+import { RPCClientEvent } from '../../internal/json-rpc-client'
 import { getTestUrls } from '../helpers'
+import { createJSONRPCClient } from '../../rpc-client-factory'
 
 function closeSocket(client: WSRPCClient) {
   ;(client as any)._client.close(3000)
@@ -16,7 +18,7 @@ function ensureSubscriptionAsync(client: WSRPCClient): Promise<void> {
       () => reject(new Error('Timeout waiting for subscription')),
       client.requestTimeout
     )
-    client.once(WSRPCClientEvent.Subscribed, (isSubscribed: boolean) => {
+    client.once(RPCClientEvent.Subscribed, (url: string, isSubscribed: boolean) => {
       clearTimeout(timeout)
       if (isSubscribed) {
         resolve()
@@ -36,7 +38,7 @@ function ensureUnsubscriptionAsync(client: WSRPCClient): Promise<void> {
       () => reject(new Error('Timeout waiting for unsubscription')),
       client.requestTimeout
     )
-    client.once(WSRPCClientEvent.Subscribed, (isSubscribed: boolean) => {
+    client.once(RPCClientEvent.Subscribed, (url: string, isSubscribed: boolean) => {
       clearTimeout(timeout)
       if (!isSubscribed) {
         resolve()
@@ -52,14 +54,14 @@ test('WSRPCClient should maintain event sub while there are WSRPCClientEvent.Mes
   try {
     client = new WSRPCClient(getTestUrls().readUrl, { requestTimeout: 1000 })
 
-    client.on(WSRPCClientEvent.Error, err => {
+    client.on(RPCClientEvent.Error, (url: string, err: any) => {
       t.error(err)
     })
     await client.ensureConnectionAsync()
     const listener = () => {}
-    client.on(WSRPCClientEvent.Message, listener)
+    client.on(RPCClientEvent.Message, listener)
     await ensureSubscriptionAsync(client)
-    client.removeListener(WSRPCClientEvent.Message, listener)
+    client.removeListener(RPCClientEvent.Message, listener)
     await ensureUnsubscriptionAsync(client)
     t.pass('Passed')
   } catch (err) {
@@ -79,12 +81,12 @@ test('WSRPCClient should resub to events after reconnect', async t => {
       reconnectInterval: 100
     })
 
-    client.on(WSRPCClientEvent.Error, err => {
+    client.on(RPCClientEvent.Error, (url: string, err: any) => {
       t.error(err)
     })
     await client.ensureConnectionAsync()
     const listener = () => {}
-    client.on(WSRPCClientEvent.Message, listener)
+    client.on(RPCClientEvent.Message, listener)
     await ensureSubscriptionAsync(client)
     closeSocket(client)
     await ensureUnsubscriptionAsync(client)
