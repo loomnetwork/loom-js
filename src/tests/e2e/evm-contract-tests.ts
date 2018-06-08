@@ -4,9 +4,6 @@ import {
   EvmContract,
   Address,
   LocalAddress,
-  Client,
-  NonceTxMiddleware,
-  SignedTxMiddleware,
   CryptoUtils,
   createDefaultTxMiddleware
 } from '../../index'

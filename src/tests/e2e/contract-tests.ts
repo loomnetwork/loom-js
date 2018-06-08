@@ -6,8 +6,6 @@ import {
   LocalAddress,
   Client,
   IChainEventArgs,
-  NonceTxMiddleware,
-  SignedTxMiddleware,
   CryptoUtils,
   createDefaultTxMiddleware
 } from '../../index'
