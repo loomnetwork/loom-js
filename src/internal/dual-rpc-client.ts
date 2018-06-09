@@ -12,32 +12,28 @@ export class DualRPCClient extends WSRPCClient {
   private _protocol: JSONRPCProtocol
 
   /**
-   *
-   * @param httpUrl HTTP URL to send requests to.
-   * @param wsUrl WebSocket URL to connect to.
-   * @param opts Options object
+   * @param opts.httpUrl HTTP URL to send requests to.
+   * @param opts.wsUrl WebSocket URL to connect to.
    * @param opts.protocol Primary protocol to use to send requests, defaults to HTTP.
    * @param opts.requestTimeout Number of milliseconds to wait for a network operation to complete.
    */
-  constructor(
-    public httpUrl: string,
-    public wsUrl: string,
-    opts: {
-      autoConnect?: boolean
-      protocol?: JSONRPCProtocol
-      requestTimeout?: number
-      reconnectInterval?: number
-      maxReconnects?: number
-      generateRequestId?: (method: string, params: object | any[]) => string
-    } = {}
-  ) {
-    super(wsUrl, opts)
+  constructor(opts: {
+    httpUrl: string
+    wsUrl: string
+    autoConnect?: boolean
+    protocol?: JSONRPCProtocol
+    requestTimeout?: number
+    reconnectInterval?: number
+    maxReconnects?: number
+    generateRequestId?: (method: string, params: object | any[]) => string
+  }) {
+    super(opts.wsUrl, opts)
     const {
       protocol = JSONRPCProtocol.HTTP,
       requestTimeout,
       generateRequestId = this._getNextRequestId
     } = opts
-    this._http = new HTTPRPCClient(httpUrl, { requestTimeout, generateRequestId })
+    this._http = new HTTPRPCClient(opts.httpUrl, { requestTimeout, generateRequestId })
     this._protocol = protocol
   }
 

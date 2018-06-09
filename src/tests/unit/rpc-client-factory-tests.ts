@@ -6,51 +6,45 @@ import { WSRPCClient } from '../../internal/ws-rpc-client'
 import { DualRPCClient } from '../../internal/dual-rpc-client'
 import { RPCClientEvent } from '../../internal/json-rpc-client'
 
-test('createJSONRPCClient should create HTTPRPCClient for http/s urls', t => {
-  t.plan(2)
+test('RPC Client Factory', t => {
   try {
     const autoConnect = false
+
     let client = createJSONRPCClient({ protocols: [{ url: 'http://localhost' }], autoConnect })
-    t.ok(client instanceof HTTPRPCClient, 'HTTPRPCClient created')
+    t.ok(client instanceof HTTPRPCClient, 'Should create HTTPRPCClient for http url')
 
     client = createJSONRPCClient({ protocols: [{ url: 'https://localhost' }], autoConnect })
-    t.ok(client instanceof HTTPRPCClient, 'HTTPRPCClient created')
-  } catch (err) {
-    t.fail(err)
-  }
-  t.end()
-})
+    t.ok(client instanceof HTTPRPCClient, 'Should create HTTPRPCClient for https url')
 
-test('createJSONRPCClient should create WSRPCClient for ws/s url', t => {
-  t.plan(2)
-  try {
-    const autoConnect = false
-    let client = createJSONRPCClient({ protocols: [{ url: 'ws://localhost' }], autoConnect })
-    t.ok(client instanceof WSRPCClient, 'WSRPCClient created')
+    client = createJSONRPCClient({ protocols: [{ url: 'ws://localhost' }], autoConnect })
+    t.ok(client instanceof WSRPCClient, 'Should create WSRPCClient for ws url')
 
     client = createJSONRPCClient({ protocols: [{ url: 'wss://localhost' }], autoConnect })
-    t.ok(client instanceof WSRPCClient, 'WSRPCClient created')
-  } catch (err) {
-    t.fail(err)
-  }
-  t.end()
-})
+    t.ok(client instanceof WSRPCClient, 'Should create WSRPCClient for wss url')
 
-test('createJSONRPCClient should create DualRPCClient for http/s & ws/s urls', t => {
-  t.plan(2)
-  try {
-    const autoConnect = false
-    let client = createJSONRPCClient({
+    client = createJSONRPCClient({
       protocols: [{ url: 'http://localhost' }, { url: 'ws://localhost' }],
       autoConnect
     })
-    t.ok(client instanceof DualRPCClient, 'DualRPCClient created')
+    t.ok(client instanceof DualRPCClient, 'Should create DualRPCClient for http + ws urls')
 
     client = createJSONRPCClient({
       protocols: [{ url: 'https://localhost' }, { url: 'wss://localhost' }],
       autoConnect
     })
-    t.ok(client instanceof DualRPCClient, 'DualRPCClient created')
+    t.ok(client instanceof DualRPCClient, 'Should create DualRPCClient for https + wss urls')
+
+    client = createJSONRPCClient({
+      protocols: [{ url: 'http://localhost' }, { url: 'wss://localhost' }],
+      autoConnect
+    })
+    t.ok(client instanceof DualRPCClient, 'Should create DualRPCClient for http + wss urls')
+
+    client = createJSONRPCClient({
+      protocols: [{ url: 'https://localhost' }, { url: 'ws://localhost' }],
+      autoConnect
+    })
+    t.ok(client instanceof DualRPCClient, 'Should create DualRPCClient for https + ws urls')
   } catch (err) {
     t.fail(err)
   }

@@ -5,7 +5,8 @@ import {
   IJSONRPCRequest,
   IJSONRPCResponse,
   IJSONRPCClient,
-  IJSONRPCError
+  IJSONRPCError,
+  RPCClientEvent
 } from './json-rpc-client'
 
 /**

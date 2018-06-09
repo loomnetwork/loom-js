@@ -1,9 +1,11 @@
-import { Client } from '../client'
+import { Client, createJSONRPCClient } from '../index'
 
 export function getTestUrls() {
   return {
-    writeUrl: process.env.TEST_LOOM_DAPP_WRITE_URL || 'ws://127.0.0.1:46657/websocket',
-    readUrl: process.env.TEST_LOOM_DAPP_READ_URL || 'ws://127.0.0.1:9999/queryws'
+    wsWriteUrl: process.env.TEST_LOOM_DAPP_WS_WRITE_URL || 'ws://127.0.0.1:46657/websocket',
+    wsReadUrl: process.env.TEST_LOOM_DAPP_WS_READ_URL || 'ws://127.0.0.1:9999/queryws',
+    httpWriteUrl: process.env.TEST_LOOM_DAPP_HTTP_WRITE_URL || 'http://127.0.0.1:46658/rpc',
+    httpReadUrl: process.env.TEST_LOOM_DAPP_HTTP_READ_URL || 'http://127.0.0.1:46658/query'
   }
 }
 
@@ -13,5 +15,25 @@ export function getTestUrls() {
  * the .env.test (see .env.test.example for default values).
  */
 export function createTestClient(): Client {
-  return new Client('default', getTestUrls().writeUrl, getTestUrls().readUrl)
+  return new Client('default', getTestUrls().wsWriteUrl, getTestUrls().wsReadUrl)
+}
+
+export function createTestHttpClient(): Client {
+  const writer = createJSONRPCClient({ protocols: [{ url: getTestUrls().httpWriteUrl }] })
+  const reader = createJSONRPCClient({ protocols: [{ url: getTestUrls().httpReadUrl }] })
+  return new Client('default', writer, reader)
+}
+
+export function createTestWSClient(): Client {
+  const writer = createJSONRPCClient({ protocols: [{ url: getTestUrls().wsWriteUrl }] })
+  const reader = createJSONRPCClient({ protocols: [{ url: getTestUrls().wsReadUrl }] })
+  return new Client('default', writer, reader)
+}
+
+export function createTestHttpWSClient(): Client {
+  const writer = createJSONRPCClient({ protocols: [{ url: getTestUrls().httpWriteUrl }] })
+  const reader = createJSONRPCClient({
+    protocols: [{ url: getTestUrls().httpReadUrl }, { url: getTestUrls().wsReadUrl }]
+  })
+  return new Client('default', writer, reader)
 }
