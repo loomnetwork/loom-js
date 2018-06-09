@@ -16,4 +16,5 @@ export { LoomProvider } from './loom-provider'
 import * as CryptoUtils from './crypto-utils'
 export { CryptoUtils }
 
+export { IJSONRPCClient } from './internal/json-rpc-client'
 export { createJSONRPCClient, IJSONRPCProtocolOptions } from './rpc-client-factory'

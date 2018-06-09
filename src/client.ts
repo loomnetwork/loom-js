@@ -149,6 +149,7 @@ export class Client extends EventEmitter {
    * @param readClient RPC client to use to query the DAppChain and listen to DAppChain events, this
    *                   should only be provided if it's not the same as `writeClient`.
    */
+  constructor(chainId: string, writeClient: IJSONRPCClient, readClient?: IJSONRPCClient)
   constructor(
     chainId: string,
     writeClient: IJSONRPCClient | string,
@@ -159,28 +160,28 @@ export class Client extends EventEmitter {
     // TODO: basic validation of the URIs to ensure they have all required components.
     this._writeClient =
       typeof writeClient === 'string' ? new WSRPCClient(writeClient) : writeClient
+    this._writeClient.on(RPCClientEvent.Error, (url: string, err: any) =>
+      this._emitNetEvent(url, ClientEvent.Error, err)
+    )
     this._writeClient.on(RPCClientEvent.Connected, (url: string) =>
       this._emitNetEvent(url, ClientEvent.Connected)
     )
     this._writeClient.on(RPCClientEvent.Disconnected, (url: string) =>
       this._emitNetEvent(url, ClientEvent.Disconnected)
     )
-    this._writeClient.on(RPCClientEvent.Error, (url: string, err: any) =>
-      this._emitNetEvent(url, ClientEvent.Error, err)
-    )
 
     if (!readClient || writeClient === readClient) {
       this._readClient = this._writeClient
     } else {
       this._readClient = typeof readClient === 'string' ? new WSRPCClient(readClient) : readClient
+      this._readClient.on(RPCClientEvent.Error, (url: string, err: any) =>
+        this._emitNetEvent(url, ClientEvent.Error, err)
+      )
       this._readClient.on(RPCClientEvent.Connected, (url: string) =>
         this._emitNetEvent(url, ClientEvent.Connected)
       )
       this._readClient.on(RPCClientEvent.Disconnected, (url: string) =>
         this._emitNetEvent(url, ClientEvent.Disconnected)
-      )
-      this._readClient.on(RPCClientEvent.Error, (url: string, err: any) =>
-        this._emitNetEvent(url, ClientEvent.Error, err)
       )
     }
 

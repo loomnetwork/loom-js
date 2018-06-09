@@ -39,7 +39,9 @@ export function createJSONRPCClient(opts: {
     const p2 = selectProtocol(protocols[1].url)
     if (p1 === JSONRPCProtocol.HTTP && p2 === JSONRPCProtocol.WS) {
       const { reconnectInterval, maxReconnects } = protocols[1]
-      return new DualRPCClient(protocols[0].url, protocols[1].url, {
+      return new DualRPCClient({
+        httpUrl: protocols[0].url,
+        wsUrl: protocols[1].url,
         autoConnect,
         protocol: p1,
         requestTimeout,
@@ -49,7 +51,9 @@ export function createJSONRPCClient(opts: {
       })
     } else if (p2 === JSONRPCProtocol.HTTP && p1 === JSONRPCProtocol.WS) {
       const { reconnectInterval, maxReconnects } = protocols[0]
-      return new DualRPCClient(protocols[1].url, protocols[0].url, {
+      return new DualRPCClient({
+        httpUrl: protocols[1].url,
+        wsUrl: protocols[0].url,
         autoConnect,
         protocol: p1,
         requestTimeout,
