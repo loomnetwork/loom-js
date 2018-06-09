@@ -5,7 +5,9 @@ import retry from 'retry'
 import { VMType, EvmTxReceipt, EventData } from './proto/loom_pb'
 import { Uint8ArrayToB64, B64ToUint8Array, bufferToProtobufBytes } from './crypto-utils'
 import { Address, LocalAddress } from './address'
-import { WSRPCClient, WSRPCClientEvent, IJSONRPCEvent } from './internal/ws-rpc-client'
+import { WSRPCClient, IJSONRPCEvent } from './internal/ws-rpc-client'
+import { RPCClientEvent } from './internal/json-rpc-client'
+import { IJSONRPCClient } from './internal/json-rpc-client'
 
 interface ITxHandlerResult {
   code?: number
@@ -105,8 +107,8 @@ export function isInvalidTxNonceError(err: any): boolean {
 export class Client extends EventEmitter {
   readonly chainId: string
 
-  private _writeClient: WSRPCClient
-  private _readClient!: WSRPCClient
+  private _writeClient: IJSONRPCClient
+  private _readClient!: IJSONRPCClient
 
   /** Middleware to apply to transactions before they are transmitted to the DAppChain. */
   txMiddleware: ITxMiddlewareHandler[] = []
@@ -133,54 +135,68 @@ export class Client extends EventEmitter {
   }
 
   /**
-   * Constructs a new client to read & write data from/to a Loom DAppChain.
+   * Constructs a new client to read & write data from/to a Loom DAppChain via web sockets.
    * @param chainId DAppChain identifier.
    * @param writeUrl Host & port to send txs, specified as "<protocol>://<host>:<port>".
    * @param readUrl Host & port of the DAppChain read/query interface, this should only be provided
    *                if it's not the same as `writeUrl`.
    */
-  constructor(chainId: string, writeUrl: string, readUrl?: string) {
+  constructor(chainId: string, writeUrl: string, readUrl?: string)
+  /**
+   * Constructs a new client to read & write data from/to a Loom DAppChain.
+   * @param chainId DAppChain identifier.
+   * @param writeClient RPC client to use to send txs to the DAppChain.
+   * @param readClient RPC client to use to query the DAppChain and listen to DAppChain events, this
+   *                   should only be provided if it's not the same as `writeClient`.
+   */
+  constructor(chainId: string, writeClient: IJSONRPCClient, readClient?: IJSONRPCClient)
+  constructor(
+    chainId: string,
+    writeClient: IJSONRPCClient | string,
+    readClient?: IJSONRPCClient | string
+  ) {
     super()
     this.chainId = chainId
     // TODO: basic validation of the URIs to ensure they have all required components.
-    this._writeClient = new WSRPCClient(writeUrl)
-    this._writeClient.on(WSRPCClientEvent.Connected, () =>
-      this._emitNetEvent(writeUrl, ClientEvent.Connected)
+    this._writeClient =
+      typeof writeClient === 'string' ? new WSRPCClient(writeClient) : writeClient
+    this._writeClient.on(RPCClientEvent.Error, (url: string, err: any) =>
+      this._emitNetEvent(url, ClientEvent.Error, err)
     )
-    this._writeClient.on(WSRPCClientEvent.Disconnected, () =>
-      this._emitNetEvent(writeUrl, ClientEvent.Disconnected)
+    this._writeClient.on(RPCClientEvent.Connected, (url: string) =>
+      this._emitNetEvent(url, ClientEvent.Connected)
     )
-    this._writeClient.on(WSRPCClientEvent.Error, err =>
-      this._emitNetEvent(writeUrl, ClientEvent.Error, err)
+    this._writeClient.on(RPCClientEvent.Disconnected, (url: string) =>
+      this._emitNetEvent(url, ClientEvent.Disconnected)
     )
 
-    if (!readUrl || writeUrl === readUrl) {
+    if (!readClient || writeClient === readClient) {
       this._readClient = this._writeClient
     } else {
-      this._readClient = new WSRPCClient(readUrl)
-      this._readClient.on(WSRPCClientEvent.Connected, () =>
-        this._emitNetEvent(readUrl, ClientEvent.Connected)
+      this._readClient = typeof readClient === 'string' ? new WSRPCClient(readClient) : readClient
+      this._readClient.on(RPCClientEvent.Error, (url: string, err: any) =>
+        this._emitNetEvent(url, ClientEvent.Error, err)
       )
-      this._readClient.on(WSRPCClientEvent.Disconnected, () =>
-        this._emitNetEvent(readUrl, ClientEvent.Disconnected)
+      this._readClient.on(RPCClientEvent.Connected, (url: string) =>
+        this._emitNetEvent(url, ClientEvent.Connected)
       )
-      this._readClient.on(WSRPCClientEvent.Error, err =>
-        this._emitNetEvent(readUrl, ClientEvent.Error, err)
+      this._readClient.on(RPCClientEvent.Disconnected, (url: string) =>
+        this._emitNetEvent(url, ClientEvent.Disconnected)
       )
     }
 
-    const emitContractEvent = (event: IJSONRPCEvent) =>
-      this._emitContractEvent(this._readClient.url, event)
+    const emitContractEvent = (url: string, event: IJSONRPCEvent) =>
+      this._emitContractEvent(url, event)
 
     this.on('newListener', (event: string) => {
       if (event === ClientEvent.Contract && this.listenerCount(ClientEvent.Contract) === 0) {
-        this._readClient.on(WSRPCClientEvent.Message, emitContractEvent)
+        this._readClient.on(RPCClientEvent.Message, emitContractEvent)
       }
     })
 
     this.on('removeListener', (event: string) => {
       if (event === ClientEvent.Contract && this.listenerCount(ClientEvent.Contract) === 0) {
-        this._readClient.removeListener(WSRPCClientEvent.Message, emitContractEvent)
+        this._readClient.removeListener(RPCClientEvent.Message, emitContractEvent)
       }
     })
   }

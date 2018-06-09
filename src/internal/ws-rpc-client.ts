@@ -1,6 +1,8 @@
 import { Client as WSClient } from 'rpc-websockets'
 import { EventEmitter } from 'events'
 
+import { IJSONRPCError, RPCClientEvent } from './json-rpc-client'
+
 export interface IEventData {
   caller: {
     chain_id: string
@@ -14,34 +16,9 @@ export interface IEventData {
   encoded_body: string
 }
 
-export interface IJSONRPCError {
-  code: number
-  message: string
-  data: any
-}
-
 export interface IJSONRPCEvent {
   error?: IJSONRPCError
   result?: IEventData
-}
-
-export type WSRPCClientEventListener = (event: IJSONRPCEvent) => void
-
-export enum WSRPCClientEvent {
-  /** Emitted when a connection is established with the server. */
-  Connected = 'connected',
-  /** Emitted when the connection to the server is closed down. */
-  Disconnected = 'disconnected',
-  /** Emitted when an error is encountered that can't be propagated in a more sensible fashion. */
-  Error = 'error',
-  /** Emitted when an event message (not a response message) is received from the server. */
-  Message = 'message',
-  /**
-   * Emitted when chain events subscription status changes.
-   * Listener will receive a single boolean value, `true` indicates that the event subscription is
-   * active, `false` indicates that it's inactive.
-   */
-  Subscribed = 'subscribed'
 }
 
 /**
@@ -49,10 +26,10 @@ export enum WSRPCClientEvent {
  */
 export class WSRPCClient extends EventEmitter {
   private _client: WSClient
-  private _rpcId: number = 0
   private _isSubcribed: boolean = false
 
-  private _getNextRequestId = () => (++this._rpcId).toString()
+  protected _rpcId: number = 0
+  protected _getNextRequestId = () => (++this._rpcId).toString()
 
   requestTimeout: number
 
@@ -72,6 +49,7 @@ export class WSRPCClient extends EventEmitter {
   constructor(
     public url: string,
     opts: {
+      autoConnect?: boolean
       requestTimeout?: number
       reconnectInterval?: number
       maxReconnects?: number
@@ -80,6 +58,7 @@ export class WSRPCClient extends EventEmitter {
   ) {
     super()
     const {
+      autoConnect = true,
       requestTimeout = 15000, // 15s
       reconnectInterval,
       maxReconnects = 0, // 0 means there is no limit
@@ -89,7 +68,7 @@ export class WSRPCClient extends EventEmitter {
     this._client = new WSClient(
       url,
       {
-        autoconnect: true,
+        autoconnect: autoConnect,
         reconnect: true,
         reconnect_interval: reconnectInterval,
         max_reconnects: maxReconnects
@@ -100,7 +79,7 @@ export class WSRPCClient extends EventEmitter {
     this.requestTimeout = requestTimeout
 
     this.on('newListener', (event: string) => {
-      if (event === WSRPCClientEvent.Message && this.listenerCount(event) === 0) {
+      if (event === RPCClientEvent.Message && this.listenerCount(event) === 0) {
         // rpc-websockets is just going to throw away the event messages from the DAppChain because
         // they don't conform to it's idea of notifications or events... fortunately few things in
         // javascript are truly private... so we'll just handle those event message ourselves ;)
@@ -110,15 +89,15 @@ export class WSRPCClient extends EventEmitter {
             .call('subevents', { topics: null }, this.requestTimeout)
             .then(() => {
               this._isSubcribed = true
-              this.emit(WSRPCClientEvent.Subscribed, true)
+              this.emit(RPCClientEvent.Subscribed, this.url, true)
             })
-            .catch(err => this.emit(WSRPCClientEvent.Error, err))
+            .catch(err => this.emit(RPCClientEvent.Error, this.url, err))
         }
       }
     })
 
     this.on('removeListener', (event: string) => {
-      if (event === WSRPCClientEvent.Message && this.listenerCount(event) === 0) {
+      if (event === RPCClientEvent.Message && this.listenerCount(event) === 0) {
         ;((this._client as any).socket as EventEmitter).removeListener(
           'message',
           this._onEventMessage
@@ -128,33 +107,33 @@ export class WSRPCClient extends EventEmitter {
             .call('unsubevents', { topics: null }, this.requestTimeout)
             .then(() => {
               this._isSubcribed = false
-              this.emit(WSRPCClientEvent.Subscribed, false)
+              this.emit(RPCClientEvent.Subscribed, this.url, false)
             })
-            .catch(err => this.emit(WSRPCClientEvent.Error, err))
+            .catch(err => this.emit(RPCClientEvent.Error, this.url, err))
         }
       }
     })
 
     this._client.on('open', () => {
-      this.emit(WSRPCClientEvent.Connected)
-      if (this.listenerCount(WSRPCClientEvent.Message) > 0) {
+      this.emit(RPCClientEvent.Connected, this.url)
+      if (this.listenerCount(RPCClientEvent.Message) > 0) {
         this._client
           .call('subevents', { topics: null }, this.requestTimeout)
           .then(() => {
             this._isSubcribed = true
-            this.emit(WSRPCClientEvent.Subscribed, true)
+            this.emit(RPCClientEvent.Subscribed, this.url, true)
           })
-          .catch(err => this.emit(WSRPCClientEvent.Error, err))
+          .catch(err => this.emit(RPCClientEvent.Error, this.url, err))
       }
     })
     this._client.on('close', () => {
-      if (this.listenerCount(WSRPCClientEvent.Message) > 0) {
+      if (this.listenerCount(RPCClientEvent.Message) > 0) {
         this._isSubcribed = false
-        this.emit(WSRPCClientEvent.Subscribed, false)
+        this.emit(RPCClientEvent.Subscribed, this.url, false)
       }
-      this.emit(WSRPCClientEvent.Disconnected)
+      this.emit(RPCClientEvent.Disconnected, this.url)
     })
-    this._client.on('error', err => this.emit(WSRPCClientEvent.Error, err))
+    this._client.on('error', err => this.emit(RPCClientEvent.Error, this.url, err))
   }
 
   /**
@@ -202,7 +181,7 @@ export class WSRPCClient extends EventEmitter {
     const msgStr = message instanceof ArrayBuffer ? Buffer.from(message).toString() : message
     const msg = JSON.parse(msgStr)
     if (msg.id === '0') {
-      this.emit(WSRPCClientEvent.Message, msg)
+      this.emit(RPCClientEvent.Message, this.url, msg)
     }
   }
 }
