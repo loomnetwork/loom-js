@@ -65,10 +65,14 @@ test('LoomProvider + Web3', async t => {
     const newValue = 1
 
     const tx = await contract.methods.set(newValue).send()
-    t.equal(tx.status, true, 'Should return status true')
+    t.equal(tx.status, true, 'Should the status returned from set function equal to true')
 
     const resultOfGet = await contract.methods.get().call()
-    t.equal(+resultOfGet, newValue, `Should the value be equal a ${newValue}`)
+    t.equal(
+      +resultOfGet,
+      newValue,
+      `Should the value returned from get function equal to ${newValue}`
+    )
 
     client.disconnect()
   } catch (err) {

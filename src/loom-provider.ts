@@ -155,7 +155,7 @@ export class LoomProvider {
     } else {
       return new Promise((resolve, reject) => {
         this.send(payload, (err: Error, result: any) => {
-          if (err) return reject(err)
+          if (err) reject(err)
           else resolve(result)
         })
       })

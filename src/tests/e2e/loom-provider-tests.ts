@@ -41,7 +41,6 @@ test('LoomProvider', async t => {
     client.on('error', msg => console.error('Error on client:', msg))
 
     const loomProvider = new LoomProvider(client, privKey)
-    loomProvider.send = promisify(loomProvider.send)
     const id = 1
 
     const netVersionResult = await loomProvider.sendAsync({
@@ -67,7 +66,7 @@ test('LoomProvider', async t => {
         jsonrpc: '2.0',
         result: [fromAddr]
       },
-      'Accounts should be available'
+      'accounts should be available on eth_accounts command'
     )
 
     const ethNewBlockFilterResult = await loomProvider.sendAsync({
@@ -75,16 +74,22 @@ test('LoomProvider', async t => {
       method: 'eth_newBlockFilter'
     })
 
-    t.equal(ethNewBlockFilterResult.id, id, `Id Should be equal ${id}`)
-    t.assert(/0x.+/.test(ethNewBlockFilterResult.result), 'Hex identification should be returned')
+    t.equal(ethNewBlockFilterResult.id, id, `Id for eth_newBlockFilter should be equal ${id}`)
+    t.assert(
+      /0x.+/.test(ethNewBlockFilterResult.result),
+      'Hex identification should be returned on eth_newBlockFilter'
+    )
 
     const ethNewBlockByNumberResult = await loomProvider.sendAsync({
       id,
       method: 'eth_getBlockByNumber'
     })
 
-    t.equal(ethNewBlockFilterResult.id, id, `Id Should be equal ${id}`)
-    t.assert(ethNewBlockByNumberResult.result, 'Block should be returned')
+    t.equal(ethNewBlockFilterResult.id, id, `Id for eth_getBlockByNumber should be equal ${id}`)
+    t.assert(
+      ethNewBlockByNumberResult.result,
+      'Block should be returned from eth_getBlockByNumber'
+    )
 
     const ethGetFilterChangesResults = await loomProvider.sendAsync({
       id,
@@ -100,7 +105,7 @@ test('LoomProvider', async t => {
           result: ['0x0000000000000000000000000000000000000000000000000000000000000001']
         }
       ],
-      'Should return filter'
+      'Should return filter from eth_getFilterChanges command'
     )
 
     const ethSendTransactionResult = await loomProvider.sendAsync({
@@ -118,10 +123,10 @@ test('LoomProvider', async t => {
       ]
     })
 
-    t.equal(ethSendTransactionResult.id, id, `Id Should be equal ${id}`)
+    t.equal(ethSendTransactionResult.id, id, `Id for eth_sendTransaction should be equal ${id}`)
     t.assert(
       /0x.+/.test(ethSendTransactionResult.result),
-      'Hex identification should be returned for transaction'
+      'Hex identification should be returned for eth_sendTransaction command (contract transaction)'
     )
 
     const contractData =
@@ -141,10 +146,14 @@ test('LoomProvider', async t => {
       ]
     })
 
-    t.equal(ethSendTransactionDeployResult.id, id, `Id Should be equal ${id}`)
+    t.equal(
+      ethSendTransactionDeployResult.id,
+      id,
+      `Id for eth_sendTransaction should be equal ${id}`
+    )
     t.assert(
       /0x.+/.test(ethSendTransactionDeployResult.result),
-      'Hex identification should be returned for deploy transaction'
+      'Hex identification should be returned for eth_sendTransaction command (deploy new contract)'
     )
 
     const ethGetCodeResult = await loomProvider.sendAsync({
@@ -153,10 +162,10 @@ test('LoomProvider', async t => {
       params: [contractAddress]
     })
 
-    t.equal(ethGetCodeResult.id, id, `Id Should be equal ${id}`)
+    t.equal(ethGetCodeResult.id, id, `Id for eth_getCode should be equal ${id}`)
     t.assert(
       /0x.+/.test(ethSendTransactionDeployResult.result),
-      'Hex identification should be returned for get code'
+      'Hex identification should be returned for eth_getCode command'
     )
 
     const ethCallResult = await loomProvider.sendAsync({
@@ -171,11 +180,15 @@ test('LoomProvider', async t => {
       ]
     })
 
-    t.deepEqual(ethCallResult, {
-      id,
-      jsonrpc: '2.0',
-      result: '0x0000000000000000000000000000000000000000000000000000000000000001'
-    })
+    t.deepEqual(
+      ethCallResult,
+      {
+        id,
+        jsonrpc: '2.0',
+        result: '0x0000000000000000000000000000000000000000000000000000000000000001'
+      },
+      'Return from eth_call should be 0x0000000000000000000000000000000000000000000000000000000000000001'
+    )
 
     const ethGetTransactionReceiptResult = await loomProvider.sendAsync({
       id,
@@ -183,7 +196,11 @@ test('LoomProvider', async t => {
       params: [ethSendTransactionResult.result]
     })
 
-    t.equal(ethGetTransactionReceiptResult.result.status, '0x1')
+    t.equal(
+      ethGetTransactionReceiptResult.result.status,
+      '0x1',
+      'Status for eth_getTransactionReceipt should be 0x1'
+    )
 
     const ethSubscribeResult = await loomProvider.sendAsync({
       id,
@@ -191,7 +208,12 @@ test('LoomProvider', async t => {
       params: ['logs', { topics: ['0x1'] }]
     })
 
-    t.deepEqual(ethSubscribeResult, { id: 1, jsonrpc: '2.0', result: '0x1' })
+    // Until the complete support
+    t.deepEqual(
+      ethSubscribeResult,
+      { id: 1, jsonrpc: '2.0', result: '0x1' },
+      'Hex identification for eth_subscribe should be 0x1'
+    )
 
     const ethUninstallFilter = await loomProvider.sendAsync({
       id,
@@ -199,14 +221,24 @@ test('LoomProvider', async t => {
       params: ['0x1']
     })
 
-    t.deepEqual(ethUninstallFilter, { id: 1, jsonrpc: '2.0', result: true })
+    // Until the complete support
+    t.deepEqual(
+      ethUninstallFilter,
+      { id: 1, jsonrpc: '2.0', result: true },
+      'Return from eth_uninstallFilter should be true'
+    )
 
     const ethGetLogs = await loomProvider.sendAsync({
       id,
       method: 'eth_getLogs'
     })
 
-    t.deepEqual(ethGetLogs, { id: 1, jsonrpc: '2.0', result: [] })
+    // Until the complete support
+    t.deepEqual(
+      ethGetLogs,
+      { id: 1, jsonrpc: '2.0', result: [] },
+      'Return from eth_getLogs should be empty array []'
+    )
 
     client.disconnect()
   } catch (err) {
