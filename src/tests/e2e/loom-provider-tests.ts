@@ -2,8 +2,6 @@ import test from 'tape'
 
 import { LocalAddress, CryptoUtils } from '../../index'
 import { createTestClient } from '../helpers'
-import { promisify } from 'util'
-
 import { LoomProvider } from '../../loom-provider'
 
 /**
@@ -36,7 +34,7 @@ test('LoomProvider', async t => {
       return t.fail('Contract address cannot be null')
     }
 
-    const contractAddress = CryptoUtils.bytesToHexAddr(loomContractAddress.local.bytes)
+    const contractAddress = loomContractAddress.local.toString()
 
     client.on('error', msg => console.error('Error on client:', msg))
 

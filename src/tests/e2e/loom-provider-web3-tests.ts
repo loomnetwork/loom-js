@@ -34,7 +34,7 @@ test('LoomProvider + Web3', async t => {
 
     const contractAddr = await client.getContractAddressAsync('SimpleStore')
     if (!contractAddr) {
-      t.fail('Failed to resolve contract address')
+      t.fail('Failed to resolve SimpleStore contract address')
       return
     }
 
@@ -59,20 +59,16 @@ test('LoomProvider + Web3', async t => {
       }
     ]
     const from = LocalAddress.fromPublicKey(pubKey).toString()
-    const hexContractAddr = CryptoUtils.bytesToHexAddr(contractAddr.local.bytes)
+    const hexContractAddr = contractAddr.local.toString()
     const contract = new web3.eth.Contract(ABI, hexContractAddr, { from })
 
     const newValue = 1
 
     const tx = await contract.methods.set(newValue).send()
-    t.equal(tx.status, true, 'Should the status returned from set function equal to true')
+    t.equal(tx.status, true, 'SimpleStore.set should return correct status')
 
     const resultOfGet = await contract.methods.get().call()
-    t.equal(
-      +resultOfGet,
-      newValue,
-      `Should the value returned from get function equal to ${newValue}`
-    )
+    t.equal(+resultOfGet, newValue, `SimpleStore.get should return correct value`)
 
     client.disconnect()
   } catch (err) {
