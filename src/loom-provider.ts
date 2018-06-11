@@ -5,10 +5,10 @@ import {
   MessageTx,
   Transaction,
   VMType,
-  Event,
   DeployTx,
   DeployResponse,
-  DeployResponseData
+  DeployResponseData,
+  EventData
 } from './proto/loom_pb'
 import { Address, LocalAddress } from './address'
 import {
@@ -359,12 +359,12 @@ export class LoomProvider {
     if (!receipt) {
       throw Error('Receipt cannot be empty')
     }
-    const transactionHash = '0x0000000000000000000000000000000000000000000000000000000000000000'
+    const transactionHash = txHash
     const transactionIndex = numberToHexLC(receipt.getTransactionIndex())
     const blockHash = bytesToHexAddrLC(receipt.getBlockHash_asU8())
     const blockNumber = numberToHexLC(receipt.getBlockNumber())
     const contractAddress = bytesToHexAddrLC(receipt.getContractAddress_asU8())
-    const logs = receipt.getLogsList().map((logEvent: Event, index: number) => {
+    const logs = receipt.getLogsList().map((logEvent: EventData, index: number) => {
       const logIndex = numberToHexLC(index)
 
       return {
@@ -372,11 +372,11 @@ export class LoomProvider {
         address: contractAddress,
         blockHash,
         blockNumber,
-        transactionHash,
+        transactionHash: bytesToHexAddrLC(logEvent.getTxHash_asU8()),
         transactionIndex,
         type: 'mined',
-        data: bytesToHexAddrLC(logEvent.getData_asU8()),
-        topics: logEvent.getTopicsList_asU8().map((topic: Uint8Array) => bytesToHexAddrLC(topic))
+        data: bytesToHexAddrLC(logEvent.getEncodedBody_asU8()),
+        topics: logEvent.getTopicsList().map((topic: string) => topic.toLowerCase())
       }
     })
 
@@ -395,40 +395,40 @@ export class LoomProvider {
 
   private _onWebSocketMessage(msgEvent: IChainEventArgs) {
     if (msgEvent.data) {
-      const event = Event.deserializeBinary(bufferToProtobufBytes(msgEvent.data))
-      this.notificationCallbacks.forEach((callback: Function) => {
-        const topics = event
-          .getTopicsList_asU8()
-          .map((topic: Uint8Array) => bytesToHexAddrLC(topic))
-        const topicIdxFound = this._topicsList.indexOf(topics[0])
+      // const event = Event.deserializeBinary(bufferToProtobufBytes(msgEvent.data))
+      // this.notificationCallbacks.forEach((callback: Function) => {
+      //   const topics = event
+      //     .getTopicsList_asU8()
+      //     .map((topic: Uint8Array) => bytesToHexAddrLC(topic))
+      //   const topicIdxFound = this._topicsList.indexOf(topics[0])
 
-        if (topicIdxFound !== -1) {
-          const topicFound = this._topicsList[topicIdxFound]
-          const JSONRPCResult = {
-            jsonrpc: '2.0',
-            method: 'eth_subscription',
-            params: {
-              // TODO: This ID Should came from loomchain events
-              subscription: topicFound,
-              result: {
-                // TODO: Values bellow should be fix in the future
-                logIndex: '0x00',
-                transactionIndex: '0x00',
-                transactionHash:
-                  '0x0000000000000000000000000000000000000000000000000000000000000000',
-                blockHash: '0x0000000000000000000000000000000000000000000000000000000000000000',
-                blockNumber: '0x0',
-                address: '0x0000000000000000000000000000000000000000',
-                type: 'mined',
-                data: bytesToHexAddrLC(event.getData_asU8()),
-                topics
-              }
-            }
-          }
+      //   if (topicIdxFound !== -1) {
+      //     const topicFound = this._topicsList[topicIdxFound]
+      //     const JSONRPCResult = {
+      //       jsonrpc: '2.0',
+      //       method: 'eth_subscription',
+      //       params: {
+      //         // TODO: This ID Should came from loomchain events
+      //         subscription: topicFound,
+      //         result: {
+      //           // TODO: Values bellow should be fix in the future
+      //           logIndex: '0x00',
+      //           transactionIndex: '0x00',
+      //           transactionHash:
+      //             '0x0000000000000000000000000000000000000000000000000000000000000000',
+      //           blockHash: '0x0000000000000000000000000000000000000000000000000000000000000000',
+      //           blockNumber: '0x0',
+      //           address: '0x0000000000000000000000000000000000000000',
+      //           type: 'mined',
+      //           data: bytesToHexAddrLC(event.getData_asU8()),
+      //           topics
+      //         }
+      //       }
+      //     }
 
-          callback(JSONRPCResult)
-        }
-      })
+      //     callback(JSONRPCResult)
+      //   }
+      // })
     }
   }
 

@@ -369,6 +369,52 @@ export namespace ContractMethodCall {
   }
 }
 
+export class TxHashList extends jspb.Message {
+  clearTxHashList(): void;
+  getTxHashList(): Array<Uint8Array | string>;
+  getTxHashList_asU8(): Array<Uint8Array>;
+  getTxHashList_asB64(): Array<string>;
+  setTxHashList(value: Array<Uint8Array | string>): void;
+  addTxHash(value: Uint8Array | string, index?: number): Uint8Array | string;
+
+  serializeBinary(): Uint8Array;
+  toObject(includeInstance?: boolean): TxHashList.AsObject;
+  static toObject(includeInstance: boolean, msg: TxHashList): TxHashList.AsObject;
+  static extensions: {[key: number]: jspb.ExtensionFieldInfo<jspb.Message>};
+  static extensionsBinary: {[key: number]: jspb.ExtensionFieldBinaryInfo<jspb.Message>};
+  static serializeBinaryToWriter(message: TxHashList, writer: jspb.BinaryWriter): void;
+  static deserializeBinary(bytes: Uint8Array): TxHashList;
+  static deserializeBinaryFromReader(message: TxHashList, reader: jspb.BinaryReader): TxHashList;
+}
+
+export namespace TxHashList {
+  export type AsObject = {
+    txHashList: Array<Uint8Array | string>,
+  }
+}
+
+export class EventDataList extends jspb.Message {
+  clearEventsList(): void;
+  getEventsList(): Array<EventData>;
+  setEventsList(value: Array<EventData>): void;
+  addEvents(value?: EventData, index?: number): EventData;
+
+  serializeBinary(): Uint8Array;
+  toObject(includeInstance?: boolean): EventDataList.AsObject;
+  static toObject(includeInstance: boolean, msg: EventDataList): EventDataList.AsObject;
+  static extensions: {[key: number]: jspb.ExtensionFieldInfo<jspb.Message>};
+  static extensionsBinary: {[key: number]: jspb.ExtensionFieldBinaryInfo<jspb.Message>};
+  static serializeBinaryToWriter(message: EventDataList, writer: jspb.BinaryWriter): void;
+  static deserializeBinary(bytes: Uint8Array): EventDataList;
+  static deserializeBinaryFromReader(message: EventDataList, reader: jspb.BinaryReader): EventDataList;
+}
+
+export namespace EventDataList {
+  export type AsObject = {
+    eventsList: Array<EventData.AsObject>,
+  }
+}
+
 export class EventData extends jspb.Message {
   clearTopicsList(): void;
   getTopicsList(): Array<string>;
@@ -401,6 +447,11 @@ export class EventData extends jspb.Message {
   getOriginalRequest_asB64(): string;
   setOriginalRequest(value: Uint8Array | string): void;
 
+  getTxHash(): Uint8Array | string;
+  getTxHash_asU8(): Uint8Array;
+  getTxHash_asB64(): string;
+  setTxHash(value: Uint8Array | string): void;
+
   serializeBinary(): Uint8Array;
   toObject(includeInstance?: boolean): EventData.AsObject;
   static toObject(includeInstance: boolean, msg: EventData): EventData.AsObject;
@@ -420,42 +471,29 @@ export namespace EventData {
     blockHeight: number,
     encodedBody: Uint8Array | string,
     originalRequest: Uint8Array | string,
+    txHash: Uint8Array | string,
   }
 }
 
-export class Event extends jspb.Message {
-  hasContract(): boolean;
-  clearContract(): void;
-  getContract(): Address | undefined;
-  setContract(value?: Address): void;
-
-  clearTopicsList(): void;
-  getTopicsList(): Array<Uint8Array | string>;
-  getTopicsList_asU8(): Array<Uint8Array>;
-  getTopicsList_asB64(): Array<string>;
-  setTopicsList(value: Array<Uint8Array | string>): void;
-  addTopics(value: Uint8Array | string, index?: number): Uint8Array | string;
-
-  getData(): Uint8Array | string;
-  getData_asU8(): Uint8Array;
-  getData_asB64(): string;
-  setData(value: Uint8Array | string): void;
+export class TxReceiptList extends jspb.Message {
+  clearTxReceiptsList(): void;
+  getTxReceiptsList(): Array<EvmTxReceipt>;
+  setTxReceiptsList(value: Array<EvmTxReceipt>): void;
+  addTxReceipts(value?: EvmTxReceipt, index?: number): EvmTxReceipt;
 
   serializeBinary(): Uint8Array;
-  toObject(includeInstance?: boolean): Event.AsObject;
-  static toObject(includeInstance: boolean, msg: Event): Event.AsObject;
+  toObject(includeInstance?: boolean): TxReceiptList.AsObject;
+  static toObject(includeInstance: boolean, msg: TxReceiptList): TxReceiptList.AsObject;
   static extensions: {[key: number]: jspb.ExtensionFieldInfo<jspb.Message>};
   static extensionsBinary: {[key: number]: jspb.ExtensionFieldBinaryInfo<jspb.Message>};
-  static serializeBinaryToWriter(message: Event, writer: jspb.BinaryWriter): void;
-  static deserializeBinary(bytes: Uint8Array): Event;
-  static deserializeBinaryFromReader(message: Event, reader: jspb.BinaryReader): Event;
+  static serializeBinaryToWriter(message: TxReceiptList, writer: jspb.BinaryWriter): void;
+  static deserializeBinary(bytes: Uint8Array): TxReceiptList;
+  static deserializeBinaryFromReader(message: TxReceiptList, reader: jspb.BinaryReader): TxReceiptList;
 }
 
-export namespace Event {
+export namespace TxReceiptList {
   export type AsObject = {
-    contract?: Address.AsObject,
-    topicsList: Array<Uint8Array | string>,
-    data: Uint8Array | string,
+    txReceiptsList: Array<EvmTxReceipt.AsObject>,
   }
 }
 
@@ -483,9 +521,9 @@ export class EvmTxReceipt extends jspb.Message {
   setContractAddress(value: Uint8Array | string): void;
 
   clearLogsList(): void;
-  getLogsList(): Array<Event>;
-  setLogsList(value: Array<Event>): void;
-  addLogs(value?: Event, index?: number): Event;
+  getLogsList(): Array<EventData>;
+  setLogsList(value: Array<EventData>): void;
+  addLogs(value?: EventData, index?: number): EventData;
 
   getLogsBloom(): Uint8Array | string;
   getLogsBloom_asU8(): Uint8Array;
@@ -513,7 +551,7 @@ export namespace EvmTxReceipt {
     cumulativeGasUsed: number,
     gasUsed: number,
     contractAddress: Uint8Array | string,
-    logsList: Array<Event.AsObject>,
+    logsList: Array<EventData.AsObject>,
     logsBloom: Uint8Array | string,
     status: number,
   }
