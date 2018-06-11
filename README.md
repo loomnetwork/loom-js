@@ -16,7 +16,7 @@ yarn add loom-js
 ### Browser
 
 ```html
-<script src="https://cdn.jsdelivr.net/npm/loom-js@1.7.1/dist/loom.umd.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/loom-js@1.8.0/dist/loom.umd.js"></script>
 ```
 
 ## Development
