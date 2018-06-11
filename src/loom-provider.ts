@@ -149,8 +149,17 @@ export class LoomProvider {
   }
 
   // Adapter function for sendAsync from truffle provider
-  async sendAsync(payload: any, callback: Function) {
-    await this.send(payload, callback)
+  async sendAsync(payload: any, callback?: Function): Promise<any | void> {
+    if (callback) {
+      await this.send(payload, callback)
+    } else {
+      return new Promise((resolve, reject) => {
+        this.send(payload, (err: Error, result: any) => {
+          if (err) reject(err)
+          else resolve(result)
+        })
+      })
+    }
   }
 
   /**
@@ -161,6 +170,7 @@ export class LoomProvider {
    * @param callback Triggered on end with (err, result)
    */
   async send(payload: any, callback: Function) {
+    // TODO: Must process like array sequences like a map of requests and push results inside an array
     const isArray = Array.isArray(payload)
     if (isArray) {
       payload = payload[0]
@@ -189,7 +199,7 @@ export class LoomProvider {
         if (this.accountsAddrList.length === 0) {
           throw Error('No account available')
         }
-        callback(null, this._okResponse(payload.id, this.accountsAddrList))
+        callback(null, this._okResponse(payload.id, this.accountsAddrList, isArray))
         break
       case 'eth_newBlockFilter':
         // Simulate subscribe for new block filter
@@ -465,7 +475,7 @@ export class LoomProvider {
   }
 
   // Basic response to web3js
-  private _okResponse(id: string, result: any = 0, isArray = false): any {
+  private _okResponse(id: string, result: any = 0, isArray: boolean = false): any {
     const response = { id, jsonrpc: '2.0', result }
     const ret = isArray ? [response] : response
     return ret
