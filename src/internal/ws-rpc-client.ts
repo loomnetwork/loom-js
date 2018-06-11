@@ -14,6 +14,8 @@ export interface IEventData {
   }
   block_height: string
   encoded_body: string
+  tx_hash: string
+  topics: Array<string>
 }
 
 export interface IJSONRPCEvent {

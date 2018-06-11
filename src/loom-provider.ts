@@ -395,40 +395,30 @@ export class LoomProvider {
 
   private _onWebSocketMessage(msgEvent: IChainEventArgs) {
     if (msgEvent.data) {
-      // const event = Event.deserializeBinary(bufferToProtobufBytes(msgEvent.data))
-      // this.notificationCallbacks.forEach((callback: Function) => {
-      //   const topics = event
-      //     .getTopicsList_asU8()
-      //     .map((topic: Uint8Array) => bytesToHexAddrLC(topic))
-      //   const topicIdxFound = this._topicsList.indexOf(topics[0])
+      this.notificationCallbacks.forEach((callback: Function) => {
+        const topicIdxFound = this._topicsList.indexOf(msgEvent.topics[0])
 
-      //   if (topicIdxFound !== -1) {
-      //     const topicFound = this._topicsList[topicIdxFound]
-      //     const JSONRPCResult = {
-      //       jsonrpc: '2.0',
-      //       method: 'eth_subscription',
-      //       params: {
-      //         // TODO: This ID Should came from loomchain events
-      //         subscription: topicFound,
-      //         result: {
-      //           // TODO: Values bellow should be fix in the future
-      //           logIndex: '0x00',
-      //           transactionIndex: '0x00',
-      //           transactionHash:
-      //             '0x0000000000000000000000000000000000000000000000000000000000000000',
-      //           blockHash: '0x0000000000000000000000000000000000000000000000000000000000000000',
-      //           blockNumber: '0x0',
-      //           address: '0x0000000000000000000000000000000000000000',
-      //           type: 'mined',
-      //           data: bytesToHexAddrLC(event.getData_asU8()),
-      //           topics
-      //         }
-      //       }
-      //     }
+        if (topicIdxFound !== -1) {
+          const topicFound = this._topicsList[topicIdxFound]
+          const JSONRPCResult = {
+            jsonrpc: '2.0',
+            method: 'eth_subscription',
+            params: {
+              // TODO: This ID Should came from loomchain events
+              subscription: topicFound,
+              result: {
+                transactionHash: msgEvent.transactionHash,
+                address: msgEvent.contractAddress.local.toString(),
+                type: 'mined',
+                data: bytesToHexAddrLC(msgEvent.data),
+                topics: msgEvent.topics
+              }
+            }
+          }
 
-      //     callback(JSONRPCResult)
-      //   }
-      // })
+          callback(JSONRPCResult)
+        }
+      })
     }
   }
 

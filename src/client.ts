@@ -83,6 +83,10 @@ export interface IChainEventArgs extends IClientEventArgs {
    * the format and structure is defined by that contract.
    */
   data: Uint8Array
+  /** Hash that identifies the uniqueness of the transaction */
+  transactionHash: string
+  /** Topics subscribed on events */
+  topics: Array<string>
 }
 
 const INVALID_TX_NONCE_ERROR = 'Invalid tx nonce'
@@ -388,7 +392,9 @@ export class Client extends EventEmitter {
           new LocalAddress(B64ToUint8Array(result.caller.local))
         ),
         blockHeight: result.block_height,
-        data: B64ToUint8Array(result.encoded_body)
+        data: B64ToUint8Array(result.encoded_body),
+        topics: result.topics,
+        transactionHash: result.tx_hash
       }
       this.emit(ClientEvent.Contract, eventArgs)
     }
