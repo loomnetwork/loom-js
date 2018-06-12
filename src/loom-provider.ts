@@ -402,7 +402,6 @@ export class LoomProvider {
   private _onWebSocketMessage(msgEvent: IChainEventArgs) {
     if (msgEvent.data) {
       log(`Socket message arrived ${msgEvent}`)
-      const event = Event.deserializeBinary(bufferToProtobufBytes(msgEvent.data))
       this.notificationCallbacks.forEach((callback: Function) => {
         const topicIdxFound = this._topicsList.indexOf(msgEvent.topics[0])
 
