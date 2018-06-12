@@ -79,6 +79,14 @@ message ContractMethodCall {
 	bytes args = 2;
 }
 
+message TxHashList {
+    repeated bytes tx_hash = 1;
+}
+
+message EventDataList {
+    repeated EventData events = 1;
+}
+
 message EventData {
     repeated string topics = 1;
     Address caller = 2;
@@ -87,13 +95,11 @@ message EventData {
     uint64 block_height = 5;
     bytes encoded_body = 6;
     bytes original_request = 7;
+    bytes tx_hash = 8;
 }
 
-// EVM Event
-message Event {
-    Address contract = 1;
-    repeated bytes topics = 2;
-    bytes data = 3;
+message TxReceiptList {
+    repeated EvmTxReceipt tx_receipts = 1;
 }
 
 message EvmTxReceipt {
@@ -103,7 +109,7 @@ message EvmTxReceipt {
     int32 cumulative_gas_used = 4;
     int32 gas_used = 5 ;
     bytes contract_address = 6;
-    repeated Event logs = 7;
+    repeated EventData logs = 7;
     bytes logs_bloom = 8;
     int32 status = 9;
 }
