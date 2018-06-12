@@ -1,6 +1,6 @@
-import { LoomProvider } from "../loom-provider";
-import { LocalAddress } from "../address";
-import { CryptoUtils } from "..";
+import { LoomProvider } from '../loom-provider'
+import { LocalAddress } from '../address'
+import { CryptoUtils } from '..'
 
 export async function deployContract(loomProvider: LoomProvider, contractData: string) {
   const privKey = loomProvider.accounts.get(loomProvider.accountsAddrList[0])
