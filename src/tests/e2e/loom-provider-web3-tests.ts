@@ -4,6 +4,7 @@ import { LocalAddress, CryptoUtils } from '../../index'
 import { createTestClient } from '../helpers'
 
 import { LoomProvider } from '../../loom-provider'
+import { deployContract } from '../evm-helpers'
 
 // import Web3 from 'web3'
 const Web3 = require('web3')
@@ -39,20 +40,16 @@ test('LoomProvider + Web3', async t => {
   t.plan(3)
   try {
     const privKey = CryptoUtils.generatePrivateKey()
-    const pubKey = CryptoUtils.publicKeyFromPrivateKey(privKey)
     const client = createTestClient()
-    const web3 = new Web3(new LoomProvider(client, privKey))
+    const from = LocalAddress.fromPublicKey(CryptoUtils.publicKeyFromPrivateKey(privKey)).toString()
+    const loomProvider = new LoomProvider(client, privKey)
+    const web3 = new Web3(loomProvider)
 
-    const contractAddr = await client.getContractAddressAsync('SimpleStore')
-    if (!contractAddr) {
-      t.fail('Failed to resolve SimpleStore contract address')
-      return
-    }
-
+    const contractData = '0x608060405234801561001057600080fd5b50600a600081905550610118806100286000396000f3006080604052600436106049576000357c0100000000000000000000000000000000000000000000000000000000900463ffffffff16806360fe47b114604e5780636d4ce63c146078575b600080fd5b348015605957600080fd5b5060766004803603810190808035906020019092919050505060a0565b005b348015608357600080fd5b50608a60e3565b6040518082815260200191505060405180910390f35b806000819055507fb922f092a64f1a076de6f21e4d7c6400b6e55791cc935e7bb8e7e90f7652f15b6000546040518082815260200191505060405180910390a150565b600080549050905600a165627a7a72305820fabe42649c29e53c4b9fad19100d72a1e825603058e1678432a76f94a10d352a0029'
     const ABI = [{ "constant": false, "inputs": [{ "name": "_value", "type": "uint256" }], "name": "set", "outputs": [], "payable": false, "stateMutability": "nonpayable", "type": "function" }, { "constant": true, "inputs": [], "name": "get", "outputs": [{ "name": "", "type": "uint256" }], "payable": false, "stateMutability": "view", "type": "function" }, { "inputs": [], "payable": false, "stateMutability": "nonpayable", "type": "constructor" }, { "anonymous": false, "inputs": [{ "indexed": false, "name": "_value", "type": "uint256" }], "name": "NewValueSet", "type": "event" }]
-    const from = LocalAddress.fromPublicKey(pubKey).toString()
-    const hexContractAddr = contractAddr.local.toString()
-    const contract = new web3.eth.Contract(ABI, hexContractAddr, { from })
+    const result = await deployContract(loomProvider, contractData)
+
+    const contract = new web3.eth.Contract(ABI, result.contractAddress, { from })
     const newValue = 2
 
     contract.events.NewValueSet({}, (err: Error, event: any) => {
