@@ -1,13 +1,14 @@
 import axios from 'axios'
 import EventEmitter from 'events'
+import debug from 'debug'
 
 import {
   IJSONRPCRequest,
   IJSONRPCResponse,
-  IJSONRPCClient,
-  IJSONRPCError,
-  RPCClientEvent
+  IJSONRPCClient
 } from './json-rpc-client'
+
+const log = debug('http-rpc-client')
 
 /**
  * Sends JSON-RPC messages via HTTP.
@@ -62,7 +63,7 @@ export class HTTPRPCClient extends EventEmitter implements IJSONRPCClient {
    *          JSON-RPC response message.
    */
   async sendAsync<T>(method: string, params: object | any[]): Promise<T> {
-    console.log(`Sending RPC msg to ${this.url}, method ${method}`)
+    log(`Sending RPC msg to ${this.url}, method ${method}`)
     const req: IJSONRPCRequest = {
       jsonrpc: '2.0',
       method,
