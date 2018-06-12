@@ -2,11 +2,7 @@ import axios from 'axios'
 import EventEmitter from 'events'
 import debug from 'debug'
 
-import {
-  IJSONRPCRequest,
-  IJSONRPCResponse,
-  IJSONRPCClient
-} from './json-rpc-client'
+import { IJSONRPCRequest, IJSONRPCResponse, IJSONRPCClient } from './json-rpc-client'
 
 const log = debug('http-rpc-client')
 
