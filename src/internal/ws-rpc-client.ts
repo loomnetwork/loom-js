@@ -1,7 +1,10 @@
 import { Client as WSClient } from 'rpc-websockets'
 import { EventEmitter } from 'events'
+import debug from 'debug'
 
 import { IJSONRPCError, RPCClientEvent } from './json-rpc-client'
+
+const log = debug('ws-rpc-client')
 
 export interface IEventData {
   caller: {
@@ -175,7 +178,7 @@ export class WSRPCClient extends EventEmitter {
    */
   async sendAsync<T>(method: string, params: object | any[]): Promise<T> {
     await this.ensureConnectionAsync()
-    console.log(`Sending RPC msg to ${this.url}, method ${method}`)
+    log(`Sending RPC msg to ${this.url}, method ${method}`)
     return this._client.call<T>(method, params, this.requestTimeout)
   }
 
