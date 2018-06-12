@@ -1,3 +1,4 @@
+import debug from 'debug'
 import { Client, ClientEvent, IChainEventArgs } from './client'
 import { createDefaultTxMiddleware } from './helpers'
 import {
@@ -30,6 +31,8 @@ export interface IEthReceipt {
   logs: Array<any>
   status: string
 }
+
+const log = debug('loom-provider')
 
 const bytesToHexAddrLC = (bytes: Uint8Array): string => {
   return bytesToHexAddr(bytes).toLowerCase()
@@ -83,6 +86,7 @@ export class LoomProvider {
       const accountAddress = LocalAddress.fromPublicKey(publicKey).toString()
       this.accountsAddrList.push(accountAddress)
       this.accounts.set(accountAddress, accountPrivateKey)
+      log(`New account added ${accountAddress}`)
     })
   }
 
@@ -170,6 +174,8 @@ export class LoomProvider {
    * @param callback Triggered on end with (err, result)
    */
   async send(payload: any, callback: Function) {
+    log(`Request payload ${JSON.stringify(payload, null, 2)}`)
+
     // TODO: Must process like array sequences like a map of requests and push results inside an array
     const isArray = Array.isArray(payload)
     if (isArray) {
@@ -395,6 +401,7 @@ export class LoomProvider {
 
   private _onWebSocketMessage(msgEvent: IChainEventArgs) {
     if (msgEvent.data) {
+      log(`Socket message arrived ${msgEvent}`)
       const event = Event.deserializeBinary(bufferToProtobufBytes(msgEvent.data))
       this.notificationCallbacks.forEach((callback: Function) => {
         const topics = event
