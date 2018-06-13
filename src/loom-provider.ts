@@ -9,7 +9,9 @@ import {
   DeployTx,
   DeployResponse,
   DeployResponseData,
-  EventData
+  EventData,
+  EthFilterLog,
+  EthFilterLogList
 } from './proto/loom_pb'
 import { Address, LocalAddress } from './address'
 import {
@@ -174,7 +176,7 @@ export class LoomProvider {
    * @param callback Triggered on end with (err, result)
    */
   async send(payload: any, callback: Function) {
-    log(`Request payload ${JSON.stringify(payload, null, 2)}`)
+    log('Request payload', JSON.stringify(payload, null, 2))
 
     // TODO: Must process like array sequences like a map of requests and push results inside an array
     const isArray = Array.isArray(payload)
@@ -282,8 +284,12 @@ export class LoomProvider {
         callback(null, this._okResponse(payload.id, true, isArray))
         break
       case 'eth_getLogs':
-        // TODO: Create call for supply on Loom DappChain
-        callback(null, this._okResponse(payload.id, [], isArray))
+        try {
+          const result = await this._getLogs(JSON.stringify(payload.params[0]))
+          callback(null, this._okResponse(payload.id, result, isArray))
+        } catch (err) {
+          callback(err, null)
+        }
         break
       default:
         // Warn the user about we don't support other methods
@@ -296,7 +302,6 @@ export class LoomProvider {
 
   private _getCode(contractAddress: string): Promise<any> {
     const address = new Address(this._client.chainId, LocalAddress.fromHexString(contractAddress))
-
     return this._client.getCodeAsync(address)
   }
 
@@ -399,6 +404,28 @@ export class LoomProvider {
     } as IEthReceipt
   }
 
+  private async _getLogs(filter: string): Promise<any> {
+    const logsListAsyncResult = await this._client.getLogsAsync(filter)
+    if (!logsListAsyncResult) {
+      return []
+    }
+
+    const logList = EthFilterLogList.deserializeBinary(bufferToProtobufBytes(logsListAsyncResult))
+    return logList.getEthBlockLogsList().map((log:EthFilterLog) => {
+      return {
+        removed: log.getRemoved(),
+        logIndex: numberToHexLC(log.getLogIndex()),
+        transactionIndex: numberToHex(log.getTransactionIndex()),
+        transactionHash: bytesToHexAddrLC(log.getTransactionHash_asU8()),
+        blockHash: bytesToHexAddrLC(log.getBlockHash_asU8()),
+        blockNumber: numberToHex(log.getBlockNumber()),
+        address: bytesToHexAddrLC(log.getAddress_asU8()),
+        data: bytesToHexAddrLC(log.getData_asU8()),
+        topics: log.getTopicsList().map((topic: any) => String.fromCharCode.apply(null, topic))
+      }
+    })
+  }
+
   private _onWebSocketMessage(msgEvent: IChainEventArgs) {
     if (msgEvent.data) {
       log(`Socket message arrived ${msgEvent}`)
@@ -475,6 +502,7 @@ export class LoomProvider {
   private _okResponse(id: string, result: any = 0, isArray: boolean = false): any {
     const response = { id, jsonrpc: '2.0', result }
     const ret = isArray ? [response] : response
+    log('Response payload', JSON.stringify(ret, null, 2))
     return ret
   }
 }

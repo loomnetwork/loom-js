@@ -1,3 +1,4 @@
+import debug from 'debug'
 import { Message } from 'google-protobuf'
 import EventEmitter from 'events'
 import retry from 'retry'
@@ -21,6 +22,8 @@ interface IBroadcastTxCommitResult {
   hash: string
   height: string // int64
 }
+
+const log = debug('client')
 
 /**
  * Middleware handlers are expected to transform the input data and return the result.
@@ -338,6 +341,24 @@ export class Client extends EventEmitter {
   async getCodeAsync(contractAddress: Address): Promise<Uint8Array | null> {
     const result = await this._readClient.sendAsync<string>('getcode', {
       contract: contractAddress.toString()
+    })
+    if (result) {
+      return B64ToUint8Array(result)
+    } else {
+      return null
+    }
+  }
+
+  /**
+   * Queries logs with filter terms
+   *
+   * @param filter Filter terms
+   * @return Uint8Array The corresponding result of the filter
+   */
+  async getLogsAsync(filter: string): Promise<Uint8Array | null> {
+    log(`Send filter ${filter} to getlogs`)
+    const result = await this._readClient.sendAsync<string>('getlogs', {
+      filter
     })
     if (result) {
       return B64ToUint8Array(result)
