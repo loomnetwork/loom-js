@@ -3,6 +3,7 @@ import test from 'tape'
 import { LocalAddress, CryptoUtils } from '../../index'
 import { createTestClient } from '../helpers'
 import { LoomProvider } from '../../loom-provider'
+import { deployContract } from '../evm-helpers'
 
 /**
  * Requires the SimpleStore solidity contract deployed on a loomchain.
@@ -24,21 +25,19 @@ import { LoomProvider } from '../../loom-provider'
 test('LoomProvider', async t => {
   try {
     const privKey = CryptoUtils.generatePrivateKey()
+    const client = createTestClient()
     const fromAddr = LocalAddress.fromPublicKey(
       CryptoUtils.publicKeyFromPrivateKey(privKey)
     ).toString()
-    const client = createTestClient()
-    const loomContractAddress = await client.getContractAddressAsync('SimpleStore')
+    const loomProvider = new LoomProvider(client, privKey)
 
-    if (!loomContractAddress) {
-      return t.fail('Contract address cannot be null')
-    }
+    const contractData =
+      '0x608060405234801561001057600080fd5b50600a600081905550610118806100286000396000f3006080604052600436106049576000357c0100000000000000000000000000000000000000000000000000000000900463ffffffff16806360fe47b114604e5780636d4ce63c146078575b600080fd5b348015605957600080fd5b5060766004803603810190808035906020019092919050505060a0565b005b348015608357600080fd5b50608a60e3565b6040518082815260200191505060405180910390f35b806000819055507fb922f092a64f1a076de6f21e4d7c6400b6e55791cc935e7bb8e7e90f7652f15b6000546040518082815260200191505060405180910390a150565b600080549050905600a165627a7a72305820fabe42649c29e53c4b9fad19100d72a1e825603058e1678432a76f94a10d352a0029'
+    const result = await deployContract(loomProvider, contractData)
 
-    const contractAddress = loomContractAddress.local.toString()
+    const contractAddress = result.contractAddress
 
     client.on('error', msg => console.error('Error on client:', msg))
-
-    const loomProvider = new LoomProvider(client, privKey)
     const id = 1
 
     const netVersionResult = await loomProvider.sendAsync({
@@ -127,7 +126,7 @@ test('LoomProvider', async t => {
       'Hex identification should be returned for eth_sendTransaction command (contract transaction)'
     )
 
-    const contractData =
+    const contractDataToDeploy =
       '0x608060405234801561001057600080fd5b50610189806100206000396000f30060806040526004361061004c576000357c0100000000000000000000000000000000000000000000000000000000900463ffffffff16806360fe47b1146100515780636d4ce63c14610071575b600080fd5b61006f600480360381019080803590602001909291905050506100cf565b005b34801561007d57600080fd5b5061008661014e565b604051808381526020018273ffffffffffffffffffffffffffffffffffffffff1673ffffffffffffffffffffffffffffffffffffffff1681526020019250505060405180910390f35b806000819055507fc403d054f8d8a57caac9df16a22fc80b97825c521da8eea2943d6d04ba3bab806000543334604051808481526020018373ffffffffffffffffffffffffffffffffffffffff1673ffffffffffffffffffffffffffffffffffffffff168152602001828152602001935050505060405180910390a150565b600080600054339150915090915600a165627a7a72305820c6974a05d4e327d57387c8d04a8a5ff056569a4811a69e0de4c15d9ca9135bd70029'
 
     const ethSendTransactionDeployResult = await loomProvider.sendAsync({
@@ -136,7 +135,7 @@ test('LoomProvider', async t => {
       params: [
         {
           from: fromAddr,
-          data: contractData,
+          data: contractDataToDeploy,
           gas: '0x0',
           gasPrice: '0x0',
           value: '0x0'
