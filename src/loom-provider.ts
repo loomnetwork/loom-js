@@ -411,7 +411,7 @@ export class LoomProvider {
     }
 
     const logList = EthFilterLogList.deserializeBinary(bufferToProtobufBytes(logsListAsyncResult))
-    return logList.getEthBlockLogsList().map((log:EthFilterLog) => {
+    return logList.getEthBlockLogsList().map((log: EthFilterLog) => {
       return {
         removed: log.getRemoved(),
         logIndex: numberToHexLC(log.getLogIndex()),
