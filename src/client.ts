@@ -352,10 +352,16 @@ export class Client extends EventEmitter {
   /**
    * Queries logs with filter terms
    *
+   * The function getEVMLogsAsync works in the similar way of the RPC call eth_getLogs, for more
+   * information check https://github.com/ethereum/wiki/wiki/JSON-RPC#eth_getlogs
+   *
+   * Also for understand how filters works
+   * check https://github.com/ethereum/wiki/wiki/JSON-RPC#eth_newfilter
+   *
    * @param filter Filter terms
    * @return Uint8Array The corresponding result of the filter
    */
-  async getLogsAsync(filter: string): Promise<Uint8Array | null> {
+  async getEVMLogsAsync(filter: string): Promise<Uint8Array | null> {
     log(`Send filter ${filter} to getlogs`)
     const result = await this._readClient.sendAsync<string>('getlogs', {
       filter
