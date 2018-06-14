@@ -557,6 +557,92 @@ export namespace EvmTxReceipt {
   }
 }
 
+export class EthFilterLogList extends jspb.Message {
+  clearEthBlockLogsList(): void;
+  getEthBlockLogsList(): Array<EthFilterLog>;
+  setEthBlockLogsList(value: Array<EthFilterLog>): void;
+  addEthBlockLogs(value?: EthFilterLog, index?: number): EthFilterLog;
+
+  serializeBinary(): Uint8Array;
+  toObject(includeInstance?: boolean): EthFilterLogList.AsObject;
+  static toObject(includeInstance: boolean, msg: EthFilterLogList): EthFilterLogList.AsObject;
+  static extensions: {[key: number]: jspb.ExtensionFieldInfo<jspb.Message>};
+  static extensionsBinary: {[key: number]: jspb.ExtensionFieldBinaryInfo<jspb.Message>};
+  static serializeBinaryToWriter(message: EthFilterLogList, writer: jspb.BinaryWriter): void;
+  static deserializeBinary(bytes: Uint8Array): EthFilterLogList;
+  static deserializeBinaryFromReader(message: EthFilterLogList, reader: jspb.BinaryReader): EthFilterLogList;
+}
+
+export namespace EthFilterLogList {
+  export type AsObject = {
+    ethBlockLogsList: Array<EthFilterLog.AsObject>,
+  }
+}
+
+export class EthFilterLog extends jspb.Message {
+  getRemoved(): boolean;
+  setRemoved(value: boolean): void;
+
+  getLogIndex(): number;
+  setLogIndex(value: number): void;
+
+  getTransactionIndex(): number;
+  setTransactionIndex(value: number): void;
+
+  getTransactionHash(): Uint8Array | string;
+  getTransactionHash_asU8(): Uint8Array;
+  getTransactionHash_asB64(): string;
+  setTransactionHash(value: Uint8Array | string): void;
+
+  getBlockHash(): Uint8Array | string;
+  getBlockHash_asU8(): Uint8Array;
+  getBlockHash_asB64(): string;
+  setBlockHash(value: Uint8Array | string): void;
+
+  getBlockNumber(): number;
+  setBlockNumber(value: number): void;
+
+  getAddress(): Uint8Array | string;
+  getAddress_asU8(): Uint8Array;
+  getAddress_asB64(): string;
+  setAddress(value: Uint8Array | string): void;
+
+  getData(): Uint8Array | string;
+  getData_asU8(): Uint8Array;
+  getData_asB64(): string;
+  setData(value: Uint8Array | string): void;
+
+  clearTopicsList(): void;
+  getTopicsList(): Array<Uint8Array | string>;
+  getTopicsList_asU8(): Array<Uint8Array>;
+  getTopicsList_asB64(): Array<string>;
+  setTopicsList(value: Array<Uint8Array | string>): void;
+  addTopics(value: Uint8Array | string, index?: number): Uint8Array | string;
+
+  serializeBinary(): Uint8Array;
+  toObject(includeInstance?: boolean): EthFilterLog.AsObject;
+  static toObject(includeInstance: boolean, msg: EthFilterLog): EthFilterLog.AsObject;
+  static extensions: {[key: number]: jspb.ExtensionFieldInfo<jspb.Message>};
+  static extensionsBinary: {[key: number]: jspb.ExtensionFieldBinaryInfo<jspb.Message>};
+  static serializeBinaryToWriter(message: EthFilterLog, writer: jspb.BinaryWriter): void;
+  static deserializeBinary(bytes: Uint8Array): EthFilterLog;
+  static deserializeBinaryFromReader(message: EthFilterLog, reader: jspb.BinaryReader): EthFilterLog;
+}
+
+export namespace EthFilterLog {
+  export type AsObject = {
+    removed: boolean,
+    logIndex: number,
+    transactionIndex: number,
+    transactionHash: Uint8Array | string,
+    blockHash: Uint8Array | string,
+    blockNumber: number,
+    address: Uint8Array | string,
+    data: Uint8Array | string,
+    topicsList: Array<Uint8Array | string>,
+  }
+}
+
 export enum VMType {
   PLUGIN = 0,
   EVM = 1,

@@ -225,18 +225,6 @@ test('LoomProvider', async t => {
       'Return from eth_uninstallFilter should be true'
     )
 
-    const ethGetLogs = await loomProvider.sendAsync({
-      id,
-      method: 'eth_getLogs'
-    })
-
-    // Until the complete support
-    t.deepEqual(
-      ethGetLogs,
-      { id: 1, jsonrpc: '2.0', result: [] },
-      'Return from eth_getLogs should be empty array []'
-    )
-
     client.disconnect()
   } catch (err) {
     console.log(err)

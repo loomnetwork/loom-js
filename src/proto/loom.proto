@@ -113,3 +113,19 @@ message EvmTxReceipt {
     bytes logs_bloom = 8;
     int32 status = 9;
 }
+
+message EthFilterLogList {
+    repeated EthFilterLog eth_block_logs = 1;
+}
+
+message EthFilterLog {
+    bool removed = 1;
+    int64 log_index = 2;
+    int32 transaction_index = 3;
+    bytes transaction_hash = 4;
+    bytes block_hash = 5;
+    int64 block_number = 6;
+    bytes address = 7;
+    bytes data = 8;
+    repeated bytes topics = 9;
+}
