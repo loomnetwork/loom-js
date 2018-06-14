@@ -1,9 +1,10 @@
+import debug from 'debug'
 import { Message } from 'google-protobuf'
 import EventEmitter from 'events'
 import retry from 'retry'
 
 import { VMType, EvmTxReceipt, EventData } from './proto/loom_pb'
-import { Uint8ArrayToB64, B64ToUint8Array, bufferToProtobufBytes } from './crypto-utils'
+import { Uint8ArrayToB64, B64ToUint8Array, bufferToProtobufBytes, bytesToHex } from './crypto-utils'
 import { Address, LocalAddress } from './address'
 import { WSRPCClient, IJSONRPCEvent } from './internal/ws-rpc-client'
 import { RPCClientEvent } from './internal/json-rpc-client'
@@ -21,6 +22,8 @@ interface IBroadcastTxCommitResult {
   hash: string
   height: string // int64
 }
+
+const log = debug('client')
 
 /**
  * Middleware handlers are expected to transform the input data and return the result.
@@ -318,7 +321,7 @@ export class Client extends EventEmitter {
    * @param txHash Transaction hash returned by call transaction.
    * @return EvmTxReceipt The corresponding transaction receipt.
    */
-  async getTxReceiptAsync(txHash: Uint8Array): Promise<EvmTxReceipt | null> {
+  async evmGetTxReceiptAsync(txHash: Uint8Array): Promise<EvmTxReceipt | null> {
     const result = await this._readClient.sendAsync<string>('txreceipt', {
       txHash: Uint8ArrayToB64(txHash)
     })
@@ -335,12 +338,125 @@ export class Client extends EventEmitter {
    * @param contractAddress Contract address returned by deploy.
    * @return Uint8Array The corresponding contract code
    */
-  async getCodeAsync(contractAddress: Address): Promise<Uint8Array | null> {
+  async evmGetCodeAsync(contractAddress: Address): Promise<Uint8Array | null> {
     const result = await this._readClient.sendAsync<string>('getcode', {
       contract: contractAddress.toString()
     })
     if (result) {
       return B64ToUint8Array(result)
+    } else {
+      return null
+    }
+  }
+
+  /**
+   * Queries logs with filter terms
+   *
+   * @param filter Filter terms
+   * @return Uint8Array The corresponding result of the filter
+   */
+  async evmGetLogsAsync(filter: string): Promise<Uint8Array | null> {
+    log(`Send filter ${filter} to getlogs`)
+    const result = await this._readClient.sendAsync<string>('getlogs', {
+      filter
+    })
+    if (result) {
+      return B64ToUint8Array(result)
+    } else {
+      return null
+    }
+  }
+
+  /**
+   * Creates a new filter based on filter terms, to notify when the state changes
+   *
+   * The function getEVMNewFilterAsync works in the similar way of the RPC call eth_newFilter, for more
+   *
+   * Also for understand how filters works check https://github.com/ethereum/wiki/wiki/JSON-RPC#eth_newfilter
+   *
+   * @param filter Filter terms
+   * @return Uint8Array The corresponding result of the filter
+   */
+  async evmGetNewFilterAsync(filter: string): Promise<Uint8Array | null> {
+    log(`Send filter ${filter} to newfilter`)
+    const result = await this._readClient.sendAsync<string>('newfilter', {
+      filter
+    })
+    if (result) {
+      return B64ToUint8Array(result)
+    } else {
+      return null
+    }
+  }
+
+  /**
+   * Polling method for a filter, which returns an array of logs which occurred since last poll
+   *
+   * The ID used was requested from getEVMNewFilterChanges or getEVMNewBlockFilter
+   *
+   * @param id Id of filter previously created
+   * @return Uint8Array The corresponding result of the request for given id
+   */
+  async evmGetFilterChangesAsync(id: string): Promise<Uint8Array | null> {
+    log(`Get filter changes for ${JSON.stringify({id}, null, 2)}`)
+    const result = await this._readClient.sendAsync<string>('getfilterchanges', {
+      id
+    })
+
+    if (result) {
+      return B64ToUint8Array(result)
+    } else {
+      return null
+    }
+  }
+
+  /**
+   * Creates a filter in the node, to notify when a new block arrives
+   *
+   * In order to check if the state has changed, call getEVMFilterChangesAsync
+   *
+   * @return String Filter ID in hex format to be used later with getEVMFilterChangesAsync
+   */
+  async evmGetNewBlockFilter(): Promise<string | null> {
+    const result = await this._readClient.sendAsync<string>('newblockfilter', {})
+    if (result) {
+      return result.toString()
+    } else {
+      return null
+    }
+  }
+
+  /**
+   * Creates a filter in the node, to notify when new pending transactions arrive.
+   *
+   * In order to check if the state has changed, call getEVMFilterChangesAsync
+   *
+   * @return String Filter ID in hex format to be used later with getEVMFilterChangesAsync
+   */
+  async evmGetNewPendingTransactionFilterAsync(): Promise<string | null> {
+    const result = await this._readClient.sendAsync<string>('newpendingtransactionfilter', {})
+    if (result) {
+      return result.toString()
+    } else {
+      return null
+    }
+  }
+
+  /**
+   * Uninstall/delete previously created filters
+   *
+   * The ID used was requested from getEVMNewFilterChanges or getEVMNewBlockFilter
+   *
+   * @param id Id of filter previously created
+   * @return Uint8Array The corresponding result of the request for given id
+   */
+  async evmUninstallFilterAsync(id: string): Promise<boolean | null> {
+    const result = await this._readClient.sendAsync<string>('uninstallfilter', {
+      id
+    })
+
+    if (result) {
+      return true
     } else {
       return null
     }

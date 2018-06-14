@@ -88,10 +88,13 @@ test('LoomProvider', async t => {
       'Block should be returned from eth_getBlockByNumber'
     )
 
-    const ethGetFilterChangesResults = await loomProvider.sendAsync({
-      id,
-      method: 'eth_getFilterChanges'
-    })
+    const ethGetFilterChangesResults = await loomProvider.sendAsync([
+      {
+        id,
+        method: 'eth_getFilterChanges',
+        params: []
+      }
+    ])
 
     t.deepEqual(
       ethGetFilterChangesResults,
@@ -99,7 +102,7 @@ test('LoomProvider', async t => {
         {
           id: 1,
           jsonrpc: '2.0',
-          result: ['0x0000000000000000000000000000000000000000000000000000000000000001']
+          result: []
         }
       ],
       'Should return filter from eth_getFilterChanges command'
@@ -223,18 +226,6 @@ test('LoomProvider', async t => {
       ethUninstallFilter,
       { id: 1, jsonrpc: '2.0', result: true },
       'Return from eth_uninstallFilter should be true'
-    )
-
-    const ethGetLogs = await loomProvider.sendAsync({
-      id,
-      method: 'eth_getLogs'
-    })
-
-    // Until the complete support
-    t.deepEqual(
-      ethGetLogs,
-      { id: 1, jsonrpc: '2.0', result: [] },
-      'Return from eth_getLogs should be empty array []'
     )
 
     client.disconnect()
