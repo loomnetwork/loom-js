@@ -487,6 +487,7 @@ export class LoomProvider {
 
   private async _getLogs(filter: string): Promise<any> {
     const logsListAsyncResult = await this._client.evmGetLogsAsync(filter)
+
     if (!logsListAsyncResult) {
       return []
     }
