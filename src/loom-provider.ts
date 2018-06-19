@@ -39,6 +39,7 @@ export interface IEthBlock {
   blockNumber: string
   transactionHash: string
   parentHash: string
+  logsBloom: string
   timestamp: number
   transactions: Array<IEthReceipt | string>
 }
@@ -483,6 +484,7 @@ export class LoomProvider {
     const blockNumber = numberToHexLC(blockInfo.getNumber())
     const transactionHash = bytesToHexAddrLC(blockInfo.getHash_asU8())
     const parentHash = bytesToHexAddrLC(blockInfo.getParentHash_asU8())
+    const logsBloom = bytesToHexAddrLC(blockInfo.getLogsBloom_asU8())
     const timestamp = blockInfo.getTimestamp()
     const transactions = blockInfo.getTransactionsList_asU8().map((transaction: Uint8Array) => {
       if (isFull) {
@@ -498,6 +500,7 @@ export class LoomProvider {
       blockNumber,
       transactionHash,
       parentHash,
+      logsBloom,
       timestamp,
       transactions
     }
