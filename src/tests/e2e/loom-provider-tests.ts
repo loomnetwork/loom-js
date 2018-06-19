@@ -77,35 +77,27 @@ test('LoomProvider', async t => {
       'Hex identification should be returned on eth_newBlockFilter'
     )
 
+    const ethBlockNumber = await loomProvider.sendAsync({
+      id,
+      method: 'eth_blockNumber'
+    })
+
+    t.equal(ethBlockNumber.id, id, `Id for eth_blockNumber should be equal ${id}`)
+    t.assert(
+      /0x.+/.test(ethBlockNumber.result),
+      'Number identification should be returned on ethBlockNumber'
+    )
+
     const ethNewBlockByNumberResult = await loomProvider.sendAsync({
       id,
-      method: 'eth_getBlockByNumber'
+      method: 'eth_getBlockByNumber',
+      params: [CryptoUtils.hexToNumber(ethBlockNumber.result)]
     })
 
     t.equal(ethNewBlockFilterResult.id, id, `Id for eth_getBlockByNumber should be equal ${id}`)
     t.assert(
       ethNewBlockByNumberResult.result,
       'Block should be returned from eth_getBlockByNumber'
-    )
-
-    const ethGetFilterChangesResults = await loomProvider.sendAsync([
-      {
-        id,
-        method: 'eth_getFilterChanges',
-        params: []
-      }
-    ])
-
-    t.deepEqual(
-      ethGetFilterChangesResults,
-      [
-        {
-          id: 1,
-          jsonrpc: '2.0',
-          result: []
-        }
-      ],
-      'Should return filter from eth_getFilterChanges command'
     )
 
     const ethSendTransactionResult = await loomProvider.sendAsync({

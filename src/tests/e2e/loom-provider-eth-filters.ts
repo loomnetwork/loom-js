@@ -52,7 +52,7 @@ test('LoomProvider + Filters', async t => {
     const ethNewFilterResult = await loomProvider.sendAsync({
       id: 10,
       method: 'eth_newFilter',
-      params: [{toBlock: 'latest'}]
+      params: [{ toBlock: 'latest' }]
     })
 
     t.assert(/0x.+/.test(ethNewFilterResult.result), 'New id should be created for new filter')
@@ -62,19 +62,23 @@ test('LoomProvider + Filters', async t => {
       method: 'eth_newBlockFilter'
     })
 
-    t.assert(/0x.+/.test(ethNewBlockFilter.result), 'New id should be created for new block filter')
+    t.assert(
+      /0x.+/.test(ethNewBlockFilter.result),
+      'New id should be created for new block filter'
+    )
 
     const ethGetFilterChanges = await loomProvider.sendAsync({
       id: 12,
       method: 'eth_getFilterChanges',
-      params: ['0x']
+      params: [ethNewBlockFilter.result]
     })
 
     t.deepEqual(ethGetFilterChanges.result, [], 'Get filter changes should return empty array')
 
     const ethUninstallFilterResult = await loomProvider.sendAsync({
       id: 13,
-      method: 'eth_uninstallFilter'
+      method: 'eth_uninstallFilter',
+      params: [ethNewBlockFilter.result]
     })
 
     t.deepEqual(ethUninstallFilterResult.result, true, 'Should uninstall filter and return true')

@@ -11,14 +11,15 @@ import {
   DeployResponseData,
   EventData,
   EthFilterLog,
-  EthFilterLogList
+  EthFilterLogList,
+  EvmTxReceipt,
+  EthBlockInfo
 } from './proto/loom_pb'
 import { Address, LocalAddress } from './address'
 import {
   bytesToHexAddr,
   numberToHex,
   bufferToProtobufBytes,
-  getGUID,
   publicKeyFromPrivateKey
 } from './crypto-utils'
 
@@ -32,6 +33,14 @@ export interface IEthReceipt {
   contractAddress: string
   logs: Array<any>
   status: string
+}
+
+export interface IEthBlock {
+  blockNumber: string
+  transactionHash: string
+  parentHash: string
+  timestamp: number
+  transactions: Array<IEthReceipt | string>
 }
 
 export interface IEthRPCPayload {
@@ -207,6 +216,9 @@ export class LoomProvider {
         case 'eth_gasPrice':
           return this._ethGasPrice
 
+        case 'eth_getBlockByHash':
+          return this._ethGetBlockByHash
+
         case 'eth_getBlockByNumber':
           return this._ethGetBlockByNumber
 
@@ -268,7 +280,7 @@ export class LoomProvider {
   }
 
   private _ethBlockNumber() {
-    return null
+    return numberToHex(+this._client.getBlockHeightAsync())
   }
 
   private async _ethCall(payload: IEthRPCPayload) {
@@ -278,17 +290,39 @@ export class LoomProvider {
   }
 
   private _ethEstimateGas() {
-    return null
+    // Loom DAppChain doesn't estimate gas, because gas isn't necessary
+    return null // Returns null to afford with Web3 calls
   }
 
   private _ethGasPrice() {
-    return null
+    // Loom DAppChain doesn't use gas price, because gas isn't necessary
+    return null // Returns null to afford with Web3 calls
   }
 
-  private _ethGetBlockByNumber() {
-    // Simulate get block by number
-    // TODO: Create call for supply on Loom DappChain
-    return this._simulateEmptyBlock()
+  private async _ethGetBlockByHash(payload: IEthRPCPayload): Promise<IEthBlock | null> {
+    const blockHash = payload.params[0]
+    const isFull = payload.params[1] || true
+
+    const result = await this._client.getEVMBlockByHashAsync(blockHash, isFull)
+
+    if (!result) {
+      return null
+    }
+
+    return this._createBlockInfo(result, isFull)
+  }
+
+  private async _ethGetBlockByNumber(payload: IEthRPCPayload): Promise<IEthBlock | null> {
+    const blockNumberToSearch = payload.params[0]
+    const isFull = payload.params[1] || true
+
+    const result = await this._client.getEVMBlockByNumberAsync(blockNumberToSearch, isFull)
+
+    if (!result) {
+      return null
+    }
+
+    return this._createBlockInfo(result, isFull)
   }
 
   private async _ethGetCode(payload: IEthRPCPayload) {
@@ -296,7 +330,7 @@ export class LoomProvider {
       this._client.chainId,
       LocalAddress.fromHexString(payload.params[0])
     )
-    const result = await this._client.evmGetCodeAsync(address)
+    const result = await this._client.getEVMCodeAsync(address)
 
     if (!result) {
       throw Error('No code returned on eth_getCode')
@@ -306,7 +340,7 @@ export class LoomProvider {
   }
 
   private async _ethGetFilterChanges(payload: IEthRPCPayload) {
-    const result = await this._client.evmGetFilterChangesAsync(payload.params[0])
+    const result = await this._client.getEVMFilterChangesAsync(payload.params[0])
 
     if (!result) {
       return []
@@ -324,7 +358,7 @@ export class LoomProvider {
   }
 
   private async _ethNewBlockFilter() {
-    const result = await this._client.evmGetNewBlockFilter()
+    const result = await this._client.newBlockEVMFilterAsync()
 
     if (!result) {
       throw Error('New block filter unexpected result')
@@ -334,17 +368,17 @@ export class LoomProvider {
   }
 
   private async _ethNewFilter(payload: IEthRPCPayload) {
-    const result = await this._client.evmGetNewFilterAsync(payload.params[0])
+    const result = await this._client.newEVMFilterAsync(JSON.stringify(payload.params[0]))
 
     if (!result) {
       throw Error('Cannot create new filter on eth_newFilter')
     }
 
-    return bytesToHexAddrLC(result)
+    return result
   }
 
   private async _ethNewPendingTransactionFilter() {
-    const result = await this._client.evmGetNewPendingTransactionFilterAsync()
+    const result = await this._client.newPendingTransactionEVMFilterAsync()
 
     if (!result) {
       throw Error('New pending transaction filter unexpected result')
@@ -376,7 +410,7 @@ export class LoomProvider {
   }
 
   private _ethUninstallFilter(payload: IEthRPCPayload) {
-    return this._client.evmUninstallFilterAsync(payload.params[0])
+    return this._client.uninstallEVMFilterAsync(payload.params[0])
   }
 
   private _netVersion() {
@@ -445,13 +479,32 @@ export class LoomProvider {
     return this._client.queryAsync(address, data, VMType.EVM, caller)
   }
 
-  private async _getReceipt(txHash: string): Promise<IEthReceipt> {
-    const data = Buffer.from(txHash.substring(2), 'hex')
-    const receipt = await this._client.evmGetTxReceiptAsync(bufferToProtobufBytes(data))
-    if (!receipt) {
-      throw Error('Receipt cannot be empty')
+  private _createBlockInfo(blockInfo: EthBlockInfo, isFull: boolean): any {
+    const blockNumber = numberToHexLC(blockInfo.getNumber())
+    const transactionHash = bytesToHexAddrLC(blockInfo.getHash_asU8())
+    const parentHash = bytesToHexAddrLC(blockInfo.getParentHash_asU8())
+    const timestamp = blockInfo.getTimestamp()
+    const transactions = blockInfo.getTransactionsList_asU8().map((transaction: Uint8Array) => {
+      if (isFull) {
+        return this._createReceiptResult(
+          EvmTxReceipt.deserializeBinary(bufferToProtobufBytes(transaction))
+        )
+      } else {
+        return bytesToHexAddrLC(transaction)
+      }
+    })
+
+    return {
+      blockNumber,
+      transactionHash,
+      parentHash,
+      timestamp,
+      transactions
     }
-    const transactionHash = txHash
+  }
+
+  private _createReceiptResult(receipt: EvmTxReceipt): IEthReceipt {
+    const transactionHash = bytesToHexAddrLC(receipt.getTxHash_asU8())
     const transactionIndex = numberToHexLC(receipt.getTransactionIndex())
     const blockHash = bytesToHexAddrLC(receipt.getBlockHash_asU8())
     const blockNumber = numberToHexLC(receipt.getBlockNumber())
@@ -485,8 +538,18 @@ export class LoomProvider {
     } as IEthReceipt
   }
 
+  private async _getReceipt(txHash: string): Promise<IEthReceipt> {
+    const data = Buffer.from(txHash.substring(2), 'hex')
+    const receipt = await this._client.evmTxReceiptAsync(bufferToProtobufBytes(data))
+    if (!receipt) {
+      throw Error('Receipt cannot be empty')
+    }
+
+    return this._createReceiptResult(receipt)
+  }
+
   private async _getLogs(filter: string): Promise<any> {
-    const logsListAsyncResult = await this._client.evmGetLogsAsync(filter)
+    const logsListAsyncResult = await this._client.getEVMLogsAsync(filter)
 
     if (!logsListAsyncResult) {
       return []
@@ -550,34 +613,6 @@ export class LoomProvider {
 
     const middleware = createDefaultTxMiddleware(this._client, privateKey)
     return this._client.commitTxAsync<Transaction>(txTransaction, { middleware })
-  }
-
-  private _simulateEmptyBlock(block: any = {}) {
-    return Object.assign(
-      {
-        number: '0x0',
-        hash: '0x0000000000000000000000000000000000000000000000000000000000000000',
-        parentHash: '0x0000000000000000000000000000000000000000000000000000000000000000',
-        mixHash: '0x1010101010101010101010101010101010101010101010101010101010101010',
-        nonce: '0x0000000000000000',
-        sha3Uncles: '0x0000000000000000000000000000000000000000000000000000000000000000',
-        logsBloom:
-          '0x00000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000',
-        transactionsRoot: '0x0000000000000000000000000000000000000000000000000000000000000000',
-        stateRoot: '0x0000000000000000000000000000000000000000000000000000000000000000',
-        receiptsRoot: '0x0000000000000000000000000000000000000000000000000000000000000000',
-        miner: '0x0000000000000000000000000000000000000000',
-        difficulty: '0x0',
-        totalDifficulty: '0x0',
-        extraData: '0x00',
-        size: '0x0',
-        gasLimit: '0x0',
-        gasUsed: '0x0',
-        timestamp: '0x0',
-        transactions: []
-      },
-      block
-    )
   }
 
   // Basic response to web3js

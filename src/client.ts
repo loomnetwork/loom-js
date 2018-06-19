@@ -3,8 +3,13 @@ import { Message } from 'google-protobuf'
 import EventEmitter from 'events'
 import retry from 'retry'
 
-import { VMType, EvmTxReceipt, EventData } from './proto/loom_pb'
-import { Uint8ArrayToB64, B64ToUint8Array, bufferToProtobufBytes, bytesToHex } from './crypto-utils'
+import { VMType, EvmTxReceipt, EthBlockInfo } from './proto/loom_pb'
+import {
+  Uint8ArrayToB64,
+  B64ToUint8Array,
+  bufferToProtobufBytes,
+  bytesToHex
+} from './crypto-utils'
 import { Address, LocalAddress } from './address'
 import { WSRPCClient, IJSONRPCEvent } from './internal/ws-rpc-client'
 import { RPCClientEvent } from './internal/json-rpc-client'
@@ -321,8 +326,8 @@ export class Client extends EventEmitter {
    * @param txHash Transaction hash returned by call transaction.
    * @return EvmTxReceipt The corresponding transaction receipt.
    */
-  async evmGetTxReceiptAsync(txHash: Uint8Array): Promise<EvmTxReceipt | null> {
-    const result = await this._readClient.sendAsync<string>('txreceipt', {
+  async evmTxReceiptAsync(txHash: Uint8Array): Promise<EvmTxReceipt | null> {
+    const result = await this._readClient.sendAsync<string>('evmtxreceipt', {
       txHash: Uint8ArrayToB64(txHash)
     })
     if (result) {
@@ -338,8 +343,8 @@ export class Client extends EventEmitter {
    * @param contractAddress Contract address returned by deploy.
    * @return Uint8Array The corresponding contract code
    */
-  async evmGetCodeAsync(contractAddress: Address): Promise<Uint8Array | null> {
-    const result = await this._readClient.sendAsync<string>('getcode', {
+  async getEVMCodeAsync(contractAddress: Address): Promise<Uint8Array | null> {
+    const result = await this._readClient.sendAsync<string>('getevmcode', {
       contract: contractAddress.toString()
     })
     if (result) {
@@ -355,9 +360,9 @@ export class Client extends EventEmitter {
    * @param filter Filter terms
    * @return Uint8Array The corresponding result of the filter
    */
-  async evmGetLogsAsync(filter: string): Promise<Uint8Array | null> {
+  async getEVMLogsAsync(filter: string): Promise<Uint8Array | null> {
     log(`Send filter ${filter} to getlogs`)
-    const result = await this._readClient.sendAsync<string>('getlogs', {
+    const result = await this._readClient.sendAsync<string>('getevmlogs', {
       filter
     })
     if (result) {
@@ -377,13 +382,13 @@ export class Client extends EventEmitter {
    * @param filter Filter terms
    * @return Uint8Array The corresponding result of the filter
    */
-  async evmGetNewFilterAsync(filter: string): Promise<Uint8Array | null> {
+  async newEVMFilterAsync(filter: string): Promise<string | null> {
     log(`Send filter ${filter} to newfilter`)
-    const result = await this._readClient.sendAsync<string>('newfilter', {
+    const result = await this._readClient.sendAsync<string>('newevmfilter', {
       filter
     })
     if (result) {
-      return B64ToUint8Array(result)
+      return result
     } else {
       return null
     }
@@ -397,9 +402,9 @@ export class Client extends EventEmitter {
    * @param id Id of filter previously created
    * @return Uint8Array The corresponding result of the request for given id
    */
-  async evmGetFilterChangesAsync(id: string): Promise<Uint8Array | null> {
-    log(`Get filter changes for ${JSON.stringify({id}, null, 2)}`)
-    const result = await this._readClient.sendAsync<string>('getfilterchanges', {
+  async getEVMFilterChangesAsync(id: string): Promise<Uint8Array | null> {
+    log(`Get filter changes for ${JSON.stringify({ id }, null, 2)}`)
+    const result = await this._readClient.sendAsync<string>('getevmfilterchanges', {
       id
     })
 
@@ -417,8 +422,8 @@ export class Client extends EventEmitter {
    *
    * @return String Filter ID in hex format to be used later with getEVMFilterChangesAsync
    */
-  async evmGetNewBlockFilter(): Promise<string | null> {
-    const result = await this._readClient.sendAsync<string>('newblockfilter', {})
+  async newBlockEVMFilterAsync(): Promise<string | null> {
+    const result = await this._readClient.sendAsync<string>('newblockevmfilter', {})
     if (result) {
       return result.toString()
     } else {
@@ -433,8 +438,8 @@ export class Client extends EventEmitter {
    *
    * @return String Filter ID in hex format to be used later with getEVMFilterChangesAsync
    */
-  async evmGetNewPendingTransactionFilterAsync(): Promise<string | null> {
-    const result = await this._readClient.sendAsync<string>('newpendingtransactionfilter', {})
+  async newPendingTransactionEVMFilterAsync(): Promise<string | null> {
+    const result = await this._readClient.sendAsync<string>('newpendingtransactionevmfilter', {})
     if (result) {
       return result.toString()
     } else {
@@ -448,10 +453,10 @@ export class Client extends EventEmitter {
    * The ID used was requested from getEVMNewFilterChanges or getEVMNewBlockFilter
    *
    * @param id Id of filter previously created
-   * @return Uint8Array The corresponding result of the request for given id
+   * @return boolean If true the filter is removed with success
    */
-  async evmUninstallFilterAsync(id: string): Promise<boolean | null> {
-    const result = await this._readClient.sendAsync<string>('uninstallfilter', {
+  async uninstallEVMFilterAsync(id: string): Promise<boolean | null> {
+    const result = await this._readClient.sendAsync<string>('uninstallevmfilter', {
       id
     })
 
@@ -460,6 +465,51 @@ export class Client extends EventEmitter {
     } else {
       return null
     }
+  }
+
+  /**
+   * Returns information about a block by block number.
+   *
+   * @param num Integer of a block number
+   * @param full If true it returns the full transaction objects, if false only the hashes of the transactions
+   */
+  async getEVMBlockByNumberAsync(num: number, full: boolean = true): Promise<EthBlockInfo | null> {
+    const result = await this._readClient.sendAsync<string>('getevmblockbynumber', {
+      number: num,
+      full
+    })
+    if (result) {
+      return EthBlockInfo.deserializeBinary(bufferToProtobufBytes(B64ToUint8Array(result)))
+    } else {
+      return null
+    }
+  }
+
+  /**
+   * Returns the information about a transaction requested by transaction hash.
+   *
+   * @param hash String with the hash of the transaction
+   * @param full If true it returns the full transaction objects, if false only the hashes of the transactions
+   */
+  async getEVMBlockByHashAsync(hash: string, full: boolean = true): Promise<EthBlockInfo | null> {
+    const result = await this._readClient.sendAsync<string>('getevmblockbyhash', {
+      hash,
+      full
+    })
+    if (result) {
+      return EthBlockInfo.deserializeBinary(bufferToProtobufBytes(B64ToUint8Array(result)))
+    } else {
+      return null
+    }
+  }
+
+  /**
+   * Gets the number of the latest block
+   *
+   * @return The block height
+   */
+  async getBlockHeightAsync(): Promise<number> {
+    return this._readClient.sendAsync<number>('getblockheight', {})
   }
 
   /**

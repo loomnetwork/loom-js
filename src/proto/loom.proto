@@ -112,6 +112,29 @@ message EvmTxReceipt {
     repeated EventData logs = 7;
     bytes logs_bloom = 8;
     int32 status = 9;
+    bytes tx_hash = 10;
+}
+
+message EthBlockInfo {
+    int64 number = 1;                   //: QUANTITY - the block number. null when its pending block.
+    bytes hash = 2;                     //: DATA, 32 Bytes - hash of the block. null when its pending block.
+    bytes parent_hash = 3;              //: DATA, 32 Bytes - hash of the parent block.
+    bytes nonce = 4;                    //: DATA, 8 Bytes - hash of the generated proof-of-work. null when its pending block.
+    bytes sha3_uncles  = 5;             //: DATA, 32 Bytes - SHA3 of the uncles data in the block.
+    bytes logs_bloom = 6;               //: DATA, 256 Bytes - the bloom filter for the logs of the block. null when its pending block.
+    bytes transactions_root = 7;        //: DATA, 32 Bytes - the root of the transaction trie of the block.
+    bytes state_root = 8;               //t: DATA, 32 Bytes - the root of the final state trie of the block.
+    bytes receipts_root = 9;            //: DATA, 32 Bytes - the root of the receipts trie of the block.
+    bytes miner = 10;                   //: DATA, 20 Bytes - the address of the beneficiary to whom the mining rewards were given.
+    int64 difficulty = 11;              //: QUANTITY - integer of the difficulty for this block.
+    int64 total_difficulty = 12;        //: QUANTITY - integer of the total difficulty of the chain until this block.
+    bytes extra_data = 13;              //: DATA - the "extra data" field of this block.
+    int64 size = 14;                    //: QUANTITY - integer the size of this block in bytes.
+    int64 gasLimit = 15;                //: QUANTITY - the maximum gas allowed in this block.
+    int64 gasUsed = 16;                 //: QUANTITY - the total used gas by all transactions in this block.
+    int64 timestamp = 17;               //: QUANTITY - the unix timestamp for when the block was collated.
+    repeated bytes transactions = 18;   //: Array - Array of transaction objects, or 32 Bytes transaction hashes depending on the last given parameter.
+    repeated bytes uncles = 19;         //: Array - Array of uncle hashes.
 }
 
 message EthFilterLogList {
