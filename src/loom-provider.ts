@@ -304,7 +304,7 @@ export class LoomProvider {
     const blockHash = payload.params[0]
     const isFull = payload.params[1] || true
 
-    const result = await this._client.getEVMBlockByHashAsync(blockHash, isFull)
+    const result = await this._client.getEvmBlockByHashAsync(blockHash, isFull)
 
     if (!result) {
       return null
@@ -317,7 +317,7 @@ export class LoomProvider {
     const blockNumberToSearch = payload.params[0]
     const isFull = payload.params[1] || true
 
-    const result = await this._client.getEVMBlockByNumberAsync(blockNumberToSearch, isFull)
+    const result = await this._client.getEvmBlockByNumberAsync(blockNumberToSearch, isFull)
 
     if (!result) {
       return null
@@ -331,7 +331,7 @@ export class LoomProvider {
       this._client.chainId,
       LocalAddress.fromHexString(payload.params[0])
     )
-    const result = await this._client.getEVMCodeAsync(address)
+    const result = await this._client.getEvmCodeAsync(address)
 
     if (!result) {
       throw Error('No code returned on eth_getCode')
@@ -341,7 +341,7 @@ export class LoomProvider {
   }
 
   private async _ethGetFilterChanges(payload: IEthRPCPayload) {
-    const result = await this._client.getEVMFilterChangesAsync(payload.params[0])
+    const result = await this._client.getEvmFilterChangesAsync(payload.params[0])
 
     if (!result) {
       return []
@@ -359,7 +359,7 @@ export class LoomProvider {
   }
 
   private async _ethNewBlockFilter() {
-    const result = await this._client.newBlockEVMFilterAsync()
+    const result = await this._client.newBlockEvmFilterAsync()
 
     if (!result) {
       throw Error('New block filter unexpected result')
@@ -369,7 +369,7 @@ export class LoomProvider {
   }
 
   private async _ethNewFilter(payload: IEthRPCPayload) {
-    const result = await this._client.newEVMFilterAsync(JSON.stringify(payload.params[0]))
+    const result = await this._client.newEvmFilterAsync(JSON.stringify(payload.params[0]))
 
     if (!result) {
       throw Error('Cannot create new filter on eth_newFilter')
@@ -379,7 +379,7 @@ export class LoomProvider {
   }
 
   private async _ethNewPendingTransactionFilter() {
-    const result = await this._client.newPendingTransactionEVMFilterAsync()
+    const result = await this._client.newPendingTransactionEvmFilterAsync()
 
     if (!result) {
       throw Error('New pending transaction filter unexpected result')
@@ -411,7 +411,7 @@ export class LoomProvider {
   }
 
   private _ethUninstallFilter(payload: IEthRPCPayload) {
-    return this._client.uninstallEVMFilterAsync(payload.params[0])
+    return this._client.uninstallEvmFilterAsync(payload.params[0])
   }
 
   private _netVersion() {
@@ -543,7 +543,7 @@ export class LoomProvider {
 
   private async _getReceipt(txHash: string): Promise<IEthReceipt> {
     const data = Buffer.from(txHash.substring(2), 'hex')
-    const receipt = await this._client.evmTxReceiptAsync(bufferToProtobufBytes(data))
+    const receipt = await this._client.getEvmTxReceiptAsync(bufferToProtobufBytes(data))
     if (!receipt) {
       throw Error('Receipt cannot be empty')
     }
@@ -552,7 +552,7 @@ export class LoomProvider {
   }
 
   private async _getLogs(filter: string): Promise<any> {
-    const logsListAsyncResult = await this._client.getEVMLogsAsync(filter)
+    const logsListAsyncResult = await this._client.getEvmLogsAsync(filter)
 
     if (!logsListAsyncResult) {
       return []

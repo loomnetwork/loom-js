@@ -101,7 +101,7 @@ test('EVM Contract Calls', async t => {
     }
 
     if (rtv) {
-      let receipt = await client.evmTxReceiptAsync(rtv)
+      let receipt = await client.getEvmTxReceiptAsync(rtv)
       if (receipt) {
         t.deepEqual(
           receipt.getContractAddress_asU8().slice(),
