@@ -533,6 +533,11 @@ export class EvmTxReceipt extends jspb.Message {
   getStatus(): number;
   setStatus(value: number): void;
 
+  getTxHash(): Uint8Array | string;
+  getTxHash_asU8(): Uint8Array;
+  getTxHash_asB64(): string;
+  setTxHash(value: Uint8Array | string): void;
+
   serializeBinary(): Uint8Array;
   toObject(includeInstance?: boolean): EvmTxReceipt.AsObject;
   static toObject(includeInstance: boolean, msg: EvmTxReceipt): EvmTxReceipt.AsObject;
@@ -554,6 +559,127 @@ export namespace EvmTxReceipt {
     logsList: Array<EventData.AsObject>,
     logsBloom: Uint8Array | string,
     status: number,
+    txHash: Uint8Array | string,
+  }
+}
+
+export class EthBlockInfo extends jspb.Message {
+  getNumber(): number;
+  setNumber(value: number): void;
+
+  getHash(): Uint8Array | string;
+  getHash_asU8(): Uint8Array;
+  getHash_asB64(): string;
+  setHash(value: Uint8Array | string): void;
+
+  getParentHash(): Uint8Array | string;
+  getParentHash_asU8(): Uint8Array;
+  getParentHash_asB64(): string;
+  setParentHash(value: Uint8Array | string): void;
+
+  getNonce(): Uint8Array | string;
+  getNonce_asU8(): Uint8Array;
+  getNonce_asB64(): string;
+  setNonce(value: Uint8Array | string): void;
+
+  getSha3Uncles(): Uint8Array | string;
+  getSha3Uncles_asU8(): Uint8Array;
+  getSha3Uncles_asB64(): string;
+  setSha3Uncles(value: Uint8Array | string): void;
+
+  getLogsBloom(): Uint8Array | string;
+  getLogsBloom_asU8(): Uint8Array;
+  getLogsBloom_asB64(): string;
+  setLogsBloom(value: Uint8Array | string): void;
+
+  getTransactionsRoot(): Uint8Array | string;
+  getTransactionsRoot_asU8(): Uint8Array;
+  getTransactionsRoot_asB64(): string;
+  setTransactionsRoot(value: Uint8Array | string): void;
+
+  getStateRoot(): Uint8Array | string;
+  getStateRoot_asU8(): Uint8Array;
+  getStateRoot_asB64(): string;
+  setStateRoot(value: Uint8Array | string): void;
+
+  getReceiptsRoot(): Uint8Array | string;
+  getReceiptsRoot_asU8(): Uint8Array;
+  getReceiptsRoot_asB64(): string;
+  setReceiptsRoot(value: Uint8Array | string): void;
+
+  getMiner(): Uint8Array | string;
+  getMiner_asU8(): Uint8Array;
+  getMiner_asB64(): string;
+  setMiner(value: Uint8Array | string): void;
+
+  getDifficulty(): number;
+  setDifficulty(value: number): void;
+
+  getTotalDifficulty(): number;
+  setTotalDifficulty(value: number): void;
+
+  getExtraData(): Uint8Array | string;
+  getExtraData_asU8(): Uint8Array;
+  getExtraData_asB64(): string;
+  setExtraData(value: Uint8Array | string): void;
+
+  getSize(): number;
+  setSize(value: number): void;
+
+  getGaslimit(): number;
+  setGaslimit(value: number): void;
+
+  getGasused(): number;
+  setGasused(value: number): void;
+
+  getTimestamp(): number;
+  setTimestamp(value: number): void;
+
+  clearTransactionsList(): void;
+  getTransactionsList(): Array<Uint8Array | string>;
+  getTransactionsList_asU8(): Array<Uint8Array>;
+  getTransactionsList_asB64(): Array<string>;
+  setTransactionsList(value: Array<Uint8Array | string>): void;
+  addTransactions(value: Uint8Array | string, index?: number): Uint8Array | string;
+
+  clearUnclesList(): void;
+  getUnclesList(): Array<Uint8Array | string>;
+  getUnclesList_asU8(): Array<Uint8Array>;
+  getUnclesList_asB64(): Array<string>;
+  setUnclesList(value: Array<Uint8Array | string>): void;
+  addUncles(value: Uint8Array | string, index?: number): Uint8Array | string;
+
+  serializeBinary(): Uint8Array;
+  toObject(includeInstance?: boolean): EthBlockInfo.AsObject;
+  static toObject(includeInstance: boolean, msg: EthBlockInfo): EthBlockInfo.AsObject;
+  static extensions: {[key: number]: jspb.ExtensionFieldInfo<jspb.Message>};
+  static extensionsBinary: {[key: number]: jspb.ExtensionFieldBinaryInfo<jspb.Message>};
+  static serializeBinaryToWriter(message: EthBlockInfo, writer: jspb.BinaryWriter): void;
+  static deserializeBinary(bytes: Uint8Array): EthBlockInfo;
+  static deserializeBinaryFromReader(message: EthBlockInfo, reader: jspb.BinaryReader): EthBlockInfo;
+}
+
+export namespace EthBlockInfo {
+  export type AsObject = {
+    number: number,
+    hash: Uint8Array | string,
+    parentHash: Uint8Array | string,
+    nonce: Uint8Array | string,
+    sha3Uncles: Uint8Array | string,
+    logsBloom: Uint8Array | string,
+    transactionsRoot: Uint8Array | string,
+    stateRoot: Uint8Array | string,
+    receiptsRoot: Uint8Array | string,
+    miner: Uint8Array | string,
+    difficulty: number,
+    totalDifficulty: number,
+    extraData: Uint8Array | string,
+    size: number,
+    gaslimit: number,
+    gasused: number,
+    timestamp: number,
+    transactionsList: Array<Uint8Array | string>,
+    unclesList: Array<Uint8Array | string>,
   }
 }
 

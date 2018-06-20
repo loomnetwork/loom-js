@@ -11,14 +11,15 @@ import {
   DeployResponseData,
   EventData,
   EthFilterLog,
-  EthFilterLogList
+  EthFilterLogList,
+  EvmTxReceipt,
+  EthBlockInfo
 } from './proto/loom_pb'
 import { Address, LocalAddress } from './address'
 import {
   bytesToHexAddr,
   numberToHex,
   bufferToProtobufBytes,
-  getGUID,
   publicKeyFromPrivateKey
 } from './crypto-utils'
 
@@ -34,7 +35,23 @@ export interface IEthReceipt {
   status: string
 }
 
+export interface IEthBlock {
+  blockNumber: string
+  transactionHash: string
+  parentHash: string
+  logsBloom: string
+  timestamp: number
+  transactions: Array<IEthReceipt | string>
+}
+
+export interface IEthRPCPayload {
+  id: number
+  method: string
+  params: Array<any>
+}
+
 const log = debug('loom-provider')
+const error = debug('loom-provider:error')
 
 const bytesToHexAddrLC = (bytes: Uint8Array): string => {
   return bytesToHexAddr(bytes).toLowerCase()
@@ -178,132 +195,231 @@ export class LoomProvider {
   async send(payload: any, callback: Function) {
     log('Request payload', JSON.stringify(payload, null, 2))
 
-    // TODO: Must process like array sequences like a map of requests and push results inside an array
     const isArray = Array.isArray(payload)
     if (isArray) {
       payload = payload[0]
     }
 
-    // Methods frequently called by web3js added just to follow the web3 requirements
-    const okMethods = ['eth_estimateGas', 'eth_gasPrice', 'eth_blockNumber']
+    const functionToExecute = (method: string) => {
+      switch (method) {
+        case 'eth_accounts':
+          return this._ethAccounts
 
-    /**
-     * NOTE: _okResponse and okMethods array are mocks, only to allow web3js think that is talking
-     * to an Ethereum Node
-     */
+        case 'eth_blockNumber':
+          return this._ethBlockNumber
 
-    // Ok just avoids web3js issues
-    if (okMethods.indexOf(payload.method) !== -1) {
-      return callback(null, this._okResponse(payload.id, null, isArray))
+        case 'eth_call':
+          return this._ethCall
+
+        case 'eth_estimateGas':
+          return this._ethEstimateGas
+
+        case 'eth_gasPrice':
+          return this._ethGasPrice
+
+        case 'eth_getBlockByHash':
+          return this._ethGetBlockByHash
+
+        case 'eth_getBlockByNumber':
+          return this._ethGetBlockByNumber
+
+        case 'eth_getCode':
+          return this._ethGetCode
+
+        case 'eth_getFilterChanges':
+          return this._ethGetFilterChanges
+
+        case 'eth_getLogs':
+          return this._ethGetLogs
+
+        case 'eth_getTransactionReceipt':
+          return this._ethGetTransactionReceipt
+
+        case 'eth_newBlockFilter':
+          return this._ethNewBlockFilter
+
+        case 'eth_newFilter':
+          return this._ethNewFilter
+
+        case 'eth_newPendingTransactionFilter':
+          return this._ethNewPendingTransactionFilter
+
+        case 'eth_sendTransaction':
+          return this._ethSendTransaction
+
+        case 'eth_subscribe':
+          return this._ethSubscribe
+
+        case 'eth_uninstallFilter':
+          return this._ethUninstallFilter
+
+        case 'net_version':
+          return this._netVersion
+
+        default:
+          throw Error(`Method "${payload.method}" not supported on this provider`)
+      }
     }
 
-    switch (payload.method) {
-      case 'net_version':
-        // TODO: Create call for supply on Loom DappChain
-        // Fixed network version 474747
-        callback(null, this._okResponse(payload.id, '474747', isArray))
-        break
-      case 'eth_accounts':
-        if (this.accountsAddrList.length === 0) {
-          throw Error('No account available')
-        }
-        callback(null, this._okResponse(payload.id, this.accountsAddrList, isArray))
-        break
-      case 'eth_newBlockFilter':
-        // Simulate subscribe for new block filter
-        // TODO: Create call for supply on Loom DappChain
-        const GUIDHex = Buffer.from(getGUID()).toString('hex')
-        callback(null, this._okResponse(payload.id, `0x${GUIDHex}`, isArray))
-        break
-      case 'eth_getBlockByNumber':
-        // Simulate get block by number
-        // TODO: Create call for supply on Loom DappChain
-        callback(null, this._okResponse(payload.id, this._simulateEmptyBlock(), isArray))
-        break
-      case 'eth_getFilterChanges':
-        // Simulate return from block filter
-        // TODO: Create call for supply on Loom DappChain
-        callback(null, [
-          this._okResponse(payload.id, [
-            '0x0000000000000000000000000000000000000000000000000000000000000001'
-          ])
-        ])
-        break
-      case 'eth_sendTransaction':
-        // Sending transaction to Loom DAppChain
-        try {
-          let result
-
-          if (payload.params[0].to) {
-            result = await this._callAsync(payload.params[0])
-          } else {
-            result = await this._deployAsync(payload.params[0])
-          }
-
-          callback(null, this._okResponse(payload.id, bytesToHexAddrLC(result), isArray))
-        } catch (err) {
-          callback(err, null)
-        }
-        break
-      case 'eth_getCode':
-        try {
-          const result = await this._getCode(payload.params[0])
-          callback(null, this._okResponse(payload.id, bytesToHexAddrLC(result), isArray))
-        } catch (err) {
-          callback(err, null)
-        }
-        break
-      case 'eth_call':
-        // Sending a static call to Loom DAppChain
-        try {
-          const result = await this._callStaticAsync(payload.params[0])
-          callback(null, this._okResponse(payload.id, bytesToHexAddrLC(result), isArray))
-        } catch (err) {
-          callback(err, null)
-        }
-        break
-      case 'eth_getTransactionReceipt':
-        try {
-          const result = await this._getReceipt(payload.params[0])
-          callback(null, this._okResponse(payload.id, result, isArray))
-        } catch (err) {
-          callback(err, null)
-        }
-        break
-      case 'eth_subscribe':
-        // Required to avoid web3js error, because web3js always want to know about a transaction
-        if (payload.params[0] === 'logs') {
-          this._topicsList = this._topicsList.concat(payload.params[1].topics)
-          callback(null, this._okResponse(payload.id, payload.params[1].topics[0], isArray))
-        } else {
-          callback(null, this._okResponse(payload.id, [], isArray))
-        }
-        break
-      case 'eth_uninstallFilter':
-        // TODO: Create call for supply on Loom DappChain
-        callback(null, this._okResponse(payload.id, true, isArray))
-        break
-      case 'eth_getLogs':
-        try {
-          const result = await this._getLogs(JSON.stringify(payload.params[0]))
-          callback(null, this._okResponse(payload.id, result, isArray))
-        } catch (err) {
-          callback(err, null)
-        }
-        break
-      default:
-        // Warn the user about we don't support other methods
-        callback(Error(`Method "${payload.method}" not supported on this provider`), null)
-        break
+    try {
+      const f = functionToExecute(payload.method).bind(this)
+      const result = await f(payload)
+      callback(null, this._okResponse(payload.id, result, isArray))
+    } catch (err) {
+      error(err)
+      callback(err, null)
     }
   }
 
-  // PRIVATE FUNCTIONS
+  // PRIVATE FUNCTIONS EVM CALLS
 
-  private _getCode(contractAddress: string): Promise<any> {
-    const address = new Address(this._client.chainId, LocalAddress.fromHexString(contractAddress))
-    return this._client.getCodeAsync(address)
+  private _ethAccounts() {
+    if (this.accountsAddrList.length === 0) {
+      throw Error('No account available')
+    }
+    return this.accountsAddrList
   }
+
+  private _ethBlockNumber() {
+    return numberToHex(+this._client.getBlockHeightAsync())
+  }
+
+  private async _ethCall(payload: IEthRPCPayload) {
+    // Sending a static call to Loom DAppChain
+    const result = await this._callStaticAsync(payload.params[0])
+    return bytesToHexAddrLC(result)
+  }
+
+  private _ethEstimateGas() {
+    // Loom DAppChain doesn't estimate gas, because gas isn't necessary
+    return null // Returns null to afford with Web3 calls
+  }
+
+  private _ethGasPrice() {
+    // Loom DAppChain doesn't use gas price, because gas isn't necessary
+    return null // Returns null to afford with Web3 calls
+  }
+
+  private async _ethGetBlockByHash(payload: IEthRPCPayload): Promise<IEthBlock | null> {
+    const blockHash = payload.params[0]
+    const isFull = payload.params[1] || true
+
+    const result = await this._client.getEvmBlockByHashAsync(blockHash, isFull)
+
+    if (!result) {
+      return null
+    }
+
+    return this._createBlockInfo(result, isFull)
+  }
+
+  private async _ethGetBlockByNumber(payload: IEthRPCPayload): Promise<IEthBlock | null> {
+    const blockNumberToSearch = payload.params[0]
+    const isFull = payload.params[1] || true
+
+    const result = await this._client.getEvmBlockByNumberAsync(blockNumberToSearch, isFull)
+
+    if (!result) {
+      return null
+    }
+
+    return this._createBlockInfo(result, isFull)
+  }
+
+  private async _ethGetCode(payload: IEthRPCPayload) {
+    const address = new Address(
+      this._client.chainId,
+      LocalAddress.fromHexString(payload.params[0])
+    )
+    const result = await this._client.getEvmCodeAsync(address)
+
+    if (!result) {
+      throw Error('No code returned on eth_getCode')
+    }
+
+    return bytesToHexAddrLC(result)
+  }
+
+  private async _ethGetFilterChanges(payload: IEthRPCPayload) {
+    const result = await this._client.getEvmFilterChangesAsync(payload.params[0])
+
+    if (!result) {
+      return []
+    }
+
+    return [bytesToHexAddrLC(result)]
+  }
+
+  private async _ethGetLogs(payload: IEthRPCPayload) {
+    return this._getLogs(JSON.stringify(payload.params[0]))
+  }
+
+  private async _ethGetTransactionReceipt(payload: IEthRPCPayload) {
+    return this._getReceipt(payload.params[0])
+  }
+
+  private async _ethNewBlockFilter() {
+    const result = await this._client.newBlockEvmFilterAsync()
+
+    if (!result) {
+      throw Error('New block filter unexpected result')
+    }
+
+    return result
+  }
+
+  private async _ethNewFilter(payload: IEthRPCPayload) {
+    const result = await this._client.newEvmFilterAsync(JSON.stringify(payload.params[0]))
+
+    if (!result) {
+      throw Error('Cannot create new filter on eth_newFilter')
+    }
+
+    return result
+  }
+
+  private async _ethNewPendingTransactionFilter() {
+    const result = await this._client.newPendingTransactionEvmFilterAsync()
+
+    if (!result) {
+      throw Error('New pending transaction filter unexpected result')
+    }
+
+    return result
+  }
+
+  private async _ethSendTransaction(payload: IEthRPCPayload) {
+    let result
+
+    if (payload.params[0].to) {
+      result = await this._callAsync(payload.params[0])
+    } else {
+      result = await this._deployAsync(payload.params[0])
+    }
+
+    return bytesToHexAddrLC(result)
+  }
+
+  private _ethSubscribe(payload: IEthRPCPayload) {
+    // Required to avoid web3js error, because web3js always want to know about a transaction
+    if (payload.params[0] === 'logs') {
+      this._topicsList = this._topicsList.concat(payload.params[1].topics)
+      return payload.params[1].topics[0]
+    } else {
+      return []
+    }
+  }
+
+  private _ethUninstallFilter(payload: IEthRPCPayload) {
+    return this._client.uninstallEvmFilterAsync(payload.params[0])
+  }
+
+  private _netVersion() {
+    // Fixed network version 474747
+    return '474747'
+  }
+
+  // PRIVATE FUNCTIONS IMPLEMENTATIONS
 
   private async _deployAsync(payload: { from: string; data: string }): Promise<any> {
     const caller = new Address(this._client.chainId, LocalAddress.fromHexString(payload.from))
@@ -364,13 +480,34 @@ export class LoomProvider {
     return this._client.queryAsync(address, data, VMType.EVM, caller)
   }
 
-  private async _getReceipt(txHash: string): Promise<IEthReceipt> {
-    const data = Buffer.from(txHash.substring(2), 'hex')
-    const receipt = await this._client.getTxReceiptAsync(bufferToProtobufBytes(data))
-    if (!receipt) {
-      throw Error('Receipt cannot be empty')
+  private _createBlockInfo(blockInfo: EthBlockInfo, isFull: boolean): any {
+    const blockNumber = numberToHexLC(blockInfo.getNumber())
+    const transactionHash = bytesToHexAddrLC(blockInfo.getHash_asU8())
+    const parentHash = bytesToHexAddrLC(blockInfo.getParentHash_asU8())
+    const logsBloom = bytesToHexAddrLC(blockInfo.getLogsBloom_asU8())
+    const timestamp = blockInfo.getTimestamp()
+    const transactions = blockInfo.getTransactionsList_asU8().map((transaction: Uint8Array) => {
+      if (isFull) {
+        return this._createReceiptResult(
+          EvmTxReceipt.deserializeBinary(bufferToProtobufBytes(transaction))
+        )
+      } else {
+        return bytesToHexAddrLC(transaction)
+      }
+    })
+
+    return {
+      blockNumber,
+      transactionHash,
+      parentHash,
+      logsBloom,
+      timestamp,
+      transactions
     }
-    const transactionHash = txHash
+  }
+
+  private _createReceiptResult(receipt: EvmTxReceipt): IEthReceipt {
+    const transactionHash = bytesToHexAddrLC(receipt.getTxHash_asU8())
     const transactionIndex = numberToHexLC(receipt.getTransactionIndex())
     const blockHash = bytesToHexAddrLC(receipt.getBlockHash_asU8())
     const blockNumber = numberToHexLC(receipt.getBlockNumber())
@@ -404,8 +541,19 @@ export class LoomProvider {
     } as IEthReceipt
   }
 
+  private async _getReceipt(txHash: string): Promise<IEthReceipt> {
+    const data = Buffer.from(txHash.substring(2), 'hex')
+    const receipt = await this._client.getEvmTxReceiptAsync(bufferToProtobufBytes(data))
+    if (!receipt) {
+      throw Error('Receipt cannot be empty')
+    }
+
+    return this._createReceiptResult(receipt)
+  }
+
   private async _getLogs(filter: string): Promise<any> {
-    const logsListAsyncResult = await this._client.getLogsAsync(filter)
+    const logsListAsyncResult = await this._client.getEvmLogsAsync(filter)
+
     if (!logsListAsyncResult) {
       return []
     }
@@ -470,36 +618,8 @@ export class LoomProvider {
     return this._client.commitTxAsync<Transaction>(txTransaction, { middleware })
   }
 
-  private _simulateEmptyBlock(block: any = {}) {
-    return Object.assign(
-      {
-        number: '0x0',
-        hash: '0x0000000000000000000000000000000000000000000000000000000000000000',
-        parentHash: '0x0000000000000000000000000000000000000000000000000000000000000000',
-        mixHash: '0x1010101010101010101010101010101010101010101010101010101010101010',
-        nonce: '0x0000000000000000',
-        sha3Uncles: '0x0000000000000000000000000000000000000000000000000000000000000000',
-        logsBloom:
-          '0x00000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000',
-        transactionsRoot: '0x0000000000000000000000000000000000000000000000000000000000000000',
-        stateRoot: '0x0000000000000000000000000000000000000000000000000000000000000000',
-        receiptsRoot: '0x0000000000000000000000000000000000000000000000000000000000000000',
-        miner: '0x0000000000000000000000000000000000000000',
-        difficulty: '0x0',
-        totalDifficulty: '0x0',
-        extraData: '0x00',
-        size: '0x0',
-        gasLimit: '0x0',
-        gasUsed: '0x0',
-        timestamp: '0x0',
-        transactions: []
-      },
-      block
-    )
-  }
-
   // Basic response to web3js
-  private _okResponse(id: string, result: any = 0, isArray: boolean = false): any {
+  private _okResponse(id: number, result: any = 0, isArray: boolean = false): any {
     const response = { id, jsonrpc: '2.0', result }
     const ret = isArray ? [response] : response
     log('Response payload', JSON.stringify(ret, null, 2))

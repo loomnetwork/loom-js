@@ -99,7 +99,7 @@ async function testGetLogsLatest(t: test.Test, loomProvider: LoomProvider, fromA
 
   // Filtering to get logs
   let ethGetLogs = await loomProvider.sendAsync({
-    id: 3,
+    id: 4,
     method: 'eth_getLogs',
     params: [
       {
@@ -121,7 +121,7 @@ async function testGetLogsAny(t: test.Test, loomProvider: LoomProvider, fromAddr
 
   // Filtering to get logs
   let ethGetLogs = await loomProvider.sendAsync({
-    id: 3,
+    id: 5,
     method: 'eth_getLogs',
     params: []
   })
@@ -134,7 +134,7 @@ async function testGetLogsAnyPending(t: test.Test, loomProvider: LoomProvider, f
 
   // Filtering to get logs
   let ethGetLogs = await loomProvider.sendAsync({
-    id: 3,
+    id: 6,
     method: 'eth_getLogs',
     params: [{ toBlock: 'pending' }]
   })
@@ -142,7 +142,7 @@ async function testGetLogsAnyPending(t: test.Test, loomProvider: LoomProvider, f
   t.equal(ethGetLogs.result.length, 1, 'Should return one log for anything pending filter')
 }
 
-test('LoomProvider', async t => {
+test('LoomProvider.getEVMLogsAsync', async t => {
   try {
     const privKey = CryptoUtils.generatePrivateKey()
     const client = createTestClient()

@@ -7,7 +7,11 @@ export function bytesToHex(bytes: Uint8Array): string {
 }
 
 export function numberToHex(num: number): string {
-  return `0x${parseInt(num.toString(), 16)}`
+  return `0x${num.toString(16)}`
+}
+
+export function hexToNumber(hex: string): number {
+  return parseInt(hex, 16)
 }
 
 export function bytesToHexAddr(bytes: Uint8Array): string {
