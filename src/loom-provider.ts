@@ -66,7 +66,6 @@ const numberToHexLC = (num: number): string => {
  */
 export class LoomProvider {
   private _client: Client
-  private _topicsList: Array<string>
   protected notificationCallbacks: Array<Function>
   readonly accounts: Map<string, Uint8Array>
   readonly accountsAddrList: Array<string>
@@ -79,7 +78,6 @@ export class LoomProvider {
    */
   constructor(client: Client, privateKey: Uint8Array) {
     this._client = client
-    this._topicsList = []
     this.notificationCallbacks = new Array()
     this.accounts = new Map<string, Uint8Array>()
     this.accountsAddrList = new Array()
@@ -163,7 +161,6 @@ export class LoomProvider {
   }
 
   reset() {
-    this._topicsList = []
     this.notificationCallbacks = []
   }
 
@@ -253,6 +250,9 @@ export class LoomProvider {
         case 'eth_uninstallFilter':
           return this._ethUninstallFilter
 
+        case 'eth_unsubscribe':
+          return this._ethUnsubscribe
+
         case 'net_version':
           return this._netVersion
 
@@ -280,8 +280,9 @@ export class LoomProvider {
     return this.accountsAddrList
   }
 
-  private _ethBlockNumber() {
-    return numberToHex(+this._client.getBlockHeightAsync())
+  private async _ethBlockNumber() {
+    const blockNumber = await this._client.getBlockHeightAsync()
+    return numberToHex(+blockNumber)
   }
 
   private async _ethCall(payload: IEthRPCPayload) {
@@ -400,18 +401,24 @@ export class LoomProvider {
     return bytesToHexAddrLC(result)
   }
 
-  private _ethSubscribe(payload: IEthRPCPayload) {
-    // Required to avoid web3js error, because web3js always want to know about a transaction
-    if (payload.params[0] === 'logs') {
-      this._topicsList = this._topicsList.concat(payload.params[1].topics)
-      return payload.params[1].topics[0]
-    } else {
-      return []
+  private async _ethSubscribe(payload: IEthRPCPayload) {
+    const method = payload.params[0]
+    const filter = JSON.stringify(payload.params[1] || {})
+
+    const result = await this._client.evmSubscribe(method, filter)
+    if (!result) {
+      throw Error('Subscribe filter failed')
     }
+
+    return result
   }
 
   private _ethUninstallFilter(payload: IEthRPCPayload) {
     return this._client.uninstallEvmFilterAsync(payload.params[0])
+  }
+
+  private _ethUnsubscribe(payload: IEthRPCPayload) {
+    return this._client.evmUnsubscribe(payload.params[0])
   }
 
   private _netVersion() {
@@ -575,31 +582,25 @@ export class LoomProvider {
   }
 
   private _onWebSocketMessage(msgEvent: IChainEventArgs) {
-    if (msgEvent.data) {
-      log(`Socket message arrived ${msgEvent}`)
+    if (msgEvent.data && msgEvent.id !== '0') {
+      log(`Socket message arrived ${JSON.stringify(msgEvent)}`)
       this.notificationCallbacks.forEach((callback: Function) => {
-        const topicIdxFound = this._topicsList.indexOf(msgEvent.topics[0])
-
-        if (topicIdxFound !== -1) {
-          const topicFound = this._topicsList[topicIdxFound]
-          const JSONRPCResult = {
-            jsonrpc: '2.0',
-            method: 'eth_subscription',
-            params: {
-              // TODO: This ID Should came from loomchain events
-              subscription: topicFound,
-              result: {
-                transactionHash: msgEvent.transactionHash,
-                address: msgEvent.contractAddress.local.toString(),
-                type: 'mined',
-                data: bytesToHexAddrLC(msgEvent.data),
-                topics: msgEvent.topics
-              }
+        const JSONRPCResult = {
+          jsonrpc: '2.0',
+          method: 'eth_subscription',
+          params: {
+            subscription: msgEvent.id,
+            result: {
+              transactionHash: bytesToHexAddrLC(msgEvent.transactionHash),
+              address: msgEvent.contractAddress.local.toString(),
+              type: 'mined',
+              data: bytesToHexAddrLC(msgEvent.data),
+              topics: msgEvent.topics
             }
           }
-
-          callback(JSONRPCResult)
         }
+
+        callback(JSONRPCResult)
       })
     }
   }

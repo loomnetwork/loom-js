@@ -4,16 +4,10 @@ import EventEmitter from 'events'
 import retry from 'retry'
 
 import { VMType, EvmTxReceipt, EthBlockInfo } from './proto/loom_pb'
-import {
-  Uint8ArrayToB64,
-  B64ToUint8Array,
-  bufferToProtobufBytes,
-  bytesToHex
-} from './crypto-utils'
+import { Uint8ArrayToB64, B64ToUint8Array, bufferToProtobufBytes } from './crypto-utils'
 import { Address, LocalAddress } from './address'
 import { WSRPCClient, IJSONRPCEvent } from './internal/ws-rpc-client'
-import { RPCClientEvent } from './internal/json-rpc-client'
-import { IJSONRPCClient } from './internal/json-rpc-client'
+import { RPCClientEvent, IJSONRPCClient } from './internal/json-rpc-client'
 
 interface ITxHandlerResult {
   code?: number
@@ -79,6 +73,8 @@ export interface IClientErrorEventArgs extends IClientEventArgs {
 
 /** Generic event containing data emitted by smart contracts. */
 export interface IChainEventArgs extends IClientEventArgs {
+  /** Id of the message only used by EVM events */
+  id: string
   kind: ClientEvent.Contract
   /** Address of the contract that emitted the event. */
   contractAddress: Address
@@ -92,7 +88,7 @@ export interface IChainEventArgs extends IClientEventArgs {
    */
   data: Uint8Array
   /** Hash that identifies the uniqueness of the transaction */
-  transactionHash: string
+  transactionHash: Uint8Array
   /** Topics subscribed on events */
   topics: Array<string>
 }
@@ -456,15 +452,9 @@ export class Client extends EventEmitter {
    * @return boolean If true the filter is removed with success
    */
   async uninstallEvmFilterAsync(id: string): Promise<boolean | null> {
-    const result = await this._readClient.sendAsync<string>('uninstallevmfilter', {
+    return this._readClient.sendAsync<boolean>('uninstallevmfilter', {
       id
     })
-
-    if (result) {
-      return true
-    } else {
-      return null
-    }
   }
 
   /**
@@ -473,7 +463,7 @@ export class Client extends EventEmitter {
    * @param num Integer of a block number
    * @param full If true it returns the full transaction objects, if false only the hashes of the transactions
    */
-  async getEvmBlockByNumberAsync(num: number, full: boolean = true): Promise<EthBlockInfo | null> {
+  async getEvmBlockByNumberAsync(num: string, full: boolean = true): Promise<EthBlockInfo | null> {
     const result = await this._readClient.sendAsync<string>('getevmblockbynumber', {
       number: num,
       full
@@ -501,6 +491,34 @@ export class Client extends EventEmitter {
     } else {
       return null
     }
+  }
+
+  /**
+   * It works by subscribing to particular events. The node will return a subscription id.
+   * For each event that matches the subscription a notification with relevant data is send
+   * together with the subscription id.
+   *
+   * @param method Method selected to the filter
+   * @param filter JSON string of the filter
+   */
+  async evmSubscribe(method: string, filter: string): Promise<string | null> {
+    return this._readClient.sendAsync<string>('evmsubscribe', {
+      method,
+      filter
+    })
+  }
+
+  /**
+   * Subscriptions are cancelled method and the subscription id as first parameter.
+   * It returns a bool indicating if the subscription was cancelled successful.
+   *
+   * @param id Id of subscription previously created
+   * @return boolean If true the subscription is removed with success
+   */
+  async evmUnsubscribe(id: string): Promise<boolean> {
+    return this._readClient.sendAsync<boolean>('evmunsubscribe', {
+      id
+    })
   }
 
   /**
@@ -547,6 +565,7 @@ export class Client extends EventEmitter {
       // Ugh, no built-in JSON->Protobuf marshaller apparently
       // https://github.com/google/protobuf/issues/1591 so gotta do this manually
       const eventArgs: IChainEventArgs = {
+        id: event.id,
         kind: ClientEvent.Contract,
         url,
         contractAddress: new Address(
@@ -560,7 +579,7 @@ export class Client extends EventEmitter {
         blockHeight: result.block_height,
         data: B64ToUint8Array(result.encoded_body),
         topics: result.topics,
-        transactionHash: result.tx_hash
+        transactionHash: B64ToUint8Array(result.tx_hash)
       }
       this.emit(ClientEvent.Contract, eventArgs)
     }
