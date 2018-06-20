@@ -22,6 +22,7 @@ export interface IEventData {
 }
 
 export interface IJSONRPCEvent {
+  id: string
   error?: IJSONRPCError
   result?: IEventData
 }
@@ -90,6 +91,7 @@ export class WSRPCClient extends EventEmitter {
         // javascript are truly private... so we'll just handle those event message ourselves ;)
         ;((this._client as any).socket as EventEmitter).on('message', this._onEventMessage)
         if (this._client.ready) {
+          log('Subscribe for events')
           this._client
             .call('subevents', { topics: null }, this.requestTimeout)
             .then(() => {
@@ -108,6 +110,7 @@ export class WSRPCClient extends EventEmitter {
           this._onEventMessage
         )
         if (this._client.ready) {
+          log('Unsubscribed for events')
           this._client
             .call('unsubevents', { topics: null }, this.requestTimeout)
             .then(() => {
@@ -185,7 +188,10 @@ export class WSRPCClient extends EventEmitter {
   private _onEventMessage = (message: string | ArrayBuffer): void => {
     const msgStr = message instanceof ArrayBuffer ? Buffer.from(message).toString() : message
     const msg = JSON.parse(msgStr)
-    if (msg.id === '0') {
+
+    // Events from native loomchain have the id equals 0
+    // Events from EVM have the id from the evmsubscribe command
+    if (msg.id === '0' || /^0x.+$/.test(msg.id)) {
       this.emit(RPCClientEvent.Message, this.url, msg)
     }
   }

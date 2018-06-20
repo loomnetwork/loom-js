@@ -91,12 +91,28 @@ test('LoomProvider', async t => {
     const ethNewBlockByNumberResult = await loomProvider.sendAsync({
       id,
       method: 'eth_getBlockByNumber',
-      params: [CryptoUtils.hexToNumber(ethBlockNumber.result)]
+      params: [`${CryptoUtils.hexToNumber(ethBlockNumber.result)}`]
     })
 
     t.equal(ethNewBlockFilterResult.id, id, `Id for eth_getBlockByNumber should be equal ${id}`)
     t.assert(
       ethNewBlockByNumberResult.result,
+      'Block should be returned from eth_getBlockByNumber'
+    )
+
+    const ethNewBlockByNumberResultLatest = await loomProvider.sendAsync({
+      id,
+      method: 'eth_getBlockByNumber',
+      params: ['latest', false]
+    })
+
+    t.equal(
+      ethNewBlockByNumberResultLatest.id,
+      id,
+      `Id for eth_getBlockByNumber should be equal ${id}`
+    )
+    t.assert(
+      ethNewBlockByNumberResultLatest.result,
       'Block should be returned from eth_getBlockByNumber'
     )
 
@@ -200,11 +216,10 @@ test('LoomProvider', async t => {
       params: ['logs', { topics: ['0x1'] }]
     })
 
-    // Until the complete support
-    t.deepEqual(
-      ethSubscribeResult,
-      { id: 1, jsonrpc: '2.0', result: '0x1' },
-      'Hex identification for eth_subscribe should be 0x1'
+    t.equal(ethSubscribeResult.id, id, `Id for eth_subscribe should be equal ${id}`)
+    t.assert(
+      /0x.+/.test(ethSubscribeResult.result),
+      'Hex identification should be returned for eth_subscribe command'
     )
 
     const ethUninstallFilter = await loomProvider.sendAsync({
@@ -213,12 +228,8 @@ test('LoomProvider', async t => {
       params: ['0x1']
     })
 
-    // Until the complete support
-    t.deepEqual(
-      ethUninstallFilter,
-      { id: 1, jsonrpc: '2.0', result: true },
-      'Return from eth_uninstallFilter should be true'
-    )
+    t.equal(ethUninstallFilter.id, id, `Id for eth_subscribe should be equal ${id}`)
+    t.equal(ethUninstallFilter.result, true, 'Uninstall filter should return true')
 
     client.disconnect()
   } catch (err) {

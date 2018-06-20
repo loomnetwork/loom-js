@@ -36,6 +36,8 @@ const Web3 = require('web3')
  *
  */
 
+const timeout = (ms: number) => new Promise(res => setTimeout(res, ms))
+
 test('LoomProvider + Web3', async t => {
   t.plan(3)
   try {
@@ -82,7 +84,7 @@ test('LoomProvider + Web3', async t => {
     const result = await deployContract(loomProvider, contractData)
 
     const contract = new web3.eth.Contract(ABI, result.contractAddress, { from })
-    const newValue = 2
+    const newValue = 10
 
     contract.events.NewValueSet({}, (err: Error, event: any) => {
       if (err) t.error(err)
@@ -95,11 +97,14 @@ test('LoomProvider + Web3', async t => {
       }
     })
 
+    await timeout(1000)
+
     const tx = await contract.methods.set(newValue).send()
     t.equal(tx.status, true, 'SimpleStore.set should return correct status')
 
     const resultOfGet = await contract.methods.get().call()
     t.equal(+resultOfGet, newValue, `SimpleStore.get should return correct value`)
+
     client.disconnect()
   } catch (err) {
     console.log(err)

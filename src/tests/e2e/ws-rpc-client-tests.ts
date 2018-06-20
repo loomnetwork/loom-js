@@ -3,7 +3,6 @@ import test from 'tape'
 import { WSRPCClient } from '../../internal/ws-rpc-client'
 import { RPCClientEvent } from '../../internal/json-rpc-client'
 import { getTestUrls } from '../helpers'
-import { createJSONRPCClient } from '../../rpc-client-factory'
 import { DualRPCClient } from '../../internal/dual-rpc-client'
 
 function closeSocket(client: WSRPCClient) {
