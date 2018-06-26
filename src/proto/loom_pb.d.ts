@@ -563,6 +563,76 @@ export namespace EvmTxReceipt {
   }
 }
 
+export class EvmTxObject extends jspb.Message {
+  getHash(): Uint8Array | string;
+  getHash_asU8(): Uint8Array;
+  getHash_asB64(): string;
+  setHash(value: Uint8Array | string): void;
+
+  getNonce(): number;
+  setNonce(value: number): void;
+
+  getBlockHash(): Uint8Array | string;
+  getBlockHash_asU8(): Uint8Array;
+  getBlockHash_asB64(): string;
+  setBlockHash(value: Uint8Array | string): void;
+
+  getBlockNumber(): number;
+  setBlockNumber(value: number): void;
+
+  getTransactionIndex(): number;
+  setTransactionIndex(value: number): void;
+
+  getFrom(): Uint8Array | string;
+  getFrom_asU8(): Uint8Array;
+  getFrom_asB64(): string;
+  setFrom(value: Uint8Array | string): void;
+
+  getTo(): Uint8Array | string;
+  getTo_asU8(): Uint8Array;
+  getTo_asB64(): string;
+  setTo(value: Uint8Array | string): void;
+
+  getValue(): number;
+  setValue(value: number): void;
+
+  getGasPrice(): number;
+  setGasPrice(value: number): void;
+
+  getGas(): number;
+  setGas(value: number): void;
+
+  getInput(): Uint8Array | string;
+  getInput_asU8(): Uint8Array;
+  getInput_asB64(): string;
+  setInput(value: Uint8Array | string): void;
+
+  serializeBinary(): Uint8Array;
+  toObject(includeInstance?: boolean): EvmTxObject.AsObject;
+  static toObject(includeInstance: boolean, msg: EvmTxObject): EvmTxObject.AsObject;
+  static extensions: {[key: number]: jspb.ExtensionFieldInfo<jspb.Message>};
+  static extensionsBinary: {[key: number]: jspb.ExtensionFieldBinaryInfo<jspb.Message>};
+  static serializeBinaryToWriter(message: EvmTxObject, writer: jspb.BinaryWriter): void;
+  static deserializeBinary(bytes: Uint8Array): EvmTxObject;
+  static deserializeBinaryFromReader(message: EvmTxObject, reader: jspb.BinaryReader): EvmTxObject;
+}
+
+export namespace EvmTxObject {
+  export type AsObject = {
+    hash: Uint8Array | string,
+    nonce: number,
+    blockHash: Uint8Array | string,
+    blockNumber: number,
+    transactionIndex: number,
+    from: Uint8Array | string,
+    to: Uint8Array | string,
+    value: number,
+    gasPrice: number,
+    gas: number,
+    input: Uint8Array | string,
+  }
+}
+
 export class EthBlockInfo extends jspb.Message {
   getNumber(): number;
   setNumber(value: number): void;

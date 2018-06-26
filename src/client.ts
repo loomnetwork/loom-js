@@ -3,7 +3,7 @@ import { Message } from 'google-protobuf'
 import EventEmitter from 'events'
 import retry from 'retry'
 
-import { VMType, EvmTxReceipt, EthBlockInfo } from './proto/loom_pb'
+import { VMType, EvmTxReceipt, EvmTxObject, EthBlockInfo } from './proto/loom_pb'
 import { Uint8ArrayToB64, B64ToUint8Array, bufferToProtobufBytes } from './crypto-utils'
 import { Address, LocalAddress } from './address'
 import { WSRPCClient, IJSONRPCEvent } from './internal/ws-rpc-client'
@@ -330,6 +330,23 @@ export class Client extends EventEmitter {
     })
     if (result) {
       return EvmTxReceipt.deserializeBinary(bufferToProtobufBytes(B64ToUint8Array(result)))
+    } else {
+      return null
+    }
+  }
+
+  /**
+   * Returns the information about a transaction requested by transaction hash
+   *
+   * @param txHash Transaction hash returned by call transaction.
+   * @return EvmTxObject The corresponding transaction object data.
+   */
+  async getEvmTxByHashAsync(txHash: Uint8Array): Promise<EvmTxObject | null> {
+    const result = await this._readClient.sendAsync<string>('getevmtransactionbyhash', {
+      txHash: Uint8ArrayToB64(txHash)
+    })
+    if (result) {
+      return EvmTxObject.deserializeBinary(bufferToProtobufBytes(B64ToUint8Array(result)))
     } else {
       return null
     }
