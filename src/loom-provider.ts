@@ -282,7 +282,7 @@ export class LoomProvider {
 
   private async _ethBlockNumber() {
     const blockNumber = await this._client.getBlockHeightAsync()
-    return numberToHex(+blockNumber)
+    return numberToHex(blockNumber)
   }
 
   private async _ethCall(payload: IEthRPCPayload) {
@@ -405,7 +405,7 @@ export class LoomProvider {
     const method = payload.params[0]
     const filter = JSON.stringify(payload.params[1] || {})
 
-    const result = await this._client.evmSubscribe(method, filter)
+    const result = await this._client.evmSubscribeAsync(method, filter)
     if (!result) {
       throw Error('Subscribe filter failed')
     }
@@ -418,7 +418,7 @@ export class LoomProvider {
   }
 
   private _ethUnsubscribe(payload: IEthRPCPayload) {
-    return this._client.evmUnsubscribe(payload.params[0])
+    return this._client.evmUnsubscribeAsync(payload.params[0])
   }
 
   private _netVersion() {
@@ -591,7 +591,7 @@ export class LoomProvider {
           params: {
             subscription: msgEvent.id,
             result: {
-              transactionHash: bytesToHexAddrLC(msgEvent.transactionHash),
+              transactionHash: bytesToHexAddrLC(msgEvent.transactionHashBytes),
               address: msgEvent.contractAddress.local.toString(),
               type: 'mined',
               data: bytesToHexAddrLC(msgEvent.data),
