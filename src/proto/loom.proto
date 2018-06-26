@@ -115,6 +115,20 @@ message EvmTxReceipt {
     bytes tx_hash = 10;
 }
 
+message EvmTxObject {
+    bytes hash = 1;                 // : DATA, 32 Bytes - hash of the transaction.
+    uint64 nonce = 2;                // : QUANTITY - the number of transactions made by the sender prior to this one.
+    bytes block_hash = 3;           // : DATA, 32 Bytes - hash of the block where this transaction was in. null when its pending.
+    int64 block_number = 4;         // : QUANTITY - block number where this transaction was in. null when its pending.
+    int32 transaction_index = 5;    // : QUANTITY - integer of the transactions index position in the block. null when its pending.
+    bytes from = 6;                 // : DATA, 20 Bytes - address of the sender.
+    bytes to = 7;                   // : DATA, 20 Bytes - address of the receiver. null when its a contract creation transaction.
+    int64 value = 8;                // : QUANTITY - value transferred in Wei.
+    int64 gas_price = 9;            // : QUANTITY - gas price provided by the sender in Wei.
+    int64 gas = 10;                 // : QUANTITY - gas provided by the sender.
+    bytes input = 11;               //: DATA - the data send along with the transaction.
+}
+
 message EthBlockInfo {
     int64 number = 1;                   //: QUANTITY - the block number. null when its pending block.
     bytes hash = 2;                     //: DATA, 32 Bytes - hash of the block. null when its pending block.

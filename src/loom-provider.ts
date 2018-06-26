@@ -35,6 +35,20 @@ export interface IEthReceipt {
   status: string
 }
 
+export interface IEthTransaction {
+  hash: string
+  nonce: string
+  blockHash: string
+  blockNumber: string
+  transactionIndex: string
+  from: string
+  to: string
+  value: string
+  gasPrice: string
+  gas: string
+  input: string
+}
+
 export interface IEthBlock {
   blockNumber: string
   transactionHash: string
@@ -229,6 +243,9 @@ export class LoomProvider {
         case 'eth_getLogs':
           return this._ethGetLogs
 
+        case 'eth_getTransactionByHash':
+          return this._ethGetTransactionByHash
+
         case 'eth_getTransactionReceipt':
           return this._ethGetTransactionReceipt
 
@@ -353,6 +370,10 @@ export class LoomProvider {
 
   private async _ethGetLogs(payload: IEthRPCPayload) {
     return this._getLogs(JSON.stringify(payload.params[0]))
+  }
+
+  private async _ethGetTransactionByHash(payload: IEthRPCPayload) {
+    return this._getTransaction(payload.params[0])
   }
 
   private async _ethGetTransactionReceipt(payload: IEthRPCPayload) {
@@ -546,6 +567,40 @@ export class LoomProvider {
       logs,
       status: numberToHexLC(receipt.getStatus())
     } as IEthReceipt
+  }
+
+  private async _getTransaction(txHash: string): Promise<IEthTransaction> {
+    const data = Buffer.from(txHash.substring(2), 'hex')
+    const transaction = await this._client.getEvmTxByHashAsync(bufferToProtobufBytes(data))
+    if (!transaction) {
+      throw Error('Transaction cannot be empty')
+    }
+
+    const hash = bytesToHexAddrLC(transaction.getHash_asU8())
+    const nonce = numberToHexLC(transaction.getNonce())
+    const transactionIndex = numberToHexLC(transaction.getTransactionIndex())
+    const blockHash = bytesToHexAddrLC(transaction.getBlockHash_asU8())
+    const blockNumber = numberToHexLC(transaction.getBlockNumber())
+    const from = bytesToHexAddrLC(transaction.getFrom_asU8())
+    const to = bytesToHexAddrLC(transaction.getTo_asU8())
+    const value = numberToHexLC(transaction.getValue())
+    const gasPrice = numberToHexLC(transaction.getGasPrice())
+    const gas = numberToHexLC(transaction.getGas())
+    const input = '0x0'
+
+    return {
+      hash,
+      nonce,
+      blockHash,
+      blockNumber,
+      transactionIndex,
+      from,
+      to,
+      value,
+      gasPrice,
+      gas,
+      input
+    } as IEthTransaction
   }
 
   private async _getReceipt(txHash: string): Promise<IEthReceipt> {

@@ -210,6 +210,18 @@ test('LoomProvider', async t => {
       'Status for eth_getTransactionReceipt should be 0x1'
     )
 
+    const ethGetTransactionByHashResult = await loomProvider.sendAsync({
+      id,
+      method: 'eth_getTransactionByHash',
+      params: [ethSendTransactionResult.result]
+    })
+
+    t.equal(ethGetTransactionByHashResult.id, id, `Id for eth_subscribe should be equal ${id}`)
+    t.assert(
+      /0x.+/.test(ethGetTransactionByHashResult.result.hash),
+      'Hex identification should be returned for eth_getTransactionByHash command'
+    )
+
     const ethSubscribeResult = await loomProvider.sendAsync({
       id,
       method: 'eth_subscribe',
