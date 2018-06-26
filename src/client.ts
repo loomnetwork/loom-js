@@ -88,7 +88,9 @@ export interface IChainEventArgs extends IClientEventArgs {
    */
   data: Uint8Array
   /** Hash that identifies the uniqueness of the transaction */
-  transactionHash: Uint8Array
+  transactionHash: string
+  /** Same as transactionHash in bytes */
+  transactionHashBytes: Uint8Array
   /** Topics subscribed on events */
   topics: Array<string>
 }
@@ -498,10 +500,20 @@ export class Client extends EventEmitter {
    * For each event that matches the subscription a notification with relevant data is send
    * together with the subscription id.
    *
-   * @param method Method selected to the filter
+   * Possible methods:
+   *  * "NewHeads": Fires a notification each time a new header is appended to the chain
+   *  * "Logs": Returns logs that are included in new imported blocks and match the given filter criteria
+   *
+   * Example of a "filter" (JSON String) with method "logs":
+   *  {
+   *    "address": "0xa520fe7702b96808f7bbc0d4a233ed1468216cfd",
+   *    "topics": ["0x238a0cb8bb633d06981248b822e7bd33c2a35a6089241d099fa519e361cab902"]
+   *  }
+   *
+   * @param method Method selected to the filter, can be "newHeads" or "logs"
    * @param filter JSON string of the filter
    */
-  async evmSubscribe(method: string, filter: string): Promise<string | null> {
+  async evmSubscribeAsync(method: string, filter: string): Promise<string> {
     return this._readClient.sendAsync<string>('evmsubscribe', {
       method,
       filter
@@ -515,7 +527,7 @@ export class Client extends EventEmitter {
    * @param id Id of subscription previously created
    * @return boolean If true the subscription is removed with success
    */
-  async evmUnsubscribe(id: string): Promise<boolean> {
+  async evmUnsubscribeAsync(id: string): Promise<boolean> {
     return this._readClient.sendAsync<boolean>('evmunsubscribe', {
       id
     })
@@ -579,7 +591,8 @@ export class Client extends EventEmitter {
         blockHeight: result.block_height,
         data: B64ToUint8Array(result.encoded_body),
         topics: result.topics,
-        transactionHash: B64ToUint8Array(result.tx_hash)
+        transactionHash: result.tx_hash,
+        transactionHashBytes: B64ToUint8Array(result.tx_hash)
       }
       this.emit(ClientEvent.Contract, eventArgs)
     }
