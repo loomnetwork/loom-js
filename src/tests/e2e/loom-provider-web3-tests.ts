@@ -50,15 +50,15 @@ test('LoomProvider + Web3', async t => {
     const web3 = new Web3(loomProvider)
 
     const contractData =
-      '0x608060405234801561001057600080fd5b50600a600081905550610114806100286000396000f3006080604052600436106049576000357c0100000000000000000000000000000000000000000000000000000000900463ffffffff16806360fe47b114604e5780636d4ce63c14606c575b600080fd5b606a600480360381019080803590602001909291905050506094565b005b348015607757600080fd5b50607e60df565b6040518082815260200191505060405180910390f35b806000819055507f2afa03c814297ffc234ff967b6f0863d3c358be243103f20217c8d3a4d39f9c060005434604051808381526020018281526020019250505060405180910390a150565b600080549050905600a165627a7a72305820deed812a797567167162d0af3ae5f0528c39bea0620e32b28e243628cd655dc40029'
+      '0x608060405234801561001057600080fd5b50600a60008190555061010e806100286000396000f3006080604052600436106049576000357c0100000000000000000000000000000000000000000000000000000000900463ffffffff16806360fe47b114604e5780636d4ce63c146078575b600080fd5b348015605957600080fd5b5060766004803603810190808035906020019092919050505060a0565b005b348015608357600080fd5b50608a60d9565b6040518082815260200191505060405180910390f35b806000819055506000547fb922f092a64f1a076de6f21e4d7c6400b6e55791cc935e7bb8e7e90f7652f15b60405160405180910390a250565b600080549050905600a165627a7a72305820a0c47f165e2cec710132820ad7885263bdd653e84993ec8f1bbb8943e6eeb1060029'
     const ABI = [
       {
         constant: false,
         inputs: [{ name: '_value', type: 'uint256' }],
         name: 'set',
         outputs: [],
-        payable: true,
-        stateMutability: 'payable',
+        payable: false,
+        stateMutability: 'nonpayable',
         type: 'function'
       },
       {
@@ -73,27 +73,22 @@ test('LoomProvider + Web3', async t => {
       { inputs: [], payable: false, stateMutability: 'nonpayable', type: 'constructor' },
       {
         anonymous: false,
-        inputs: [
-          { indexed: false, name: '_value', type: 'uint256' },
-          { indexed: false, name: '_msg_value', type: 'uint256' }
-        ],
+        inputs: [{ indexed: true, name: '_value', type: 'uint256' }],
         name: 'NewValueSet',
         type: 'event'
       }
     ]
+
     const result = await deployContract(loomProvider, contractData)
 
     const contract = new web3.eth.Contract(ABI, result.contractAddress, { from })
-    const newValue = 10
+    const newValue = 1
 
-    contract.events.NewValueSet({}, (err: Error, event: any) => {
+    contract.events.NewValueSet({ filter: { _value: 2 } }, (err: Error, event: any) => {
+      console.log(err, event)
       if (err) t.error(err)
       else {
-        t.equal(
-          event.returnValues._value,
-          `${newValue}`,
-          `Should event has _value equal ${newValue}`
-        )
+        t.fail('should not been dispatched')
       }
     })
 

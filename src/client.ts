@@ -609,7 +609,7 @@ export class Client extends EventEmitter {
           new LocalAddress(B64ToUint8Array(result.caller.local))
         ),
         blockHeight: result.block_height,
-        data: B64ToUint8Array(result.encoded_body),
+        data: B64ToUint8Array(result.encoded_body || '0x0'),
         topics: result.topics,
         transactionHash: result.tx_hash,
         transactionHashBytes: B64ToUint8Array(result.tx_hash)
