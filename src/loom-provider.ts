@@ -647,6 +647,10 @@ export class LoomProvider {
             subscription: msgEvent.id,
             result: {
               transactionHash: bytesToHexAddrLC(msgEvent.transactionHashBytes),
+              logIndex: '0x0',
+              transactionIndex: '0x0',
+              blockHash: '0x0',
+              blockNumber: '0x0',
               address: msgEvent.contractAddress.local.toString(),
               type: 'mined',
               data: bytesToHexAddrLC(msgEvent.data),
