@@ -369,7 +369,7 @@ export class LoomProvider {
   }
 
   private async _ethGetLogs(payload: IEthRPCPayload) {
-    return this._getLogs(JSON.stringify(payload.params[0]))
+    return this._getLogs(payload.params[0])
   }
 
   private async _ethGetTransactionByHash(payload: IEthRPCPayload) {
@@ -391,7 +391,7 @@ export class LoomProvider {
   }
 
   private async _ethNewFilter(payload: IEthRPCPayload) {
-    const result = await this._client.newEvmFilterAsync(JSON.stringify(payload.params[0]))
+    const result = await this._client.newEvmFilterAsync(payload.params[0])
 
     if (!result) {
       throw Error('Cannot create new filter on eth_newFilter')
@@ -424,9 +424,9 @@ export class LoomProvider {
 
   private async _ethSubscribe(payload: IEthRPCPayload) {
     const method = payload.params[0]
-    const filter = JSON.stringify(payload.params[1] || {})
+    const filterObject = payload.params[1] || {}
 
-    const result = await this._client.evmSubscribeAsync(method, filter)
+    const result = await this._client.evmSubscribeAsync(method, filterObject)
     if (!result) {
       throw Error('Subscribe filter failed')
     }
@@ -613,8 +613,8 @@ export class LoomProvider {
     return this._createReceiptResult(receipt)
   }
 
-  private async _getLogs(filter: string): Promise<any> {
-    const logsListAsyncResult = await this._client.getEvmLogsAsync(filter)
+  private async _getLogs(filterObject: Object): Promise<any> {
+    const logsListAsyncResult = await this._client.getEvmLogsAsync(filterObject)
 
     if (!logsListAsyncResult) {
       return []
