@@ -375,7 +375,8 @@ export class Client extends EventEmitter {
    * @param filter Filter terms
    * @return Uint8Array The corresponding result of the filter
    */
-  async getEvmLogsAsync(filter: string): Promise<Uint8Array | null> {
+  async getEvmLogsAsync(filterObject: Object): Promise<Uint8Array | null> {
+    const filter = JSON.stringify(filterObject)
     log(`Send filter ${filter} to getlogs`)
     const result = await this._readClient.sendAsync<string>('getevmlogs', {
       filter
@@ -397,7 +398,8 @@ export class Client extends EventEmitter {
    * @param filter Filter terms
    * @return Uint8Array The corresponding result of the filter
    */
-  async newEvmFilterAsync(filter: string): Promise<string | null> {
+  async newEvmFilterAsync(filterObject: Object): Promise<string | null> {
+    const filter = JSON.stringify(filterObject)
     log(`Send filter ${filter} to newfilter`)
     const result = await this._readClient.sendAsync<string>('newevmfilter', {
       filter
@@ -530,7 +532,8 @@ export class Client extends EventEmitter {
    * @param method Method selected to the filter, can be "newHeads" or "logs"
    * @param filter JSON string of the filter
    */
-  async evmSubscribeAsync(method: string, filter: string): Promise<string> {
+  async evmSubscribeAsync(method: string, filterObject: Object): Promise<string> {
+    const filter = JSON.stringify(filterObject)
     return this._readClient.sendAsync<string>('evmsubscribe', {
       method,
       filter
