@@ -16,23 +16,22 @@ const Web3 = require('web3')
  * pragma solidity ^0.4.22;
  *
  * contract SimpleStore {
- *   uint value;
+ *  uint value;
  *
- *   constructor() {
- *       value = 10;
- *   }
+ *  constructor() public {
+ *      value = 10;
+ *  }
  *
- *   event NewValueSet(uint _value);
+ *  event NewValueSet(uint indexed _value);
  *
- *   function set(uint _value) public {
- *     value = _value;
- *     emit NewValueSet(value);
- *   }
+ *  function set(uint _value) public {
+ *    value = _value;
+ *    emit NewValueSet(value);
+ *  }
  *
- *   function get() public view returns (uint) {
- *     return value;
- *   }
- * }
+ *  function get() public view returns (uint) {
+ *    return value;
+ *  }
  *
  */
 
