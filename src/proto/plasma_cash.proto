@@ -38,6 +38,14 @@ message GetBlockResponse {
     PlasmaBlock block = 1;
 }
 
+// This only originates from the validator
+message SubmitBlockToMainnetRequest {
+}
+
+message SubmitBlockToMainnetResponse {
+    bytes merkle_hash = 1; // Merkle root of Plasma block to be submitted to mainnet
+}
+
 message PlasmaTxRequest {
     PlasmaTx plasmatx = 1;
 }

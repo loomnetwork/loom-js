@@ -206,6 +206,44 @@ export namespace GetBlockResponse {
   }
 }
 
+export class SubmitBlockToMainnetRequest extends jspb.Message {
+  serializeBinary(): Uint8Array;
+  toObject(includeInstance?: boolean): SubmitBlockToMainnetRequest.AsObject;
+  static toObject(includeInstance: boolean, msg: SubmitBlockToMainnetRequest): SubmitBlockToMainnetRequest.AsObject;
+  static extensions: {[key: number]: jspb.ExtensionFieldInfo<jspb.Message>};
+  static extensionsBinary: {[key: number]: jspb.ExtensionFieldBinaryInfo<jspb.Message>};
+  static serializeBinaryToWriter(message: SubmitBlockToMainnetRequest, writer: jspb.BinaryWriter): void;
+  static deserializeBinary(bytes: Uint8Array): SubmitBlockToMainnetRequest;
+  static deserializeBinaryFromReader(message: SubmitBlockToMainnetRequest, reader: jspb.BinaryReader): SubmitBlockToMainnetRequest;
+}
+
+export namespace SubmitBlockToMainnetRequest {
+  export type AsObject = {
+  }
+}
+
+export class SubmitBlockToMainnetResponse extends jspb.Message {
+  getMerkleHash(): Uint8Array | string;
+  getMerkleHash_asU8(): Uint8Array;
+  getMerkleHash_asB64(): string;
+  setMerkleHash(value: Uint8Array | string): void;
+
+  serializeBinary(): Uint8Array;
+  toObject(includeInstance?: boolean): SubmitBlockToMainnetResponse.AsObject;
+  static toObject(includeInstance: boolean, msg: SubmitBlockToMainnetResponse): SubmitBlockToMainnetResponse.AsObject;
+  static extensions: {[key: number]: jspb.ExtensionFieldInfo<jspb.Message>};
+  static extensionsBinary: {[key: number]: jspb.ExtensionFieldBinaryInfo<jspb.Message>};
+  static serializeBinaryToWriter(message: SubmitBlockToMainnetResponse, writer: jspb.BinaryWriter): void;
+  static deserializeBinary(bytes: Uint8Array): SubmitBlockToMainnetResponse;
+  static deserializeBinaryFromReader(message: SubmitBlockToMainnetResponse, reader: jspb.BinaryReader): SubmitBlockToMainnetResponse;
+}
+
+export namespace SubmitBlockToMainnetResponse {
+  export type AsObject = {
+    merkleHash: Uint8Array | string,
+  }
+}
+
 export class PlasmaTxRequest extends jspb.Message {
   hasPlasmatx(): boolean;
   clearPlasmatx(): void;

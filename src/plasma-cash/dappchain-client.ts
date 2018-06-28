@@ -10,7 +10,8 @@ import {
   GetBlockResponse,
   PlasmaBlock,
   PlasmaTx,
-  PlasmaTxRequest
+  PlasmaTxRequest,
+  SubmitBlockToMainnetRequest
 } from '../proto/plasma_cash_pb'
 import { bufferToProtobufBytes } from '../crypto-utils'
 
@@ -56,6 +57,9 @@ export class DAppChainPlasmaClient {
     return this._plasmaContract
   }
 
+  /**
+   * Retrieves the latest finalized Plasma block from the DAppChain.
+   */
   async getCurrentPlasmaBlockNumAsync(): Promise<BN> {
     const contract = await this._resolvePlasmaContractAsync()
     const req = new GetCurrentBlockRequest()
@@ -67,6 +71,11 @@ export class DAppChainPlasmaClient {
     return unmarshalBigUInt(resp.getBlockHeight_asU8())
   }
 
+  /**
+   * Retrieves a Plasma block from the DAppChain.
+   *
+   * @param blockNum Height of the block to be retrieved.
+   */
   async getPlasmaBlockAtAsync(blockNum: BN): Promise<PlasmaCashBlock> {
     const contract = await this._resolvePlasmaContractAsync()
     const req = new GetBlockRequest()
@@ -78,6 +87,9 @@ export class DAppChainPlasmaClient {
     return unmarshalPlasmaBlock(resp.getBlock())
   }
 
+  /**
+   * Transfers a Plasma token from one entity to another.
+   */
   async sendTxAsync(params: {
     slot: BN
     prevBlockNum: BN
@@ -97,8 +109,16 @@ export class DAppChainPlasmaClient {
     await contract.callAsync('PlasmaTxRequest', req)
   }
 
-  async debugSubmitBlockAsync(): Promise<void> {
-    throw new Error('Not Implemented Yet')
+  /**
+   * Requests that the DAppChain prepares a Plasma block for submission to Ethereum.
+   *
+   * This method is only provided for debugging & testing, in practice only DAppChain Plasma Oracles
+   * will be permitted to make this request.
+   */
+  async debugFinalizeBlockAsync(): Promise<void> {
+    const contract = await this._resolvePlasmaContractAsync()
+    const req = new SubmitBlockToMainnetRequest()
+    await contract.callAsync('SubmitBlockToMainnet', req)
   }
 }
 
