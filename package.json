@@ -21,6 +21,7 @@
     "test:browser": "yarn proto && tsc && webpack --config webpack.unit.tests.config.js | tap-spec",
     "e2e:node": "yarn proto && tsc && tape -r dotenv/config dotenv_config_path=./.env.test dist/tests/e2e_tests.js | tap-spec",
     "e2e:browser": "yarn proto && tsc && webpack --config webpack.e2e.test.config.js | tap-spec",
+    "e2e:plasma": "yarn proto && tsc && tape -r dotenv/config dotenv_config_path=./.env.test dist/tests/e2e/plasma-cooperative-exits-tests.js | tap-spec",
     "proto": "node ./scripts/gen-proto.js",
     "prepublish": "yarn proto && yarn build && webpack"
   },
