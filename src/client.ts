@@ -73,7 +73,7 @@ export interface IClientErrorEventArgs extends IClientEventArgs {
 
 /** Generic event containing data emitted by smart contracts. */
 export interface IChainEventArgs extends IClientEventArgs {
-  /** Id of the message only used by EVM events */
+  /** Identifier (currently only used by EVM events). */
   id: string
   kind: ClientEvent.Contract
   /** Address of the contract that emitted the event. */
@@ -472,7 +472,7 @@ export class Client extends EventEmitter {
    * @param id Id of filter previously created
    * @return boolean If true the filter is removed with success
    */
-  async uninstallEvmFilterAsync(id: string): Promise<boolean | null> {
+  uninstallEvmFilterAsync(id: string): Promise<boolean | null> {
     return this._readClient.sendAsync<boolean>('uninstallevmfilter', {
       id
     })
@@ -532,7 +532,7 @@ export class Client extends EventEmitter {
    * @param method Method selected to the filter, can be "newHeads" or "logs"
    * @param filter JSON string of the filter
    */
-  async evmSubscribeAsync(method: string, filterObject: Object): Promise<string> {
+  evmSubscribeAsync(method: string, filterObject: Object): Promise<string> {
     const filter = JSON.stringify(filterObject)
     return this._readClient.sendAsync<string>('evmsubscribe', {
       method,
@@ -547,7 +547,7 @@ export class Client extends EventEmitter {
    * @param id Id of subscription previously created
    * @return boolean If true the subscription is removed with success
    */
-  async evmUnsubscribeAsync(id: string): Promise<boolean> {
+  evmUnsubscribeAsync(id: string): Promise<boolean> {
     return this._readClient.sendAsync<boolean>('evmunsubscribe', {
       id
     })
@@ -558,7 +558,7 @@ export class Client extends EventEmitter {
    *
    * @return The block height
    */
-  async getBlockHeightAsync(): Promise<number> {
+  getBlockHeightAsync(): Promise<number> {
     return this._readClient.sendAsync<number>('getblockheight', {})
   }
 
