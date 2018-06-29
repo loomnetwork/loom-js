@@ -1,14 +1,14 @@
 import BN from 'bn.js'
 import Web3 from 'web3'
 
-const web3 = new Web3()
-
 export class EthereumPlasmaClient {
+  private _web3: Web3
   private _plasmaContract: any // TODO: figure out how to type this properly
 
-  constructor(plasmaContractAddr: string) {
-    const plasmaABI = require('./contracts/plasma-cash-abi.json')
-    this._plasmaContract = new web3.eth.Contract(plasmaABI)
+  constructor(web3: Web3, plasmaContractAddr: string) {
+    this._web3 = web3
+    const plasmaABI = require(`./contracts/plasma-cash-abi.json`)
+    this._plasmaContract = new this._web3.eth.Contract(plasmaABI, plasmaContractAddr)
   }
 
   startExitAsync(params: { slot: BN; sendOpts: any }): Promise<any> {
@@ -21,4 +21,14 @@ export class EthereumPlasmaClient {
 
   withdrawAsync() {}
   withdrawBondsAsync() {}
+
+  /**
+   * Submits a Plasma block to the Plasma Cash Solidity contract on Ethereum.
+   *
+   * This method is only provided for debugging & testing, in practice only DAppChain Plasma Oracles
+   * will be permitted to make this request.
+   */
+  debugSubmitBlockAsync() {
+    return Promise.resolve()
+  }
 }

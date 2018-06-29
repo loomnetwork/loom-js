@@ -2,7 +2,8 @@ import BN from 'bn.js'
 
 import { Client } from '../client'
 import { Contract } from '../contract'
-import { Address } from '../address'
+import { Address, LocalAddress } from '../address'
+import { PlasmaCashTx } from './plasma-cash-tx'
 import {
   GetCurrentBlockRequest,
   GetCurrentBlockResponse,
@@ -26,32 +27,28 @@ export class PlasmaCashBlock {
     return this._txs
   }
 }
-export class PlasmaCashTx {
-  slot: BN
-  prevBlockNum: BN
-  denomination: BN
-  newOwner: Address
-  proof: Uint8Array
-}
 
 export class DAppChainPlasmaClient {
-  private _dappClient: Client
-  private _plasmaContract: Contract
+  private _dAppClient: Client
+  private _plasmaContract?: Contract
   private _callerAddress: Address
 
-  constructor(params: { dappClient: Client; callerAddress: Address }) {
-    this._dappClient = params.dappClient
+  constructor(params: { dAppClient: Client; callerAddress: Address }) {
+    this._dAppClient = params.dAppClient
     this._callerAddress = params.callerAddress
   }
 
   private async _resolvePlasmaContractAsync(): Promise<Contract> {
     if (!this._plasmaContract) {
-      const addr = await this._dappClient.getContractAddressAsync('plasmacash')
+      const addr = await this._dAppClient.getContractAddressAsync('plasmacash')
+      if (!addr) {
+        throw new Error('Failed to resolve Plasma Cash contract address.')
+      }
       this._plasmaContract = new Contract({
         contractAddr: addr,
         contractName: 'plasmacash',
         callerAddr: this._callerAddress,
-        client: this._dappClient
+        client: this._dAppClient
       })
     }
     return this._plasmaContract
@@ -84,28 +81,27 @@ export class DAppChainPlasmaClient {
       req,
       new GetBlockResponse()
     )
-    return unmarshalPlasmaBlock(resp.getBlock())
+    return unmarshalPlasmaBlock(resp.getBlock()!)
   }
 
   /**
    * Transfers a Plasma token from one entity to another.
    */
-  async sendTxAsync(params: {
-    slot: BN
-    prevBlockNum: BN
-    denomination: BN
-    newOwner: Address
-    sig: Uint8Array
-  }): Promise<void> {
+  async sendTxAsync(tx: PlasmaCashTx): Promise<void> {
+    if (!tx.sig) {
+      throw new Error('PlasmaCashTx must be signed before being sent to DAppChain')
+    }
     const contract = await this._resolvePlasmaContractAsync()
-    const tx = new PlasmaTx()
-    tx.setSlot(params.slot.toNumber())
-    tx.setPreviousBlock(marshalBigUInt(params.prevBlockNum))
-    tx.setDenomination(marshalBigUInt(params.denomination))
-    tx.setNewOwner(params.newOwner.MarshalPB())
-    tx.setSignature(bufferToProtobufBytes(params.sig))
+    const owner = new Address('eth', LocalAddress.fromHexString(tx.newOwner))
+    const pbTx = new PlasmaTx()
+    pbTx.setSlot(tx.slot.toNumber())
+    pbTx.setPreviousBlock(marshalBigUInt(tx.prevBlockNum))
+    pbTx.setDenomination(marshalBigUInt(tx.denomination))
+    pbTx.setNewOwner(owner.MarshalPB())
+    pbTx.setSignature(bufferToProtobufBytes(tx.sig))
+
     const req = new PlasmaTxRequest()
-    req.setPlasmatx(tx)
+    req.setPlasmatx(pbTx)
     await contract.callAsync('PlasmaTxRequest', req)
   }
 
@@ -136,11 +132,12 @@ function unmarshalPlasmaBlock(rawBlock: PlasmaBlock): PlasmaCashBlock {
 }
 
 function unmarshalPlasmaTx(rawTx: PlasmaTx): PlasmaCashTx {
-  const tx = new PlasmaCashTx()
-  tx.slot = new BN(rawTx.getSlot())
-  tx.prevBlockNum = unmarshalBigUInt(rawTx.getPreviousBlock_asU8())
-  tx.denomination = unmarshalBigUInt(rawTx.getDenomination_asU8())
-  tx.newOwner = Address.UmarshalPB(rawTx.getNewOwner())
-  tx.proof = rawTx.getProof_asU8()
+  const tx = new PlasmaCashTx({
+    slot: new BN(rawTx.getSlot()),
+    prevBlockNum: unmarshalBigUInt(rawTx.getPreviousBlock_asU8()),
+    denomination: unmarshalBigUInt(rawTx.getDenomination_asU8()),
+    newOwner: Address.UmarshalPB(rawTx.getNewOwner()!).local.toString(),
+    proof: rawTx.getProof_asU8()
+  })
   return tx
 }

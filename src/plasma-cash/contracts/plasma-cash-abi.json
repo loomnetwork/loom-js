@@ -72,20 +72,6 @@
     {
       "constant": true,
       "inputs": [],
-      "name": "authority",
-      "outputs": [
-        {
-          "name": "",
-          "type": "address"
-        }
-      ],
-      "payable": false,
-      "stateMutability": "view",
-      "type": "function"
-    },
-    {
-      "constant": true,
-      "inputs": [],
       "name": "currentBlock",
       "outputs": [
         {
@@ -332,16 +318,12 @@
           "type": "bytes"
         },
         {
-          "name": "sig",
+          "name": "signature",
           "type": "bytes"
         },
         {
-          "name": "prevTxIncBlock",
-          "type": "uint256"
-        },
-        {
-          "name": "exitingTxIncBlock",
-          "type": "uint256"
+          "name": "blocks",
+          "type": "uint256[2]"
         }
       ],
       "name": "startExit",
@@ -399,7 +381,7 @@
           "type": "bytes"
         },
         {
-          "name": "exitingTxBytes",
+          "name": "txBytes",
           "type": "bytes"
         },
         {
@@ -407,20 +389,16 @@
           "type": "bytes"
         },
         {
-          "name": "exitingTxInclusionProof",
+          "name": "txInclusionProof",
           "type": "bytes"
         },
         {
-          "name": "sig",
+          "name": "signature",
           "type": "bytes"
         },
         {
-          "name": "prevTxIncBlock",
-          "type": "uint256"
-        },
-        {
-          "name": "exitingTxIncBlock",
-          "type": "uint256"
+          "name": "blocks",
+          "type": "uint256[2]"
         }
       ],
       "name": "challengeBefore",
@@ -671,4 +649,4 @@
       "stateMutability": "view",
       "type": "function"
     }
-]
+  ]

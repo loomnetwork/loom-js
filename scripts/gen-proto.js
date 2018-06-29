@@ -8,6 +8,11 @@ shell.mkdir('-p', './dist/proto')
 // copy the proto so end users can import it from node_modules in their own proto files
 shell.cp('./src/proto/loom.proto', './dist/proto/loom.proto')
 shell.cp('./src/proto/plasma_cash.proto', './dist/proto/plasma_cash.proto')
+// FIXME: move this to a separate script since it doesn't have anything to do with protobufs
+shell.mkdir('-p', './dist/plasma-cash/contracts')
+shell.cp('./src/plasma-cash/contracts/plasma-cash-abi.json', './dist/plasma-cash/contracts/plasma-cash-abi.json')
+shell.mkdir('-p', './dist/tests/e2e/contracts')
+shell.cp('./src/tests/e2e/contracts/cards-abi.json', './dist/tests/e2e/contracts/cards-abi.json')
 
 shell.pushd('./src')
 try {

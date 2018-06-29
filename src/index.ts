@@ -18,3 +18,7 @@ export { CryptoUtils }
 
 export { IJSONRPCClient } from './internal/json-rpc-client'
 export { createJSONRPCClient, IJSONRPCProtocolOptions } from './rpc-client-factory'
+
+export { DAppChainPlasmaClient } from './plasma-cash/dappchain-client'
+export { EthereumPlasmaClient } from './plasma-cash/ethereum-client'
+export { PlasmaCashTx } from './plasma-cash/plasma-cash-tx'
