@@ -113,8 +113,8 @@ test('Exit of UTXO 2 (Coin 3) - Directly after its deposit', async t => {
 
   console.log('giving alice tokens')
   await cards.methods.register().send({ from: alice.ethAddress, gas: DEFAULT_GAS })
-  let balance = await cards.methods.balanceOf().call({ from: alice.ethAddress })
-  t.equal(balance.toNumber(), 5)
+  let balance = await cards.methods.balanceOf(alice.ethAddress).call()
+  t.equal(new BN(balance).toNumber(), 5)
 
   console.log('depositing alice tokens to plasma contract')
 
@@ -129,15 +129,15 @@ test('Exit of UTXO 2 (Coin 3) - Directly after its deposit', async t => {
 
   console.log('deposited alice tokens to plasma contract')
 
-  balance = await cards.methods.balanceOf().call({ from: alice.ethAddress })
+  balance = await cards.methods.balanceOf(alice.ethAddress).call()
   t.equal(
-    balance.toNumber(),
+    new BN(balance).toNumber(),
     ALICE_INITIAL_COINS - ALICE_DEPOSITED_COINS,
     'alice should have 2 tokens in cards contract'
   )
-  balance = await cards.methods.balanceOf().call({ from: ADDRESSES.root_chain })
+  balance = await cards.methods.balanceOf(ADDRESSES.root_chain).call()
   t.equal(
-    balance.toNumber(),
+    new BN(balance).toNumber(),
     ALICE_DEPOSITED_COINS,
     'plasma contract should have 3 tokens in cards contract'
   )
