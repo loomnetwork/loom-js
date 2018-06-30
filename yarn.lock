@@ -3452,6 +3452,10 @@ globby@^8.0.0:
     pify "^3.0.0"
     slash "^1.0.0"
 
+google-protobuf@3.6:
+  version "3.6.0"
+  resolved "https://registry.yarnpkg.com/google-protobuf/-/google-protobuf-3.6.0.tgz#e2bafb00c20a8734174d8f89e0a842709e2ceed0"
+
 google-protobuf@^3.5.0:
   version "3.5.0"
   resolved "https://registry.yarnpkg.com/google-protobuf/-/google-protobuf-3.5.0.tgz#b8cc63c74d83457bd8a9a904503c8efb26bca339"

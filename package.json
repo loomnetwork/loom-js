@@ -31,7 +31,7 @@
     "crypto-browserify": "^3.12.0",
     "debug": "^3.1.0",
     "ethereumjs-util": "^5.2.0",
-    "google-protobuf": "^3.5.0",
+    "google-protobuf": "3.6",
     "retry": "^0.12.0",
     "ripemd160": "^2.0.1",
     "rlp": "^2.1.0",

@@ -76,7 +76,10 @@ export function unmarshalPlasmaTxPB(rawTx: PlasmaTx): PlasmaCashTx {
 export function marshalPlasmaTxPB(tx: PlasmaCashTx): PlasmaTx {
   const owner = new Address('eth', LocalAddress.fromHexString(tx.newOwner))
   const pb = new PlasmaTx()
-  pb.setSlot(tx.slot.toNumber())
+  // TODO: protoc TypeScript plugin does't seem to understand annotations in .proto so the type
+  // definition is wrong for the slot, it's actually a string that represents a 64-bit number...
+  // should fix the plugin or use a different one.
+  pb.setSlot(tx.slot.toString(10) as any)
   pb.setPreviousBlock(marshalBigUIntPB(tx.prevBlockNum))
   pb.setDenomination(marshalBigUIntPB(tx.denomination))
   pb.setNewOwner(owner.MarshalPB())
