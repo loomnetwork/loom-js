@@ -66,6 +66,10 @@ class Entity {
     return this._ethAccount.address
   }
 
+  get plasmaCashContract(): any {
+    return this._ethPlasmaClient.plasmaCashContract
+  }
+
   constructor(ethPrivateKey: string) {
     this._ethAccount = web3.eth.accounts.privateKeyToAccount(ethPrivateKey)
     this._ethPlasmaClient = new EthereumPlasmaClient(web3, ADDRESSES.root_chain)
@@ -106,25 +110,43 @@ class Entity {
   }
 }
 
-test('Exit of UTXO 2 (Coin 3) - Directly after its deposit', async t => {
+function marshalDepositEvent(data: { slot: string, blockNumber: string, denomination: string, from: string }): IPlasmaDeposit {
+  const { slot, blockNumber, denomination, from } = data
+    return {
+      slot: new BN(slot),
+      blockNumber: new BN(blockNumber),
+      denomination: new BN(denomination),
+      from
+    }
+}
+
+test('Plasma Cash Demo', async t => {
   const { cards } = setupContracts()
   const authority = new Entity(ACCOUNTS.authority)
   const alice = new Entity(ACCOUNTS.alice)
 
-  console.log('giving alice tokens')
   await cards.methods.register().send({ from: alice.ethAddress, gas: DEFAULT_GAS })
   let balance = await cards.methods.balanceOf(alice.ethAddress).call()
   t.equal(new BN(balance).toNumber(), 5)
 
   console.log('depositing alice tokens to plasma contract')
 
-  const deposits: IPlasmaDeposit[] = []
+  const startBlockNum = await web3.eth.getBlockNumber()
+  
   for (let i = 0; i < ALICE_DEPOSITED_COINS; i++) {
     const txReceipt = await cards.methods
       .depositToPlasma(COINS[i])
       .send({ from: alice.ethAddress, gas: DEFAULT_GAS })
-    console.log(JSON.stringify(txReceipt, null, '  '))
-    deposits.push(txReceipt.events['Deposit'].returnValues)
+  }
+  
+  const depositEvents: any[] = await authority.plasmaCashContract.getPastEvents('Deposit', { fromBlock: startBlockNum })
+  const deposits = depositEvents.map<IPlasmaDeposit>(event => marshalDepositEvent(event.returnValues))
+  t.equal(deposits.length, ALICE_DEPOSITED_COINS, 'All deposit events accounted for')
+  for (let i = 0; i < deposits.length; i++) {
+    const deposit = deposits[i]
+    t.equal(deposit.blockNumber.toNumber(), i + 1, `Deposit ${i+1} block number is correct`)
+    t.equal(deposit.denomination.toNumber(), 1, `Deposit ${i+1} denomination is correct`)
+    t.equal(deposit.from, alice.ethAddress, `Deposit ${i+1} sender is correct`)
   }
 
   console.log('deposited alice tokens to plasma contract')
@@ -141,13 +163,6 @@ test('Exit of UTXO 2 (Coin 3) - Directly after its deposit', async t => {
     ALICE_DEPOSITED_COINS,
     'plasma contract should have 3 tokens in cards contract'
   )
-
-  for (let i = 0; i < deposits.length; i++) {
-    const deposit = deposits[i]
-    t.equal(deposit.blockNumber.toNumber(), i + 1)
-    t.equal(deposit.denomination.toNumber(), 1)
-    t.equal(deposit.from, alice)
-  }
 
   // Alice to Bob, and Alice to Charlie. We care about the Alice to Bob
   // transaction

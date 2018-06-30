@@ -5,6 +5,13 @@ export class EthereumPlasmaClient {
   private _web3: Web3
   private _plasmaContract: any // TODO: figure out how to type this properly
 
+  /**
+   * Web3 contract instance of the Plasma Cash contract on Ethereum.
+   */
+  get plasmaCashContract(): any {
+    return this._plasmaContract
+  }
+
   constructor(web3: Web3, plasmaContractAddr: string) {
     this._web3 = web3
     const plasmaABI = require(`./contracts/plasma-cash-abi.json`)
