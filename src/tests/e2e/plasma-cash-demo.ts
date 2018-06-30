@@ -118,8 +118,9 @@ class Entity {
 
   async submitPlasmaBlockAsync() {
     await this._dAppPlasmaClient.debugFinalizeBlockAsync()
-    // TODO: retrieve plasma block from DAppChain
-    await this._ethPlasmaClient.debugSubmitBlockAsync()
+    const blockNum = await this._dAppPlasmaClient.getCurrentPlasmaBlockNumAsync()
+    const block = await this._dAppPlasmaClient.getPlasmaBlockAtAsync(blockNum)
+    await this._ethPlasmaClient.debugSubmitBlockAsync({ block, from: this.ethAddress })
   }
 }
 
@@ -147,8 +148,6 @@ test('Plasma Cash Demo', async t => {
   let balance = await cards.balanceOfAsync(alice.ethAddress)
   t.equal(balance.toNumber(), 5)
 
-  console.log('depositing alice tokens to plasma contract')
-
   const startBlockNum = await web3.eth.getBlockNumber()
 
   for (let i = 0; i < ALICE_DEPOSITED_COINS; i++) {
@@ -168,8 +167,6 @@ test('Plasma Cash Demo', async t => {
     t.equal(deposit.denomination.toNumber(), 1, `Deposit ${i + 1} denomination is correct`)
     t.equal(deposit.from, alice.ethAddress, `Deposit ${i + 1} sender is correct`)
   }
-
-  console.log('deposited alice tokens to plasma contract')
 
   balance = await cards.balanceOfAsync(alice.ethAddress)
   t.equal(

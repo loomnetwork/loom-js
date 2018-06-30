@@ -1,7 +1,11 @@
 import rlp from 'rlp'
 import BN from 'bn.js'
 
+import { Address, LocalAddress } from '../address'
+import { unmarshalBigUIntPB, marshalBigUIntPB } from '../big-uint'
+import { bufferToProtobufBytes } from '../crypto-utils'
 import { soliditySha3, Web3Signer } from './solidity-helpers'
+import { PlasmaTx } from '../proto/plasma_cash_pb'
 
 export class PlasmaCashTx {
   slot: BN
@@ -12,7 +16,7 @@ export class PlasmaCashTx {
    */
   newOwner: string
   /**
-   * Signature bytes, will only be set if sign() has been called successfully.
+   * Signature bytes.
    */
   sig?: Uint8Array
   proof?: Uint8Array
@@ -22,12 +26,14 @@ export class PlasmaCashTx {
     prevBlockNum: BN
     denomination: BN | number
     newOwner: string
+    sig?: Uint8Array
     proof?: Uint8Array
   }) {
     this.slot = params.slot
     this.prevBlockNum = params.prevBlockNum
     this.denomination = new BN(params.denomination)
     this.newOwner = params.newOwner
+    this.sig = params.sig
     this.proof = params.proof
   }
 
@@ -54,4 +60,31 @@ export class PlasmaCashTx {
   async signAsync(signer: Web3Signer) {
     this.sig = await signer.signAsync(this.hash)
   }
+}
+
+export function unmarshalPlasmaTxPB(rawTx: PlasmaTx): PlasmaCashTx {
+  const tx = new PlasmaCashTx({
+    slot: new BN(rawTx.getSlot()),
+    prevBlockNum: unmarshalBigUIntPB(rawTx.getPreviousBlock_asU8()),
+    denomination: unmarshalBigUIntPB(rawTx.getDenomination_asU8()),
+    newOwner: Address.UmarshalPB(rawTx.getNewOwner()!).local.toString(),
+    proof: rawTx.getProof_asU8()
+  })
+  return tx
+}
+
+export function marshalPlasmaTxPB(tx: PlasmaCashTx): PlasmaTx {
+  const owner = new Address('eth', LocalAddress.fromHexString(tx.newOwner))
+  const pb = new PlasmaTx()
+  pb.setSlot(tx.slot.toNumber())
+  pb.setPreviousBlock(marshalBigUIntPB(tx.prevBlockNum))
+  pb.setDenomination(marshalBigUIntPB(tx.denomination))
+  pb.setNewOwner(owner.MarshalPB())
+  if (tx.sig) {
+    pb.setSignature(bufferToProtobufBytes(tx.sig))
+  }
+  if (tx.proof) {
+    pb.setProof(bufferToProtobufBytes(tx.proof))
+  }
+  return pb
 }
