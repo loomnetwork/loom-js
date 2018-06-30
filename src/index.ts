@@ -22,3 +22,4 @@ export { createJSONRPCClient, IJSONRPCProtocolOptions } from './rpc-client-facto
 export { DAppChainPlasmaClient } from './plasma-cash/dappchain-client'
 export { EthereumPlasmaClient } from './plasma-cash/ethereum-client'
 export { PlasmaCashTx } from './plasma-cash/plasma-cash-tx'
+export { Web3Signer } from './plasma-cash/solidity-helpers'

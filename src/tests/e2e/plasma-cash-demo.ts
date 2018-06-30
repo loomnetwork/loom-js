@@ -10,7 +10,8 @@ import {
   PlasmaCashTx,
   CryptoUtils,
   NonceTxMiddleware,
-  SignedTxMiddleware
+  SignedTxMiddleware,
+  Web3Signer
 } from '../../index'
 import { createTestHttpClient } from '../helpers'
 
@@ -99,7 +100,7 @@ class Entity {
       denomination,
       newOwner: newOwner.ethAddress
     })
-    await tx.signAsync(this._ethAccount)
+    await tx.signAsync(new Web3Signer(web3, this.ethAddress))
     await this._dAppPlasmaClient.sendTxAsync(tx)
   }
 
@@ -110,14 +111,19 @@ class Entity {
   }
 }
 
-function marshalDepositEvent(data: { slot: string, blockNumber: string, denomination: string, from: string }): IPlasmaDeposit {
+function marshalDepositEvent(data: {
+  slot: string
+  blockNumber: string
+  denomination: string
+  from: string
+}): IPlasmaDeposit {
   const { slot, blockNumber, denomination, from } = data
-    return {
-      slot: new BN(slot),
-      blockNumber: new BN(blockNumber),
-      denomination: new BN(denomination),
-      from
-    }
+  return {
+    slot: new BN(slot),
+    blockNumber: new BN(blockNumber),
+    denomination: new BN(denomination),
+    from
+  }
 }
 
 test('Plasma Cash Demo', async t => {
@@ -132,21 +138,25 @@ test('Plasma Cash Demo', async t => {
   console.log('depositing alice tokens to plasma contract')
 
   const startBlockNum = await web3.eth.getBlockNumber()
-  
+
   for (let i = 0; i < ALICE_DEPOSITED_COINS; i++) {
     const txReceipt = await cards.methods
       .depositToPlasma(COINS[i])
       .send({ from: alice.ethAddress, gas: DEFAULT_GAS })
   }
-  
-  const depositEvents: any[] = await authority.plasmaCashContract.getPastEvents('Deposit', { fromBlock: startBlockNum })
-  const deposits = depositEvents.map<IPlasmaDeposit>(event => marshalDepositEvent(event.returnValues))
+
+  const depositEvents: any[] = await authority.plasmaCashContract.getPastEvents('Deposit', {
+    fromBlock: startBlockNum
+  })
+  const deposits = depositEvents.map<IPlasmaDeposit>(event =>
+    marshalDepositEvent(event.returnValues)
+  )
   t.equal(deposits.length, ALICE_DEPOSITED_COINS, 'All deposit events accounted for')
   for (let i = 0; i < deposits.length; i++) {
     const deposit = deposits[i]
-    t.equal(deposit.blockNumber.toNumber(), i + 1, `Deposit ${i+1} block number is correct`)
-    t.equal(deposit.denomination.toNumber(), 1, `Deposit ${i+1} denomination is correct`)
-    t.equal(deposit.from, alice.ethAddress, `Deposit ${i+1} sender is correct`)
+    t.equal(deposit.blockNumber.toNumber(), i + 1, `Deposit ${i + 1} block number is correct`)
+    t.equal(deposit.denomination.toNumber(), 1, `Deposit ${i + 1} denomination is correct`)
+    t.equal(deposit.from, alice.ethAddress, `Deposit ${i + 1} sender is correct`)
   }
 
   console.log('deposited alice tokens to plasma contract')

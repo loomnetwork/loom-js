@@ -1,7 +1,7 @@
 import rlp from 'rlp'
 import BN from 'bn.js'
 
-import { soliditySha3, signMessageAsync } from './solidity-helpers'
+import { soliditySha3, Web3Signer } from './solidity-helpers'
 
 export class PlasmaCashTx {
   slot: BN
@@ -48,10 +48,10 @@ export class PlasmaCashTx {
   }
 
   /**
-   * Signs the tx using a web3 account.
-   * @param account web3 account to sign with.
+   * Signs the tx.
+   * @param signer Signer to use for signing the tx.
    */
-  async signAsync(account: any) {
-    this.sig = await signMessageAsync(account, this.hash)
+  async signAsync(signer: Web3Signer) {
+    this.sig = await signer.signAsync(this.hash)
   }
 }
