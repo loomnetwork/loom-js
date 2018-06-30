@@ -11,7 +11,8 @@ import {
   CryptoUtils,
   NonceTxMiddleware,
   SignedTxMiddleware,
-  Web3Signer
+  Web3Signer,
+  EthErc721Contract
 } from '../../index'
 import { createTestHttpClient } from '../helpers'
 
@@ -43,10 +44,10 @@ const ACCOUNTS = {
 }
 
 // All the contracts are expected to have been deployed to Ganache when this function is called.
-function setupContracts() {
+function setupContracts(): { cards: EthCardsContract } {
   web3 = new Web3('http://localhost:8545')
   const abi = require('./contracts/cards-abi.json')
-  const cards = new web3.eth.Contract(abi, ADDRESSES.token_contract)
+  const cards = new EthCardsContract(new web3.eth.Contract(abi, ADDRESSES.token_contract))
   return { cards }
 }
 
@@ -55,6 +56,17 @@ interface IPlasmaDeposit {
   blockNumber: BN
   denomination: BN
   from: string
+}
+
+class EthCardsContract extends EthErc721Contract {
+  registerAsync(address: string): Promise<object> {
+    return this.contract.methods.register().send({ from: address, gas: DEFAULT_GAS })
+  }
+
+  depositToPlasmaAsync(params: { tokenId: BN | number; from: string }): Promise<object> {
+    const { tokenId, from } = params
+    return this.contract.methods.depositToPlasma(tokenId).send({ from, gas: DEFAULT_GAS })
+  }
 }
 
 class Entity {
@@ -131,18 +143,16 @@ test('Plasma Cash Demo', async t => {
   const authority = new Entity(ACCOUNTS.authority)
   const alice = new Entity(ACCOUNTS.alice)
 
-  await cards.methods.register().send({ from: alice.ethAddress, gas: DEFAULT_GAS })
-  let balance = await cards.methods.balanceOf(alice.ethAddress).call()
-  t.equal(new BN(balance).toNumber(), 5)
+  await cards.registerAsync(alice.ethAddress)
+  let balance = await cards.balanceOfAsync(alice.ethAddress)
+  t.equal(balance.toNumber(), 5)
 
   console.log('depositing alice tokens to plasma contract')
 
   const startBlockNum = await web3.eth.getBlockNumber()
 
   for (let i = 0; i < ALICE_DEPOSITED_COINS; i++) {
-    const txReceipt = await cards.methods
-      .depositToPlasma(COINS[i])
-      .send({ from: alice.ethAddress, gas: DEFAULT_GAS })
+    await cards.depositToPlasmaAsync({ tokenId: COINS[i], from: alice.ethAddress })
   }
 
   const depositEvents: any[] = await authority.plasmaCashContract.getPastEvents('Deposit', {
@@ -161,15 +171,15 @@ test('Plasma Cash Demo', async t => {
 
   console.log('deposited alice tokens to plasma contract')
 
-  balance = await cards.methods.balanceOf(alice.ethAddress).call()
+  balance = await cards.balanceOfAsync(alice.ethAddress)
   t.equal(
-    new BN(balance).toNumber(),
+    balance.toNumber(),
     ALICE_INITIAL_COINS - ALICE_DEPOSITED_COINS,
     'alice should have 2 tokens in cards contract'
   )
-  balance = await cards.methods.balanceOf(ADDRESSES.root_chain).call()
+  balance = await cards.balanceOfAsync(ADDRESSES.root_chain)
   t.equal(
-    new BN(balance).toNumber(),
+    balance.toNumber(),
     ALICE_DEPOSITED_COINS,
     'plasma contract should have 3 tokens in cards contract'
   )
@@ -195,6 +205,8 @@ test('Plasma Cash Demo', async t => {
     newOwner: charlie
   })
   await authority.submitPlasmaBlockAsync()
+  // Add an empty block in between (for proof of exclusion)
+  await authority.submitPlasmaBlockAsync()
   // Bob -> Charlie
   await bob.transferTokenAsync({
     slot: deposit3.slot,
@@ -204,6 +216,22 @@ test('Plasma Cash Demo', async t => {
   })
   await authority.submitPlasmaBlockAsync()
 
-  // TODO: exits
+  // TODO: get coin history of deposit3.slot from bob
+  // TODO: charlie should verify coin history of deposit3.slot
+  // TODO: charlie should watch exits of deposit3.slot
+  // TODO: charlie should start exit of deposit3.slot
+  // TODO: charlie should stop watching exits of deposit3.slot
+
+  // TODO: Jump forward in time by 8 days
+  // TODO: authority should finalize exits
+  // TODO: charlie should withdraw deposit3.slot
+
+  balance = await cards.balanceOfAsync(alice.ethAddress)
+  t.equal(balance.toNumber(), 2, 'alice should have 2 tokens in cards contract')
+  balance = await cards.balanceOfAsync(bob.ethAddress)
+  t.equal(balance.toNumber(), 0, 'bob should have no tokens in cards contract')
+  balance = await cards.balanceOfAsync(charlie.ethAddress)
+  t.equal(balance.toNumber(), 1, 'charlie should have 1 token in cards contract')
+
   t.end()
 })
