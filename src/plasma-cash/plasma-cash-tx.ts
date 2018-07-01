@@ -65,8 +65,8 @@ export class PlasmaCashTx {
 export function unmarshalPlasmaTxPB(rawTx: PlasmaTx): PlasmaCashTx {
   const tx = new PlasmaCashTx({
     slot: new BN(rawTx.getSlot()),
-    prevBlockNum: unmarshalBigUIntPB(rawTx.getPreviousBlock_asU8()),
-    denomination: unmarshalBigUIntPB(rawTx.getDenomination_asU8()),
+    prevBlockNum: unmarshalBigUIntPB(rawTx.getPreviousBlock()!),
+    denomination: unmarshalBigUIntPB(rawTx.getDenomination()!),
     newOwner: Address.UmarshalPB(rawTx.getNewOwner()!).local.toString(),
     proof: rawTx.getProof_asU8()
   })

@@ -2,6 +2,7 @@
 // file: tests/tests.proto
 
 import * as jspb from "google-protobuf";
+import * as proto_loom_pb from "../proto/loom_pb";
 
 export class MapEntry extends jspb.Message {
   getKey(): string;
@@ -64,6 +65,28 @@ export class HelloResponse extends jspb.Message {
 export namespace HelloResponse {
   export type AsObject = {
     out: string,
+  }
+}
+
+export class EmbeddedBigUInt extends jspb.Message {
+  hasTestVal(): boolean;
+  clearTestVal(): void;
+  getTestVal(): proto_loom_pb.BigUInt | undefined;
+  setTestVal(value?: proto_loom_pb.BigUInt): void;
+
+  serializeBinary(): Uint8Array;
+  toObject(includeInstance?: boolean): EmbeddedBigUInt.AsObject;
+  static toObject(includeInstance: boolean, msg: EmbeddedBigUInt): EmbeddedBigUInt.AsObject;
+  static extensions: {[key: number]: jspb.ExtensionFieldInfo<jspb.Message>};
+  static extensionsBinary: {[key: number]: jspb.ExtensionFieldBinaryInfo<jspb.Message>};
+  static serializeBinaryToWriter(message: EmbeddedBigUInt, writer: jspb.BinaryWriter): void;
+  static deserializeBinary(bytes: Uint8Array): EmbeddedBigUInt;
+  static deserializeBinaryFromReader(message: EmbeddedBigUInt, reader: jspb.BinaryReader): EmbeddedBigUInt;
+}
+
+export namespace EmbeddedBigUInt {
+  export type AsObject = {
+    testVal?: proto_loom_pb.BigUInt.AsObject,
   }
 }
 

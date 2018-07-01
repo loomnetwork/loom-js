@@ -11,6 +11,10 @@ message NonceTx {
     uint64 sequence = 2;
 }
 
+message BigUInt {
+    bytes value = 1;
+}
+
 message Address {
     string chain_id = 1;
     bytes local = 2;

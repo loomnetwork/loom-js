@@ -1,5 +1,7 @@
 syntax = "proto3";
 
+import "proto/loom.proto";
+
 message MapEntry {
     string key = 1;
     string value = 2;
@@ -11,4 +13,8 @@ message HelloRequest {
 
 message HelloResponse {
     string out = 1;
+}
+
+message EmbeddedBigUInt {
+    BigUInt test_val = 1;
 }

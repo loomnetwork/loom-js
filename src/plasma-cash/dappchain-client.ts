@@ -55,7 +55,11 @@ export class DAppChainPlasmaClient {
       req,
       new GetCurrentBlockResponse()
     )
-    return unmarshalBigUIntPB(resp.getBlockHeight_asU8())
+    const blockHeight = resp.getBlockHeight()
+    if (!blockHeight) {
+      throw new Error('Invalid response: missing block height.')
+    }
+    return unmarshalBigUIntPB(blockHeight)
   }
 
   /**

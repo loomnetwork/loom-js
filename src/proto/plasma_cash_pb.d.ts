@@ -5,10 +5,10 @@ import * as jspb from "google-protobuf";
 import * as proto_loom_pb from "../proto/loom_pb";
 
 export class PlasmaBlock extends jspb.Message {
-  getSlot(): Uint8Array | string;
-  getSlot_asU8(): Uint8Array;
-  getSlot_asB64(): string;
-  setSlot(value: Uint8Array | string): void;
+  hasSlot(): boolean;
+  clearSlot(): void;
+  getSlot(): proto_loom_pb.BigUInt | undefined;
+  setSlot(value?: proto_loom_pb.BigUInt): void;
 
   clearTransactionsList(): void;
   getTransactionsList(): Array<PlasmaTx>;
@@ -47,7 +47,7 @@ export class PlasmaBlock extends jspb.Message {
 
 export namespace PlasmaBlock {
   export type AsObject = {
-    slot: Uint8Array | string,
+    slot?: proto_loom_pb.BigUInt.AsObject,
     transactionsList: Array<PlasmaTx.AsObject>,
     signature: Uint8Array | string,
     merkleHash: Uint8Array | string,
@@ -60,15 +60,15 @@ export class PlasmaTx extends jspb.Message {
   getSlot(): number;
   setSlot(value: number): void;
 
-  getPreviousBlock(): Uint8Array | string;
-  getPreviousBlock_asU8(): Uint8Array;
-  getPreviousBlock_asB64(): string;
-  setPreviousBlock(value: Uint8Array | string): void;
+  hasPreviousBlock(): boolean;
+  clearPreviousBlock(): void;
+  getPreviousBlock(): proto_loom_pb.BigUInt | undefined;
+  setPreviousBlock(value?: proto_loom_pb.BigUInt): void;
 
-  getDenomination(): Uint8Array | string;
-  getDenomination_asU8(): Uint8Array;
-  getDenomination_asB64(): string;
-  setDenomination(value: Uint8Array | string): void;
+  hasDenomination(): boolean;
+  clearDenomination(): void;
+  getDenomination(): proto_loom_pb.BigUInt | undefined;
+  setDenomination(value?: proto_loom_pb.BigUInt): void;
 
   hasNewOwner(): boolean;
   clearNewOwner(): void;
@@ -113,8 +113,8 @@ export class PlasmaTx extends jspb.Message {
 export namespace PlasmaTx {
   export type AsObject = {
     slot: number,
-    previousBlock: Uint8Array | string,
-    denomination: Uint8Array | string,
+    previousBlock?: proto_loom_pb.BigUInt.AsObject,
+    denomination?: proto_loom_pb.BigUInt.AsObject,
     newOwner?: proto_loom_pb.Address.AsObject,
     signature: Uint8Array | string,
     hash: Uint8Array | string,
@@ -141,10 +141,10 @@ export namespace GetCurrentBlockRequest {
 }
 
 export class GetCurrentBlockResponse extends jspb.Message {
-  getBlockHeight(): Uint8Array | string;
-  getBlockHeight_asU8(): Uint8Array;
-  getBlockHeight_asB64(): string;
-  setBlockHeight(value: Uint8Array | string): void;
+  hasBlockHeight(): boolean;
+  clearBlockHeight(): void;
+  getBlockHeight(): proto_loom_pb.BigUInt | undefined;
+  setBlockHeight(value?: proto_loom_pb.BigUInt): void;
 
   serializeBinary(): Uint8Array;
   toObject(includeInstance?: boolean): GetCurrentBlockResponse.AsObject;
@@ -158,15 +158,15 @@ export class GetCurrentBlockResponse extends jspb.Message {
 
 export namespace GetCurrentBlockResponse {
   export type AsObject = {
-    blockHeight: Uint8Array | string,
+    blockHeight?: proto_loom_pb.BigUInt.AsObject,
   }
 }
 
 export class GetBlockRequest extends jspb.Message {
-  getBlockHeight(): Uint8Array | string;
-  getBlockHeight_asU8(): Uint8Array;
-  getBlockHeight_asB64(): string;
-  setBlockHeight(value: Uint8Array | string): void;
+  hasBlockHeight(): boolean;
+  clearBlockHeight(): void;
+  getBlockHeight(): proto_loom_pb.BigUInt | undefined;
+  setBlockHeight(value?: proto_loom_pb.BigUInt): void;
 
   serializeBinary(): Uint8Array;
   toObject(includeInstance?: boolean): GetBlockRequest.AsObject;
@@ -180,7 +180,7 @@ export class GetBlockRequest extends jspb.Message {
 
 export namespace GetBlockRequest {
   export type AsObject = {
-    blockHeight: Uint8Array | string,
+    blockHeight?: proto_loom_pb.BigUInt.AsObject,
   }
 }
 
