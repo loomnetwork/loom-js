@@ -5,7 +5,7 @@ import { Contract } from '../contract'
 import { Address, LocalAddress } from '../address'
 import { PlasmaCashTx, marshalPlasmaTxPB } from './plasma-cash-tx'
 import { PlasmaCashBlock, unmarshalPlasmaBlockPB } from './plasma-cash-block'
-import { unmarshalBigUIntPB } from '../big-uint'
+import { unmarshalBigUIntPB, marshalBigUIntPB } from '../big-uint'
 import {
   GetCurrentBlockRequest,
   GetCurrentBlockResponse,
@@ -45,7 +45,7 @@ export class DAppChainPlasmaClient {
   }
 
   /**
-   * Retrieves the latest finalized Plasma block from the DAppChain.
+   * Retrieves the latest finalized Plasma block number from the DAppChain.
    */
   async getCurrentPlasmaBlockNumAsync(): Promise<BN> {
     const contract = await this._resolvePlasmaContractAsync()
@@ -70,6 +70,7 @@ export class DAppChainPlasmaClient {
   async getPlasmaBlockAtAsync(blockNum: BN): Promise<PlasmaCashBlock> {
     const contract = await this._resolvePlasmaContractAsync()
     const req = new GetBlockRequest()
+    req.setBlockHeight(marshalBigUIntPB(blockNum))
     const resp = await contract.staticCallAsync<GetBlockResponse>(
       'GetBlockRequest',
       req,
