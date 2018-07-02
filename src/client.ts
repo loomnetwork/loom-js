@@ -534,6 +534,7 @@ export class Client extends EventEmitter {
    */
   async evmSubscribeAsync(method: string, filterObject: Object): Promise<string> {
     const filter = JSON.stringify(filterObject)
+    log(`Evm subscribe filter ${filter} and method ${method}`)
     return this._readClient.sendAsync<string>('evmsubscribe', {
       method,
       filter

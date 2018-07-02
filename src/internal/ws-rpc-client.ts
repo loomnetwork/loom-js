@@ -89,7 +89,7 @@ export class WSRPCClient extends EventEmitter {
         // rpc-websockets is just going to throw away the event messages from the DAppChain because
         // they don't conform to it's idea of notifications or events... fortunately few things in
         // javascript are truly private... so we'll just handle those event message ourselves ;)
-        ;((this._client as any).socket as EventEmitter).on('message', this._onEventMessage)
+        ; ((this._client as any).socket as EventEmitter).on('message', this._onEventMessage)
         if (this._client.ready) {
           log('Subscribe for events')
           this._client
@@ -105,7 +105,7 @@ export class WSRPCClient extends EventEmitter {
 
     this.on('removeListener', (event: string) => {
       if (event === RPCClientEvent.Message && this.listenerCount(event) === 0) {
-        ;((this._client as any).socket as EventEmitter).removeListener(
+        ; ((this._client as any).socket as EventEmitter).removeListener(
           'message',
           this._onEventMessage
         )
@@ -192,6 +192,7 @@ export class WSRPCClient extends EventEmitter {
     // Events from native loomchain have the id equals 0
     // Events from EVM have the id from the evmsubscribe command
     if (msg.id === '0' || /^0x.+$/.test(msg.id)) {
+      console.log('msg', msg)
       this.emit(RPCClientEvent.Message, this.url, msg)
     }
   }

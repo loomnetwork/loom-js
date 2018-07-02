@@ -83,11 +83,14 @@ test('LoomProvider + Web3', async t => {
     const contract = new web3.eth.Contract(ABI, result.contractAddress, { from })
     const newValue = 1
 
-    contract.events.NewValueSet({ filter: { _value: 2 } }, (err: Error, event: any) => {
-      console.log(err, event)
+    contract.events.NewValueSet({ filter: { _value: 1 } }, (err: Error, event: any) => {
       if (err) t.error(err)
       else {
-        t.fail('should not been dispatched')
+        t.equal(
+          event.returnValues._value,
+          `${newValue}`,
+          `Should event has _value equal ${newValue}`
+        )
       }
     })
 
