@@ -305,7 +305,7 @@ export class LoomProvider {
   private async _ethCall(payload: IEthRPCPayload) {
     // Sending a static call to Loom DAppChain
     const result = await this._callStaticAsync(payload.params[0])
-    return bytesToHexAddrLC(result)
+    return result ? bytesToHexAddrLC(result) : '0x0'
   }
 
   private _ethEstimateGas() {
