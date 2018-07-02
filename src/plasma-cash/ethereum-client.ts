@@ -3,6 +3,23 @@ import Web3 from 'web3'
 
 import { PlasmaCashBlock } from './plasma-cash-block'
 import { bytesToHexAddr } from '../crypto-utils'
+import { PlasmaCashTx } from './plasma-cash-tx'
+
+export interface ISendTxOptions {
+  /** Address of sender (hex-encoded, prefixed by 0x) */
+  from: string
+  /** Max gas to use for a tx (gas limit) */
+  gas?: number | string
+  /** Gas price (in Wei) to use for a tx */
+  gasPrice?: string
+}
+export interface IPlasmaExitParams extends ISendTxOptions {
+  slot: BN
+  exitTx: PlasmaCashTx
+  exitBlockNum: BN
+  prevTx?: PlasmaCashTx
+  prevBlockNum?: BN
+}
 
 export class EthereumPlasmaClient {
   private _web3: Web3
@@ -21,8 +38,23 @@ export class EthereumPlasmaClient {
     this._plasmaContract = new this._web3.eth.Contract(plasmaABI, plasmaContractAddr)
   }
 
-  startExitAsync(params: { slot: BN; sendOpts: any }): Promise<object> {
-    return this._plasmaContract.methods.startExit(params.slot).send(params.sendOpts)
+  startExitAsync(params: IPlasmaExitParams): Promise<object> {
+    const { slot, exitTx, exitBlockNum, prevTx, prevBlockNum, from, gas, gasPrice } = params
+    const prevTxBytes = prevTx ? prevTx.rlpEncode() : '0x'
+    const exitTxBytes = exitTx.rlpEncode()
+    const bond = this._web3.utils.toWei('0.1', 'ether')
+    
+    return this._plasmaContract.methods
+      .startExit(
+        slot,
+        prevTxBytes,
+        exitTxBytes,
+        prevTx ? prevTx.proof : '0x',
+        exitTx.proof,
+        exitTx.sig,
+        [prevBlockNum || 0, exitBlockNum]
+      )
+      .send({ from, value: bond, gas, gasPrice })
   }
 
   finalizeExitsAsync(params: { sendOpts: any }): Promise<object> {

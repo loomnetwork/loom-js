@@ -1,3 +1,5 @@
+import BN from 'bn.js'
+
 import { PlasmaCashTx, unmarshalPlasmaTxPB } from './plasma-cash-tx'
 import { PlasmaBlock } from '../proto/plasma_cash_pb'
 
@@ -14,6 +16,22 @@ export class PlasmaCashBlock {
 
   get txs(): ReadonlyArray<PlasmaCashTx> {
     return this._txs
+  }
+
+  /**
+   * Finds a tx referencing the given slot.
+   * @param slot 64-bit uint identifier of a UTXO.
+   */
+  findTxWithSlot(slot: BN): PlasmaCashTx | null {
+    let tx: PlasmaCashTx | null = null
+    for (let i = 0; i < this._txs.length; i++) {
+      if (this._txs[i].slot.cmp(slot) === 0) {
+        // TODO: break out on first match (should be the only match anyway)
+        //return this._txs[i]
+        tx = this._txs[i]
+      }
+    }
+    return tx
   }
 }
 
