@@ -5,6 +5,47 @@ import { PlasmaCashBlock } from './plasma-cash-block'
 import { bytesToHexAddr } from '../crypto-utils'
 import { PlasmaCashTx } from './plasma-cash-tx'
 
+export enum PlasmaCoinState {
+  Deposited = 0,
+  Exiting = 1,
+  Challenged = 2,
+  Exited = 3
+}
+export interface IPlasmaCoin {
+  /** Identifier of an ERC721 token. */
+  uid: BN
+  /** Plasma block number at which this coin was deposited. */
+  depositBlockNum: BN
+  denomination: BN
+  /** Hex encoded Ethereum address of the current owner of the coin, prefixed by 0x. */
+  owner: string
+  state: PlasmaCoinState
+}
+
+export interface IPlasmaDeposit {
+  slot: BN
+  blockNumber: BN
+  denomination: BN
+  from: string
+}
+
+// TODO: This probably shouldn't be exposed, instead add API to EthereumPlasmaClient to retrieve
+// already marshalled event data
+export function marshalDepositEvent(data: {
+  slot: string
+  blockNumber: string
+  denomination: string
+  from: string
+}): IPlasmaDeposit {
+  const { slot, blockNumber, denomination, from } = data
+  return {
+    slot: new BN(slot),
+    blockNumber: new BN(blockNumber),
+    denomination: new BN(denomination),
+    from
+  }
+}
+
 export interface ISendTxOptions {
   /** Address of sender (hex-encoded, prefixed by 0x) */
   from: string
@@ -42,6 +83,18 @@ export class EthereumPlasmaClient {
     this._plasmaContract = new this._web3.eth.Contract(plasmaABI, plasmaContractAddr)
   }
 
+  async getPlasmaCoinAsync(params: { slot: BN; from: string }): Promise<IPlasmaCoin> {
+    const { slot, from } = params
+    const coin = await this._plasmaContract.methods.getPlasmaCoin(slot).call({ from })
+    return {
+      uid: new BN(coin[0]),
+      depositBlockNum: new BN(coin[1]),
+      denomination: new BN(coin[2]),
+      owner: coin[3],
+      state: parseInt(coin[4], 10)
+    }
+  }
+
   /**
    * @returns Web3 tx receipt object.
    */
@@ -50,7 +103,7 @@ export class EthereumPlasmaClient {
     const prevTxBytes = prevTx ? prevTx.rlpEncode() : '0x'
     const exitTxBytes = exitTx.rlpEncode()
     const bond = this._web3.utils.toWei('0.1', 'ether')
-    
+
     return this._plasmaContract.methods
       .startExit(
         slot,
@@ -81,7 +134,13 @@ export class EthereumPlasmaClient {
     return this._plasmaContract.methods.withdraw(slot).send(rest)
   }
 
-  withdrawBondsAsync() {}
+  /**
+   *
+   * @returns Web3 tx receipt object.
+   */
+  withdrawBondsAsync(params: ISendTxOptions): Promise<object> {
+    return this._plasmaContract.methods.withdrawBonds().send(params)
+  }
 
   /**
    * Submits a Plasma block to the Plasma Cash Solidity contract on Ethereum.
