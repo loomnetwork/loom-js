@@ -5,10 +5,10 @@ import * as jspb from "google-protobuf";
 import * as proto_loom_pb from "../proto/loom_pb";
 
 export class PlasmaBlock extends jspb.Message {
-  hasSlot(): boolean;
-  clearSlot(): void;
-  getSlot(): proto_loom_pb.BigUInt | undefined;
-  setSlot(value?: proto_loom_pb.BigUInt): void;
+  hasUid(): boolean;
+  clearUid(): void;
+  getUid(): proto_loom_pb.BigUInt | undefined;
+  setUid(value?: proto_loom_pb.BigUInt): void;
 
   clearTransactionsList(): void;
   getTransactionsList(): Array<PlasmaTx>;
@@ -47,7 +47,7 @@ export class PlasmaBlock extends jspb.Message {
 
 export namespace PlasmaBlock {
   export type AsObject = {
-    slot?: proto_loom_pb.BigUInt.AsObject,
+    uid?: proto_loom_pb.BigUInt.AsObject,
     transactionsList: Array<PlasmaTx.AsObject>,
     signature: Uint8Array | string,
     merkleHash: Uint8Array | string,
@@ -279,6 +279,44 @@ export class PlasmaTxResponse extends jspb.Message {
 
 export namespace PlasmaTxResponse {
   export type AsObject = {
+  }
+}
+
+export class DepositRequest extends jspb.Message {
+  getSlot(): number;
+  setSlot(value: number): void;
+
+  hasDepositBlock(): boolean;
+  clearDepositBlock(): void;
+  getDepositBlock(): proto_loom_pb.BigUInt | undefined;
+  setDepositBlock(value?: proto_loom_pb.BigUInt): void;
+
+  hasDenomination(): boolean;
+  clearDenomination(): void;
+  getDenomination(): proto_loom_pb.BigUInt | undefined;
+  setDenomination(value?: proto_loom_pb.BigUInt): void;
+
+  hasFrom(): boolean;
+  clearFrom(): void;
+  getFrom(): proto_loom_pb.Address | undefined;
+  setFrom(value?: proto_loom_pb.Address): void;
+
+  serializeBinary(): Uint8Array;
+  toObject(includeInstance?: boolean): DepositRequest.AsObject;
+  static toObject(includeInstance: boolean, msg: DepositRequest): DepositRequest.AsObject;
+  static extensions: {[key: number]: jspb.ExtensionFieldInfo<jspb.Message>};
+  static extensionsBinary: {[key: number]: jspb.ExtensionFieldBinaryInfo<jspb.Message>};
+  static serializeBinaryToWriter(message: DepositRequest, writer: jspb.BinaryWriter): void;
+  static deserializeBinary(bytes: Uint8Array): DepositRequest;
+  static deserializeBinaryFromReader(message: DepositRequest, reader: jspb.BinaryReader): DepositRequest;
+}
+
+export namespace DepositRequest {
+  export type AsObject = {
+    slot: number,
+    depositBlock?: proto_loom_pb.BigUInt.AsObject,
+    denomination?: proto_loom_pb.BigUInt.AsObject,
+    from?: proto_loom_pb.Address.AsObject,
   }
 }
 

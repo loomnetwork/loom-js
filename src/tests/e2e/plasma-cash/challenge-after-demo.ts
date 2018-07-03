@@ -51,6 +51,12 @@ test('Plasma Cash Challenge After Demo', async t => {
     'POST-DEPOSIT: Mallory has correct number of tokens'
   )
 
+  // NOTE: In practice the Plasma Cash Oracle will submit the deposits to the DAppChain,
+  // we're doing it here manually to simplify the test setup.
+  for (let i = 0; i < deposits.length; i++) {
+    await authority.submitPlasmaDepositAsync(deposits[i])
+  }
+
   const plasmaBlock1 = await authority.submitPlasmaBlockAsync()
   const plasmaBlock2 = await authority.submitPlasmaBlockAsync()
 
@@ -65,6 +71,7 @@ test('Plasma Cash Challenge After Demo', async t => {
     denomination: 1,
     newOwner: dan
   })
+
   //incl_proofs, excl_proofs = mallory.get_coin_history(deposit1_utxo)
   //assert dan.verify_coin_history(deposit1_utxo, incl_proofs, excl_proofs)
 

@@ -15,6 +15,7 @@ import {
 } from '../../../index'
 import { ADDRESSES, DEFAULT_GAS, CHILD_BLOCK_INTERVAL } from './config'
 import { createTestHttpClient } from '../../helpers'
+import { IPlasmaDeposit } from '../../../plasma-cash/ethereum-client'
 
 // TODO: Rename & move out of test directory, should be part of the public API
 export class Entity {
@@ -76,6 +77,16 @@ export class Entity {
     const block = await this._dAppPlasmaClient.getPlasmaBlockAtAsync(blockNum)
     await this._ethPlasmaClient.debugSubmitBlockAsync({ block, from: this.ethAddress })
     return blockNum
+  }
+
+  async submitPlasmaDepositAsync(deposit: IPlasmaDeposit): Promise<void> {
+    const tx = new PlasmaCashTx({
+      slot: deposit.slot,
+      prevBlockNum: deposit.blockNumber,
+      denomination: deposit.denomination,
+      newOwner: deposit.from
+    })
+    await this._dAppPlasmaClient.debugSubmitDepositAsync(tx)
   }
 
   async startExitAsync(params: { slot: BN; prevBlockNum: BN; exitBlockNum: BN }): Promise<object> {

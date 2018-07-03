@@ -11,8 +11,7 @@ import {
   GetCurrentBlockResponse,
   GetBlockRequest,
   GetBlockResponse,
-  PlasmaBlock,
-  PlasmaTx,
+  DepositRequest,
   PlasmaTxRequest,
   SubmitBlockToMainnetRequest
 } from '../proto/plasma_cash_pb'
@@ -102,5 +101,22 @@ export class DAppChainPlasmaClient {
     const contract = await this._resolvePlasmaContractAsync()
     const req = new SubmitBlockToMainnetRequest()
     await contract.callAsync('SubmitBlockToMainnet', req)
+  }
+
+  /**
+   * Submits a Plasma deposit from Ethereum to the DAppChain.
+   *
+   * This method is only provided for debugging & testing, in practice only DAppChain Plasma Oracles
+   * will be permitted to make this request.
+   */
+  async debugSubmitDepositAsync(tx: PlasmaCashTx): Promise<void> {
+    const contract = await this._resolvePlasmaContractAsync()
+    const owner = new Address('eth', LocalAddress.fromHexString(tx.newOwner))
+    const req = new DepositRequest()
+    req.setSlot(tx.slot as any)
+    req.setDepositBlock(marshalBigUIntPB(tx.prevBlockNum))
+    req.setDenomination(marshalBigUIntPB(tx.denomination))
+    req.setFrom(owner.MarshalPB())
+    await contract.callAsync('DepositRequest', req)
   }
 }
