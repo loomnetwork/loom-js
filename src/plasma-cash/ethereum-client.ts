@@ -21,6 +21,10 @@ export interface IPlasmaExitParams extends ISendTxOptions {
   prevBlockNum?: BN
 }
 
+export interface IPlasmaWithdrawParams extends ISendTxOptions {
+  slot: BN
+}
+
 export class EthereumPlasmaClient {
   private _web3: Web3
   private _plasmaContract: any // TODO: figure out how to type this properly
@@ -38,6 +42,9 @@ export class EthereumPlasmaClient {
     this._plasmaContract = new this._web3.eth.Contract(plasmaABI, plasmaContractAddr)
   }
 
+  /**
+   * @returns Web3 tx receipt object.
+   */
   startExitAsync(params: IPlasmaExitParams): Promise<object> {
     const { slot, exitTx, exitBlockNum, prevTx, prevBlockNum, from, gas, gasPrice } = params
     const prevTxBytes = prevTx ? prevTx.rlpEncode() : '0x'
@@ -57,17 +64,29 @@ export class EthereumPlasmaClient {
       .send({ from, value: bond, gas, gasPrice })
   }
 
-  finalizeExitsAsync(params: { sendOpts: any }): Promise<object> {
-    return this._plasmaContract.methods.finalizeExits().send(params.sendOpts)
+  /**
+   *
+   * @returns Web3 tx receipt object.
+   */
+  finalizeExitsAsync(params: ISendTxOptions): Promise<object> {
+    return this._plasmaContract.methods.finalizeExits().send(params)
   }
 
-  withdrawAsync() {}
+  /**
+   *
+   * @returns Web3 tx receipt object.
+   */
+  withdrawAsync(params: IPlasmaWithdrawParams): Promise<object> {
+    const { slot, ...rest } = params
+    return this._plasmaContract.methods.withdraw(slot).send(rest)
+  }
+
   withdrawBondsAsync() {}
 
   /**
    * Submits a Plasma block to the Plasma Cash Solidity contract on Ethereum.
    *
-   * @returns Web3 tx receipt.
+   * @returns Web3 tx receipt object.
    *
    * This method is only provided for debugging & testing, in practice only DAppChain Plasma Oracles
    * will be permitted to make this request.

@@ -15,6 +15,7 @@ import {
   EthErc721Contract
 } from '../../index'
 import { createTestHttpClient } from '../helpers'
+import { increaseTime } from '../ganache-helpers'
 
 let web3: Web3
 
@@ -168,6 +169,14 @@ class Entity {
       gas: DEFAULT_GAS
     })
   }
+
+  finalizeExitsAsync(): Promise<object> {
+    return this._ethPlasmaClient.finalizeExitsAsync({ from: this.ethAddress, gas: DEFAULT_GAS })
+  }
+
+  withdrawAsync(slot: BN): Promise<object> {
+    return this._ethPlasmaClient.withdrawAsync({ slot, from: this.ethAddress, gas: DEFAULT_GAS })
+  }
 }
 
 function marshalDepositEvent(data: {
@@ -273,9 +282,12 @@ test('Plasma Cash Demo', async t => {
 
   // TODO: charlie should stop watching exits of deposit3.slot
 
-  // TODO: Jump forward in time by 8 days
-  // TODO: authority should finalize exits
-  // TODO: charlie should withdraw deposit3.slot
+  // Jump forward in time by 8 days
+  await increaseTime(web3, 8 * 24 * 3600)
+
+  await authority.finalizeExitsAsync()
+
+  await charlie.withdrawAsync(deposit3.slot)
 
   balance = await cards.balanceOfAsync(alice.ethAddress)
   t.equal(balance.toNumber(), 2, 'alice should have 2 tokens in cards contract')
