@@ -63,6 +63,28 @@ export namespace NonceTx {
   }
 }
 
+export class BigUInt extends jspb.Message {
+  getValue(): Uint8Array | string;
+  getValue_asU8(): Uint8Array;
+  getValue_asB64(): string;
+  setValue(value: Uint8Array | string): void;
+
+  serializeBinary(): Uint8Array;
+  toObject(includeInstance?: boolean): BigUInt.AsObject;
+  static toObject(includeInstance: boolean, msg: BigUInt): BigUInt.AsObject;
+  static extensions: {[key: number]: jspb.ExtensionFieldInfo<jspb.Message>};
+  static extensionsBinary: {[key: number]: jspb.ExtensionFieldBinaryInfo<jspb.Message>};
+  static serializeBinaryToWriter(message: BigUInt, writer: jspb.BinaryWriter): void;
+  static deserializeBinary(bytes: Uint8Array): BigUInt;
+  static deserializeBinaryFromReader(message: BigUInt, reader: jspb.BinaryReader): BigUInt;
+}
+
+export namespace BigUInt {
+  export type AsObject = {
+    value: Uint8Array | string,
+  }
+}
+
 export class Address extends jspb.Message {
   getChainId(): string;
   setChainId(value: string): void;
