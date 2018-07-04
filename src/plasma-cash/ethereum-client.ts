@@ -66,6 +66,12 @@ export interface IPlasmaWithdrawParams extends ISendTxOptions {
   slot: BN
 }
 
+export interface IPlasmaChallengeAfterParams extends ISendTxOptions {
+  slot: BN
+  challengingBlockNum: BN
+  challengingTx: PlasmaCashTx
+}
+
 export class EthereumPlasmaClient {
   private _web3: Web3
   private _plasmaContract: any // TODO: figure out how to type this properly
@@ -140,6 +146,19 @@ export class EthereumPlasmaClient {
    */
   withdrawBondsAsync(params: ISendTxOptions): Promise<object> {
     return this._plasmaContract.methods.withdrawBonds().send(params)
+  }
+
+  /**
+   * `Exit Spent Coin Challenge`: Challenge an exit with a spend after the exit's blocks.
+   *
+   * @returns Web3 tx receipt object.
+   */
+  challengeAfterAsync(params: IPlasmaChallengeAfterParams): Promise<object> {
+    const { slot, challengingBlockNum, challengingTx, ...rest } = params
+    const txBytes = challengingTx.rlpEncode()
+    return this._plasmaContract.methods
+      .challengeAfter(slot, challengingBlockNum, txBytes, challengingTx.proof, challengingTx.sig)
+      .send(rest)
   }
 
   /**

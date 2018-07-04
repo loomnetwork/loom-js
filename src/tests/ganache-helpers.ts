@@ -1,4 +1,5 @@
 import Web3 from 'web3'
+import BN from 'bn.js'
 
 /**
  * @returns The time of the last mined block in seconds.
@@ -48,4 +49,14 @@ export async function increaseTimeTo(web3: Web3, target: number) {
   }
   let diff = target - now
   increaseTime(web3, diff)
+}
+
+/**
+ * Retrieves the ETH balance of a particular Ethereum address.
+ *
+ * @param address Hex-encoded Ethereum address.
+ */
+export async function getEthBalanceAtAddress(web3: Web3, address: string): Promise<BN> {
+  const balance = await web3.eth.getBalance(address)
+  return new BN(balance)
 }

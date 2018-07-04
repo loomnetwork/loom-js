@@ -2,7 +2,7 @@ import test from 'tape'
 import Web3 from 'web3'
 import BN from 'bn.js'
 
-import { increaseTime } from '../../ganache-helpers'
+import { increaseTime, getEthBalanceAtAddress } from '../../ganache-helpers'
 import { ADDRESSES, ACCOUNTS } from './config'
 import { Entity } from './entity'
 import { EthCardsContract } from './cards-contract'
@@ -79,15 +79,17 @@ test('Plasma Cash Challenge After Demo', async t => {
   //dan.watch_exits(deposit1_utxo)
 
   // Mallory attempts to exit spent coin (the one sent to Dan)
-  // This will be auto-challenged by Dan's client
   await mallory.startExitAsync({
     slot: deposit1Slot,
     prevBlockNum: new BN(0),
     exitBlockNum: coin.depositBlockNum
   })
 
-  // Wait until challenge is done
-  //time.sleep(2)
+  // Mallory's exit should be auto-challenged by Dan's client, but watching/auto-challenge hasn't
+  // been implemented yet, so challenge the exit manually for now...
+  await dan.challengeAfterAsync({ slot: deposit1Slot, challengingBlockNum: plasmaBlock3 })
+
+  // Having successufly challenged Mallory's exit Dan should be able to exit the coin
   await dan.startExitAsync({
     slot: deposit1Slot,
     prevBlockNum: coin.depositBlockNum,
@@ -97,19 +99,20 @@ test('Plasma Cash Challenge After Demo', async t => {
 
   // Jump forward in time by 8 days
   await increaseTime(web3, 8 * 24 * 3600)
+
   await authority.finalizeExitsAsync()
 
   await dan.withdrawAsync(deposit1Slot)
 
-  const danBalanceBefore = await web3.eth.getBalance(dan.ethAddress)
+  const danBalanceBefore = await getEthBalanceAtAddress(web3, dan.ethAddress)
   await dan.withdrawBondsAsync()
-  const danBalanceAfter = await web3.eth.getBalance(dan.ethAddress)
-  t.ok(danBalanceBefore < danBalanceAfter, 'END: Dan withdrew his bonds')
+  const danBalanceAfter = await getEthBalanceAtAddress(web3, dan.ethAddress)
+  t.ok(danBalanceBefore.cmp(danBalanceAfter) < 0, 'END: Dan withdrew his bonds')
 
   const malloryTokensEnd = await cards.balanceOfAsync(mallory.ethAddress)
   t.equal(malloryTokensEnd.toNumber(), 3, 'END: Mallory has correct number of tokens')
   const danTokensEnd = await cards.balanceOfAsync(dan.ethAddress)
-  t.equal(danTokensEnd, 1, 'END: Dan has correct number of tokens')
+  t.equal(danTokensEnd.toNumber(), 1, 'END: Dan has correct number of tokens')
 
   t.end()
 })
