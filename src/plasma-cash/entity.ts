@@ -1,29 +1,35 @@
 import BN from 'bn.js'
 import Web3 from 'web3'
 
-import {
-  LocalAddress,
-  Address,
-  EthereumPlasmaClient,
-  DAppChainPlasmaClient,
-  PlasmaCashTx,
-  CryptoUtils,
-  NonceTxMiddleware,
-  SignedTxMiddleware,
-  Web3Signer,
-  IPlasmaCoin
-} from '../../../index'
-import { ADDRESSES, DEFAULT_GAS, CHILD_BLOCK_INTERVAL } from './config'
-import { createTestHttpClient } from '../../helpers'
-import { IPlasmaDeposit } from '../../../plasma-cash/ethereum-client'
+import { EthereumPlasmaClient, IPlasmaCoin, IPlasmaDeposit } from './ethereum-client'
+import { DAppChainPlasmaClient } from './dappchain-client'
+import { PlasmaCashTx } from './plasma-cash-tx'
+import { Web3Signer } from './solidity-helpers'
 
-// TODO: Rename & move out of test directory, should be part of the public API
+export interface IEntityParams {
+  /** Web3 account for use on Ethereum */
+  ethAccount: any // TODO: Type this properly, also this should probably be obtained from ethPlasmaClient
+  ethPlasmaClient: EthereumPlasmaClient
+  dAppPlasmaClient: DAppChainPlasmaClient
+  /** Allows to override the amount of gas used when sending txs to Ethereum. */
+  defaultGas?: string | number
+  childBlockInterval: number
+}
+
+// TODO: Maybe come up with a better name?
+/**
+ * Manages Plasma Cash related interactions between an Ethereum network (Ganache, Mainnet, etc.)
+ * and a Loom DAppChain from the point of view of a single entity. An entity has two identities, one
+ * on Ethereum, and one on the DAppChain, each identity has its own private/public key pair.
+ */
 export class Entity {
   private _web3: Web3
   // web3 account
   private _ethAccount: any // TODO: type this properly
   private _dAppPlasmaClient: DAppChainPlasmaClient
   private _ethPlasmaClient: EthereumPlasmaClient
+  private _defaultGas?: string | number
+  private _childBlockInterval: number
 
   get ethAddress(): string {
     return this._ethAccount.address
@@ -33,21 +39,13 @@ export class Entity {
     return this._ethPlasmaClient.plasmaCashContract
   }
 
-  constructor(web3: Web3, ethPrivateKey: string) {
+  constructor(web3: Web3, params: IEntityParams) {
     this._web3 = web3
-    this._ethAccount = web3.eth.accounts.privateKeyToAccount(ethPrivateKey)
-    this._ethPlasmaClient = new EthereumPlasmaClient(web3, ADDRESSES.root_chain)
-
-    const dAppClient = createTestHttpClient()
-    // TODO: move keys to config file
-    const privKey = CryptoUtils.generatePrivateKey()
-    const pubKey = CryptoUtils.publicKeyFromPrivateKey(privKey)
-    dAppClient.txMiddleware = [
-      new NonceTxMiddleware(pubKey, dAppClient),
-      new SignedTxMiddleware(privKey)
-    ]
-    const callerAddress = new Address('default', LocalAddress.fromPublicKey(pubKey))
-    this._dAppPlasmaClient = new DAppChainPlasmaClient({ dAppClient, callerAddress })
+    this._ethAccount = params.ethAccount
+    this._ethPlasmaClient = params.ethPlasmaClient
+    this._dAppPlasmaClient = params.dAppPlasmaClient
+    this._defaultGas = params.defaultGas
+    this._childBlockInterval = params.childBlockInterval
   }
 
   async transferTokenAsync(params: {
@@ -94,7 +92,7 @@ export class Entity {
 
     // In case the sender is exiting a Deposit transaction, they should just create a signed
     // transaction to themselves. There is no need for a merkle proof.
-    if (exitBlockNum.modn(CHILD_BLOCK_INTERVAL) !== 0) {
+    if (exitBlockNum.modn(this._childBlockInterval) !== 0) {
       const exitTx = new PlasmaCashTx({
         slot,
         prevBlockNum: new BN(0),
@@ -107,7 +105,7 @@ export class Entity {
         exitTx,
         exitBlockNum,
         from: this.ethAddress,
-        gas: DEFAULT_GAS
+        gas: this._defaultGas
       })
     }
 
@@ -129,20 +127,20 @@ export class Entity {
       prevBlockNum,
       exitBlockNum,
       from: this.ethAddress,
-      gas: DEFAULT_GAS
+      gas: this._defaultGas
     })
   }
 
   finalizeExitsAsync(): Promise<object> {
-    return this._ethPlasmaClient.finalizeExitsAsync({ from: this.ethAddress, gas: DEFAULT_GAS })
+    return this._ethPlasmaClient.finalizeExitsAsync({ from: this.ethAddress, gas: this._defaultGas })
   }
 
   withdrawAsync(slot: BN): Promise<object> {
-    return this._ethPlasmaClient.withdrawAsync({ slot, from: this.ethAddress, gas: DEFAULT_GAS })
+    return this._ethPlasmaClient.withdrawAsync({ slot, from: this.ethAddress, gas: this._defaultGas })
   }
 
   withdrawBondsAsync(): Promise<object> {
-    return this._ethPlasmaClient.withdrawBondsAsync({ from: this.ethAddress, gas: DEFAULT_GAS })
+    return this._ethPlasmaClient.withdrawBondsAsync({ from: this.ethAddress, gas: this._defaultGas })
   }
 
   async challengeAfterAsync(params: { slot: BN; challengingBlockNum: BN }): Promise<object> {
@@ -159,7 +157,7 @@ export class Entity {
       challengingBlockNum,
       challengingTx,
       from: this.ethAddress,
-      gas: DEFAULT_GAS
+      gas: this._defaultGas
     })
   }
 
@@ -177,7 +175,7 @@ export class Entity {
       challengingBlockNum,
       challengingTx,
       from: this.ethAddress,
-      gas: DEFAULT_GAS
+      gas: this._defaultGas
     })
   }
 }
