@@ -66,7 +66,7 @@ export interface IPlasmaWithdrawParams extends ISendTxOptions {
   slot: BN
 }
 
-export interface IPlasmaChallengeAfterParams extends ISendTxOptions {
+export interface IPlasmaChallengeParams extends ISendTxOptions {
   slot: BN
   challengingBlockNum: BN
   challengingTx: PlasmaCashTx
@@ -153,7 +153,20 @@ export class EthereumPlasmaClient {
    *
    * @returns Web3 tx receipt object.
    */
-  challengeAfterAsync(params: IPlasmaChallengeAfterParams): Promise<object> {
+  challengeAfterAsync(params: IPlasmaChallengeParams): Promise<object> {
+    const { slot, challengingBlockNum, challengingTx, ...rest } = params
+    const txBytes = challengingTx.rlpEncode()
+    return this._plasmaContract.methods
+      .challengeAfter(slot, challengingBlockNum, txBytes, challengingTx.proof, challengingTx.sig)
+      .send(rest)
+  }
+
+  /**
+   * `Double Spend Challenge`: Challenge a double spend of a coin with a spend between the exit's blocks.
+   *
+   * @returns Web3 tx receipt object.
+   */
+  challengeBetweenAsync(params: IPlasmaChallengeParams): Promise<object> {
     const { slot, challengingBlockNum, challengingTx, ...rest } = params
     const txBytes = challengingTx.rlpEncode()
     return this._plasmaContract.methods

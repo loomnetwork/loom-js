@@ -162,4 +162,22 @@ export class Entity {
       gas: DEFAULT_GAS
     })
   }
+
+  async challengeBetweenAsync(params: { slot: BN; challengingBlockNum: BN }): Promise<object> {
+    const { slot, challengingBlockNum } = params
+    const challengingBlock = await this._dAppPlasmaClient.getPlasmaBlockAtAsync(
+      challengingBlockNum
+    )
+    const challengingTx = await challengingBlock.findTxWithSlot(slot)
+    if (!challengingTx) {
+      throw new Error(`Invalid challenging block: missing tx for slot ${slot.toString(10)}.`)
+    }
+    return this._ethPlasmaClient.challengeBetweenAsync({
+      slot,
+      challengingBlockNum,
+      challengingTx,
+      from: this.ethAddress,
+      gas: DEFAULT_GAS
+    })
+  }
 }
