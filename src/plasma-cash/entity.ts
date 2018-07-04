@@ -132,15 +132,25 @@ export class Entity {
   }
 
   finalizeExitsAsync(): Promise<object> {
-    return this._ethPlasmaClient.finalizeExitsAsync({ from: this.ethAddress, gas: this._defaultGas })
+    return this._ethPlasmaClient.finalizeExitsAsync({
+      from: this.ethAddress,
+      gas: this._defaultGas
+    })
   }
 
   withdrawAsync(slot: BN): Promise<object> {
-    return this._ethPlasmaClient.withdrawAsync({ slot, from: this.ethAddress, gas: this._defaultGas })
+    return this._ethPlasmaClient.withdrawAsync({
+      slot,
+      from: this.ethAddress,
+      gas: this._defaultGas
+    })
   }
 
   withdrawBondsAsync(): Promise<object> {
-    return this._ethPlasmaClient.withdrawBondsAsync({ from: this.ethAddress, gas: this._defaultGas })
+    return this._ethPlasmaClient.withdrawBondsAsync({
+      from: this.ethAddress,
+      gas: this._defaultGas
+    })
   }
 
   async challengeAfterAsync(params: { slot: BN; challengingBlockNum: BN }): Promise<object> {
