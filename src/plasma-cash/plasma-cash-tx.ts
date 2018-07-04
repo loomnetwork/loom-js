@@ -79,10 +79,17 @@ export class PlasmaCashTx {
 }
 
 export function unmarshalPlasmaTxPB(rawTx: PlasmaTx): PlasmaCashTx {
+  if (!rawTx.hasNewOwner()) {
+    throw new Error('Invalid PlasmaTx: missing new owner')
+  }
   const tx = new PlasmaCashTx({
     slot: new BN(rawTx.getSlot()),
-    prevBlockNum: unmarshalBigUIntPB(rawTx.getPreviousBlock()!),
-    denomination: unmarshalBigUIntPB(rawTx.getDenomination()!),
+    prevBlockNum: rawTx.hasPreviousBlock()
+      ? unmarshalBigUIntPB(rawTx.getPreviousBlock()!)
+      : new BN(0),
+    denomination: rawTx.hasDenomination()
+      ? unmarshalBigUIntPB(rawTx.getDenomination()!)
+      : new BN(0),
     newOwner: Address.UmarshalPB(rawTx.getNewOwner()!).local.toString(),
     sig: rawTx.getSignature_asU8(),
     proof: rawTx.getProof_asU8()

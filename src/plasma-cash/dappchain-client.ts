@@ -113,7 +113,7 @@ export class DAppChainPlasmaClient {
     const contract = await this._resolvePlasmaContractAsync()
     const owner = new Address('eth', LocalAddress.fromHexString(tx.newOwner))
     const req = new DepositRequest()
-    req.setSlot(tx.slot as any)
+    req.setSlot(tx.slot.toString(10) as any)
     req.setDepositBlock(marshalBigUIntPB(tx.prevBlockNum))
     req.setDenomination(marshalBigUIntPB(tx.denomination))
     req.setFrom(owner.MarshalPB())
