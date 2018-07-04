@@ -26,12 +26,10 @@ export class PlasmaCashBlock {
     let tx: PlasmaCashTx | null = null
     for (let i = 0; i < this._txs.length; i++) {
       if (this._txs[i].slot.cmp(slot) === 0) {
-        // TODO: break out on first match (should be the only match anyway)
-        //return this._txs[i]
-        tx = this._txs[i]
+        return this._txs[i]
       }
     }
-    return tx
+    return null
   }
 }
 
