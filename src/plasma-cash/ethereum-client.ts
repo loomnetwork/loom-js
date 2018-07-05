@@ -74,7 +74,7 @@ export interface IPlasmaChallengeParams extends ISendTxOptions {
 
 export interface IPlasmaChallengeBeforeParams extends ISendTxOptions {
   slot: BN
-  tx: PlasmaCashTx
+  challengingTx: PlasmaCashTx
   challengingBlockNum: BN
   prevTx?: PlasmaCashTx
   prevBlockNum?: BN
