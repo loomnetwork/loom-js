@@ -233,7 +233,7 @@ export class Entity {
     })
   }
 
-  async respondChallengeBefore(params: { slot: BN; challengingBlockNum: BN }): Promise<object> {
+  async respondChallengeBeforeAsync(params: { slot: BN; challengingBlockNum: BN }): Promise<object> {
     const { slot, challengingBlockNum } = params
     const challengingBlock = await this._dAppPlasmaClient.getPlasmaBlockAtAsync(
       challengingBlockNum
@@ -242,7 +242,7 @@ export class Entity {
     if (!challengingTx) {
       throw new Error(`Invalid challenging block: missing tx for slot ${slot.toString(10)}.`)
     }
-    return this._ethPlasmaClient.respondChallengeBefore({
+    return this._ethPlasmaClient.respondChallengeBeforeAsync({
       slot,
       challengingBlockNum,
       challengingTx,

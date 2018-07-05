@@ -212,7 +212,7 @@ export class EthereumPlasmaClient {
    *
    * @returns Web3 tx receipt object.
    */
-  respondChallengeBefore(params: IPlasmaChallengeParams): Promise<object> {
+  respondChallengeBeforeAsync(params: IPlasmaChallengeParams): Promise<object> {
     const { slot, challengingBlockNum, challengingTx, ...rest } = params
     const txBytes = challengingTx.rlpEncode()
     return this._plasmaContract.methods
