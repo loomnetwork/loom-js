@@ -207,6 +207,18 @@ export class EthereumPlasmaClient {
       .send({ from, value: bond, gas, gasPrice })
   }
 
+  /**
+   * `Response to invalid history challenge`: Respond to an invalid challenge with a later tx
+   *
+   * @returns Web3 tx receipt object.
+   */
+  respondChallengeBefore(params: IPlasmaChallengeParams): Promise<object> {
+    const { slot, challengingBlockNum, challengingTx, ...rest } = params
+    const txBytes = challengingTx.rlpEncode()
+    return this._plasmaContract.methods
+      .respondChallengeBefore(slot, challengingBlockNum, txBytes, challengingTx.proof, challengingTx.sig)
+      .send(rest)
+  }
 
   /**
    * Submits a Plasma block to the Plasma Cash Solidity contract on Ethereum.
