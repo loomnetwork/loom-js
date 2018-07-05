@@ -51,10 +51,10 @@ To debug loom-js while using it another project:
 1. Clone the Git repo from https://github.com/loomnetwork/loom-js
 2. Inside the loom-js repo run:
    ```bash
-   `yarn link`
-   `yarn build:dev`
+   yarn link
+   yarn build:dev
    ```
-3. In your project repo run `yarn link loom-js`
+3. In your project repo run `yarn link loom-js`.
 4. Debug your project normally.
 
 `yarn build:dev` will compile the TypeScript source to target ES2017, which requires a lot less
