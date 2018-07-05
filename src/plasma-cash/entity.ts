@@ -188,4 +188,49 @@ export class Entity {
       gas: this._defaultGas
     })
   }
+
+  async challengeBeforeAsync(params: { slot: BN; prevBlockNum: BN; challengingBlockNum: BN }): Promise<object> {
+    const { slot, prevBlockNum, challengingBlockNum } = params
+
+    // In case the sender is exiting a Deposit transaction, they should just create a signed
+    // transaction to themselves. There is no need for a merkle proof.
+    if (challengingBlockNum.modn(this._childBlockInterval) !== 0) {
+      const exitTx = new PlasmaCashTx({
+        slot,
+        prevBlockNum: new BN(0),
+        denomination: 1,
+        newOwner: this.ethAddress
+      })
+      await exitTx.signAsync(new Web3Signer(this._web3, this.ethAddress))
+      return this._ethPlasmaClient.challengeBeforeAsync({
+        slot,
+        exitTx,
+        challengingBlockNum,
+        from: this.ethAddress,
+        gas: this._defaultGas
+      })
+    }
+
+    // Otherwise, they should get the raw tx info from the blocks, and the merkle proofs.
+    const exitBlock = await this._dAppPlasmaClient.getPlasmaBlockAtAsync(challengingBlockNum)
+    const exitTx = await exitBlock.findTxWithSlot(slot)
+    if (!exitTx) {
+      throw new Error(`Invalid exit block: missing tx for slot ${slot.toString(10)}.`)
+    }
+    const prevBlock = await this._dAppPlasmaClient.getPlasmaBlockAtAsync(prevBlockNum)
+    const prevTx = await prevBlock.findTxWithSlot(slot)
+    if (!prevTx) {
+      throw new Error(`Invalid prev block: missing tx for slot ${slot.toString(10)}.`)
+    }
+    return this._ethPlasmaClient.challengeBeforeAsync({
+      slot,
+      prevTx,
+      exitTx,
+      prevBlockNum,
+      challengingBlockNum,
+      from: this.ethAddress,
+      gas: this._defaultGas
+    })
+  }
+
 }

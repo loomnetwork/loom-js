@@ -72,6 +72,15 @@ export interface IPlasmaChallengeParams extends ISendTxOptions {
   challengingTx: PlasmaCashTx
 }
 
+export interface IPlasmaChallengeBeforeParams extends ISendTxOptions {
+  slot: BN
+  tx: PlasmaCashTx
+  challengingBlockNum: BN
+  prevTx?: PlasmaCashTx
+  prevBlockNum?: BN
+}
+
+
 export class EthereumPlasmaClient {
   private _web3: Web3
   private _plasmaContract: any // TODO: figure out how to type this properly
@@ -173,6 +182,31 @@ export class EthereumPlasmaClient {
       .challengeAfter(slot, challengingBlockNum, txBytes, challengingTx.proof, challengingTx.sig)
       .send(rest)
   }
+
+  /**
+   * `Invalid History Challenge`: Challenge a coin with invalid history.
+   *
+   * @returns Web3 tx receipt object.
+   */
+  challengeBeforeAsync(params: IPlasmaChallengeBeforeParams): Promise<object> {
+    const { slot, challengingTx, challengingBlockNum, prevTx, prevBlockNum, from, gas, gasPrice } = params
+    const prevTxBytes = prevTx ? prevTx.rlpEncode() : '0x'
+    const challengingTxBytes = challengingTx.rlpEncode()
+    const bond = this._web3.utils.toWei('0.1', 'ether')
+
+    return this._plasmaContract.methods
+      .challengeBefore(
+        slot,
+        prevTxBytes,
+        challengingTxBytes,
+        prevTx ? prevTx.proof : '0x',
+        challengingTx.proof,
+        challengingTx.sig,
+        [prevBlockNum || 0, challengingBlockNum]
+      )
+      .send({ from, value: bond, gas, gasPrice })
+  }
+
 
   /**
    * Submits a Plasma block to the Plasma Cash Solidity contract on Ethereum.
