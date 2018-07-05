@@ -15,6 +15,7 @@
   "scripts": {
     "build": "tsc",
     "build:browser": "tsc && webpack",
+    "build:dev": "tsc --project es2017.tsconfig.json",
     "format": "prettier --write \"src/**/*.ts\"",
     "test": "yarn test:node && yarn test:browser",
     "test:node": "yarn proto && tsc && tape dist/tests/unit_tests.js | tap-spec",

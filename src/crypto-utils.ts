@@ -1,7 +1,7 @@
 import nacl from 'tweetnacl'
 
 export function bytesToHex(bytes: Uint8Array): string {
-  return Buffer.from(bytes.buffer, bytes.byteOffset, bytes.byteLength)
+  return Buffer.from(bytes.buffer as ArrayBuffer, bytes.byteOffset, bytes.byteLength)
     .toString('hex')
     .toUpperCase()
 }
@@ -67,7 +67,9 @@ export function sign(msg: Uint8Array, privateKey: Uint8Array): Uint8Array {
  * @returns base64 encoded string.
  */
 export function Uint8ArrayToB64(bytes: Uint8Array): string {
-  return Buffer.from(bytes.buffer, bytes.byteOffset, bytes.byteLength).toString('base64')
+  return Buffer.from(bytes.buffer as ArrayBuffer, bytes.byteOffset, bytes.byteLength).toString(
+    'base64'
+  )
 }
 
 /**

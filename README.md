@@ -26,6 +26,8 @@ yarn add loom-js
 yarn build
 # build for Browser
 yarn build:browser
+# build for Node while targeting ES2017 (more readable than ES5)
+yarn build:dev
 # run unit tests on Node & Browser
 yarn test
 # auto-format source files
@@ -42,6 +44,21 @@ yarn e2e:browser
 
 The e2e test environment can be configured by changing `.env.test` (see `.env.test.example` for
 default values).
+
+### Debugging
+
+To debug loom-js while using it another project:
+1. Clone the Git repo from https://github.com/loomnetwork/loom-js
+2. Inside the loom-js repo run:
+   ```bash
+   `yarn link`
+   `yarn build:dev`
+   ```
+3. In your project repo run `yarn link loom-js`
+4. Debug your project normally.
+
+`yarn build:dev` will compile the TypeScript source to target ES2017, which requires a lot less
+transformation of async/await constructs than the ES5 code released on NPM.
 
 ### Regenerating Protobufs
 

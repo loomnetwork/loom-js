@@ -14,7 +14,11 @@ export class LocalAddress {
     // TODO: checksum encoding like go-loom
     return (
       '0x' +
-      Buffer.from(this.bytes.buffer, this.bytes.byteOffset, this.bytes.byteLength).toString('hex')
+      Buffer.from(
+        this.bytes.buffer as ArrayBuffer,
+        this.bytes.byteOffset,
+        this.bytes.byteLength
+      ).toString('hex')
     )
   }
 
@@ -44,7 +48,9 @@ export class LocalAddress {
       throw new Error(`Invalid public key, expected 32 bytes, go ${publicKey.length}`)
     }
     const hasher = new ripemd160()
-    hasher.update(Buffer.from(publicKey.buffer, publicKey.byteOffset, publicKey.byteLength))
+    hasher.update(
+      Buffer.from(publicKey.buffer as ArrayBuffer, publicKey.byteOffset, publicKey.byteLength)
+    )
     return new LocalAddress(hasher.digest())
   }
 }
