@@ -179,7 +179,7 @@ export class EthereumPlasmaClient {
     const { slot, challengingBlockNum, challengingTx, ...rest } = params
     const txBytes = challengingTx.rlpEncode()
     return this._plasmaContract.methods
-      .challengeAfter(slot, challengingBlockNum, txBytes, challengingTx.proof, challengingTx.sig)
+      .challengeBetween(slot, challengingBlockNum, txBytes, challengingTx.proof, challengingTx.sig)
       .send(rest)
   }
 
