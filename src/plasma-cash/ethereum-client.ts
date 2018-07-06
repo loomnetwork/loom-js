@@ -72,6 +72,15 @@ export interface IPlasmaChallengeParams extends ISendTxOptions {
   challengingTx: PlasmaCashTx
 }
 
+export interface IPlasmaChallengeBeforeParams extends ISendTxOptions {
+  slot: BN
+  challengingTx: PlasmaCashTx
+  challengingBlockNum: BN
+  prevTx?: PlasmaCashTx
+  prevBlockNum?: BN
+}
+
+
 export class EthereumPlasmaClient {
   private _web3: Web3
   private _plasmaContract: any // TODO: figure out how to type this properly
@@ -171,6 +180,43 @@ export class EthereumPlasmaClient {
     const txBytes = challengingTx.rlpEncode()
     return this._plasmaContract.methods
       .challengeAfter(slot, challengingBlockNum, txBytes, challengingTx.proof, challengingTx.sig)
+      .send(rest)
+  }
+
+  /**
+   * `Invalid History Challenge`: Challenge a coin with invalid history.
+   *
+   * @returns Web3 tx receipt object.
+   */
+  challengeBeforeAsync(params: IPlasmaChallengeBeforeParams): Promise<object> {
+    const { slot, challengingTx, challengingBlockNum, prevTx, prevBlockNum, from, gas, gasPrice } = params
+    const prevTxBytes = prevTx ? prevTx.rlpEncode() : '0x'
+    const challengingTxBytes = challengingTx.rlpEncode()
+    const bond = this._web3.utils.toWei('0.1', 'ether')
+
+    return this._plasmaContract.methods
+      .challengeBefore(
+        slot,
+        prevTxBytes,
+        challengingTxBytes,
+        prevTx ? prevTx.proof : '0x',
+        challengingTx.proof,
+        challengingTx.sig,
+        [prevBlockNum || 0, challengingBlockNum]
+      )
+      .send({ from, value: bond, gas, gasPrice })
+  }
+
+  /**
+   * `Response to invalid history challenge`: Respond to an invalid challenge with a later tx
+   *
+   * @returns Web3 tx receipt object.
+   */
+  respondChallengeBeforeAsync(params: IPlasmaChallengeParams): Promise<object> {
+    const { slot, challengingBlockNum, challengingTx, ...rest } = params
+    const txBytes = challengingTx.rlpEncode()
+    return this._plasmaContract.methods
+      .respondChallengeBefore(slot, challengingBlockNum, txBytes, challengingTx.proof, challengingTx.sig)
       .send(rest)
   }
 

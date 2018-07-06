@@ -188,4 +188,67 @@ export class Entity {
       gas: this._defaultGas
     })
   }
+
+  async challengeBeforeAsync(params: { slot: BN; prevBlockNum: BN; challengingBlockNum: BN }): Promise<object> {
+    const { slot, prevBlockNum, challengingBlockNum } = params
+
+    // In case the sender is exiting a Deposit transaction, they should just create a signed
+    // transaction to themselves. There is no need for a merkle proof.
+    if (challengingBlockNum.modn(this._childBlockInterval) !== 0) {
+      const challengingTx = new PlasmaCashTx({
+        slot,
+        prevBlockNum: new BN(0),
+        denomination: 1,
+        newOwner: this.ethAddress
+      })
+      await challengingTx.signAsync(new Web3Signer(this._web3, this.ethAddress))
+      return this._ethPlasmaClient.challengeBeforeAsync({
+        slot,
+        challengingTx,
+        challengingBlockNum,
+        from: this.ethAddress,
+        gas: this._defaultGas
+      })
+    }
+
+    // Otherwise, they should get the raw tx info from the blocks, and the merkle proofs.
+    const exitBlock = await this._dAppPlasmaClient.getPlasmaBlockAtAsync(challengingBlockNum)
+    const challengingTx = await exitBlock.findTxWithSlot(slot)
+    if (!challengingTx) {
+      throw new Error(`Invalid exit block: missing tx for slot ${slot.toString(10)}.`)
+    }
+    const prevBlock = await this._dAppPlasmaClient.getPlasmaBlockAtAsync(prevBlockNum)
+    const prevTx = await prevBlock.findTxWithSlot(slot)
+    if (!prevTx) {
+      throw new Error(`Invalid prev block: missing tx for slot ${slot.toString(10)}.`)
+    }
+    return this._ethPlasmaClient.challengeBeforeAsync({
+      slot,
+      prevTx,
+      challengingTx,
+      prevBlockNum,
+      challengingBlockNum,
+      from: this.ethAddress,
+      gas: this._defaultGas
+    })
+  }
+
+  async respondChallengeBeforeAsync(params: { slot: BN; challengingBlockNum: BN }): Promise<object> {
+    const { slot, challengingBlockNum } = params
+    const challengingBlock = await this._dAppPlasmaClient.getPlasmaBlockAtAsync(
+      challengingBlockNum
+    )
+    const challengingTx = await challengingBlock.findTxWithSlot(slot)
+    if (!challengingTx) {
+      throw new Error(`Invalid challenging block: missing tx for slot ${slot.toString(10)}.`)
+    }
+    return this._ethPlasmaClient.respondChallengeBeforeAsync({
+      slot,
+      challengingBlockNum,
+      challengingTx,
+      from: this.ethAddress,
+      gas: this._defaultGas
+    })
+  }
+
 }
