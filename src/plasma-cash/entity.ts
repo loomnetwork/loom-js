@@ -189,7 +189,11 @@ export class Entity {
     })
   }
 
-  async challengeBeforeAsync(params: { slot: BN; prevBlockNum: BN; challengingBlockNum: BN }): Promise<object> {
+  async challengeBeforeAsync(params: {
+    slot: BN
+    prevBlockNum: BN
+    challengingBlockNum: BN
+  }): Promise<object> {
     const { slot, prevBlockNum, challengingBlockNum } = params
 
     // In case the sender is exiting a Deposit transaction, they should just create a signed
@@ -233,7 +237,10 @@ export class Entity {
     })
   }
 
-  async respondChallengeBeforeAsync(params: { slot: BN; challengingBlockNum: BN }): Promise<object> {
+  async respondChallengeBeforeAsync(params: {
+    slot: BN
+    challengingBlockNum: BN
+  }): Promise<object> {
     const { slot, challengingBlockNum } = params
     const challengingBlock = await this._dAppPlasmaClient.getPlasmaBlockAtAsync(
       challengingBlockNum
@@ -250,5 +257,4 @@ export class Entity {
       gas: this._defaultGas
     })
   }
-
 }
