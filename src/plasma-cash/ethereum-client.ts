@@ -19,6 +19,8 @@ export interface IPlasmaCoin {
   denomination: BN
   /** Hex encoded Ethereum address of the current owner of the coin, prefixed by 0x. */
   owner: string
+  /** Hex encoded Ethereum address of the token contract, prefixed by 0x. */
+  contractAddress: string
   state: PlasmaCoinState
 }
 
@@ -27,6 +29,7 @@ export interface IPlasmaDeposit {
   blockNumber: BN
   denomination: BN
   from: string
+  contractAddress: string
 }
 
 // TODO: This probably shouldn't be exposed, instead add API to EthereumPlasmaClient to retrieve
@@ -36,13 +39,15 @@ export function marshalDepositEvent(data: {
   blockNumber: string
   denomination: string
   from: string
+  contractAddress: string
 }): IPlasmaDeposit {
-  const { slot, blockNumber, denomination, from } = data
+  const { slot, blockNumber, denomination, from, contractAddress } = data
   return {
     slot: new BN(slot),
     blockNumber: new BN(blockNumber),
     denomination: new BN(denomination),
-    from
+    from,
+    contractAddress
   }
 }
 
@@ -105,7 +110,8 @@ export class EthereumPlasmaClient {
       depositBlockNum: new BN(coin[1]),
       denomination: new BN(coin[2]),
       owner: coin[3],
-      state: parseInt(coin[4], 10)
+      contractAddress: coin[4],
+      state: parseInt(coin[5], 10)
     }
   }
 
