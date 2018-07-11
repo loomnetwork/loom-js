@@ -2,8 +2,16 @@ import debug from 'debug'
 import { Message } from 'google-protobuf'
 import EventEmitter from 'events'
 import retry from 'retry'
-
-import { VMType, EvmTxReceipt, EvmTxObject, EthBlockInfo } from './proto/loom_pb'
+import {
+  VMType,
+  EvmTxReceipt,
+  EvmTxObject,
+  EthBlockInfo,
+  EthFilterEnvelope,
+  EthBlockHashList,
+  EthFilterLogList,
+  EthTxHashList
+} from './proto/loom_pb'
 import { Uint8ArrayToB64, B64ToUint8Array, bufferToProtobufBytes } from './crypto-utils'
 import { Address, LocalAddress } from './address'
 import { WSRPCClient, IJSONRPCEvent } from './internal/ws-rpc-client'
@@ -419,14 +427,30 @@ export class Client extends EventEmitter {
    * @param id Id of filter previously created
    * @return Uint8Array The corresponding result of the request for given id
    */
-  async getEvmFilterChangesAsync(id: string): Promise<Uint8Array | null> {
+  async getEvmFilterChangesAsync(
+    id: string
+  ): Promise<EthBlockHashList | EthFilterLogList | EthTxHashList | null> {
     log(`Get filter changes for ${JSON.stringify({ id }, null, 2)}`)
-    const result = await this._readClient.sendAsync<string>('getevmfilterchanges', {
+    const result = await this._readClient.sendAsync<Uint8Array>('getevmfilterchanges', {
       id
     })
 
     if (result) {
-      return B64ToUint8Array(result)
+      const envelope: EthFilterEnvelope = EthFilterEnvelope.deserializeBinary(
+        bufferToProtobufBytes(result)
+      )
+
+      switch (envelope.getMessageCase()) {
+        case EthFilterEnvelope.MessageCase.ETH_BLOCK_HASH_LIST:
+          return envelope.getEthBlockHashList() as EthBlockHashList
+        case EthFilterEnvelope.MessageCase.ETH_FILTER_LOG_LIST:
+          return envelope.getEthFilterLogList() as EthFilterLogList
+        case EthFilterEnvelope.MessageCase.ETH_TX_HASH_LIST:
+          return envelope.getEthTxHashList() as EthTxHashList
+        case EthFilterEnvelope.MessageCase.MESSAGE_NOT_SET:
+        default:
+          return null
+      }
     } else {
       return null
     }
@@ -502,9 +526,12 @@ export class Client extends EventEmitter {
    * @param hash String with the hash of the transaction
    * @param full If true it returns the full transaction objects, if false only the hashes of the transactions
    */
-  async getEvmBlockByHashAsync(hash: string, full: boolean = true): Promise<EthBlockInfo | null> {
+  async getEvmBlockByHashAsync(
+    hash: Uint8Array,
+    full: boolean = true
+  ): Promise<EthBlockInfo | null> {
     const result = await this._readClient.sendAsync<string>('getevmblockbyhash', {
-      hash,
+      hash: Uint8ArrayToB64(hash),
       full
     })
     if (result) {
@@ -594,6 +621,8 @@ export class Client extends EventEmitter {
       const eventArgs: IClientErrorEventArgs = { kind: ClientEvent.Error, url, error }
       this.emit(ClientEvent.Error, eventArgs)
     } else if (result) {
+      console.log('event', event.id, result)
+
       // Ugh, no built-in JSON->Protobuf marshaller apparently
       // https://github.com/google/protobuf/issues/1591 so gotta do this manually
       const eventArgs: IChainEventArgs = {
