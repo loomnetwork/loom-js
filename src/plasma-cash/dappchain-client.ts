@@ -15,16 +15,18 @@ import {
   PlasmaTxRequest,
   SubmitBlockToMainnetRequest
 } from '../proto/plasma_cash_pb'
-import { bufferToProtobufBytes } from '../crypto-utils'
 
 export class DAppChainPlasmaClient {
   private _dAppClient: Client
   private _plasmaContract?: Contract
   private _callerAddress: Address
+  private _plasmaContractName: string
 
-  constructor(params: { dAppClient: Client; callerAddress: Address }) {
-    this._dAppClient = params.dAppClient
-    this._callerAddress = params.callerAddress
+  constructor(params: { dAppClient: Client; callerAddress: Address; contractName?: string }) {
+    const { dAppClient, callerAddress, contractName = 'plasmacash' } = params
+    this._dAppClient = dAppClient
+    this._callerAddress = callerAddress
+    this._plasmaContractName = contractName
   }
 
   private async _resolvePlasmaContractAsync(): Promise<Contract> {
@@ -35,7 +37,7 @@ export class DAppChainPlasmaClient {
       }
       this._plasmaContract = new Contract({
         contractAddr: addr,
-        contractName: 'plasmacash',
+        contractName: this._plasmaContractName,
         callerAddr: this._callerAddress,
         client: this._dAppClient
       })
