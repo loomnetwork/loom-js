@@ -9,6 +9,7 @@ export {
 export { Contract } from './contract'
 export { EvmContract } from './evm-contract'
 export { Address, LocalAddress } from './address'
+export { unmarshalBigUIntPB, marshalBigUIntPB } from './big-uint'
 export { SignedTxMiddleware, NonceTxMiddleware } from './middleware'
 export { createDefaultTxMiddleware } from './helpers'
 export { LoomProvider } from './loom-provider'
