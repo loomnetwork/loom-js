@@ -527,11 +527,11 @@ export class Client extends EventEmitter {
    * @param full If true it returns the full transaction objects, if false only the hashes of the transactions
    */
   async getEvmBlockByHashAsync(
-    hash: Uint8Array,
+    hashHexStr: string,
     full: boolean = true
   ): Promise<EthBlockInfo | null> {
     const result = await this._readClient.sendAsync<string>('getevmblockbyhash', {
-      hash: Uint8ArrayToB64(hash),
+      hash: Buffer.from(hashHexStr, 'hex').toString('base64'),
       full
     })
     if (result) {

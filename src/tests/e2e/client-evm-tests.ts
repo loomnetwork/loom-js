@@ -36,7 +36,7 @@ test('Client EVM test (newBlockEvmFilterAsync)', async t => {
 
     // calls getevmblockbyhash
     const block: EthBlockInfo = (await client.getEvmBlockByHashAsync(
-      blockList[0] as Uint8Array
+      bytesToHexAddr(blockList[0] as Uint8Array)
     )) as EthBlockInfo
 
     if (!block) {

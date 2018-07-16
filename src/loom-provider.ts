@@ -338,7 +338,7 @@ export class LoomProvider {
     const isFull = payload.params[1] || true
 
     const result = await this._client.getEvmBlockByHashAsync(
-      hexAddrToUint8Array(blockHash),
+      blockHash,
       isFull
     )
 
