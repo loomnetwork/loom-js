@@ -485,7 +485,8 @@ export class LoomProvider {
       LocalAddress.fromHexString('0x0000000000000000000000000000000000000000')
     )
 
-    const data = Buffer.from(payload.data.substring(2), 'hex')
+    const hasHexPrefix = payload.data.substring(0, 2) === '0x'
+    const data = Buffer.from(payload.data.slice(hasHexPrefix ? 2 : 0), 'hex')
 
     const deployTx = new DeployTx()
     deployTx.setVmType(VMType.EVM)
