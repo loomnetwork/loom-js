@@ -13,7 +13,9 @@ import {
   EthFilterLog,
   EthFilterLogList,
   EvmTxReceipt,
-  EthBlockInfo
+  EthBlockInfo,
+  EthBlockHashList,
+  EthTxHashList
 } from './proto/loom_pb'
 import { Address, LocalAddress } from './address'
 import {
@@ -62,6 +64,18 @@ export interface IEthRPCPayload {
   id: number
   method: string
   params: Array<any>
+}
+
+export interface IEthFilterLog {
+  removed: boolean
+  logIndex: string
+  transactionIndex: string
+  transactionHash: string
+  blockHash: string
+  blockNumber: string
+  address: string
+  data: string
+  topics: Array<string>
 }
 
 const log = debug('loom-provider')
@@ -322,7 +336,10 @@ export class LoomProvider {
     const blockHash = payload.params[0]
     const isFull = payload.params[1] || true
 
-    const result = await this._client.getEvmBlockByHashAsync(blockHash, isFull)
+    const result = await this._client.getEvmBlockByHashAsync(
+      blockHash,
+      isFull
+    )
 
     if (!result) {
       return null
@@ -365,7 +382,19 @@ export class LoomProvider {
       return []
     }
 
-    return [bytesToHexAddrLC(result)]
+    if (result instanceof EthBlockHashList) {
+      return (result as EthBlockHashList)
+        .getEthBlockHashList_asU8()
+        .map((hash: Uint8Array) => bytesToHexAddrLC(hash))
+    } else if (result instanceof EthTxHashList) {
+      return (result as EthTxHashList)
+        .getEthTxHashList_asU8()
+        .map((hash: Uint8Array) => bytesToHexAddrLC(hash))
+    } else if (result instanceof EthFilterLogList) {
+      return (result as EthFilterLogList)
+        .getEthBlockLogsList()
+        .map((log: EthFilterLog) => this._createLogResult(log))
+    }
   }
 
   private async _ethGetLogs(payload: IEthRPCPayload) {
@@ -614,7 +643,21 @@ export class LoomProvider {
     return this._createReceiptResult(receipt)
   }
 
-  private async _getLogs(filterObject: Object): Promise<any> {
+  private _createLogResult(log: EthFilterLog): IEthFilterLog {
+    return {
+      removed: log.getRemoved(),
+      logIndex: numberToHexLC(log.getLogIndex()),
+      transactionIndex: numberToHex(log.getTransactionIndex()),
+      transactionHash: bytesToHexAddrLC(log.getTransactionHash_asU8()),
+      blockHash: bytesToHexAddrLC(log.getBlockHash_asU8()),
+      blockNumber: numberToHex(log.getBlockNumber()),
+      address: bytesToHexAddrLC(log.getAddress_asU8()),
+      data: bytesToHexAddrLC(log.getData_asU8()),
+      topics: log.getTopicsList().map((topic: any) => String.fromCharCode.apply(null, topic))
+    } as IEthFilterLog
+  }
+
+  private async _getLogs(filterObject: Object): Promise<Array<IEthFilterLog>> {
     const logsListAsyncResult = await this._client.getEvmLogsAsync(filterObject)
 
     if (!logsListAsyncResult) {
@@ -623,17 +666,7 @@ export class LoomProvider {
 
     const logList = EthFilterLogList.deserializeBinary(bufferToProtobufBytes(logsListAsyncResult))
     return logList.getEthBlockLogsList().map((log: EthFilterLog) => {
-      return {
-        removed: log.getRemoved(),
-        logIndex: numberToHexLC(log.getLogIndex()),
-        transactionIndex: numberToHex(log.getTransactionIndex()),
-        transactionHash: bytesToHexAddrLC(log.getTransactionHash_asU8()),
-        blockHash: bytesToHexAddrLC(log.getBlockHash_asU8()),
-        blockNumber: numberToHex(log.getBlockNumber()),
-        address: bytesToHexAddrLC(log.getAddress_asU8()),
-        data: bytesToHexAddrLC(log.getData_asU8()),
-        topics: log.getTopicsList().map((topic: any) => String.fromCharCode.apply(null, topic))
-      }
+      return this._createLogResult(log)
     })
   }
 

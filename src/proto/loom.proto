@@ -79,12 +79,24 @@ message Response {
 }
 
 message ContractMethodCall {
-	string method = 1;
-	bytes args = 2;
+    string method = 1;
+    bytes args = 2;
 }
 
-message TxHashList {
-    repeated bytes tx_hash = 1;
+message EthFilterEnvelope {
+    oneof message {
+        EthBlockHashList eth_block_hash_list = 1;
+        EthFilterLogList eth_filter_log_list = 2;
+        EthTxHashList eth_tx_hash_list = 3;
+    }
+}
+
+message EthBlockHashList {
+    repeated bytes eth_block_hash = 1;
+}
+
+message EthTxHashList {
+    repeated bytes eth_tx_hash = 1;
 }
 
 message EventDataList {

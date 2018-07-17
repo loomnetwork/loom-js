@@ -391,27 +391,93 @@ export namespace ContractMethodCall {
   }
 }
 
-export class TxHashList extends jspb.Message {
-  clearTxHashList(): void;
-  getTxHashList(): Array<Uint8Array | string>;
-  getTxHashList_asU8(): Array<Uint8Array>;
-  getTxHashList_asB64(): Array<string>;
-  setTxHashList(value: Array<Uint8Array | string>): void;
-  addTxHash(value: Uint8Array | string, index?: number): Uint8Array | string;
+export class EthFilterEnvelope extends jspb.Message {
+  hasEthBlockHashList(): boolean;
+  clearEthBlockHashList(): void;
+  getEthBlockHashList(): EthBlockHashList | undefined;
+  setEthBlockHashList(value?: EthBlockHashList): void;
 
+  hasEthFilterLogList(): boolean;
+  clearEthFilterLogList(): void;
+  getEthFilterLogList(): EthFilterLogList | undefined;
+  setEthFilterLogList(value?: EthFilterLogList): void;
+
+  hasEthTxHashList(): boolean;
+  clearEthTxHashList(): void;
+  getEthTxHashList(): EthTxHashList | undefined;
+  setEthTxHashList(value?: EthTxHashList): void;
+
+  getMessageCase(): EthFilterEnvelope.MessageCase;
   serializeBinary(): Uint8Array;
-  toObject(includeInstance?: boolean): TxHashList.AsObject;
-  static toObject(includeInstance: boolean, msg: TxHashList): TxHashList.AsObject;
+  toObject(includeInstance?: boolean): EthFilterEnvelope.AsObject;
+  static toObject(includeInstance: boolean, msg: EthFilterEnvelope): EthFilterEnvelope.AsObject;
   static extensions: {[key: number]: jspb.ExtensionFieldInfo<jspb.Message>};
   static extensionsBinary: {[key: number]: jspb.ExtensionFieldBinaryInfo<jspb.Message>};
-  static serializeBinaryToWriter(message: TxHashList, writer: jspb.BinaryWriter): void;
-  static deserializeBinary(bytes: Uint8Array): TxHashList;
-  static deserializeBinaryFromReader(message: TxHashList, reader: jspb.BinaryReader): TxHashList;
+  static serializeBinaryToWriter(message: EthFilterEnvelope, writer: jspb.BinaryWriter): void;
+  static deserializeBinary(bytes: Uint8Array): EthFilterEnvelope;
+  static deserializeBinaryFromReader(message: EthFilterEnvelope, reader: jspb.BinaryReader): EthFilterEnvelope;
 }
 
-export namespace TxHashList {
+export namespace EthFilterEnvelope {
   export type AsObject = {
-    txHashList: Array<Uint8Array | string>,
+    ethBlockHashList?: EthBlockHashList.AsObject,
+    ethFilterLogList?: EthFilterLogList.AsObject,
+    ethTxHashList?: EthTxHashList.AsObject,
+  }
+
+  export enum MessageCase {
+    MESSAGE_NOT_SET = 0,
+    ETH_BLOCK_HASH_LIST = 1,
+    ETH_FILTER_LOG_LIST = 2,
+    ETH_TX_HASH_LIST = 3,
+  }
+}
+
+export class EthBlockHashList extends jspb.Message {
+  clearEthBlockHashList(): void;
+  getEthBlockHashList(): Array<Uint8Array | string>;
+  getEthBlockHashList_asU8(): Array<Uint8Array>;
+  getEthBlockHashList_asB64(): Array<string>;
+  setEthBlockHashList(value: Array<Uint8Array | string>): void;
+  addEthBlockHash(value: Uint8Array | string, index?: number): Uint8Array | string;
+
+  serializeBinary(): Uint8Array;
+  toObject(includeInstance?: boolean): EthBlockHashList.AsObject;
+  static toObject(includeInstance: boolean, msg: EthBlockHashList): EthBlockHashList.AsObject;
+  static extensions: {[key: number]: jspb.ExtensionFieldInfo<jspb.Message>};
+  static extensionsBinary: {[key: number]: jspb.ExtensionFieldBinaryInfo<jspb.Message>};
+  static serializeBinaryToWriter(message: EthBlockHashList, writer: jspb.BinaryWriter): void;
+  static deserializeBinary(bytes: Uint8Array): EthBlockHashList;
+  static deserializeBinaryFromReader(message: EthBlockHashList, reader: jspb.BinaryReader): EthBlockHashList;
+}
+
+export namespace EthBlockHashList {
+  export type AsObject = {
+    ethBlockHashList: Array<Uint8Array | string>,
+  }
+}
+
+export class EthTxHashList extends jspb.Message {
+  clearEthTxHashList(): void;
+  getEthTxHashList(): Array<Uint8Array | string>;
+  getEthTxHashList_asU8(): Array<Uint8Array>;
+  getEthTxHashList_asB64(): Array<string>;
+  setEthTxHashList(value: Array<Uint8Array | string>): void;
+  addEthTxHash(value: Uint8Array | string, index?: number): Uint8Array | string;
+
+  serializeBinary(): Uint8Array;
+  toObject(includeInstance?: boolean): EthTxHashList.AsObject;
+  static toObject(includeInstance: boolean, msg: EthTxHashList): EthTxHashList.AsObject;
+  static extensions: {[key: number]: jspb.ExtensionFieldInfo<jspb.Message>};
+  static extensionsBinary: {[key: number]: jspb.ExtensionFieldBinaryInfo<jspb.Message>};
+  static serializeBinaryToWriter(message: EthTxHashList, writer: jspb.BinaryWriter): void;
+  static deserializeBinary(bytes: Uint8Array): EthTxHashList;
+  static deserializeBinaryFromReader(message: EthTxHashList, reader: jspb.BinaryReader): EthTxHashList;
+}
+
+export namespace EthTxHashList {
+  export type AsObject = {
+    ethTxHashList: Array<Uint8Array | string>,
   }
 }
 

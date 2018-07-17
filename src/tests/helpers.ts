@@ -37,3 +37,7 @@ export function createTestHttpWSClient(): Client {
   })
   return new Client('default', writer, reader)
 }
+
+export function waitForMillisecondsAsync(ms: number) {
+  return new Promise(res => setTimeout(res, ms))
+}
