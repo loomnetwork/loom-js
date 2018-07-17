@@ -531,7 +531,7 @@ export class Client extends EventEmitter {
     full: boolean = true
   ): Promise<EthBlockInfo | null> {
     const result = await this._readClient.sendAsync<string>('getevmblockbyhash', {
-      hash: Buffer.from(hashHexStr, 'hex').toString('base64'),
+      hash: Buffer.from(hashHexStr.slice(2), 'hex').toString('base64'),
       full
     })
     if (result) {
