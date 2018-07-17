@@ -22,8 +22,7 @@ import {
   bytesToHexAddr,
   numberToHex,
   bufferToProtobufBytes,
-  publicKeyFromPrivateKey,
-  hexAddrToUint8Array
+  publicKeyFromPrivateKey
 } from './crypto-utils'
 
 export interface IEthReceipt {

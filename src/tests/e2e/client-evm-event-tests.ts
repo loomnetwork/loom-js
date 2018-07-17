@@ -1,7 +1,7 @@
 import test from 'tape'
 
 import { NonceTxMiddleware, SignedTxMiddleware, CryptoUtils } from '../../index'
-import { createTestClient, timeout } from '../helpers'
+import { createTestClient, waitForMillisecondsAsync } from '../helpers'
 import { CallTx, VMType, MessageTx, Transaction } from '../../proto/loom_pb'
 import { LoomProvider } from '../../loom-provider'
 import { deployContract } from '../evm-helpers'
@@ -90,7 +90,7 @@ test('Client EVM Event test', async t => {
 
     const commitResult = await client.commitTxAsync<Transaction>(tx)
 
-    timeout(2000)
+    waitForMillisecondsAsync(2000)
 
     client.disconnect()
   } catch (err) {

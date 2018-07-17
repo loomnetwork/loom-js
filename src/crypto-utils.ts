@@ -14,17 +14,6 @@ export function hexToNumber(hex: string): number {
   return parseInt(hex, 16)
 }
 
-export function hexAddrToUint8Array(hexAddr: string): Uint8Array {
-  let result = []
-  const hex = hexAddr.slice(2)
-
-  for (let i = 0; i < hex.length; i += 2) {
-    result.push(parseInt(hex.substring(i, i + 2), 16))
-  }
-
-  return Uint8Array.from(result)
-}
-
 export function bytesToHexAddr(bytes: Uint8Array): string {
   return '0x' + bytesToHex(bytes)
 }

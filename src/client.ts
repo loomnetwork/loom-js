@@ -621,7 +621,7 @@ export class Client extends EventEmitter {
       const eventArgs: IClientErrorEventArgs = { kind: ClientEvent.Error, url, error }
       this.emit(ClientEvent.Error, eventArgs)
     } else if (result) {
-      console.log('event', event.id, result)
+      log('Event', event.id, result)
 
       // Ugh, no built-in JSON->Protobuf marshaller apparently
       // https://github.com/google/protobuf/issues/1591 so gotta do this manually

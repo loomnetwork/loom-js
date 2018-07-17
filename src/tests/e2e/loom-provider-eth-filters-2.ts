@@ -1,7 +1,7 @@
 import test from 'tape'
 
 import { CryptoUtils } from '../../index'
-import { createTestClient, timeout } from '../helpers'
+import { createTestClient, waitForMillisecondsAsync } from '../helpers'
 import { LoomProvider } from '../../loom-provider'
 
 test('LoomProvider + Filters 2', async t => {
@@ -21,7 +21,7 @@ test('LoomProvider + Filters 2', async t => {
       'New id should be created for new block filter'
     )
 
-    await timeout(1000)
+    await waitForMillisecondsAsync(1000)
 
     const ethGetFilterChanges = await loomProvider.sendAsync({
       id: 12,

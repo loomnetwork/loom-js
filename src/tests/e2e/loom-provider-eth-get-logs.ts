@@ -1,7 +1,7 @@
 import test from 'tape'
 
 import { LocalAddress, CryptoUtils } from '../../index'
-import { createTestClient, timeout } from '../helpers'
+import { createTestClient, waitForMillisecondsAsync } from '../helpers'
 import { LoomProvider } from '../../loom-provider'
 import { deployContract } from '../evm-helpers'
 
@@ -93,7 +93,7 @@ async function testGetLogsLatest(t: test.Test, loomProvider: LoomProvider, fromA
   const newSetTransaction = await newTransactionToSetState(loomProvider, fromAddr)
 
   // Await a little to block to be ready
-  await timeout(1500)
+  await waitForMillisecondsAsync(1500)
 
   // Filtering to get logs
   let ethGetLogs = await loomProvider.sendAsync({
@@ -115,7 +115,7 @@ async function testGetLogsLatest(t: test.Test, loomProvider: LoomProvider, fromA
 async function testGetLogsAny(t: test.Test, loomProvider: LoomProvider, fromAddr: string) {
   await newTransactionToSetState(loomProvider, fromAddr)
 
-  await timeout(1500)
+  await waitForMillisecondsAsync(1500)
 
   // Filtering to get logs
   let ethGetLogs = await loomProvider.sendAsync({

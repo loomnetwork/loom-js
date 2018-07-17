@@ -1,7 +1,7 @@
 import test from 'tape'
 
 import { LocalAddress, CryptoUtils } from '../../index'
-import { createTestClient, timeout } from '../helpers'
+import { createTestClient, waitForMillisecondsAsync } from '../helpers'
 
 import { LoomProvider } from '../../loom-provider'
 import { deployContract } from '../evm-helpers'
@@ -96,7 +96,7 @@ test('LoomProvider + Web3', async t => {
     const resultOfGet = await contract.methods.get().call()
     t.equal(+resultOfGet, newValue, `SimpleStore.get should return correct value`)
 
-    await timeout(3000)
+    await waitForMillisecondsAsync(3000)
 
     client.disconnect()
   } catch (err) {

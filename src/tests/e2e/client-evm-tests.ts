@@ -1,7 +1,7 @@
 import test from 'tape'
 
 import { NonceTxMiddleware, SignedTxMiddleware, CryptoUtils } from '../../index'
-import { createTestClient, timeout } from '../helpers'
+import { createTestClient, waitForMillisecondsAsync } from '../helpers'
 import { EthBlockHashList, EthBlockInfo, EthTxHashList } from '../../proto/loom_pb'
 import { bufferToProtobufBytes, bytesToHexAddr } from '../../crypto-utils'
 
@@ -23,7 +23,7 @@ test('Client EVM test (newBlockEvmFilterAsync)', async t => {
       t.fail('Filter Id cannot be null')
     }
 
-    await timeout(1000)
+    await waitForMillisecondsAsync(1000)
 
     // calls getevmfilterchanges
     const hash = await client.getEvmFilterChangesAsync(filterId as string)
@@ -71,7 +71,7 @@ test('Client EVM test (newPendingTransactionEvmFilterAsync)', async t => {
       t.fail('Filter Id cannot be null')
     }
 
-    await timeout(1000)
+    await waitForMillisecondsAsync(1000)
 
     // calls getevmfilterchanges
     const hash = await client.getEvmFilterChangesAsync(filterId as string)
