@@ -61,17 +61,25 @@ test('Client EVM Event test', async t => {
     const filter = {
       topics: [
         '0xb922f092a64f1a076de6f21e4d7c6400b6e55791cc935e7bb8e7e90f7652f15b',
-        '0x0000000000000000000000000000000000000000000000000000000000000001'
+        [
+          '0x0000000000000000000000000000000000000000000000000000000000000001',
+          '0x0000000000000000000000000000000000000000000000000000000000000002',
+          '0x0000000000000000000000000000000000000000000000000000000000000003',
+          '0x0000000000000000000000000000000000000000000000000000000000000004',
+          '0x0000000000000000000000000000000000000000000000000000000000000005'
+        ]
       ],
       address: result.contractAddress
     }
 
-    await client.evmSubscribeAsync('logs', filter)
+    const filterCreated = await client.evmSubscribeAsync('logs', filter)
+
+    console.log('Filter created', filterCreated)
 
     const caller = new Address('default', LocalAddress.fromPublicKey(publicKey))
     const address = new Address('default', LocalAddress.fromHexString(result.contractAddress))
     const data = Buffer.from(
-      '60fe47b10000000000000000000000000000000000000000000000000000000000000001',
+      '60fe47b10000000000000000000000000000000000000000000000000000000000000005',
       'hex'
     )
 
@@ -88,7 +96,7 @@ test('Client EVM Event test', async t => {
     tx.setId(2)
     tx.setData(msgTx.serializeBinary())
 
-    const commitResult = await client.commitTxAsync<Transaction>(tx)
+    await client.commitTxAsync<Transaction>(tx)
 
     waitForMillisecondsAsync(2000)
 
