@@ -14,7 +14,7 @@ import { CryptoUtils } from '.'
 export class AddressMapper {
   private _client: Client
   private _privateKey: Uint8Array
-  private _addressMapperContract?: Contract
+  private _addressMapperContract!: Contract
 
   constructor(client: Client, privateKey: Uint8Array) {
     this._client = client
@@ -46,27 +46,6 @@ export class AddressMapper {
     const mappingRequest = new AddressMapperAddContractMappingRequest()
     mappingRequest.setFrom(from.MarshalPB())
     mappingRequest.setTo(to.MarshalPB())
-
-    const fromSender = new Address(
-      'default',
-      new LocalAddress(CryptoUtils.publicKeyFromPrivateKey(this._privateKey))
-    )
-
-    const toSender = (this._addressMapperContract as Contract).address
-
-    const callTx = new CallTx()
-    callTx.setVmType(VMType.PLUGIN)
-    callTx.setInput(mappingRequest.serializeBinary())
-
-    const msgTx = new MessageTx()
-    msgTx.setFrom(fromSender.MarshalPB())
-    msgTx.setTo(toSender.MarshalPB())
-    msgTx.setData(callTx.serializeBinary())
-
-    const tx = new Transaction()
-    tx.setId(2)
-    tx.setData(mappingRequest.serializeBinary())
-
-    return this._client.commitTxAsync<Transaction>(tx)
+    return this._addressMapperContract.callAsync<void>('AddContractMapping', mappingRequest)
   }
 }
