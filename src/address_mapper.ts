@@ -4,12 +4,9 @@ import { Address, LocalAddress } from './address'
 import { publicKeyFromPrivateKey } from './crypto-utils'
 import {
   AddressMapperAddContractMappingRequest,
-  Transaction,
-  VMType,
-  MessageTx,
-  CallTx
+  AddressMapperAddIdentityMappingRequest
 } from './proto/loom_pb'
-import { CryptoUtils } from '.'
+import { keccak256, ecsign, toBuffer } from 'ethereumjs-util'
 
 export class AddressMapper {
   private _client: Client
@@ -43,9 +40,32 @@ export class AddressMapper {
   }
 
   async addContractMapping(from: Address, to: Address): Promise<Uint8Array | void> {
-    const mappingRequest = new AddressMapperAddContractMappingRequest()
-    mappingRequest.setFrom(from.MarshalPB())
-    mappingRequest.setTo(to.MarshalPB())
-    return this._addressMapperContract.callAsync<void>('AddContractMapping', mappingRequest)
+    const mappingContractRequest = new AddressMapperAddContractMappingRequest()
+    mappingContractRequest.setFrom(from.MarshalPB())
+    mappingContractRequest.setTo(to.MarshalPB())
+    return this._addressMapperContract.callAsync<void>(
+      'AddContractMapping',
+      mappingContractRequest
+    )
+  }
+
+  private _signIdentityMapping(from: Address, to: Address, privateKey: Uint8Array) {
+    const hash = keccak256([from.toString(), to.toString()])
+    return ecsign(hash, privateKey)
+  }
+
+  async addIdentityMapping(from: Address, to: Address, privateKey: Uint8Array) {
+    const mappingIdentityRequest = new AddressMapperAddIdentityMappingRequest()
+    mappingIdentityRequest.setFrom(from.MarshalPB())
+    mappingIdentityRequest.setTo(to.MarshalPB())
+
+    const { r, s, v } = this._signIdentityMapping(from, to, privateKey)
+    const mode = toBuffer(1) as Buffer // geth
+    mappingIdentityRequest.setSignature(Buffer.concat([mode, r, s, toBuffer(v)]))
+
+    return this._addressMapperContract.callAsync<void>(
+      'AddIdentityMapping',
+      mappingIdentityRequest
+    )
   }
 }
