@@ -4,10 +4,11 @@ import { Address, LocalAddress } from './address'
 import { publicKeyFromPrivateKey } from './crypto-utils'
 import {
   AddressMapperAddContractMappingRequest,
-  AddressMapperAddIdentityMappingRequest
+  AddressMapperAddIdentityMappingRequest,
+  AddressMapperGetMappingRequest,
+  AddressMapperGetMappingResponse
 } from './proto/loom_pb'
 import { Web3Signer, soliditySha3 } from './plasma-cash/solidity-helpers'
-import Web3 from 'web3'
 
 export class AddressMapper {
   private _client: Client
@@ -40,7 +41,7 @@ export class AddressMapper {
     }
   }
 
-  async addContractMapping(from: Address, to: Address): Promise<Uint8Array | void> {
+  async addContractMappingAsync(from: Address, to: Address): Promise<void> {
     const mappingContractRequest = new AddressMapperAddContractMappingRequest()
     mappingContractRequest.setFrom(from.MarshalPB())
     mappingContractRequest.setTo(to.MarshalPB())
@@ -50,21 +51,35 @@ export class AddressMapper {
     )
   }
 
-  async addIdentityMapping(from: Address, to: Address, web3: Web3, ethAddress: string) {
+  async getContractMappingAsync(from: Address): Promise<AddressMapperGetMappingResponse> {
+    const getMappingRequest = new AddressMapperGetMappingRequest()
+    getMappingRequest.setFrom(from.MarshalPB())
+
+    return this._addressMapperContract.staticCallAsync(
+      'GetMapping',
+      getMappingRequest,
+      new AddressMapperGetMappingResponse()
+    )
+  }
+
+  async addIdentityMappingAsync(
+    from: Address,
+    to: Address,
+    web3Signer: Web3Signer
+  ): Promise<Uint8Array | void> {
     const mappingIdentityRequest = new AddressMapperAddIdentityMappingRequest()
     mappingIdentityRequest.setFrom(from.MarshalPB())
     mappingIdentityRequest.setTo(to.MarshalPB())
 
     const hash = soliditySha3(
-      [
-        { type: 'address', value: from.local.toString().slice(2) },
-        { type: 'address', value: to.local.toString().slice(2) }
-      ].join('')
+      {
+        type: 'address',
+        value: from.local.toString().slice(2)
+      },
+      { type: 'address', value: to.local.toString().slice(2) }
     )
 
-    const signer = new Web3Signer(web3, ethAddress)
-    const sign = await signer.signAsync(hash)
-
+    const sign = await web3Signer.signAsync(hash)
     mappingIdentityRequest.setSignature(sign)
 
     return this._addressMapperContract.callAsync<void>(

@@ -39,9 +39,7 @@ const Web3 = require('web3')
 const newContractAndClient = async () => {
   const privKey = CryptoUtils.generatePrivateKey()
   const client = createTestClient()
-  const from = LocalAddress.fromPublicKey(
-    CryptoUtils.publicKeyFromPrivateKey(privKey)
-  ).toString()
+  const from = LocalAddress.fromPublicKey(CryptoUtils.publicKeyFromPrivateKey(privKey)).toString()
   const loomProvider = new LoomProvider(client, privKey)
   const web3 = new Web3(loomProvider)
 
@@ -81,7 +79,8 @@ const newContractAndClient = async () => {
   const contract = new web3.eth.Contract(ABI, result.contractAddress, { from })
 
   return {
-    contract, client
+    contract,
+    client
   }
 }
 

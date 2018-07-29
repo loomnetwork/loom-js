@@ -1,25 +1,22 @@
 import test from 'tape'
 
 import {
-  Contract,
   Address,
   LocalAddress,
   Client,
-  IChainEventArgs,
   CryptoUtils,
   createDefaultTxMiddleware,
-  ClientEvent,
   AddressMapper
 } from '../../index'
-import { MapEntry } from '../tests_pb'
-import {
-  createTestClient,
-  createTestHttpClient,
-  createTestWSClient,
-  createTestHttpWSClient
-} from '../helpers'
+import { createTestHttpClient } from '../helpers'
+import { Web3Signer } from '../../plasma-cash/solidity-helpers'
 
 const Web3 = require('web3')
+
+// TODO: Need a factory to create connection properly likes plasma-cash test
+function getWeb3Connection() {
+  return new Web3('http://127.0.0.1:8545')
+}
 
 async function getClientAndContract(
   createClient: () => Client
@@ -40,18 +37,42 @@ async function getClientAndContract(
   return { client, addressMapper, pubKey, privKey }
 }
 
-async function testContractCalls(t: test.Test, createClient: () => Client) {
+async function testAddMapping(t: test.Test, createClient: () => Client) {
   const { client, addressMapper, pubKey } = await getClientAndContract(createClient)
 
   const ethAddress = '0xEf90a80506682b2bb7680166694a2d37d9cBf44a'
   const from = new Address('eth', LocalAddress.fromHexString(ethAddress))
   const to = new Address('default', LocalAddress.fromPublicKey(pubKey))
 
-  addressMapper.addContractMapping(from, to)
+  await addressMapper.addContractMappingAsync(from, to)
 
-  const web3 = new Web3('http://127.0.0.1:8545')
+  const result = await addressMapper.getContractMappingAsync(from)
 
-  addressMapper.addIdentityMapping(from, to, web3, ethAddress)
+  t.assert(from.equals(Address.UmarshalPB(result.getFrom()!)), 'Mapping "from" correctly returned')
+  t.assert(to.equals(Address.UmarshalPB(result.getTo()!)), 'Mapping "to" correctly returned')
+
+  client.disconnect()
+}
+
+async function testAddIdentity(t: test.Test, createClient: () => Client) {
+  const { client, addressMapper, pubKey } = await getClientAndContract(createClient)
+
+  const ethAddress = '0x80a4B6Da5143a59C538FBBb794Be260382B38F58'
+  const from = new Address('eth', LocalAddress.fromHexString(ethAddress))
+  const to = new Address('default', LocalAddress.fromPublicKey(pubKey))
+
+  const web3 = getWeb3Connection()
+  const web3Signer = new Web3Signer(web3, ethAddress)
+
+  await addressMapper.addIdentityMappingAsync(from, to, web3Signer)
+
+  const result = await addressMapper.getContractMappingAsync(from)
+
+  t.assert(
+    from.equals(Address.UmarshalPB(result.getFrom()!)),
+    'Identity "from" correctly returned'
+  )
+  t.assert(to.equals(Address.UmarshalPB(result.getTo()!)), 'Identity "to" correctly returned')
 
   client.disconnect()
 }
@@ -59,7 +80,8 @@ async function testContractCalls(t: test.Test, createClient: () => Client) {
 test('Contract', async t => {
   try {
     t.comment('Calls via HTTP')
-    await testContractCalls(t, createTestHttpClient)
+    await testAddMapping(t, createTestHttpClient)
+    await testAddIdentity(t, createTestHttpClient)
   } catch (err) {
     t.fail(err)
   }
