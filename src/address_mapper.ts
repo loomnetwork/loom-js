@@ -6,7 +6,8 @@ import {
   AddressMapperAddContractMappingRequest,
   AddressMapperAddIdentityMappingRequest
 } from './proto/loom_pb'
-import { keccak256, ecsign, toBuffer } from 'ethereumjs-util'
+import { Web3Signer, soliditySha3 } from './plasma-cash/solidity-helpers'
+import Web3 from 'web3'
 
 export class AddressMapper {
   private _client: Client
@@ -49,19 +50,22 @@ export class AddressMapper {
     )
   }
 
-  private _signIdentityMapping(from: Address, to: Address, privateKey: Uint8Array) {
-    const hash = keccak256([from.toString(), to.toString()])
-    return ecsign(hash, privateKey)
-  }
-
-  async addIdentityMapping(from: Address, to: Address, privateKey: Uint8Array) {
+  async addIdentityMapping(from: Address, to: Address, web3: Web3, ethAddress: string) {
     const mappingIdentityRequest = new AddressMapperAddIdentityMappingRequest()
     mappingIdentityRequest.setFrom(from.MarshalPB())
     mappingIdentityRequest.setTo(to.MarshalPB())
 
-    const { r, s, v } = this._signIdentityMapping(from, to, privateKey)
-    const mode = toBuffer(1) as Buffer // geth
-    mappingIdentityRequest.setSignature(Buffer.concat([mode, r, s, toBuffer(v)]))
+    const hash = soliditySha3(
+      [
+        { type: 'address', value: from.local.toString().slice(2) },
+        { type: 'address', value: to.local.toString().slice(2) }
+      ].join('')
+    )
+
+    const signer = new Web3Signer(web3, ethAddress)
+    const sign = await signer.signAsync(hash)
+
+    mappingIdentityRequest.setSignature(sign)
 
     return this._addressMapperContract.callAsync<void>(
       'AddIdentityMapping',
