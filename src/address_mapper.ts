@@ -51,15 +51,20 @@ export class AddressMapper {
     )
   }
 
-  async getContractMappingAsync(from: Address): Promise<AddressMapperGetMappingResponse> {
+  async getContractMappingAsync(from: Address): Promise<{ from: Address; to: Address }> {
     const getMappingRequest = new AddressMapperGetMappingRequest()
     getMappingRequest.setFrom(from.MarshalPB())
 
-    return this._addressMapperContract.staticCallAsync(
+    const result = await this._addressMapperContract.staticCallAsync(
       'GetMapping',
       getMappingRequest,
       new AddressMapperGetMappingResponse()
     )
+
+    return {
+      from: Address.UmarshalPB(result.getFrom()!),
+      to: Address.UmarshalPB(result.getTo()!)
+    }
   }
 
   async addIdentityMappingAsync(

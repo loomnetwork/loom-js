@@ -42,14 +42,14 @@ async function testAddMapping(t: test.Test, createClient: () => Client) {
 
   const ethAddress = '0xEf90a80506682b2bb7680166694a2d37d9cBf44a'
   const from = new Address('eth', LocalAddress.fromHexString(ethAddress))
-  const to = new Address('default', LocalAddress.fromPublicKey(pubKey))
+  const to = new Address(client.chainId, LocalAddress.fromPublicKey(pubKey))
 
   await addressMapper.addContractMappingAsync(from, to)
 
   const result = await addressMapper.getContractMappingAsync(from)
 
-  t.assert(from.equals(Address.UmarshalPB(result.getFrom()!)), 'Mapping "from" correctly returned')
-  t.assert(to.equals(Address.UmarshalPB(result.getTo()!)), 'Mapping "to" correctly returned')
+  t.assert(from.equals(result.from), 'Mapping "from" correctly returned')
+  t.assert(to.equals(result.to), 'Mapping "to" correctly returned')
 
   client.disconnect()
 }
@@ -59,7 +59,7 @@ async function testAddIdentity(t: test.Test, createClient: () => Client) {
 
   const ethAddress = '0x80a4B6Da5143a59C538FBBb794Be260382B38F58'
   const from = new Address('eth', LocalAddress.fromHexString(ethAddress))
-  const to = new Address('default', LocalAddress.fromPublicKey(pubKey))
+  const to = new Address(client.chainId, LocalAddress.fromPublicKey(pubKey))
 
   const web3 = getWeb3Connection()
   const web3Signer = new Web3Signer(web3, ethAddress)
@@ -68,11 +68,8 @@ async function testAddIdentity(t: test.Test, createClient: () => Client) {
 
   const result = await addressMapper.getContractMappingAsync(from)
 
-  t.assert(
-    from.equals(Address.UmarshalPB(result.getFrom()!)),
-    'Identity "from" correctly returned'
-  )
-  t.assert(to.equals(Address.UmarshalPB(result.getTo()!)), 'Identity "to" correctly returned')
+  t.assert(from.equals(result.from), 'Identity "from" correctly returned')
+  t.assert(to.equals(result.to), 'Identity "to" correctly returned')
 
   client.disconnect()
 }
