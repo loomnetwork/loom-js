@@ -31,10 +31,14 @@ export class Web3Signer {
   async signAsync(msg: string): Promise<Uint8Array> {
     const signature = await this._web3.eth.sign(msg, this._address)
     const sig = signature.slice(2)
+    const isMetamask = ['01', '00'].indexOf(sig.substring(128, 130)) === -1
+
     const r = ethutil.toBuffer('0x' + sig.substring(0, 64)) as Buffer
     const s = ethutil.toBuffer('0x' + sig.substring(64, 128)) as Buffer
-    const v = ethutil.toBuffer(parseInt(sig.substring(128, 130), 16) + 27) as Buffer
-    const mode = ethutil.toBuffer(1) as Buffer // mode = geth
+    const v = ethutil.toBuffer(
+      parseInt(sig.substring(128, 130), 16) + (isMetamask ? 0 : 27)
+    ) as Buffer
+    const mode = ethutil.toBuffer(isMetamask ? 3 : 1) as Buffer // mode = geth
     return Buffer.concat([mode, r, s, v])
   }
 }
