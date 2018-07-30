@@ -23,7 +23,6 @@ async function getClientAndContract(
 ): Promise<{
   client: Client
   addressMapper: AddressMapper
-  privKey: Uint8Array
   pubKey: Uint8Array
 }> {
   const privKey = CryptoUtils.generatePrivateKey()
@@ -31,10 +30,12 @@ async function getClientAndContract(
   const client = createClient()
   client.txMiddleware = createDefaultTxMiddleware(client, privKey)
 
-  const addressMapper = new AddressMapper(client, privKey)
-  await addressMapper.loadContract()
+  const addressMapper = await AddressMapper.createAsync(
+    client,
+    new Address(client.chainId, LocalAddress.fromPublicKey(pubKey))
+  )
 
-  return { client, addressMapper, pubKey, privKey }
+  return { client, addressMapper, pubKey }
 }
 
 async function testAddMapping(t: test.Test, createClient: () => Client) {

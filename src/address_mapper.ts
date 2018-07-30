@@ -11,34 +11,25 @@ import {
 import { Web3Signer, soliditySha3 } from './plasma-cash/solidity-helpers'
 
 export class AddressMapper {
-  private _client: Client
-  private _privateKey: Uint8Array
   private _addressMapperContract!: Contract
 
-  constructor(client: Client, privateKey: Uint8Array) {
-    this._client = client
-    this._privateKey = privateKey
+  static async createAsync(client: Client, callerAddr: Address): Promise<AddressMapper> {
+    const contractAddr = await client.getContractAddressAsync('addressmapper')
+    if (!contractAddr) {
+      throw Error('Failed to resolve contract address')
+    }
+
+    const contract = new Contract({
+      contractAddr,
+      callerAddr,
+      client
+    })
+
+    return new AddressMapper(contract)
   }
 
-  public async loadContract() {
-    let contractAddr
-    try {
-      contractAddr = await this._client.getContractAddressAsync('addressmapper')
-      if (!contractAddr) {
-        throw Error('Failed to resolve contract address')
-      }
-
-      const pubKey = publicKeyFromPrivateKey(this._privateKey)
-      const callerAddr = new Address(this._client.chainId, LocalAddress.fromPublicKey(pubKey))
-
-      this._addressMapperContract = new Contract({
-        contractAddr,
-        callerAddr,
-        client: this._client
-      })
-    } catch (err) {
-      throw err
-    }
+  constructor(contract: Contract) {
+    this._addressMapperContract = contract
   }
 
   async addContractMappingAsync(from: Address, to: Address): Promise<void> {
@@ -61,10 +52,7 @@ export class AddressMapper {
       new AddressMapperGetMappingResponse()
     )
 
-    return {
-      from: Address.UmarshalPB(result.getFrom()!),
-      to: Address.UmarshalPB(result.getTo()!)
-    }
+    return { from: Address.UmarshalPB(result.getFrom()!), to: Address.UmarshalPB(result.getTo()!) }
   }
 
   async addIdentityMappingAsync(
