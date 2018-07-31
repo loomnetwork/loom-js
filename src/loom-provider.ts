@@ -336,10 +336,7 @@ export class LoomProvider {
     const blockHash = payload.params[0]
     const isFull = payload.params[1] || true
 
-    const result = await this._client.getEvmBlockByHashAsync(
-      blockHash,
-      isFull
-    )
+    const result = await this._client.getEvmBlockByHashAsync(blockHash, isFull)
 
     if (!result) {
       return null
