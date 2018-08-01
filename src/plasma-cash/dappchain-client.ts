@@ -32,7 +32,7 @@ export class DAppChainPlasmaClient {
 
   private async _resolvePlasmaContractAsync(): Promise<Contract> {
     if (!this._plasmaContract) {
-      const addr = await this._dAppClient.getContractAddressAsync('plasmacash')
+      const addr = await this._dAppClient.getContractAddressAsync(this._plasmaContractName)
       if (!addr) {
         throw new Error('Failed to resolve Plasma Cash contract address.')
       }
