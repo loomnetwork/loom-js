@@ -28,7 +28,9 @@ export {
   IPlasmaCoin,
   PlasmaCoinState,
   IPlasmaDeposit,
-  marshalDepositEvent
+  marshalDepositEvent,
+  IPlasmaChallenge,
+  marshalChallengeEvent
 } from './plasma-cash/ethereum-client'
 export { PlasmaCashTx } from './plasma-cash/plasma-cash-tx'
 export { Web3Signer } from './plasma-cash/solidity-helpers'

@@ -24,6 +24,22 @@ export interface IPlasmaCoin {
   state: PlasmaCoinState
 }
 
+export interface IPlasmaChallenge {
+  slot: BN
+  txHash: string
+}
+
+export function marshalChallengeEvent(data: {
+  slot: string
+  txHash: string
+}): IPlasmaChallenge {
+  const { slot, txHash } = data
+  return {
+    slot: new BN(slot),
+    txHash
+  }
+}
+
 export interface IPlasmaDeposit {
   slot: BN
   blockNumber: BN
@@ -235,7 +251,7 @@ export class EthereumPlasmaClient {
    * @returns Web3 tx receipt object.
    */
   respondChallengeBeforeAsync(params: IPlasmaRspondChallengeBeforeParams): Promise<object> {
-    const { slot, respondingBlockNum, respondingTx, ...rest } = params
+    const { slot, challengingTxHash, respondingBlockNum, respondingTx, ...rest } = params
     const respondingTxBytes = respondingTx.rlpEncode()
     return this._plasmaContract.methods
       .respondChallengeBefore(
