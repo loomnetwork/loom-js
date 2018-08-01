@@ -15,6 +15,10 @@ export class PlasmaCashTx {
    * Hex-encoded Ethereum address of the new owner of the Plasma token.
    */
   newOwner: string
+  /**
+   * Hex-encoded Ethereum address of the previous owner of the Plasma token.
+   */
+  prevOwner?: string
 
   sigBytes?: Uint8Array
   proofBytes?: Uint8Array
@@ -24,6 +28,7 @@ export class PlasmaCashTx {
     prevBlockNum: BN
     denomination: BN | number
     newOwner: string
+    prevOwner?: string
     sig?: Uint8Array
     proof?: Uint8Array
   }) {
@@ -31,6 +36,7 @@ export class PlasmaCashTx {
     this.prevBlockNum = params.prevBlockNum
     this.denomination = new BN(params.denomination)
     this.newOwner = params.newOwner
+    this.prevOwner = params.prevOwner
     this.sigBytes = params.sig
     this.proofBytes = params.proof
   }
@@ -94,6 +100,10 @@ export function unmarshalPlasmaTxPB(rawTx: PlasmaTx): PlasmaCashTx {
     sig: rawTx.getSignature_asU8(),
     proof: rawTx.getProof_asU8()
   })
+  const sender = rawTx.getSender()
+  if (sender) {
+    tx.prevOwner = Address.UmarshalPB(sender).local.toString()
+  }
   return tx
 }
 
@@ -107,6 +117,10 @@ export function marshalPlasmaTxPB(tx: PlasmaCashTx): PlasmaTx {
   pb.setPreviousBlock(marshalBigUIntPB(tx.prevBlockNum))
   pb.setDenomination(marshalBigUIntPB(tx.denomination))
   pb.setNewOwner(owner.MarshalPB())
+  if (tx.prevOwner) {
+    const sender = new Address('eth', LocalAddress.fromHexString(tx.prevOwner))
+    pb.setSender(sender.MarshalPB())
+  }
   if (tx.sigBytes) {
     pb.setSignature(bufferToProtobufBytes(tx.sigBytes))
   }

@@ -59,7 +59,8 @@ export class Entity {
       slot,
       prevBlockNum,
       denomination,
-      newOwner: newOwner.ethAddress
+      newOwner: newOwner.ethAddress,
+      prevOwner: this.ethAddress
     })
     await tx.signAsync(new Web3Signer(this._web3, this.ethAddress))
     await this._dAppPlasmaClient.sendTxAsync(tx)
