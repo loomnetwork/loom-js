@@ -237,7 +237,7 @@ export class Entity {
     challengingTxHash: string
     respondingBlockNum: BN
   }): Promise<object> {
-    const { slot, respondingBlockNum } = params
+    const { slot, challengingTxHash, respondingBlockNum } = params
     const respondingBlock = await this._dAppPlasmaClient.getPlasmaBlockAtAsync(
       respondingBlockNum
     )
