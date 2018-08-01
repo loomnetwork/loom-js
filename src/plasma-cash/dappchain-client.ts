@@ -6,6 +6,7 @@ import { Address, LocalAddress } from '../address'
 import { PlasmaCashTx, marshalPlasmaTxPB } from './plasma-cash-tx'
 import { PlasmaCashBlock, unmarshalPlasmaBlockPB } from './plasma-cash-block'
 import { unmarshalBigUIntPB, marshalBigUIntPB } from '../big-uint'
+import { IPlasmaDeposit } from './ethereum-client'
 import {
   GetCurrentBlockRequest,
   GetCurrentBlockResponse,
@@ -111,14 +112,16 @@ export class DAppChainPlasmaClient {
    * This method is only provided for debugging & testing, in practice only DAppChain Plasma Oracles
    * will be permitted to make this request.
    */
-  async debugSubmitDepositAsync(tx: PlasmaCashTx): Promise<void> {
+  async debugSubmitDepositAsync(deposit: IPlasmaDeposit): Promise<void> {
     const contract = await this._resolvePlasmaContractAsync()
-    const owner = new Address('eth', LocalAddress.fromHexString(tx.newOwner))
+    const ownerAddr = new Address('eth', LocalAddress.fromHexString(deposit.from))
+    const tokenAddr = new Address('eth', LocalAddress.fromHexString(deposit.contractAddress))
     const req = new DepositRequest()
-    req.setSlot(tx.slot.toString(10) as any)
-    req.setDepositBlock(marshalBigUIntPB(tx.prevBlockNum))
-    req.setDenomination(marshalBigUIntPB(tx.denomination))
-    req.setFrom(owner.MarshalPB())
+    req.setSlot(deposit.slot.toString(10) as any)
+    req.setDepositBlock(marshalBigUIntPB(deposit.blockNumber))
+    req.setDenomination(marshalBigUIntPB(deposit.denomination))
+    req.setFrom(ownerAddr.MarshalPB())
+    req.setContract(tokenAddr.MarshalPB())
     await contract.callAsync('DepositRequest', req)
   }
 }
