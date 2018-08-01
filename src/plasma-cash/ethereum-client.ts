@@ -85,6 +85,14 @@ export interface IPlasmaChallengeBeforeParams extends ISendTxOptions {
   prevBlockNum?: BN
 }
 
+export interface IPlasmaRspondChallengeBeforeParams extends ISendTxOptions {
+  slot: BN
+  challengingTxHash: string
+  respondingBlockNum: BN
+  respondingTx: PlasmaCashTx
+}
+
+
 export class EthereumPlasmaClient {
   private _web3: Web3
   private _plasmaContract: any // TODO: figure out how to type this properly
@@ -226,16 +234,17 @@ export class EthereumPlasmaClient {
    *
    * @returns Web3 tx receipt object.
    */
-  respondChallengeBeforeAsync(params: IPlasmaChallengeParams): Promise<object> {
-    const { slot, challengingBlockNum, challengingTx, ...rest } = params
-    const txBytes = challengingTx.rlpEncode()
+  respondChallengeBeforeAsync(params: IPlasmaRspondChallengeBeforeParams): Promise<object> {
+    const { slot, respondingBlockNum, respondingTx, ...rest } = params
+    const respondingTxBytes = respondingTx.rlpEncode()
     return this._plasmaContract.methods
       .respondChallengeBefore(
         slot,
-        challengingBlockNum,
-        txBytes,
-        challengingTx.proof,
-        challengingTx.sig
+        challengingTxHash,
+        respondingBlockNum,
+        respondingTxBytes,
+        respondingTx.proof,
+        respondingTx.sig
       )
       .send(rest)
   }
