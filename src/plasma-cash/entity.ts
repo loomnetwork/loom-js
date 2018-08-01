@@ -78,14 +78,8 @@ export class Entity {
     return blockNum
   }
 
-  async submitPlasmaDepositAsync(deposit: IPlasmaDeposit): Promise<void> {
-    const tx = new PlasmaCashTx({
-      slot: deposit.slot,
-      prevBlockNum: deposit.blockNumber,
-      denomination: deposit.denomination,
-      newOwner: deposit.from
-    })
-    await this._dAppPlasmaClient.debugSubmitDepositAsync(tx)
+  submitPlasmaDepositAsync(deposit: IPlasmaDeposit): Promise<void> {
+    return this._dAppPlasmaClient.debugSubmitDepositAsync(deposit)
   }
 
   async startExitAsync(params: { slot: BN; prevBlockNum: BN; exitBlockNum: BN }): Promise<object> {
