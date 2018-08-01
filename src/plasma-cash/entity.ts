@@ -234,20 +234,22 @@ export class Entity {
 
   async respondChallengeBeforeAsync(params: {
     slot: BN
-    challengingBlockNum: BN
+    challengingTxHash: string
+    respondingBlockNum: BN
   }): Promise<object> {
-    const { slot, challengingBlockNum } = params
-    const challengingBlock = await this._dAppPlasmaClient.getPlasmaBlockAtAsync(
-      challengingBlockNum
+    const { slot, respondingBlockNum } = params
+    const respondingBlock = await this._dAppPlasmaClient.getPlasmaBlockAtAsync(
+      respondingBlockNum
     )
-    const challengingTx = await challengingBlock.findTxWithSlot(slot)
-    if (!challengingTx) {
-      throw new Error(`Invalid challenging block: missing tx for slot ${slot.toString(10)}.`)
+    const respondingTx = await respondingBlock.findTxWithSlot(slot)
+    if (!respondingTx) {
+      throw new Error(`Invalid responding block: missing tx for slot ${slot.toString(10)}.`)
     }
     return this._ethPlasmaClient.respondChallengeBeforeAsync({
       slot,
-      challengingBlockNum,
-      challengingTx,
+      challengingTxHash,
+      respondingBlockNum,
+      respondingTx,
       from: this.ethAddress,
       gas: this._defaultGas
     })
