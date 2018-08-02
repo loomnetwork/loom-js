@@ -26,7 +26,7 @@ export class TransferGateway {
   private _transferGatewayContract!: Contract
 
   static async createAsync(client: Client, callerAddr: Address): Promise<TransferGateway> {
-    const contractAddr = await client.getContractAddressAsync('transfergateway')
+    const contractAddr = await client.getContractAddressAsync('gateway')
     if (!contractAddr) {
       throw Error('Failed to resolve contract address for TransferGateway')
     }
