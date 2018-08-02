@@ -106,12 +106,12 @@ export class Entity {
 
     // Otherwise, they should get the raw tx info from the blocks, and the merkle proofs.
     const exitBlock = await this._dAppPlasmaClient.getPlasmaBlockAtAsync(exitBlockNum)
-    const exitTx = await exitBlock.findTxWithSlot(slot)
+    const exitTx = exitBlock.findTxWithSlot(slot)
     if (!exitTx) {
       throw new Error(`Invalid exit block: missing tx for slot ${slot.toString(10)}.`)
     }
     const prevBlock = await this._dAppPlasmaClient.getPlasmaBlockAtAsync(prevBlockNum)
-    const prevTx = await prevBlock.findTxWithSlot(slot)
+    const prevTx = prevBlock.findTxWithSlot(slot)
     if (!prevTx) {
       throw new Error(`Invalid prev block: missing tx for slot ${slot.toString(10)}.`)
     }
@@ -153,7 +153,7 @@ export class Entity {
     const challengingBlock = await this._dAppPlasmaClient.getPlasmaBlockAtAsync(
       challengingBlockNum
     )
-    const challengingTx = await challengingBlock.findTxWithSlot(slot)
+    const challengingTx = challengingBlock.findTxWithSlot(slot)
     if (!challengingTx) {
       throw new Error(`Invalid challenging block: missing tx for slot ${slot.toString(10)}.`)
     }
@@ -171,7 +171,7 @@ export class Entity {
     const challengingBlock = await this._dAppPlasmaClient.getPlasmaBlockAtAsync(
       challengingBlockNum
     )
-    const challengingTx = await challengingBlock.findTxWithSlot(slot)
+    const challengingTx = challengingBlock.findTxWithSlot(slot)
     if (!challengingTx) {
       throw new Error(`Invalid challenging block: missing tx for slot ${slot.toString(10)}.`)
     }
@@ -212,12 +212,12 @@ export class Entity {
 
     // Otherwise, they should get the raw tx info from the blocks, and the merkle proofs.
     const exitBlock = await this._dAppPlasmaClient.getPlasmaBlockAtAsync(challengingBlockNum)
-    const challengingTx = await exitBlock.findTxWithSlot(slot)
+    const challengingTx = exitBlock.findTxWithSlot(slot)
     if (!challengingTx) {
       throw new Error(`Invalid exit block: missing tx for slot ${slot.toString(10)}.`)
     }
     const prevBlock = await this._dAppPlasmaClient.getPlasmaBlockAtAsync(prevBlockNum)
-    const prevTx = await prevBlock.findTxWithSlot(slot)
+    const prevTx = prevBlock.findTxWithSlot(slot)
     if (!prevTx) {
       throw new Error(`Invalid prev block: missing tx for slot ${slot.toString(10)}.`)
     }
@@ -241,7 +241,7 @@ export class Entity {
     const respondingBlock = await this._dAppPlasmaClient.getPlasmaBlockAtAsync(
       respondingBlockNum
     )
-    const respondingTx = await respondingBlock.findTxWithSlot(slot)
+    const respondingTx = respondingBlock.findTxWithSlot(slot)
     if (!respondingTx) {
       throw new Error(`Invalid responding block: missing tx for slot ${slot.toString(10)}.`)
     }
