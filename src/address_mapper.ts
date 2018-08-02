@@ -1,7 +1,6 @@
 import { Client } from './client'
 import { Contract } from './contract'
-import { Address, LocalAddress } from './address'
-import { publicKeyFromPrivateKey } from './crypto-utils'
+import { Address } from './address'
 import {
   AddressMapperAddContractMappingRequest,
   AddressMapperAddIdentityMappingRequest,
@@ -9,6 +8,11 @@ import {
   AddressMapperGetMappingResponse
 } from './proto/loom_pb'
 import { Web3Signer, soliditySha3 } from './plasma-cash/solidity-helpers'
+
+export interface IAddressMap {
+  from: Address
+  to: Address
+}
 
 export class AddressMapper {
   private _addressMapperContract!: Contract
@@ -19,11 +23,7 @@ export class AddressMapper {
       throw Error('Failed to resolve contract address')
     }
 
-    const contract = new Contract({
-      contractAddr,
-      callerAddr,
-      client
-    })
+    const contract = new Contract({ contractAddr, callerAddr, client })
 
     return new AddressMapper(contract)
   }
@@ -42,7 +42,7 @@ export class AddressMapper {
     )
   }
 
-  async getContractMappingAsync(from: Address): Promise<{ from: Address; to: Address }> {
+  async getContractMappingAsync(from: Address): Promise<IAddressMap> {
     const getMappingRequest = new AddressMapperGetMappingRequest()
     getMappingRequest.setFrom(from.MarshalPB())
 
@@ -52,7 +52,10 @@ export class AddressMapper {
       new AddressMapperGetMappingResponse()
     )
 
-    return { from: Address.UmarshalPB(result.getFrom()!), to: Address.UmarshalPB(result.getTo()!) }
+    return {
+      from: Address.UmarshalPB(result.getFrom()!),
+      to: Address.UmarshalPB(result.getTo()!)
+    } as IAddressMap
   }
 
   async addIdentityMappingAsync(

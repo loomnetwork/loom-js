@@ -14,6 +14,7 @@ export { SignedTxMiddleware, NonceTxMiddleware } from './middleware'
 export { createDefaultTxMiddleware } from './helpers'
 export { LoomProvider } from './loom-provider'
 export { AddressMapper } from './address_mapper'
+export { TransferGateway } from './transfer-gateway'
 
 import * as CryptoUtils from './crypto-utils'
 export { CryptoUtils }

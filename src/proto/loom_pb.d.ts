@@ -1099,6 +1099,160 @@ export namespace AddressMapperGetMappingResponse {
   }
 }
 
+export class TransferGatewayWithdrawalReceipt extends jspb.Message {
+  hasTokenOwner(): boolean;
+  clearTokenOwner(): void;
+  getTokenOwner(): Address | undefined;
+  setTokenOwner(value?: Address): void;
+
+  hasTokenContract(): boolean;
+  clearTokenContract(): void;
+  getTokenContract(): Address | undefined;
+  setTokenContract(value?: Address): void;
+
+  getTokenKind(): TransferGatewayTokenKind;
+  setTokenKind(value: TransferGatewayTokenKind): void;
+
+  hasValue(): boolean;
+  clearValue(): void;
+  getValue(): BigUInt | undefined;
+  setValue(value?: BigUInt): void;
+
+  getWithdrawalNonce(): number;
+  setWithdrawalNonce(value: number): void;
+
+  getOracleSignature(): Uint8Array | string;
+  getOracleSignature_asU8(): Uint8Array;
+  getOracleSignature_asB64(): string;
+  setOracleSignature(value: Uint8Array | string): void;
+
+  serializeBinary(): Uint8Array;
+  toObject(includeInstance?: boolean): TransferGatewayWithdrawalReceipt.AsObject;
+  static toObject(includeInstance: boolean, msg: TransferGatewayWithdrawalReceipt): TransferGatewayWithdrawalReceipt.AsObject;
+  static extensions: {[key: number]: jspb.ExtensionFieldInfo<jspb.Message>};
+  static extensionsBinary: {[key: number]: jspb.ExtensionFieldBinaryInfo<jspb.Message>};
+  static serializeBinaryToWriter(message: TransferGatewayWithdrawalReceipt, writer: jspb.BinaryWriter): void;
+  static deserializeBinary(bytes: Uint8Array): TransferGatewayWithdrawalReceipt;
+  static deserializeBinaryFromReader(message: TransferGatewayWithdrawalReceipt, reader: jspb.BinaryReader): TransferGatewayWithdrawalReceipt;
+}
+
+export namespace TransferGatewayWithdrawalReceipt {
+  export type AsObject = {
+    tokenOwner?: Address.AsObject,
+    tokenContract?: Address.AsObject,
+    tokenKind: TransferGatewayTokenKind,
+    value?: BigUInt.AsObject,
+    withdrawalNonce: number,
+    oracleSignature: Uint8Array | string,
+  }
+}
+
+export class TransferGatewayWithdrawERC721Request extends jspb.Message {
+  hasTokenId(): boolean;
+  clearTokenId(): void;
+  getTokenId(): BigUInt | undefined;
+  setTokenId(value?: BigUInt): void;
+
+  hasTokenContract(): boolean;
+  clearTokenContract(): void;
+  getTokenContract(): Address | undefined;
+  setTokenContract(value?: Address): void;
+
+  serializeBinary(): Uint8Array;
+  toObject(includeInstance?: boolean): TransferGatewayWithdrawERC721Request.AsObject;
+  static toObject(includeInstance: boolean, msg: TransferGatewayWithdrawERC721Request): TransferGatewayWithdrawERC721Request.AsObject;
+  static extensions: {[key: number]: jspb.ExtensionFieldInfo<jspb.Message>};
+  static extensionsBinary: {[key: number]: jspb.ExtensionFieldBinaryInfo<jspb.Message>};
+  static serializeBinaryToWriter(message: TransferGatewayWithdrawERC721Request, writer: jspb.BinaryWriter): void;
+  static deserializeBinary(bytes: Uint8Array): TransferGatewayWithdrawERC721Request;
+  static deserializeBinaryFromReader(message: TransferGatewayWithdrawERC721Request, reader: jspb.BinaryReader): TransferGatewayWithdrawERC721Request;
+}
+
+export namespace TransferGatewayWithdrawERC721Request {
+  export type AsObject = {
+    tokenId?: BigUInt.AsObject,
+    tokenContract?: Address.AsObject,
+  }
+}
+
+export class TransferGatewayWithdrawalReceiptRequest extends jspb.Message {
+  hasOwner(): boolean;
+  clearOwner(): void;
+  getOwner(): Address | undefined;
+  setOwner(value?: Address): void;
+
+  serializeBinary(): Uint8Array;
+  toObject(includeInstance?: boolean): TransferGatewayWithdrawalReceiptRequest.AsObject;
+  static toObject(includeInstance: boolean, msg: TransferGatewayWithdrawalReceiptRequest): TransferGatewayWithdrawalReceiptRequest.AsObject;
+  static extensions: {[key: number]: jspb.ExtensionFieldInfo<jspb.Message>};
+  static extensionsBinary: {[key: number]: jspb.ExtensionFieldBinaryInfo<jspb.Message>};
+  static serializeBinaryToWriter(message: TransferGatewayWithdrawalReceiptRequest, writer: jspb.BinaryWriter): void;
+  static deserializeBinary(bytes: Uint8Array): TransferGatewayWithdrawalReceiptRequest;
+  static deserializeBinaryFromReader(message: TransferGatewayWithdrawalReceiptRequest, reader: jspb.BinaryReader): TransferGatewayWithdrawalReceiptRequest;
+}
+
+export namespace TransferGatewayWithdrawalReceiptRequest {
+  export type AsObject = {
+    owner?: Address.AsObject,
+  }
+}
+
+export class TransferGatewayWithdrawalReceiptResponse extends jspb.Message {
+  hasReceipt(): boolean;
+  clearReceipt(): void;
+  getReceipt(): TransferGatewayWithdrawalReceipt | undefined;
+  setReceipt(value?: TransferGatewayWithdrawalReceipt): void;
+
+  serializeBinary(): Uint8Array;
+  toObject(includeInstance?: boolean): TransferGatewayWithdrawalReceiptResponse.AsObject;
+  static toObject(includeInstance: boolean, msg: TransferGatewayWithdrawalReceiptResponse): TransferGatewayWithdrawalReceiptResponse.AsObject;
+  static extensions: {[key: number]: jspb.ExtensionFieldInfo<jspb.Message>};
+  static extensionsBinary: {[key: number]: jspb.ExtensionFieldBinaryInfo<jspb.Message>};
+  static serializeBinaryToWriter(message: TransferGatewayWithdrawalReceiptResponse, writer: jspb.BinaryWriter): void;
+  static deserializeBinary(bytes: Uint8Array): TransferGatewayWithdrawalReceiptResponse;
+  static deserializeBinaryFromReader(message: TransferGatewayWithdrawalReceiptResponse, reader: jspb.BinaryReader): TransferGatewayWithdrawalReceiptResponse;
+}
+
+export namespace TransferGatewayWithdrawalReceiptResponse {
+  export type AsObject = {
+    receipt?: TransferGatewayWithdrawalReceipt.AsObject,
+  }
+}
+
+export class TransferGatewayConfirmWithdrawalReceiptRequest extends jspb.Message {
+  hasTokenOwner(): boolean;
+  clearTokenOwner(): void;
+  getTokenOwner(): Address | undefined;
+  setTokenOwner(value?: Address): void;
+
+  getOracleSignature(): Uint8Array | string;
+  getOracleSignature_asU8(): Uint8Array;
+  getOracleSignature_asB64(): string;
+  setOracleSignature(value: Uint8Array | string): void;
+
+  getWithdrawalHash(): Uint8Array | string;
+  getWithdrawalHash_asU8(): Uint8Array;
+  getWithdrawalHash_asB64(): string;
+  setWithdrawalHash(value: Uint8Array | string): void;
+
+  serializeBinary(): Uint8Array;
+  toObject(includeInstance?: boolean): TransferGatewayConfirmWithdrawalReceiptRequest.AsObject;
+  static toObject(includeInstance: boolean, msg: TransferGatewayConfirmWithdrawalReceiptRequest): TransferGatewayConfirmWithdrawalReceiptRequest.AsObject;
+  static extensions: {[key: number]: jspb.ExtensionFieldInfo<jspb.Message>};
+  static extensionsBinary: {[key: number]: jspb.ExtensionFieldBinaryInfo<jspb.Message>};
+  static serializeBinaryToWriter(message: TransferGatewayConfirmWithdrawalReceiptRequest, writer: jspb.BinaryWriter): void;
+  static deserializeBinary(bytes: Uint8Array): TransferGatewayConfirmWithdrawalReceiptRequest;
+  static deserializeBinaryFromReader(message: TransferGatewayConfirmWithdrawalReceiptRequest, reader: jspb.BinaryReader): TransferGatewayConfirmWithdrawalReceiptRequest;
+}
+
+export namespace TransferGatewayConfirmWithdrawalReceiptRequest {
+  export type AsObject = {
+    tokenOwner?: Address.AsObject,
+    oracleSignature: Uint8Array | string,
+    withdrawalHash: Uint8Array | string,
+  }
+}
+
 export enum VMType {
   PLUGIN = 0,
   EVM = 1,
@@ -1107,5 +1261,11 @@ export enum VMType {
 export enum EncodingType {
   JSON = 0,
   PROTOBUF3 = 1,
+}
+
+export enum TransferGatewayTokenKind {
+  ETH = 0,
+  ERC20 = 1,
+  ERC721 = 2,
 }
 
