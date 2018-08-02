@@ -195,6 +195,11 @@
         "indexed": true,
         "name": "slot",
         "type": "uint64"
+      },
+      {
+        "indexed": false,
+        "name": "txHash",
+        "type": "bytes32"
       }
     ],
     "name": "ChallengedExit",
@@ -420,11 +425,15 @@
         "type": "uint64"
       },
       {
-        "name": "challengingBlockNumber",
+        "name": "challengingTxHash",
+        "type": "bytes32"
+      },
+      {
+        "name": "respondingBlockNumber",
         "type": "uint256"
       },
       {
-        "name": "challengingTransaction",
+        "name": "respondingTransaction",
         "type": "bytes"
       },
       {
