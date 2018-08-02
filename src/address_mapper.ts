@@ -9,7 +9,7 @@ import {
 } from './proto/loom_pb'
 import { Web3Signer, soliditySha3 } from './plasma-cash/solidity-helpers'
 
-export interface IAddressMap {
+export interface IAddressMapping {
   from: Address
   to: Address
 }
@@ -42,7 +42,7 @@ export class AddressMapper {
     )
   }
 
-  async getContractMappingAsync(from: Address): Promise<IAddressMap> {
+  async getContractMappingAsync(from: Address): Promise<IAddressMapping> {
     const getMappingRequest = new AddressMapperGetMappingRequest()
     getMappingRequest.setFrom(from.MarshalPB())
 
@@ -55,7 +55,7 @@ export class AddressMapper {
     return {
       from: Address.UmarshalPB(result.getFrom()!),
       to: Address.UmarshalPB(result.getTo()!)
-    } as IAddressMap
+    } as IAddressMapping
   }
 
   async addIdentityMappingAsync(
