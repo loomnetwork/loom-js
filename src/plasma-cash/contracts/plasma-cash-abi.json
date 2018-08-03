@@ -118,6 +118,11 @@
     "type": "constructor"
   },
   {
+    "payable": true,
+    "stateMutability": "payable",
+    "type": "fallback"
+  },
+  {
     "anonymous": false,
     "inputs": [
       {
@@ -133,7 +138,7 @@
       {
         "indexed": false,
         "name": "denomination",
-        "type": "uint64"
+        "type": "uint256"
       },
       {
         "indexed": true,
@@ -288,6 +293,38 @@
       }
     ],
     "name": "WithdrewBonds",
+    "type": "event"
+  },
+  {
+    "anonymous": false,
+    "inputs": [
+      {
+        "indexed": true,
+        "name": "from",
+        "type": "address"
+      },
+      {
+        "indexed": false,
+        "name": "mode",
+        "type": "uint8"
+      },
+      {
+        "indexed": false,
+        "name": "contractAddress",
+        "type": "address"
+      },
+      {
+        "indexed": false,
+        "name": "uid",
+        "type": "uint256"
+      },
+      {
+        "indexed": false,
+        "name": "denomination",
+        "type": "uint256"
+      }
+    ],
+    "name": "Withdrew",
     "type": "event"
   },
   {
@@ -528,6 +565,33 @@
         "type": "address"
       },
       {
+        "name": "_amount",
+        "type": "uint256"
+      },
+      {
+        "name": "",
+        "type": "bytes"
+      }
+    ],
+    "name": "onERC20Received",
+    "outputs": [
+      {
+        "name": "",
+        "type": "bytes4"
+      }
+    ],
+    "payable": false,
+    "stateMutability": "nonpayable",
+    "type": "function"
+  },
+  {
+    "constant": false,
+    "inputs": [
+      {
+        "name": "_from",
+        "type": "address"
+      },
+      {
         "name": "_uid",
         "type": "uint256"
       },
@@ -590,7 +654,7 @@
     "outputs": [
       {
         "name": "",
-        "type": "uint64"
+        "type": "uint256"
       },
       {
         "name": "",
@@ -598,11 +662,7 @@
       },
       {
         "name": "",
-        "type": "uint32"
-      },
-      {
-        "name": "",
-        "type": "address"
+        "type": "uint256"
       },
       {
         "name": "",
@@ -611,6 +671,14 @@
       {
         "name": "",
         "type": "uint8"
+      },
+      {
+        "name": "",
+        "type": "uint8"
+      },
+      {
+        "name": "",
+        "type": "address"
       }
     ],
     "payable": false,
