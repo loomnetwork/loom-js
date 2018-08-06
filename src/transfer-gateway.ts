@@ -41,16 +41,23 @@ export class TransferGateway {
     this._transferGatewayContract = contract
   }
 
-  async addContractMappingAsync(
-    foreignContract: Address,
-    localContract: Address,
-    foreignContractCreatorSign: Uint8Array,
+  async addContractMappingAsync(params: {
+    foreignContract: Address
+    localContract: Address
+    foreignContractCreatorSig: Uint8Array
     foreignContractCreatorTxHash: Uint8Array
-  ): Promise<void> {
+  }): Promise<void> {
+    const {
+      foreignContract,
+      localContract,
+      foreignContractCreatorSig,
+      foreignContractCreatorTxHash
+    } = params
+
     const mappingContractRequest = new TransferGatewayAddContractMappingRequest()
     mappingContractRequest.setForeignContract(foreignContract.MarshalPB())
     mappingContractRequest.setLocalContract(localContract.MarshalPB())
-    mappingContractRequest.setForeignContractCreatorSig(foreignContractCreatorSign)
+    mappingContractRequest.setForeignContractCreatorSig(foreignContractCreatorSig)
     mappingContractRequest.setForeignContractTxHash(foreignContractCreatorTxHash)
 
     return this._transferGatewayContract.callAsync<void>(
