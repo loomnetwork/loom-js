@@ -2,7 +2,6 @@ import { Client } from './client'
 import { Contract } from './contract'
 import { Address } from './address'
 import {
-  AddressMapperAddContractMappingRequest,
   AddressMapperAddIdentityMappingRequest,
   AddressMapperGetMappingRequest,
   AddressMapperGetMappingResponse
@@ -32,32 +31,6 @@ export class AddressMapper {
     this._addressMapperContract = contract
   }
 
-  async addContractMappingAsync(from: Address, to: Address): Promise<void> {
-    const mappingContractRequest = new AddressMapperAddContractMappingRequest()
-    mappingContractRequest.setFrom(from.MarshalPB())
-    mappingContractRequest.setTo(to.MarshalPB())
-    return this._addressMapperContract.callAsync<void>(
-      'AddContractMapping',
-      mappingContractRequest
-    )
-  }
-
-  async getContractMappingAsync(from: Address): Promise<IAddressMapping> {
-    const getMappingRequest = new AddressMapperGetMappingRequest()
-    getMappingRequest.setFrom(from.MarshalPB())
-
-    const result = await this._addressMapperContract.staticCallAsync(
-      'GetMapping',
-      getMappingRequest,
-      new AddressMapperGetMappingResponse()
-    )
-
-    return {
-      from: Address.UmarshalPB(result.getFrom()!),
-      to: Address.UmarshalPB(result.getTo()!)
-    } as IAddressMapping
-  }
-
   async addIdentityMappingAsync(
     from: Address,
     to: Address,
@@ -82,5 +55,21 @@ export class AddressMapper {
       'AddIdentityMapping',
       mappingIdentityRequest
     )
+  }
+
+  async getMappingAsync(from: Address): Promise<IAddressMapping> {
+    const getMappingRequest = new AddressMapperGetMappingRequest()
+    getMappingRequest.setFrom(from.MarshalPB())
+
+    const result = await this._addressMapperContract.staticCallAsync(
+      'GetMapping',
+      getMappingRequest,
+      new AddressMapperGetMappingResponse()
+    )
+
+    return {
+      from: Address.UmarshalPB(result.getFrom()!),
+      to: Address.UmarshalPB(result.getTo()!)
+    } as IAddressMapping
   }
 }

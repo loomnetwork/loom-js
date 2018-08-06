@@ -1253,6 +1253,46 @@ export namespace TransferGatewayConfirmWithdrawalReceiptRequest {
   }
 }
 
+export class TransferGatewayAddContractMappingRequest extends jspb.Message {
+  hasForeignContract(): boolean;
+  clearForeignContract(): void;
+  getForeignContract(): Address | undefined;
+  setForeignContract(value?: Address): void;
+
+  hasLocalContract(): boolean;
+  clearLocalContract(): void;
+  getLocalContract(): Address | undefined;
+  setLocalContract(value?: Address): void;
+
+  getForeignContractCreatorSig(): Uint8Array | string;
+  getForeignContractCreatorSig_asU8(): Uint8Array;
+  getForeignContractCreatorSig_asB64(): string;
+  setForeignContractCreatorSig(value: Uint8Array | string): void;
+
+  getForeignContractTxHash(): Uint8Array | string;
+  getForeignContractTxHash_asU8(): Uint8Array;
+  getForeignContractTxHash_asB64(): string;
+  setForeignContractTxHash(value: Uint8Array | string): void;
+
+  serializeBinary(): Uint8Array;
+  toObject(includeInstance?: boolean): TransferGatewayAddContractMappingRequest.AsObject;
+  static toObject(includeInstance: boolean, msg: TransferGatewayAddContractMappingRequest): TransferGatewayAddContractMappingRequest.AsObject;
+  static extensions: {[key: number]: jspb.ExtensionFieldInfo<jspb.Message>};
+  static extensionsBinary: {[key: number]: jspb.ExtensionFieldBinaryInfo<jspb.Message>};
+  static serializeBinaryToWriter(message: TransferGatewayAddContractMappingRequest, writer: jspb.BinaryWriter): void;
+  static deserializeBinary(bytes: Uint8Array): TransferGatewayAddContractMappingRequest;
+  static deserializeBinaryFromReader(message: TransferGatewayAddContractMappingRequest, reader: jspb.BinaryReader): TransferGatewayAddContractMappingRequest;
+}
+
+export namespace TransferGatewayAddContractMappingRequest {
+  export type AsObject = {
+    foreignContract?: Address.AsObject,
+    localContract?: Address.AsObject,
+    foreignContractCreatorSig: Uint8Array | string,
+    foreignContractTxHash: Uint8Array | string,
+  }
+}
+
 export enum VMType {
   PLUGIN = 0,
   EVM = 1,

@@ -7,7 +7,8 @@ import {
   TransferGatewayWithdrawalReceiptRequest,
   TransferGatewayWithdrawalReceiptResponse,
   TransferGatewayWithdrawalReceipt,
-  TransferGatewayTokenKind
+  TransferGatewayTokenKind,
+  TransferGatewayAddContractMappingRequest
 } from './proto/loom_pb'
 import { marshalBigUIntPB, unmarshalBigUIntPB } from './big-uint'
 
@@ -38,6 +39,24 @@ export class TransferGateway {
 
   constructor(contract: Contract) {
     this._transferGatewayContract = contract
+  }
+
+  async addContractMappingAsync(
+    foreignContract: Address,
+    localContract: Address,
+    foreignContractCreatorSign: Uint8Array,
+    foreignContractCreatorTxHash: Uint8Array
+  ): Promise<void> {
+    const mappingContractRequest = new TransferGatewayAddContractMappingRequest()
+    mappingContractRequest.setForeignContract(foreignContract.MarshalPB())
+    mappingContractRequest.setLocalContract(localContract.MarshalPB())
+    mappingContractRequest.setForeignContractCreatorSig(foreignContractCreatorSign)
+    mappingContractRequest.setForeignContractTxHash(foreignContractCreatorTxHash)
+
+    return this._transferGatewayContract.callAsync<void>(
+      'AddContractMapping',
+      mappingContractRequest
+    )
   }
 
   async withdrawERC721Async(tokenId: BN, tokenContract: Address): Promise<void> {
