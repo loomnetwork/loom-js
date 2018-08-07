@@ -46,7 +46,11 @@ export interface ITransferGatewayEventContractMappingConfirmed {
 }
 
 export class TransferGateway extends Contract {
+  // LoomJS user events
   static readonly EVENT_TOKEN_WITHDRAWAL = 'event_token_withdrawal'
+  static readonly EVENT_CONTRACT_MAPPING_CONFIRMED = 'event_contract_mapping_confirmed'
+
+  // Events from Loomchain
   private tokenWithdrawalSignedEventTopic: String = 'event:TokenWithdrawalSigned'
   private contractMappingConfirmedEventTopic: String = 'event:ContractMappingConfirmed'
 
@@ -82,7 +86,7 @@ export class TransferGateway extends Contract {
           B64ToUint8Array(event.data)
         )
 
-        this.emit(TransferGateway.EVENT_TOKEN_WITHDRAWAL, {
+        this.emit(TransferGateway.EVENT_CONTRACT_MAPPING_CONFIRMED, {
           foreignContract: Address.UmarshalPB(contractMappingConfirmed.getForeignContract()!),
           localContract: Address.UmarshalPB(contractMappingConfirmed.getLocalContract()!)
         } as ITransferGatewayEventContractMappingConfirmed)
