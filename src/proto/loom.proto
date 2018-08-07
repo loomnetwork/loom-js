@@ -237,6 +237,31 @@ message AddressMapperGetMappingResponse {
 
 // Transfer Gateway
 
+// Events emitted by the contract
+
+message TransferGatewayContractMappingConfirmed {
+    // Address of a contract on a foreign blockchain
+    Address foreign_contract = 1;
+    // Address of corresponding contract on the local blockchain
+    Address local_contract = 2;
+}
+
+// Emitted when a withdrawal to the Mainnet Gateway has been signed.
+// This event contains all the required data to complete a toke withdrawal via the Mainnet Gateway.
+message TransferGatewayTokenWithdrawalSigned {
+    // Mainnet address of token owner
+    Address token_owner = 1;
+    // Mainnet address of token contract, blank if ETH
+    Address token_contract = 2;
+    TransferGatewayTokenKind token_kind = 3;
+    // ERC721 token ID, or amount of ERC20/ETH
+    BigUInt value = 4;
+    // Oracle signature
+    bytes sig = 5;
+}
+
+// Messages
+
 enum TransferGatewayTokenKind {
     ETH = 0;
     ERC20 = 1;

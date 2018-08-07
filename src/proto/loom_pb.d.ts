@@ -1099,6 +1099,78 @@ export namespace AddressMapperGetMappingResponse {
   }
 }
 
+export class TransferGatewayContractMappingConfirmed extends jspb.Message {
+  hasForeignContract(): boolean;
+  clearForeignContract(): void;
+  getForeignContract(): Address | undefined;
+  setForeignContract(value?: Address): void;
+
+  hasLocalContract(): boolean;
+  clearLocalContract(): void;
+  getLocalContract(): Address | undefined;
+  setLocalContract(value?: Address): void;
+
+  serializeBinary(): Uint8Array;
+  toObject(includeInstance?: boolean): TransferGatewayContractMappingConfirmed.AsObject;
+  static toObject(includeInstance: boolean, msg: TransferGatewayContractMappingConfirmed): TransferGatewayContractMappingConfirmed.AsObject;
+  static extensions: {[key: number]: jspb.ExtensionFieldInfo<jspb.Message>};
+  static extensionsBinary: {[key: number]: jspb.ExtensionFieldBinaryInfo<jspb.Message>};
+  static serializeBinaryToWriter(message: TransferGatewayContractMappingConfirmed, writer: jspb.BinaryWriter): void;
+  static deserializeBinary(bytes: Uint8Array): TransferGatewayContractMappingConfirmed;
+  static deserializeBinaryFromReader(message: TransferGatewayContractMappingConfirmed, reader: jspb.BinaryReader): TransferGatewayContractMappingConfirmed;
+}
+
+export namespace TransferGatewayContractMappingConfirmed {
+  export type AsObject = {
+    foreignContract?: Address.AsObject,
+    localContract?: Address.AsObject,
+  }
+}
+
+export class TransferGatewayTokenWithdrawalSigned extends jspb.Message {
+  hasTokenOwner(): boolean;
+  clearTokenOwner(): void;
+  getTokenOwner(): Address | undefined;
+  setTokenOwner(value?: Address): void;
+
+  hasTokenContract(): boolean;
+  clearTokenContract(): void;
+  getTokenContract(): Address | undefined;
+  setTokenContract(value?: Address): void;
+
+  getTokenKind(): TransferGatewayTokenKind;
+  setTokenKind(value: TransferGatewayTokenKind): void;
+
+  hasValue(): boolean;
+  clearValue(): void;
+  getValue(): BigUInt | undefined;
+  setValue(value?: BigUInt): void;
+
+  getSig(): Uint8Array | string;
+  getSig_asU8(): Uint8Array;
+  getSig_asB64(): string;
+  setSig(value: Uint8Array | string): void;
+
+  serializeBinary(): Uint8Array;
+  toObject(includeInstance?: boolean): TransferGatewayTokenWithdrawalSigned.AsObject;
+  static toObject(includeInstance: boolean, msg: TransferGatewayTokenWithdrawalSigned): TransferGatewayTokenWithdrawalSigned.AsObject;
+  static extensions: {[key: number]: jspb.ExtensionFieldInfo<jspb.Message>};
+  static extensionsBinary: {[key: number]: jspb.ExtensionFieldBinaryInfo<jspb.Message>};
+  static serializeBinaryToWriter(message: TransferGatewayTokenWithdrawalSigned, writer: jspb.BinaryWriter): void;
+  static deserializeBinary(bytes: Uint8Array): TransferGatewayTokenWithdrawalSigned;
+  static deserializeBinaryFromReader(message: TransferGatewayTokenWithdrawalSigned, reader: jspb.BinaryReader): TransferGatewayTokenWithdrawalSigned;
+}
+
+export namespace TransferGatewayTokenWithdrawalSigned {
+  export type AsObject = {
+    tokenOwner?: Address.AsObject,
+    tokenContract?: Address.AsObject,
+    tokenKind: TransferGatewayTokenKind,
+    value?: BigUInt.AsObject,
+    sig: Uint8Array | string,
+  }
+}
+
 export class TransferGatewayWithdrawalReceipt extends jspb.Message {
   hasTokenOwner(): boolean;
   clearTokenOwner(): void;

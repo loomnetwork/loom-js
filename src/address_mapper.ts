@@ -13,24 +13,19 @@ export interface IAddressMapping {
   to: Address
 }
 
-export class AddressMapper {
-  private _addressMapperContract!: Contract
-
+export class AddressMapper extends Contract {
   static async createAsync(client: Client, callerAddr: Address): Promise<AddressMapper> {
     const contractAddr = await client.getContractAddressAsync('addressmapper')
     if (!contractAddr) {
       throw Error('Failed to resolve contract address')
     }
 
-    const contract = new Contract({ contractAddr, callerAddr, client })
-
-    return new AddressMapper(contract)
+    return new AddressMapper({ contractAddr, callerAddr, client })
   }
 
-  constructor(contract: Contract) {
-    this._addressMapperContract = contract
+  constructor(params: { contractAddr: Address; callerAddr: Address; client: Client }) {
+    super(params)
   }
-
   async addIdentityMappingAsync(
     from: Address,
     to: Address,
@@ -51,17 +46,14 @@ export class AddressMapper {
     const sign = await web3Signer.signAsync(hash)
     mappingIdentityRequest.setSignature(sign)
 
-    return this._addressMapperContract.callAsync<void>(
-      'AddIdentityMapping',
-      mappingIdentityRequest
-    )
+    return this.callAsync<void>('AddIdentityMapping', mappingIdentityRequest)
   }
 
   async getMappingAsync(from: Address): Promise<IAddressMapping> {
     const getMappingRequest = new AddressMapperGetMappingRequest()
     getMappingRequest.setFrom(from.MarshalPB())
 
-    const result = await this._addressMapperContract.staticCallAsync(
+    const result = await this.staticCallAsync(
       'GetMapping',
       getMappingRequest,
       new AddressMapperGetMappingResponse()

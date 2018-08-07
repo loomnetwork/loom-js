@@ -8,9 +8,12 @@ import {
   TransferGatewayWithdrawalReceiptResponse,
   TransferGatewayWithdrawalReceipt,
   TransferGatewayTokenKind,
-  TransferGatewayAddContractMappingRequest
+  TransferGatewayAddContractMappingRequest,
+  TransferGatewayTokenWithdrawalSigned,
+  TransferGatewayContractMappingConfirmed
 } from './proto/loom_pb'
 import { marshalBigUIntPB, unmarshalBigUIntPB } from './big-uint'
+import { B64ToUint8Array } from './crypto-utils'
 
 export interface ITransferGatewayReceipt {
   tokenOwner: Address
@@ -24,8 +27,28 @@ export interface ITransferGatewayReceipt {
   oracleSignature: Uint8Array
 }
 
-export class TransferGateway {
-  private _transferGatewayContract!: Contract
+export interface ITransferGatewayEventTokenWithdrawal {
+  tokenOwner: Address
+  // Mainnet address of token contract, blank if ETH
+  tokenContract: Address
+  tokenKind: TransferGatewayTokenKind
+  // ERC721 token ID, or amount of ERC20/ETH
+  value: BN
+  // Oracle signature
+  sig: Uint8Array
+}
+
+export interface ITransferGatewayEventContractMappingConfirmed {
+  // Address of a contract on a foreign blockchain
+  foreignContract: Address
+  // Address of corresponding contract on the local blockchain
+  localContract: Address
+}
+
+export class TransferGateway extends Contract {
+  static readonly EVENT_TOKEN_WITHDRAWAL = 'event_token_withdrawal'
+  private tokenWithdrawalSignedEventTopic: String = 'event:TokenWithdrawalSigned'
+  private contractMappingConfirmedEventTopic: String = 'event:ContractMappingConfirmed'
 
   static async createAsync(client: Client, callerAddr: Address): Promise<TransferGateway> {
     const contractAddr = await client.getContractAddressAsync('gateway')
@@ -33,12 +56,38 @@ export class TransferGateway {
       throw Error('Failed to resolve contract address for TransferGateway')
     }
 
-    const contract = new Contract({ contractAddr, callerAddr, client })
-    return new TransferGateway(contract)
+    return new TransferGateway({ contractAddr, callerAddr, client })
   }
 
-  constructor(contract: Contract) {
-    this._transferGatewayContract = contract
+  constructor(params: { contractAddr: Address; callerAddr: Address; client: Client }) {
+    super(params)
+
+    this.on(Contract.EVENT, event => {
+      if (event.topics[0] === this.tokenWithdrawalSignedEventTopic) {
+        const tokenWithdrawalSigned = TransferGatewayTokenWithdrawalSigned.deserializeBinary(
+          B64ToUint8Array(event.data)
+        )
+
+        this.emit(TransferGateway.EVENT_TOKEN_WITHDRAWAL, {
+          tokenOwner: Address.UmarshalPB(tokenWithdrawalSigned.getTokenOwner()!),
+          tokenContract: Address.UmarshalPB(tokenWithdrawalSigned.getTokenContract()!),
+          tokenKind: tokenWithdrawalSigned.getTokenKind(),
+          value: unmarshalBigUIntPB(tokenWithdrawalSigned.getValue()!),
+          sig: tokenWithdrawalSigned.getSig_asU8()
+        } as ITransferGatewayEventTokenWithdrawal)
+      }
+
+      if (event.topics[0] === this.contractMappingConfirmedEventTopic) {
+        const contractMappingConfirmed = TransferGatewayContractMappingConfirmed.deserializeBinary(
+          B64ToUint8Array(event.data)
+        )
+
+        this.emit(TransferGateway.EVENT_TOKEN_WITHDRAWAL, {
+          foreignContract: Address.UmarshalPB(contractMappingConfirmed.getForeignContract()!),
+          localContract: Address.UmarshalPB(contractMappingConfirmed.getLocalContract()!)
+        } as ITransferGatewayEventContractMappingConfirmed)
+      }
+    })
   }
 
   async addContractMappingAsync(params: {
@@ -60,10 +109,7 @@ export class TransferGateway {
     mappingContractRequest.setForeignContractCreatorSig(foreignContractCreatorSig)
     mappingContractRequest.setForeignContractTxHash(foreignContractCreatorTxHash)
 
-    return this._transferGatewayContract.callAsync<void>(
-      'AddContractMapping',
-      mappingContractRequest
-    )
+    return this.callAsync<void>('AddContractMapping', mappingContractRequest)
   }
 
   async withdrawERC721Async(tokenId: BN, tokenContract: Address): Promise<void> {
@@ -71,14 +117,14 @@ export class TransferGateway {
     tgWithdrawERC721Req.setTokenId(marshalBigUIntPB(tokenId))
     tgWithdrawERC721Req.setTokenContract(tokenContract.MarshalPB())
 
-    return this._transferGatewayContract.callAsync<void>('WithdrawERC721', tgWithdrawERC721Req)
+    return this.callAsync<void>('WithdrawERC721', tgWithdrawERC721Req)
   }
 
   async withdrawalReceiptAsync(owner: Address): Promise<ITransferGatewayReceipt> {
     const tgWithdrawReceiptReq = new TransferGatewayWithdrawalReceiptRequest()
     tgWithdrawReceiptReq.setOwner(owner.MarshalPB())
 
-    const result = await this._transferGatewayContract.staticCallAsync(
+    const result = await this.staticCallAsync(
       'WithdrawalReceipt',
       tgWithdrawReceiptReq,
       new TransferGatewayWithdrawalReceiptResponse()
