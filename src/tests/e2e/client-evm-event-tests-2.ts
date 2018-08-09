@@ -1,6 +1,6 @@
 import test from 'tape'
 
-import { NonceTxMiddleware, SignedTxMiddleware, CryptoUtils } from '../../index'
+import { NonceTxMiddleware, SignedTxMiddleware, CryptoUtils, Client } from '../../index'
 import { createTestClient, waitForMillisecondsAsync } from '../helpers'
 import { CallTx, VMType, MessageTx, Transaction } from '../../proto/loom_pb'
 import { LoomProvider } from '../../loom-provider'
@@ -21,8 +21,8 @@ import { Address, LocalAddress } from '../../address'
  *       value = 10;
  *   }
  *
- *   event NewValueSet(uint _value);
- *   event NewValueSetAgain(uint _value);
+ *   event NewValueSet(uint indexed _value);
+ *   event NewValueSetAgain(uint indexed _value);
  *
  *   function set(uint _value) public {
  *     value = _value;
@@ -40,6 +40,28 @@ import { Address, LocalAddress } from '../../address'
  * }
  *
  */
+
+const callTransactionAsync = async (
+  client: Client,
+  from: Address,
+  to: Address,
+  data: Uint8Array
+) => {
+  const callTx = new CallTx()
+  callTx.setVmType(VMType.EVM)
+  callTx.setInput(bufferToProtobufBytes(data))
+
+  const msgTx = new MessageTx()
+  msgTx.setFrom(from.MarshalPB())
+  msgTx.setTo(to.MarshalPB())
+  msgTx.setData(callTx.serializeBinary())
+
+  const tx = new Transaction()
+  tx.setId(2)
+  tx.setData(msgTx.serializeBinary())
+
+  await client.commitTxAsync<Transaction>(tx)
+}
 
 test('Client EVM Event test', async t => {
   try {
@@ -85,25 +107,19 @@ test('Client EVM Event test', async t => {
 
     const caller = new Address('default', LocalAddress.fromPublicKey(publicKey))
     const address = new Address('default', LocalAddress.fromHexString(result.contractAddress))
-    const data = Buffer.from(
-      '60fe47b10000000000000000000000000000000000000000000000000000000000000005',
+
+    const functionSet = Buffer.from(
+      '60fe47b1000000000000000000000000000000000000000000000000000000000000000f',
       'hex'
     )
 
-    const callTx = new CallTx()
-    callTx.setVmType(VMType.EVM)
-    callTx.setInput(bufferToProtobufBytes(data))
+    const functionSetAgain = Buffer.from(
+      'cf718921000000000000000000000000000000000000000000000000000000000000000a',
+      'hex'
+    )
 
-    const msgTx = new MessageTx()
-    msgTx.setFrom(caller.MarshalPB())
-    msgTx.setTo(address.MarshalPB())
-    msgTx.setData(callTx.serializeBinary())
-
-    const tx = new Transaction()
-    tx.setId(2)
-    tx.setData(msgTx.serializeBinary())
-
-    await client.commitTxAsync<Transaction>(tx)
+    await callTransactionAsync(client, caller, address, functionSet)
+    await callTransactionAsync(client, caller, address, functionSetAgain)
 
     waitForMillisecondsAsync(2000)
 
