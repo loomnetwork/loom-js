@@ -18,12 +18,13 @@
     "build:dev": "tsc --project es2017.tsconfig.json",
     "format": "prettier --write \"src/**/*.ts\"",
     "test": "yarn test:node && yarn test:browser",
-    "test:node": "yarn proto && tsc && tape dist/tests/unit_tests.js | tap-spec",
-    "test:browser": "yarn proto && tsc && webpack --config webpack.unit.tests.config.js | tap-spec",
-    "e2e:node": "yarn proto && tsc && tape -r dotenv/config dotenv_config_path=./.env.test dist/tests/e2e_tests.js | tap-spec",
-    "e2e:browser": "yarn proto && tsc && webpack --config webpack.e2e.test.config.js | tap-spec",
+    "test:node": "yarn proto && yarn plasmaabi && tsc && tape dist/tests/unit_tests.js | tap-spec",
+    "test:browser": "yarn proto && yarn plasmaabi && tsc && webpack --config webpack.unit.tests.config.js | tap-spec",
+    "e2e:node": "yarn proto && yarn plasmaabi && tsc && tape -r dotenv/config dotenv_config_path=./.env.test dist/tests/e2e_tests.js | tap-spec",
+    "e2e:browser": "yarn proto && yarn plasmaabi && tsc && webpack --config webpack.e2e.test.config.js | tap-spec",
     "proto": "node ./scripts/gen-proto.js",
-    "prepublish": "yarn proto && yarn build && webpack"
+    "plasmaabi": "node ./scripts/plasma-abi.js",
+    "prepublish": "yarn proto && yarn plasmaabi && yarn build && webpack"
   },
   "dependencies": {
     "axios": "^0.18.0",
