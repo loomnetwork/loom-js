@@ -8,7 +8,9 @@ import {
   VMType,
   DeployTx,
   DeployResponse,
-  DeployResponseData,
+  DeployResponseData
+} from './proto/loom_pb'
+import {
   EventData,
   EthFilterLog,
   EthFilterLogList,
@@ -16,7 +18,7 @@ import {
   EthBlockInfo,
   EthBlockHashList,
   EthTxHashList
-} from './proto/loom_pb'
+} from './proto/evm_pb'
 import { Address, LocalAddress } from './address'
 import {
   bytesToHexAddr,

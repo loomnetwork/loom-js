@@ -11,7 +11,7 @@ import {
   TransferGatewayAddContractMappingRequest,
   TransferGatewayTokenWithdrawalSigned,
   TransferGatewayContractMappingConfirmed
-} from './proto/loom_pb'
+} from './proto/transfer_gateway_pb'
 import { marshalBigUIntPB, unmarshalBigUIntPB } from './big-uint'
 import { B64ToUint8Array } from './crypto-utils'
 

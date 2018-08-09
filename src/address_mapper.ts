@@ -5,7 +5,7 @@ import {
   AddressMapperAddIdentityMappingRequest,
   AddressMapperGetMappingRequest,
   AddressMapperGetMappingResponse
-} from './proto/loom_pb'
+} from './proto/address_mapper_pb'
 import { Web3Signer, soliditySha3 } from './plasma-cash/solidity-helpers'
 
 export interface IAddressMapping {
