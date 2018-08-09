@@ -124,7 +124,7 @@ export class TransferGateway extends Contract {
     return this.callAsync<void>('WithdrawERC721', tgWithdrawERC721Req)
   }
 
-  async withdrawalReceiptAsync(owner: Address): Promise<ITransferGatewayReceipt> {
+  async withdrawalReceiptAsync(owner: Address): Promise<ITransferGatewayReceipt | null> {
     const tgWithdrawReceiptReq = new TransferGatewayWithdrawalReceiptRequest()
     tgWithdrawReceiptReq.setOwner(owner.MarshalPB())
 
@@ -136,13 +136,17 @@ export class TransferGateway extends Contract {
 
     const tgReceipt = result.getReceipt() as TransferGatewayWithdrawalReceipt
 
-    return {
-      tokenOwner: Address.UmarshalPB(tgReceipt.getTokenOwner()!),
-      tokenContract: Address.UmarshalPB(tgReceipt.getTokenContract()!),
-      tokenKind: tgReceipt.getTokenKind(),
-      value: unmarshalBigUIntPB(tgReceipt.getValue()!),
-      withdrawalNonce: new BN(tgReceipt.getWithdrawalNonce()!),
-      oracleSignature: tgReceipt.getOracleSignature_asU8()
-    } as ITransferGatewayReceipt
+    if (tgReceipt) {
+      return {
+        tokenOwner: Address.UmarshalPB(tgReceipt.getTokenOwner()!),
+        tokenContract: Address.UmarshalPB(tgReceipt.getTokenContract()!),
+        tokenKind: tgReceipt.getTokenKind(),
+        value: unmarshalBigUIntPB(tgReceipt.getValue()!),
+        withdrawalNonce: new BN(tgReceipt.getWithdrawalNonce()!),
+        oracleSignature: tgReceipt.getOracleSignature_asU8()
+      } as ITransferGatewayReceipt
+    } else {
+      return null
+    }
   }
 }
