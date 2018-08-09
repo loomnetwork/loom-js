@@ -641,7 +641,7 @@ export class Client extends EventEmitter {
         data: B64ToUint8Array(result.encoded_body || '0x0'),
         topics: result.topics,
         transactionHash: result.tx_hash,
-        transactionHashBytes: B64ToUint8Array(result.tx_hash)
+        transactionHashBytes: result.tx_hash ? B64ToUint8Array(result.tx_hash) : new Uint8Array([])
       }
       this.emit(ClientEvent.Contract, eventArgs)
     }

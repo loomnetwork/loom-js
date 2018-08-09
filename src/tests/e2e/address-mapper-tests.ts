@@ -38,23 +38,6 @@ async function getClientAndContract(
   return { client, addressMapper, pubKey }
 }
 
-async function testAddMapping(t: test.Test, createClient: () => Client) {
-  const { client, addressMapper, pubKey } = await getClientAndContract(createClient)
-
-  const ethAddress = '0xEf90a80506682b2bb7680166694a2d37d9cBf44a'
-  const from = new Address('eth', LocalAddress.fromHexString(ethAddress))
-  const to = new Address(client.chainId, LocalAddress.fromPublicKey(pubKey))
-
-  await addressMapper.addContractMappingAsync(from, to)
-
-  const result = await addressMapper.getContractMappingAsync(from)
-
-  t.assert(from.equals(result.from), 'Mapping "from" correctly returned')
-  t.assert(to.equals(result.to), 'Mapping "to" correctly returned')
-
-  client.disconnect()
-}
-
 async function testAddIdentity(t: test.Test, createClient: () => Client) {
   const { client, addressMapper, pubKey } = await getClientAndContract(createClient)
 
@@ -67,7 +50,7 @@ async function testAddIdentity(t: test.Test, createClient: () => Client) {
 
   await addressMapper.addIdentityMappingAsync(from, to, web3Signer)
 
-  const result = await addressMapper.getContractMappingAsync(from)
+  const result = await addressMapper.getMappingAsync(from)
 
   t.assert(from.equals(result.from), 'Identity "from" correctly returned')
   t.assert(to.equals(result.to), 'Identity "to" correctly returned')
@@ -75,10 +58,8 @@ async function testAddIdentity(t: test.Test, createClient: () => Client) {
   client.disconnect()
 }
 
-test('Contract', async t => {
+test('Address Mapper', async t => {
   try {
-    t.comment('Calls via HTTP')
-    await testAddMapping(t, createTestHttpClient)
     await testAddIdentity(t, createTestHttpClient)
   } catch (err) {
     t.fail(err)
