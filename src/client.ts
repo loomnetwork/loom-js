@@ -2,8 +2,8 @@ import debug from 'debug'
 import { Message } from 'google-protobuf'
 import EventEmitter from 'events'
 import retry from 'retry'
+import { VMType } from './proto/loom_pb'
 import {
-  VMType,
   EvmTxReceipt,
   EvmTxObject,
   EthBlockInfo,
@@ -11,7 +11,7 @@ import {
   EthBlockHashList,
   EthFilterLogList,
   EthTxHashList
-} from './proto/loom_pb'
+} from './proto/evm_pb'
 import { Uint8ArrayToB64, B64ToUint8Array, bufferToProtobufBytes } from './crypto-utils'
 import { Address, LocalAddress } from './address'
 import { WSRPCClient, IJSONRPCEvent } from './internal/ws-rpc-client'
@@ -641,7 +641,7 @@ export class Client extends EventEmitter {
         data: B64ToUint8Array(result.encoded_body || '0x0'),
         topics: result.topics,
         transactionHash: result.tx_hash,
-        transactionHashBytes: B64ToUint8Array(result.tx_hash)
+        transactionHashBytes: result.tx_hash ? B64ToUint8Array(result.tx_hash) : new Uint8Array([])
       }
       this.emit(ClientEvent.Contract, eventArgs)
     }

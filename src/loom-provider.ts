@@ -8,7 +8,9 @@ import {
   VMType,
   DeployTx,
   DeployResponse,
-  DeployResponseData,
+  DeployResponseData
+} from './proto/loom_pb'
+import {
   EventData,
   EthFilterLog,
   EthFilterLogList,
@@ -16,7 +18,7 @@ import {
   EthBlockInfo,
   EthBlockHashList,
   EthTxHashList
-} from './proto/loom_pb'
+} from './proto/evm_pb'
 import { Address, LocalAddress } from './address'
 import {
   bytesToHexAddr,
@@ -336,10 +338,7 @@ export class LoomProvider {
     const blockHash = payload.params[0]
     const isFull = payload.params[1] || true
 
-    const result = await this._client.getEvmBlockByHashAsync(
-      blockHash,
-      isFull
-    )
+    const result = await this._client.getEvmBlockByHashAsync(blockHash, isFull)
 
     if (!result) {
       return null

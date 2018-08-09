@@ -31,10 +31,17 @@ export class Web3Signer {
   async signAsync(msg: string): Promise<Uint8Array> {
     const signature = await this._web3.eth.sign(msg, this._address)
     const sig = signature.slice(2)
+
+    let mode = 1 // Geth
     const r = ethutil.toBuffer('0x' + sig.substring(0, 64)) as Buffer
     const s = ethutil.toBuffer('0x' + sig.substring(64, 128)) as Buffer
-    const v = ethutil.toBuffer(parseInt(sig.substring(128, 130), 16) + 27) as Buffer
-    const mode = ethutil.toBuffer(1) as Buffer // mode = geth
-    return Buffer.concat([mode, r, s, v])
+    let v = parseInt(sig.substring(128, 130), 16)
+
+    if (v === 0 || v === 1) {
+      v += 27
+    } else {
+      mode = 0 // indicate that msg wasn't prefixed before signing (MetaMask doesn't prefix!)
+    }
+    return Buffer.concat([ethutil.toBuffer(mode) as Buffer, r, s, ethutil.toBuffer(v) as Buffer])
   }
 }

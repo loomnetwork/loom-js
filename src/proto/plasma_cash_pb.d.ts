@@ -301,6 +301,11 @@ export class DepositRequest extends jspb.Message {
   getFrom(): proto_loom_pb.Address | undefined;
   setFrom(value?: proto_loom_pb.Address): void;
 
+  hasContract(): boolean;
+  clearContract(): void;
+  getContract(): proto_loom_pb.Address | undefined;
+  setContract(value?: proto_loom_pb.Address): void;
+
   serializeBinary(): Uint8Array;
   toObject(includeInstance?: boolean): DepositRequest.AsObject;
   static toObject(includeInstance: boolean, msg: DepositRequest): DepositRequest.AsObject;
@@ -317,6 +322,7 @@ export namespace DepositRequest {
     depositBlock?: proto_loom_pb.BigUInt.AsObject,
     denomination?: proto_loom_pb.BigUInt.AsObject,
     from?: proto_loom_pb.Address.AsObject,
+    contract?: proto_loom_pb.Address.AsObject,
   }
 }
 

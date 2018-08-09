@@ -55,7 +55,11 @@ message PlasmaTxResponse {
 
 message DepositRequest {
     uint64 slot = 1 [jstype = JS_STRING]; // The slot of the UTXO - Currently uint64, subject to change.
-    BigUInt deposit_block = 2; 
-    BigUInt denomination = 3; // How many coins are included in that UTXO. Currently this is always 1 since we’re using ERC721 tokens which are unique, however in future iterations this can be any number.
-    Address from = 4; 
+    BigUInt deposit_block = 2;
+    // For ERC20 this is the number of coins deposited, for ERC721 this is a token ID.
+    BigUInt denomination = 3;
+    // Entity that made the deposit
+    Address from = 4;
+    // Contract from which the coins originated (i.e. the currency of the coins)
+    Address contract = 5;
 }

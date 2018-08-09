@@ -24,6 +24,22 @@ export interface IPlasmaCoin {
   state: PlasmaCoinState
 }
 
+export interface IPlasmaChallenge {
+  slot: BN
+  txHash: string
+}
+
+export function marshalChallengeEvent(data: {
+  slot: string
+  txHash: string
+}): IPlasmaChallenge {
+  const { slot, txHash } = data
+  return {
+    slot: new BN(slot),
+    txHash
+  }
+}
+
 export interface IPlasmaDeposit {
   slot: BN
   blockNumber: BN
@@ -84,6 +100,14 @@ export interface IPlasmaChallengeBeforeParams extends ISendTxOptions {
   prevTx?: PlasmaCashTx
   prevBlockNum?: BN
 }
+
+export interface IPlasmaRspondChallengeBeforeParams extends ISendTxOptions {
+  slot: BN
+  challengingTxHash: string
+  respondingBlockNum: BN
+  respondingTx: PlasmaCashTx
+}
+
 
 export class EthereumPlasmaClient {
   private _web3: Web3
@@ -226,16 +250,17 @@ export class EthereumPlasmaClient {
    *
    * @returns Web3 tx receipt object.
    */
-  respondChallengeBeforeAsync(params: IPlasmaChallengeParams): Promise<object> {
-    const { slot, challengingBlockNum, challengingTx, ...rest } = params
-    const txBytes = challengingTx.rlpEncode()
+  respondChallengeBeforeAsync(params: IPlasmaRspondChallengeBeforeParams): Promise<object> {
+    const { slot, challengingTxHash, respondingBlockNum, respondingTx, ...rest } = params
+    const respondingTxBytes = respondingTx.rlpEncode()
     return this._plasmaContract.methods
       .respondChallengeBefore(
         slot,
-        challengingBlockNum,
-        txBytes,
-        challengingTx.proof,
-        challengingTx.sig
+        challengingTxHash,
+        respondingBlockNum,
+        respondingTxBytes,
+        respondingTx.proof,
+        respondingTx.sig
       )
       .send(rest)
   }
