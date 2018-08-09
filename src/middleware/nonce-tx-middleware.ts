@@ -1,6 +1,9 @@
+import debug from 'debug'
 import { NonceTx } from '../proto/loom_pb'
 import { ITxMiddlewareHandler, Client } from '../client'
 import { bytesToHex } from '../crypto-utils'
+
+const log = debug('nonce-tx-middleware')
 
 /**
  * Wraps data in a NonceTx.
@@ -18,6 +21,9 @@ export class NonceTxMiddleware implements ITxMiddlewareHandler {
   async Handle(txData: Readonly<Uint8Array>): Promise<Uint8Array> {
     const key = bytesToHex(this._publicKey)
     const nonce = await this._client.getNonceAsync(key)
+
+    log(`Next nonce ${nonce + 1}`)
+
     const tx = new NonceTx()
     tx.setInner(txData as Uint8Array)
     tx.setSequence(nonce + 1)
