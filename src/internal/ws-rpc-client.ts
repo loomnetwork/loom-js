@@ -117,7 +117,9 @@ export class WSRPCClient extends EventEmitter {
               this._isSubcribed = false
               this.emit(RPCClientEvent.Subscribed, this.url, false)
             })
-            .catch(err => this.emit(RPCClientEvent.Error, this.url, err))
+            .catch(err => {
+              this.emit(RPCClientEvent.Error, this.url, err)
+            })
         }
       }
     })

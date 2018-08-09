@@ -597,8 +597,8 @@ export class Client extends EventEmitter {
    * @param key A hex encoded public key.
    * @return The nonce.
    */
-  getNonceAsync(key: string): Promise<number> {
-    return this._readClient.sendAsync<number>('nonce', { key })
+  async getNonceAsync(key: string): Promise<number> {
+    return parseInt(await this._readClient.sendAsync<string>('nonce', { key }), 10)
   }
 
   /**
