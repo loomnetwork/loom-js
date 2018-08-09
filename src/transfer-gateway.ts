@@ -67,7 +67,11 @@ export class TransferGateway extends Contract {
     super(params)
 
     this.on(Contract.EVENT, event => {
-      if (event.topics[0] && event.topics[0] === TransferGateway.tokenWithdrawalSignedEventTopic) {
+      if (!event.topics || event.topics.length === 0) {
+        return
+      }
+
+      if (event.topics[0] === TransferGateway.tokenWithdrawalSignedEventTopic) {
         const tokenWithdrawalSigned = TransferGatewayTokenWithdrawalSigned.deserializeBinary(
           B64ToUint8Array(event.data)
         )
@@ -81,10 +85,7 @@ export class TransferGateway extends Contract {
         } as ITokenWithdrawalEventArgs)
       }
 
-      if (
-        event.topics[0] &&
-        event.topics[0] === TransferGateway.contractMappingConfirmedEventTopic
-      ) {
+      if (event.topics[0] === TransferGateway.contractMappingConfirmedEventTopic) {
         const contractMappingConfirmed = TransferGatewayContractMappingConfirmed.deserializeBinary(
           B64ToUint8Array(event.data)
         )
