@@ -2,8 +2,8 @@ import test from 'tape'
 
 import { NonceTxMiddleware, SignedTxMiddleware, CryptoUtils } from '../../index'
 import { createTestClient, waitForMillisecondsAsync } from '../helpers'
-import { EthBlockHashList, EthBlockInfo, EthTxHashList } from '../../proto/loom_pb'
-import { bufferToProtobufBytes, bytesToHexAddr } from '../../crypto-utils'
+import { EthBlockHashList, EthBlockInfo } from '../../proto/evm_pb'
+import { bytesToHexAddr } from '../../crypto-utils'
 
 test('Client EVM test (newBlockEvmFilterAsync)', async t => {
   try {
