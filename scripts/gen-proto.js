@@ -12,7 +12,8 @@ const protoFiles = [
   'evm.proto',
   'plasma_cash.proto',
   'transfer_gateway.proto',
-  'address_mapper.proto'
+  'address_mapper.proto',
+  'coin.proto'
 ]
 
 // copy the proto so end users can import it from node_modules in their own proto files
