@@ -6,10 +6,10 @@ import {
   Client,
   CryptoUtils,
   createDefaultTxMiddleware,
-  AddressMapper
+  Contracts
 } from '../../index'
 import { createTestHttpClient } from '../helpers'
-import { Web3Signer } from '../../plasma-cash/solidity-helpers'
+import { Web3Signer } from '../../solidity-helpers'
 
 const Web3 = require('web3')
 
@@ -22,7 +22,7 @@ async function getClientAndContract(
   createClient: () => Client
 ): Promise<{
   client: Client
-  addressMapper: AddressMapper
+  addressMapper: Contracts.AddressMapper
   pubKey: Uint8Array
 }> {
   const privKey = CryptoUtils.generatePrivateKey()
@@ -30,7 +30,7 @@ async function getClientAndContract(
   const client = createClient()
   client.txMiddleware = createDefaultTxMiddleware(client, privKey)
 
-  const addressMapper = await AddressMapper.createAsync(
+  const addressMapper = await Contracts.AddressMapper.createAsync(
     client,
     new Address(client.chainId, LocalAddress.fromPublicKey(pubKey))
   )

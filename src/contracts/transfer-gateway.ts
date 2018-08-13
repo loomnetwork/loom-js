@@ -1,7 +1,7 @@
 import BN from 'bn.js'
-import { Client } from './client'
-import { Contract } from './contract'
-import { Address } from './address'
+import { Client } from '../client'
+import { Contract } from '../contract'
+import { Address } from '../address'
 import {
   TransferGatewayWithdrawERC721Request,
   TransferGatewayWithdrawalReceiptRequest,
@@ -11,9 +11,9 @@ import {
   TransferGatewayAddContractMappingRequest,
   TransferGatewayTokenWithdrawalSigned,
   TransferGatewayContractMappingConfirmed
-} from './proto/transfer_gateway_pb'
-import { marshalBigUIntPB, unmarshalBigUIntPB } from './big-uint'
-import { B64ToUint8Array } from './crypto-utils'
+} from '../proto/transfer_gateway_pb'
+import { marshalBigUIntPB, unmarshalBigUIntPB } from '../big-uint'
+import { B64ToUint8Array } from '../crypto-utils'
 
 export interface IWithdrawalReceipt {
   tokenOwner: Address
