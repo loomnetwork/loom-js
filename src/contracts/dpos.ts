@@ -1,7 +1,7 @@
 import BN from 'bn.js'
-import { Client } from './client'
-import { Contract } from './contract'
-import { Address } from './address'
+import { Client } from '../client'
+import { Contract } from '../contract'
+import { Address } from '../address'
 import {
   RegisterCandidateRequest,
   VoteRequest,
@@ -13,8 +13,8 @@ import {
   ListWitnessesRequest,
   ListWitnessesResponse,
   Witness
-} from './proto/dpos_pb'
-import { unmarshalBigUIntPB } from './big-uint'
+} from '../proto/dpos_pb'
+import { unmarshalBigUIntPB } from '../big-uint'
 
 export interface ICandidate {
   address: Address
