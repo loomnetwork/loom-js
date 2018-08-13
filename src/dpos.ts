@@ -7,7 +7,7 @@ import {
   VoteRequest,
   ElectRequest,
   ListCandidateRequest,
-  ListCandiateResponse,
+  ListCandidateResponse,
   Candidate,
   UnregisterCandidateRequest,
   ListWitnessesRequest,
@@ -69,7 +69,7 @@ export class DPOS extends Contract {
     const result = await this.staticCallAsync(
       'ListCandidates',
       listCandidatesReq,
-      new ListCandiateResponse()
+      new ListCandidateResponse()
     )
 
     return result.getCandidatesList().map((canditate: Candidate) => {

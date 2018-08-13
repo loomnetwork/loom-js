@@ -406,23 +406,23 @@ export namespace ListCandidateRequest {
   }
 }
 
-export class ListCandiateResponse extends jspb.Message {
+export class ListCandidateResponse extends jspb.Message {
   clearCandidatesList(): void;
   getCandidatesList(): Array<Candidate>;
   setCandidatesList(value: Array<Candidate>): void;
   addCandidates(value?: Candidate, index?: number): Candidate;
 
   serializeBinary(): Uint8Array;
-  toObject(includeInstance?: boolean): ListCandiateResponse.AsObject;
-  static toObject(includeInstance: boolean, msg: ListCandiateResponse): ListCandiateResponse.AsObject;
+  toObject(includeInstance?: boolean): ListCandidateResponse.AsObject;
+  static toObject(includeInstance: boolean, msg: ListCandidateResponse): ListCandidateResponse.AsObject;
   static extensions: {[key: number]: jspb.ExtensionFieldInfo<jspb.Message>};
   static extensionsBinary: {[key: number]: jspb.ExtensionFieldBinaryInfo<jspb.Message>};
-  static serializeBinaryToWriter(message: ListCandiateResponse, writer: jspb.BinaryWriter): void;
-  static deserializeBinary(bytes: Uint8Array): ListCandiateResponse;
-  static deserializeBinaryFromReader(message: ListCandiateResponse, reader: jspb.BinaryReader): ListCandiateResponse;
+  static serializeBinaryToWriter(message: ListCandidateResponse, writer: jspb.BinaryWriter): void;
+  static deserializeBinary(bytes: Uint8Array): ListCandidateResponse;
+  static deserializeBinaryFromReader(message: ListCandidateResponse, reader: jspb.BinaryReader): ListCandidateResponse;
 }
 
-export namespace ListCandiateResponse {
+export namespace ListCandidateResponse {
   export type AsObject = {
     candidatesList: Array<Candidate.AsObject>,
   }
