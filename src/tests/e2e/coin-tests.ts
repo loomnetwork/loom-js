@@ -2,7 +2,7 @@ import test from 'tape'
 import BN from 'bn.js'
 import {
   Address,
-  Coin,
+  Contracts,
   CryptoUtils,
   createDefaultTxMiddleware,
   Client,
@@ -20,8 +20,8 @@ async function getClientAndContract(
 ): Promise<{
   acct1Client: Client
   acct2Client: Client
-  acct1Coin: Coin
-  acct2Coin: Coin
+  acct1Coin: Contracts.Coin
+  acct2Coin: Contracts.Coin
   acct1PubKey: Uint8Array
   acct2PubKey: Uint8Array
 }> {
@@ -41,12 +41,12 @@ async function getClientAndContract(
   acct1Client.txMiddleware = createDefaultTxMiddleware(acct1Client, acct1PrivKey)
   acct2Client.txMiddleware = createDefaultTxMiddleware(acct2Client, acct2PrivKey)
 
-  const acct1Coin = await Coin.createAsync(
+  const acct1Coin = await Contracts.Coin.createAsync(
     acct1Client,
     new Address(acct1Client.chainId, LocalAddress.fromPublicKey(acct1PubKey))
   )
 
-  const acct2Coin = await Coin.createAsync(
+  const acct2Coin = await Contracts.Coin.createAsync(
     acct2Client,
     new Address(acct2Client.chainId, LocalAddress.fromPublicKey(acct2PubKey))
   )
@@ -56,7 +56,7 @@ async function getClientAndContract(
 
 async function testTotalSupply(t: test.Test, createClient: () => Client) {
   const { acct1Client, acct1Coin } = await getClientAndContract(createClient)
-  const totalSupply = await acct1Coin.totalSupplyAsync()
+  const totalSupply = await acct1Coin.getTotalSupplyAsync()
 
   t.assert(totalSupply.eq(toCoinE18(100)), 'Total Supply should be 100e18')
 
@@ -74,12 +74,12 @@ async function testBalanceOf(t: test.Test, createClient: () => Client) {
   } = await getClientAndContract(createClient)
 
   const acct1Owner = new Address(acct1Client.chainId, LocalAddress.fromPublicKey(acct1PubKey))
-  const acct1Balance = await acct1Coin.balanceOfAsync(acct1Owner)
+  const acct1Balance = await acct1Coin.getBalanceOfAsync(acct1Owner)
 
   t.assert(acct1Balance.eq(toCoinE18(100)), 'Acct 1 balance should be 100e18')
 
   const acct2Owner = new Address(acct2Client.chainId, LocalAddress.fromPublicKey(acct2PubKey))
-  const acct2Balance = await acct2Coin.balanceOfAsync(acct2Owner)
+  const acct2Balance = await acct2Coin.getBalanceOfAsync(acct2Owner)
 
   t.assert(acct2Balance.eq(toCoinE18(0)), 'Acct 2 balance should be 0')
 
@@ -102,10 +102,10 @@ async function testTransfer(t: test.Test, createClient: () => Client) {
 
   await acct1Coin.transferAsync(to, toCoinE18(10))
 
-  const acct1Balance = await acct1Coin.balanceOfAsync(from)
+  const acct1Balance = await acct1Coin.getBalanceOfAsync(from)
   t.assert(acct1Balance.eq(toCoinE18(90)), 'Acct 1 Balance after transfer should be 90e18')
 
-  const acct2Balance = await acct2Coin.balanceOfAsync(to)
+  const acct2Balance = await acct2Coin.getBalanceOfAsync(to)
   t.assert(acct2Balance.eq(toCoinE18(10)), 'Acct 2 Balance after transfer should be 10e18')
 
   acct1Client.disconnect()
@@ -136,7 +136,7 @@ async function testAllowance(t: test.Test, createClient: () => Client) {
   const spender = new Address(acct2Client.chainId, LocalAddress.fromPublicKey(acct2PubKey))
   const owner = new Address(acct1Client.chainId, LocalAddress.fromPublicKey(acct1PubKey))
 
-  const allowance = await acct1Coin.allowanceAsync(owner, spender)
+  const allowance = await acct1Coin.getAllowanceAsync(owner, spender)
 
   t.assert(allowance.eq(toCoinE18(1)), 'Allowance should be 1')
 
@@ -159,10 +159,10 @@ async function testTransferFrom(t: test.Test, createClient: () => Client) {
 
   await acct2Coin.transferFromAsync(owner, spender, toCoinE18(1))
 
-  const acct1Balance = await acct1Coin.balanceOfAsync(owner)
+  const acct1Balance = await acct1Coin.getBalanceOfAsync(owner)
   t.assert(acct1Balance.eq(toCoinE18(89)), 'Acct 1 Balance after transfer should be 89e18')
 
-  const acct2Balance = await acct2Coin.balanceOfAsync(spender)
+  const acct2Balance = await acct2Coin.getBalanceOfAsync(spender)
   t.assert(acct2Balance.eq(toCoinE18(11)), 'Acct 2 Balance after transfer should be 11e18')
 
   acct1Client.disconnect()
