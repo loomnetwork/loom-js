@@ -15,7 +15,8 @@ export { createDefaultTxMiddleware } from './helpers'
 export { LoomProvider } from './loom-provider'
 export { AddressMapper } from './address_mapper'
 export { TransferGateway } from './transfer-gateway'
-export { Coin } from './coin'
+import * as Contracts from './contracts'
+export { Contracts }
 
 import * as CryptoUtils from './crypto-utils'
 export { CryptoUtils }

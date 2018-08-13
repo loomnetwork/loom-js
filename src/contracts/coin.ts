@@ -1,7 +1,7 @@
 import BN from 'bn.js'
-import { Client } from './client'
-import { Contract } from './contract'
-import { Address } from './address'
+import { Client } from '../client'
+import { Contract } from '../contract'
+import { Address } from '../address'
 import {
   TotalSupplyRequest,
   TotalSupplyResponse,
@@ -12,8 +12,8 @@ import {
   TransferRequest,
   TransferFromRequest,
   ApproveRequest
-} from './proto/coin_pb'
-import { unmarshalBigUIntPB, marshalBigUIntPB } from './big-uint'
+} from '../proto/coin_pb'
+import { unmarshalBigUIntPB, marshalBigUIntPB } from '../big-uint'
 
 export class Coin extends Contract {
   static async createAsync(client: Client, callerAddr: Address): Promise<Coin> {

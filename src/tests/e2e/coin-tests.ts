@@ -2,7 +2,7 @@ import test from 'tape'
 import BN from 'bn.js'
 import {
   Address,
-  Coin,
+  Contracts,
   CryptoUtils,
   createDefaultTxMiddleware,
   Client,
@@ -20,8 +20,8 @@ async function getClientAndContract(
 ): Promise<{
   acct1Client: Client
   acct2Client: Client
-  acct1Coin: Coin
-  acct2Coin: Coin
+  acct1Coin: Contracts.Coin
+  acct2Coin: Contracts.Coin
   acct1PubKey: Uint8Array
   acct2PubKey: Uint8Array
 }> {
@@ -41,12 +41,12 @@ async function getClientAndContract(
   acct1Client.txMiddleware = createDefaultTxMiddleware(acct1Client, acct1PrivKey)
   acct2Client.txMiddleware = createDefaultTxMiddleware(acct2Client, acct2PrivKey)
 
-  const acct1Coin = await Coin.createAsync(
+  const acct1Coin = await Contracts.Coin.createAsync(
     acct1Client,
     new Address(acct1Client.chainId, LocalAddress.fromPublicKey(acct1PubKey))
   )
 
-  const acct2Coin = await Coin.createAsync(
+  const acct2Coin = await Contracts.Coin.createAsync(
     acct2Client,
     new Address(acct2Client.chainId, LocalAddress.fromPublicKey(acct2PubKey))
   )
