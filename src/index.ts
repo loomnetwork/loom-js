@@ -16,6 +16,7 @@ export { LoomProvider } from './loom-provider'
 export { AddressMapper } from './address_mapper'
 export { TransferGateway } from './transfer-gateway'
 export { Coin } from './coin'
+export { DPOS } from './dpos'
 
 import * as CryptoUtils from './crypto-utils'
 export { CryptoUtils }
