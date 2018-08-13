@@ -1,12 +1,12 @@
-import { Client } from './client'
-import { Contract } from './contract'
-import { Address } from './address'
+import { Client } from '../client'
+import { Contract } from '../contract'
+import { Address } from '../address'
 import {
   AddressMapperAddIdentityMappingRequest,
   AddressMapperGetMappingRequest,
   AddressMapperGetMappingResponse
-} from './proto/address_mapper_pb'
-import { Web3Signer, soliditySha3 } from './plasma-cash/solidity-helpers'
+} from '../proto/address_mapper_pb'
+import { Web3Signer, soliditySha3 } from '../solidity-helpers'
 
 export interface IAddressMapping {
   from: Address
