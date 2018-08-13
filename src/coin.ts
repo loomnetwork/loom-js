@@ -29,7 +29,7 @@ export class Coin extends Contract {
     super(params)
   }
 
-  async totalSupplyAsync(): Promise<BN> {
+  async getTotalSupplyAsync(): Promise<BN> {
     const totalSupplyReq = new TotalSupplyRequest()
     const result = await this.staticCallAsync(
       'TotalSupply',
@@ -39,14 +39,14 @@ export class Coin extends Contract {
     return unmarshalBigUIntPB(result.getTotalSupply()!)
   }
 
-  async balanceOfAsync(owner: Address): Promise<BN> {
+  async getBalanceOfAsync(owner: Address): Promise<BN> {
     const balanceOfReq = new BalanceOfRequest()
     balanceOfReq.setOwner(owner.MarshalPB())
     const result = await this.staticCallAsync('BalanceOf', balanceOfReq, new BalanceOfResponse())
     return unmarshalBigUIntPB(result.getBalance()!)
   }
 
-  async allowanceAsync(owner: Address, spender: Address): Promise<BN> {
+  async getAllowanceAsync(owner: Address, spender: Address): Promise<BN> {
     const allowanceReq = new AllowanceRequest()
     allowanceReq.setOwner(owner.MarshalPB())
     allowanceReq.setSpender(spender.MarshalPB())
@@ -54,7 +54,7 @@ export class Coin extends Contract {
     return unmarshalBigUIntPB(result.getAmount()!)
   }
 
-  async approveAsync(spender: Address, amount: BN) {
+  approveAsync(spender: Address, amount: BN) {
     const approveReq = new ApproveRequest()
     approveReq.setSpender(spender.MarshalPB())
     approveReq.setAmount(marshalBigUIntPB(amount))
