@@ -4,7 +4,7 @@ import Web3 from 'web3'
 import { EthereumPlasmaClient, IPlasmaCoin, IPlasmaDeposit } from './ethereum-client'
 import { DAppChainPlasmaClient } from './dappchain-client'
 import { PlasmaCashTx } from './plasma-cash-tx'
-import { Web3Signer } from './solidity-helpers'
+import { Web3Signer } from '../solidity-helpers'
 
 export interface IEntityParams {
   /** Web3 account for use on Ethereum */
@@ -238,9 +238,7 @@ export class Entity {
     respondingBlockNum: BN
   }): Promise<object> {
     const { slot, challengingTxHash, respondingBlockNum } = params
-    const respondingBlock = await this._dAppPlasmaClient.getPlasmaBlockAtAsync(
-      respondingBlockNum
-    )
+    const respondingBlock = await this._dAppPlasmaClient.getPlasmaBlockAtAsync(respondingBlockNum)
     const respondingTx = respondingBlock.findTxWithSlot(slot)
     if (!respondingTx) {
       throw new Error(`Invalid responding block: missing tx for slot ${slot.toString(10)}.`)
