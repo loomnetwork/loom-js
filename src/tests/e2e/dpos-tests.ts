@@ -78,7 +78,7 @@ async function listCandidates(t: test.Test, createClient: () => Client) {
 async function listWitness(t: test.Test, createClient: () => Client) {
   const { client, dpos, pubKey } = await getClientAndContract(createClient)
 
-  const witnesses = await dpos.getWitnessAsync()
+  const witnesses = await dpos.getWitnessesAsync()
   t.assert(witnesses!.length === 1, 'Should have one witness')
 
   client.disconnect()

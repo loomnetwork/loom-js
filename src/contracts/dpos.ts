@@ -79,7 +79,7 @@ export class DPOS extends Contract {
     }) as Array<ICandidate>
   }
 
-  async getWitnessAsync(): Promise<Array<IWitness> | null> {
+  async getWitnessesAsync(): Promise<Array<IWitness> | null> {
     const listWitnessesReq = new ListWitnessesRequest()
     const result = await this.staticCallAsync(
       'ListWitnesses',
