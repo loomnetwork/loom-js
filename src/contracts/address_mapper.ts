@@ -26,6 +26,7 @@ export class AddressMapper extends Contract {
   constructor(params: { contractAddr: Address; callerAddr: Address; client: Client }) {
     super(params)
   }
+
   async addIdentityMappingAsync(
     from: Address,
     to: Address,

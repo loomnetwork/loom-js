@@ -1,0 +1,82 @@
+syntax = "proto3";
+
+import "proto/loom.proto";
+
+message Witness {
+    bytes pub_key = 1;
+    uint64 vote_total = 2;
+    uint64 power_total = 3;
+}
+
+message Candidate {
+    Address address = 1;
+    bytes pub_key = 2;
+}
+
+message CandidateList {
+    repeated Candidate candidates = 1;
+}
+
+message Vote {
+    Address voter_address = 1;
+    Address candidate_address = 2;
+    uint64 amount = 3;
+}
+
+message VoteList {
+    repeated Vote votes = 1;
+}
+
+message RegisterCandidateRequest {
+    bytes pub_key = 1;
+}
+
+message RegisterCandidateResponse {
+}
+
+message UnregisterCandidateRequest {
+}
+
+message UnregisterCandidateResponse {
+}
+
+message VoteRequest {
+    Address candidate_address = 1;
+    int64 amount = 2;
+}
+
+message VoteResponse {
+}
+
+message ProxyVoteRequest {
+    Address proxy_address = 1;
+}
+
+message ProxyVoteResponse {
+}
+
+message UnproxyVoteRequest {
+}
+
+message UnproxyVoteResponse {
+}
+
+message ElectRequest {
+}
+
+message ElectResponse {
+}
+
+message ListWitnessesRequest {
+}
+
+message ListWitnessesResponse {
+    repeated Witness witnesses = 1;
+}
+
+message ListCandidateRequest {
+}
+
+message ListCandidateResponse {
+    repeated Candidate candidates = 1;
+}
