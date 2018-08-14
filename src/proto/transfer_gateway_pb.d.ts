@@ -152,6 +152,34 @@ export namespace TransferGatewayWithdrawERC721Request {
   }
 }
 
+export class TransferGatewayWithdrawERC20Request extends jspb.Message {
+  hasAmount(): boolean;
+  clearAmount(): void;
+  getAmount(): proto_loom_pb.BigUInt | undefined;
+  setAmount(value?: proto_loom_pb.BigUInt): void;
+
+  hasTokenContract(): boolean;
+  clearTokenContract(): void;
+  getTokenContract(): proto_loom_pb.Address | undefined;
+  setTokenContract(value?: proto_loom_pb.Address): void;
+
+  serializeBinary(): Uint8Array;
+  toObject(includeInstance?: boolean): TransferGatewayWithdrawERC20Request.AsObject;
+  static toObject(includeInstance: boolean, msg: TransferGatewayWithdrawERC20Request): TransferGatewayWithdrawERC20Request.AsObject;
+  static extensions: {[key: number]: jspb.ExtensionFieldInfo<jspb.Message>};
+  static extensionsBinary: {[key: number]: jspb.ExtensionFieldBinaryInfo<jspb.Message>};
+  static serializeBinaryToWriter(message: TransferGatewayWithdrawERC20Request, writer: jspb.BinaryWriter): void;
+  static deserializeBinary(bytes: Uint8Array): TransferGatewayWithdrawERC20Request;
+  static deserializeBinaryFromReader(message: TransferGatewayWithdrawERC20Request, reader: jspb.BinaryReader): TransferGatewayWithdrawERC20Request;
+}
+
+export namespace TransferGatewayWithdrawERC20Request {
+  export type AsObject = {
+    amount?: proto_loom_pb.BigUInt.AsObject,
+    tokenContract?: proto_loom_pb.Address.AsObject,
+  }
+}
+
 export class TransferGatewayWithdrawalReceiptRequest extends jspb.Message {
   hasOwner(): boolean;
   clearOwner(): void;
