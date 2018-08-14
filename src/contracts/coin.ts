@@ -54,21 +54,21 @@ export class Coin extends Contract {
     return unmarshalBigUIntPB(result.getAmount()!)
   }
 
-  approveAsync(spender: Address, amount: BN) {
+  approveAsync(spender: Address, amount: BN): Promise<void> {
     const approveReq = new ApproveRequest()
     approveReq.setSpender(spender.MarshalPB())
     approveReq.setAmount(marshalBigUIntPB(amount))
     return this.callAsync<void>('Approve', approveReq)
   }
 
-  transferAsync(to: Address, amount: BN) {
+  transferAsync(to: Address, amount: BN): Promise<void> {
     const transferReq = new TransferRequest()
     transferReq.setTo(to.MarshalPB())
     transferReq.setAmount(marshalBigUIntPB(amount))
     return this.callAsync<void>('Transfer', transferReq)
   }
 
-  transferFromAsync(from: Address, to: Address, amount: BN) {
+  transferFromAsync(from: Address, to: Address, amount: BN): Promise<void> {
     const transferFromReq = new TransferFromRequest()
     transferFromReq.setFrom(from.MarshalPB())
     transferFromReq.setTo(to.MarshalPB())
