@@ -14,7 +14,6 @@ import {
   ListWitnessesResponse,
   Witness
 } from '../proto/dpos_pb'
-import { unmarshalBigUIntPB } from '../big-uint'
 
 export interface ICandidate {
   address: Address
