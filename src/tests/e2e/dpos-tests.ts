@@ -53,7 +53,7 @@ async function voteRequest(t: test.Test, createClient: () => Client) {
   const { client, dpos, pubKey } = await getClientAndContract(createClient)
 
   const candidate = new Address(client.chainId, LocalAddress.fromPublicKey(pubKey))
-  await dpos.voteRequestAsync(candidate, 10)
+  await dpos.voteAsync(candidate, 10)
 
   client.disconnect()
 }
@@ -61,7 +61,7 @@ async function voteRequest(t: test.Test, createClient: () => Client) {
 async function electionRequest(t: test.Test, createClient: () => Client) {
   const { client, dpos, pubKey } = await getClientAndContract(createClient)
 
-  await dpos.electionRequestAsync()
+  await dpos.electAsync()
 
   client.disconnect()
 }
@@ -69,7 +69,7 @@ async function electionRequest(t: test.Test, createClient: () => Client) {
 async function listCandidates(t: test.Test, createClient: () => Client) {
   const { client, dpos, pubKey } = await getClientAndContract(createClient)
 
-  const candidates = await dpos.listCandidatesAsync()
+  const candidates = await dpos.getCandidatesAsync()
   t.assert(candidates!.length === 1, 'Should have one candidate')
 
   client.disconnect()
@@ -78,7 +78,7 @@ async function listCandidates(t: test.Test, createClient: () => Client) {
 async function listWitness(t: test.Test, createClient: () => Client) {
   const { client, dpos, pubKey } = await getClientAndContract(createClient)
 
-  const witnesses = await dpos.listWitnessAsync()
+  const witnesses = await dpos.getWitnessAsync()
   t.assert(witnesses!.length === 1, 'Should have one witness')
 
   client.disconnect()

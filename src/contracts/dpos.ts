@@ -41,30 +41,30 @@ export class DPOS extends Contract {
     super(params)
   }
 
-  registerCandidateAsync(pubKey: Uint8Array) {
+  registerCandidateAsync(pubKey: Uint8Array): Promise<void> {
     const registerCandidateReq = new RegisterCandidateRequest()
     registerCandidateReq.setPubKey(pubKey)
-    this.callAsync<void>('RegisterCandidate', registerCandidateReq)
+    return this.callAsync<void>('RegisterCandidate', registerCandidateReq)
   }
 
-  unregisterCandidateAsync() {
+  unregisterCandidateAsync(): Promise<void> {
     const unregisterCandidateReq = new UnregisterCandidateRequest()
-    this.callAsync<void>('UnregisterCandidate', unregisterCandidateReq)
+    return this.callAsync<void>('UnregisterCandidate', unregisterCandidateReq)
   }
 
-  voteRequestAsync(candidateAddress: Address, amount: number) {
+  voteAsync(candidateAddress: Address, amount: number): Promise<void> {
     const voteReq = new VoteRequest()
     voteReq.setCandidateAddress(candidateAddress.MarshalPB())
     voteReq.setAmount(amount)
-    this.callAsync<void>('Vote', voteReq)
+    return this.callAsync<void>('Vote', voteReq)
   }
 
-  electionRequestAsync() {
+  electAsync(): Promise<void> {
     const electReq = new ElectRequest()
-    this.callAsync<void>('Elect', electReq)
+    return this.callAsync<void>('Elect', electReq)
   }
 
-  async listCandidatesAsync(): Promise<Array<ICandidate> | null> {
+  async getCandidatesAsync(): Promise<Array<ICandidate> | null> {
     const listCandidatesReq = new ListCandidateRequest()
     const result = await this.staticCallAsync(
       'ListCandidates',
@@ -80,7 +80,7 @@ export class DPOS extends Contract {
     }) as Array<ICandidate>
   }
 
-  async listWitnessAsync() {
+  async getWitnessAsync(): Promise<Array<IWitness> | null> {
     const listWitnessesReq = new ListWitnessesRequest()
     const result = await this.staticCallAsync(
       'ListWitnesses',
