@@ -180,6 +180,34 @@ export namespace TransferGatewayWithdrawERC20Request {
   }
 }
 
+export class TransferGatewayWithdrawETHRequest extends jspb.Message {
+  hasAmount(): boolean;
+  clearAmount(): void;
+  getAmount(): proto_loom_pb.BigUInt | undefined;
+  setAmount(value?: proto_loom_pb.BigUInt): void;
+
+  hasMainnetGateway(): boolean;
+  clearMainnetGateway(): void;
+  getMainnetGateway(): proto_loom_pb.Address | undefined;
+  setMainnetGateway(value?: proto_loom_pb.Address): void;
+
+  serializeBinary(): Uint8Array;
+  toObject(includeInstance?: boolean): TransferGatewayWithdrawETHRequest.AsObject;
+  static toObject(includeInstance: boolean, msg: TransferGatewayWithdrawETHRequest): TransferGatewayWithdrawETHRequest.AsObject;
+  static extensions: {[key: number]: jspb.ExtensionFieldInfo<jspb.Message>};
+  static extensionsBinary: {[key: number]: jspb.ExtensionFieldBinaryInfo<jspb.Message>};
+  static serializeBinaryToWriter(message: TransferGatewayWithdrawETHRequest, writer: jspb.BinaryWriter): void;
+  static deserializeBinary(bytes: Uint8Array): TransferGatewayWithdrawETHRequest;
+  static deserializeBinaryFromReader(message: TransferGatewayWithdrawETHRequest, reader: jspb.BinaryReader): TransferGatewayWithdrawETHRequest;
+}
+
+export namespace TransferGatewayWithdrawETHRequest {
+  export type AsObject = {
+    amount?: proto_loom_pb.BigUInt.AsObject,
+    mainnetGateway?: proto_loom_pb.Address.AsObject,
+  }
+}
+
 export class TransferGatewayWithdrawalReceiptRequest extends jspb.Message {
   hasOwner(): boolean;
   clearOwner(): void;

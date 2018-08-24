@@ -60,6 +60,13 @@ message TransferGatewayWithdrawERC20Request {
     Address token_contract = 2;
 }
 
+message TransferGatewayWithdrawETHRequest {
+    // Amount of ETH to withdraw
+    BigUInt amount = 1;
+    // Address of Mainnet Gateway contract
+    Address mainnet_gateway = 2;
+}
+
 message TransferGatewayWithdrawalReceiptRequest {
     Address owner = 1;
 }
