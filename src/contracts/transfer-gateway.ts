@@ -4,6 +4,7 @@ import { Contract } from '../contract'
 import { Address } from '../address'
 import {
   TransferGatewayWithdrawERC721Request,
+  TransferGatewayWithdrawERC20Request,
   TransferGatewayWithdrawalReceiptRequest,
   TransferGatewayWithdrawalReceiptResponse,
   TransferGatewayWithdrawalReceipt,
@@ -126,6 +127,14 @@ export class TransferGateway extends Contract {
     tgWithdrawERC721Req.setTokenContract(tokenContract.MarshalPB())
 
     return this.callAsync<void>('WithdrawERC721', tgWithdrawERC721Req)
+  }
+
+  withdrawERC20Async(amount: BN, tokenContract: Address): Promise<void> {
+    const tgWithdrawERC20Req = new TransferGatewayWithdrawERC20Request()
+    tgWithdrawERC20Req.setAmount(marshalBigUIntPB(amount))
+    tgWithdrawERC20Req.setTokenContract(tokenContract.MarshalPB())
+
+    return this.callAsync<void>('WithdrawERC20', tgWithdrawERC20Req)
   }
 
   async withdrawalReceiptAsync(owner: Address): Promise<IWithdrawalReceipt | null> {
