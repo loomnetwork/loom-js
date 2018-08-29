@@ -96,6 +96,7 @@ async function testContracts(t: Test, contractB: any, contractA: any) {
 
     contractA.getPastEvents('ContractAEvent', (err: Error, events: any) => {
       t.assert(!err)
+      t.assert(events.length > 0, 'should have at least one event')
       const [event] = events
       t.equal(+event.returnValues.v, value, `Should return value ${value}`)
     })
@@ -103,6 +104,7 @@ async function testContracts(t: Test, contractB: any, contractA: any) {
     // Should not Work
     contractB.getPastEvents('ContractBEvent', (err: Error, events: any) => {
       t.assert(!err)
+      t.assert(events.length > 0, 'Should have at least one event')
       const [event] = events
       t.equal(+event.returnValues.v, value, `Should return value ${value}`)
     })
