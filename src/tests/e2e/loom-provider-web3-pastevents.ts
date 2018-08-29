@@ -89,23 +89,19 @@ async function testContracts(t: Test, contractB: any, contractA: any) {
   try {
     const value = 5
 
-    let tx = await contractB.methods.callEvent(value).send()
-    t.equal(tx.status, true, `callEvent should return correct status for ${value}`)
-
-    await waitForMillisecondsAsync(1000)
-
-    contractB.getPastEvents('ContractBEvent', (err: Error, events: any) => {
-      t.assert(!err)
-      const [event] = events
-      t.equal(+event.returnValues.v, value, `Should return value ${value}`)
-    })
-
-    tx = await contractA.methods.doEmit(value, contractB.options.address).send()
+    let tx = await contractA.methods.doEmit(value, contractB.options.address).send()
     t.equal(tx.status, true, `doEmit should return correct status for ${value}`)
 
     await waitForMillisecondsAsync(1000)
 
     contractA.getPastEvents('ContractAEvent', (err: Error, events: any) => {
+      t.assert(!err)
+      const [event] = events
+      t.equal(+event.returnValues.v, value, `Should return value ${value}`)
+    })
+
+    // Should not Work
+    contractB.getPastEvents('ContractBEvent', (err: Error, events: any) => {
       t.assert(!err)
       const [event] = events
       t.equal(+event.returnValues.v, value, `Should return value ${value}`)
