@@ -1,5 +1,5 @@
 import debug from 'debug'
-import { Client, ClientEvent, IChainEventArgs } from './client'
+import { Client, ClientEvent, IChainEventArgs, ITxMiddlewareHandler } from './client'
 import { createDefaultTxMiddleware } from './helpers'
 import {
   CallTx,
@@ -96,9 +96,9 @@ const numberToHexLC = (num: number): string => {
  */
 export class LoomProvider {
   private _client: Client
+  private _accountMiddlewares: Map<string, Array<ITxMiddlewareHandler>>
   protected notificationCallbacks: Array<Function>
   readonly accounts: Map<string, Uint8Array>
-  readonly accountsAddrList: Array<string>
 
   /**
    * Constructs the LoomProvider to bridges communication between Web3 and Loom DappChains
@@ -108,9 +108,9 @@ export class LoomProvider {
    */
   constructor(client: Client, privateKey: Uint8Array) {
     this._client = client
+    this._accountMiddlewares = new Map<string, Array<ITxMiddlewareHandler>>()
     this.notificationCallbacks = new Array()
     this.accounts = new Map<string, Uint8Array>()
-    this.accountsAddrList = new Array()
 
     this._client.addListener(ClientEvent.Contract, (msg: IChainEventArgs) =>
       this._onWebSocketMessage(msg)
@@ -131,8 +131,11 @@ export class LoomProvider {
     accountsPrivateKey.forEach(accountPrivateKey => {
       const publicKey = publicKeyFromPrivateKey(accountPrivateKey)
       const accountAddress = LocalAddress.fromPublicKey(publicKey).toString()
-      this.accountsAddrList.push(accountAddress)
       this.accounts.set(accountAddress, accountPrivateKey)
+      this._accountMiddlewares.set(
+        accountAddress,
+        createDefaultTxMiddleware(this._client, accountPrivateKey)
+      )
       log(`New account added ${accountAddress}`)
     })
   }
@@ -307,10 +310,17 @@ export class LoomProvider {
   // PRIVATE FUNCTIONS EVM CALLS
 
   private _ethAccounts() {
-    if (this.accountsAddrList.length === 0) {
+    if (this.accounts.size === 0) {
       throw Error('No account available')
     }
-    return this.accountsAddrList
+
+    const accounts = new Array()
+
+    this.accounts.forEach((value: Uint8Array, key: string) => {
+      accounts.push(key)
+    })
+
+    return accounts
   }
 
   private async _ethBlockNumber() {
@@ -701,13 +711,7 @@ export class LoomProvider {
     fromPublicAddr: string,
     txTransaction: Transaction
   ): Promise<Uint8Array | void> {
-    const privateKey = this.accounts.get(fromPublicAddr)
-
-    if (!privateKey) {
-      throw Error(`Account not found for address ${fromPublicAddr}`)
-    }
-
-    const middleware = createDefaultTxMiddleware(this._client, privateKey)
+    const middleware = this._accountMiddlewares.get(fromPublicAddr)
     return this._client.commitTxAsync<Transaction>(txTransaction, { middleware })
   }
 
