@@ -3,7 +3,7 @@ import { LocalAddress } from '../address'
 import { CryptoUtils } from '..'
 
 export async function deployContract(loomProvider: LoomProvider, contractData: string) {
-  const privKey = loomProvider.accounts.get(loomProvider.accountsAddrList[0])
+  const privKey = loomProvider.accounts.values().next().value
 
   if (!privKey) {
     throw Error('Private key not found on deploy contract helper')
