@@ -21,6 +21,7 @@ import {
 } from './proto/evm_pb'
 import { Address, LocalAddress } from './address'
 import {
+  sign,
   bytesToHexAddr,
   numberToHex,
   bufferToProtobufBytes,
@@ -38,6 +39,9 @@ export interface IEthReceipt {
   logs: Array<any>
   status: string
 }
+
+import { ecsign } from 'ethereumjs-util'
+import { soliditySha3 } from './solidity-helpers'
 
 export interface IEthTransaction {
   hash: string
@@ -280,6 +284,9 @@ export class LoomProvider {
         case 'eth_sendTransaction':
           return this._ethSendTransaction
 
+        case 'eth_sign':
+          return this._ethSign
+
         case 'eth_subscribe':
           return this._ethSubscribe
 
@@ -458,6 +465,21 @@ export class LoomProvider {
     }
 
     return bytesToHexAddrLC(result)
+  }
+
+  private async _ethSign(payload: IEthRPCPayload) {
+    const address = payload.params[0]
+    const privateKey = this.accounts.get(address)
+
+    if (!privateKey) {
+      throw Error('Account is not valid, private key not found')
+    }
+
+    const msg = payload.params[1]
+    const hash = soliditySha3('\x19Ethereum Signed Message:\n32', msg).slice(2)
+    const privateHash = soliditySha3(privateKey).slice(2)
+
+    return ecsign(Buffer.from(hash, 'hex'), Buffer.from(privateHash, 'hex'))
   }
 
   private async _ethSubscribe(payload: IEthRPCPayload) {
