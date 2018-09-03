@@ -4,6 +4,9 @@ import { LocalAddress, CryptoUtils } from '../../index'
 import { createTestClient } from '../helpers'
 import { LoomProvider } from '../../loom-provider'
 import { deployContract } from '../evm-helpers'
+import { ecrecover, privateToPublic } from 'ethereumjs-util'
+import { soliditySha3 } from '../../solidity-helpers'
+import { bytesToHexAddr } from '../../crypto-utils'
 
 /**
  * Requires the SimpleStore solidity contract deployed on a loomchain.
@@ -39,6 +42,29 @@ test('LoomProvider', async t => {
 
     client.on('error', msg => console.error('Error on client:', msg))
     const id = 1
+
+    const msg = '0xff'
+    const signResult = await loomProvider.sendAsync({
+      id,
+      method: 'eth_sign',
+      params: [fromAddr, msg]
+    })
+
+    const hash = soliditySha3('\x19Ethereum Signed Message:\n32', msg).slice(2)
+    const pubKey = ecrecover(
+      Buffer.from(hash, 'hex'),
+      signResult.result.v,
+      signResult.result.r,
+      signResult.result.s
+    )
+
+    const privateHash = soliditySha3(privKey).slice(2)
+
+    t.equal(
+      bytesToHexAddr(pubKey),
+      bytesToHexAddr(privateToPublic(Buffer.from(privateHash, 'hex'))),
+      'Should pubKey from ecrecover been valid'
+    )
 
     const netVersionResult = await loomProvider.sendAsync({
       id,
