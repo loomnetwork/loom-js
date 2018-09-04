@@ -5,7 +5,7 @@ import { createTestClient, waitForMillisecondsAsync } from '../helpers'
 
 import { LoomProvider } from '../../loom-provider'
 import { deployContract } from '../evm-helpers'
-import { ecrecover, privateToPublic } from 'ethereumjs-util'
+import { ecrecover, privateToPublic, fromRpcSig } from 'ethereumjs-util'
 import { soliditySha3 } from '../../solidity-helpers'
 import { bytesToHexAddr } from '../../crypto-utils'
 
@@ -149,12 +149,12 @@ test('LoomProvider + Eth Sign', async t => {
     const msg = '0xff'
     const result = await web3.eth.sign(msg, from)
 
-    console.log(web3.currentProvider.accounts)
     // Checking the ecrecover
 
     const hash = soliditySha3('\x19Ethereum Signed Message:\n32', msg).slice(2)
 
-    const pubKey = ecrecover(Buffer.from(hash, 'hex'), result.v, result.r, result.s)
+    const { r, s, v } = fromRpcSig(result)
+    const pubKey = ecrecover(Buffer.from(hash, 'hex'), v, r, s)
 
     const privateHash = soliditySha3(privKey).slice(2)
 

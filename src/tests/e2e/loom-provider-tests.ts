@@ -4,7 +4,7 @@ import { LocalAddress, CryptoUtils } from '../../index'
 import { createTestClient } from '../helpers'
 import { LoomProvider } from '../../loom-provider'
 import { deployContract } from '../evm-helpers'
-import { ecrecover, privateToPublic } from 'ethereumjs-util'
+import { ecrecover, privateToPublic, fromRpcSig, toBuffer } from 'ethereumjs-util'
 import { soliditySha3 } from '../../solidity-helpers'
 import { bytesToHexAddr } from '../../crypto-utils'
 
@@ -51,12 +51,8 @@ test('LoomProvider', async t => {
     })
 
     const hash = soliditySha3('\x19Ethereum Signed Message:\n32', msg).slice(2)
-    const pubKey = ecrecover(
-      Buffer.from(hash, 'hex'),
-      signResult.result.v,
-      signResult.result.r,
-      signResult.result.s
-    )
+    const { r, s, v } = fromRpcSig(signResult.result)
+    const pubKey = ecrecover(Buffer.from(hash, 'hex'), v, r, s)
 
     const privateHash = soliditySha3(privKey).slice(2)
 
