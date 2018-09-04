@@ -478,7 +478,15 @@ export class LoomProvider {
     const privateHash = soliditySha3(privateKey).slice(2)
 
     const sig = ecsign(Buffer.from(hash, 'hex'), Buffer.from(privateHash, 'hex'))
-    return bytesToHexAddrLC(Buffer.concat([sig.r, sig.s, toBuffer(sig.v)]))
+    const mode = toBuffer(1)
+    return bytesToHexAddrLC(
+      Buffer.concat([
+        mode as Buffer,
+        sig.r as Buffer,
+        sig.s as Buffer,
+        toBuffer(sig.v + 27) as Buffer
+      ])
+    )
   }
 
   private async _ethSubscribe(payload: IEthRPCPayload) {
