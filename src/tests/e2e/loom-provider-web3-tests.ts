@@ -154,6 +154,7 @@ test('LoomProvider + Eth Sign', async t => {
     const hash = soliditySha3('\x19Ethereum Signed Message:\n32', msg).slice(2)
 
     const { r, s, v } = fromRpcSig(result)
+
     const pubKey = ecrecover(Buffer.from(hash, 'hex'), v, r, s)
 
     const privateHash = soliditySha3(privKey).slice(2)
