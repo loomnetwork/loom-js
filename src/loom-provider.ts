@@ -123,7 +123,7 @@ export class LoomProvider {
   /**
    * Creates new accounts by passing the private key array
    *
-   * Accounts will be available on public properties accounts and accountsAddrList
+   * Accounts will be available on public properties accounts
    *
    * @param accountsPrivateKey Array of private keys to create new accounts
    */
