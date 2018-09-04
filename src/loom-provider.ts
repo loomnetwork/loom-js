@@ -1,5 +1,5 @@
 import debug from 'debug'
-import { ecsign } from 'ethereumjs-util'
+import { ecsign, toBuffer } from 'ethereumjs-util'
 import { Client, ClientEvent, IChainEventArgs, ITxMiddlewareHandler } from './client'
 import { createDefaultTxMiddleware } from './helpers'
 import {
@@ -477,7 +477,8 @@ export class LoomProvider {
     const hash = soliditySha3('\x19Ethereum Signed Message:\n32', msg).slice(2)
     const privateHash = soliditySha3(privateKey).slice(2)
 
-    return ecsign(Buffer.from(hash, 'hex'), Buffer.from(privateHash, 'hex'))
+    const sig = ecsign(Buffer.from(hash, 'hex'), Buffer.from(privateHash, 'hex'))
+    return bytesToHexAddrLC(Buffer.concat([sig.r, sig.s, toBuffer(sig.v)]))
   }
 
   private async _ethSubscribe(payload: IEthRPCPayload) {
