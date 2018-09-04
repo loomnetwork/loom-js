@@ -1,4 +1,5 @@
 import debug from 'debug'
+import { ecsign } from 'ethereumjs-util'
 import { Client, ClientEvent, IChainEventArgs, ITxMiddlewareHandler } from './client'
 import { createDefaultTxMiddleware } from './helpers'
 import {
@@ -21,12 +22,12 @@ import {
 } from './proto/evm_pb'
 import { Address, LocalAddress } from './address'
 import {
-  sign,
   bytesToHexAddr,
   numberToHex,
   bufferToProtobufBytes,
   publicKeyFromPrivateKey
 } from './crypto-utils'
+import { soliditySha3 } from './solidity-helpers'
 
 export interface IEthReceipt {
   transactionHash: string
@@ -39,9 +40,6 @@ export interface IEthReceipt {
   logs: Array<any>
   status: string
 }
-
-import { ecsign } from 'ethereumjs-util'
-import { soliditySha3 } from './solidity-helpers'
 
 export interface IEthTransaction {
   hash: string
