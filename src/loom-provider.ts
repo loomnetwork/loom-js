@@ -1,4 +1,5 @@
 import debug from 'debug'
+import BN from 'bn.js'
 import { ecsign, toBuffer } from 'ethereumjs-util'
 import { Client, ClientEvent, IChainEventArgs, ITxMiddlewareHandler } from './client'
 import { createDefaultTxMiddleware } from './helpers'
@@ -28,6 +29,7 @@ import {
   publicKeyFromPrivateKey
 } from './crypto-utils'
 import { soliditySha3 } from './solidity-helpers'
+import { marshalBigUIntPB } from './big-uint'
 
 export interface IEthReceipt {
   transactionHash: string
@@ -540,14 +542,21 @@ export class LoomProvider {
     return responseData.getTxHash_asU8()
   }
 
-  private _callAsync(payload: { to: string; from: string; data: string }): Promise<any> {
+  private _callAsync(payload: {
+    to: string
+    from: string
+    data: string
+    value: string
+  }): Promise<any> {
     const caller = new Address(this._client.chainId, LocalAddress.fromHexString(payload.from))
     const address = new Address(this._client.chainId, LocalAddress.fromHexString(payload.to))
-    const data = Buffer.from(payload.data.substring(2), 'hex')
+    const data = Buffer.from(payload.data.slice(2), 'hex')
+    const value = new BN((payload.value || '0x0').slice(2), 16)
 
     const callTx = new CallTx()
     callTx.setVmType(VMType.EVM)
     callTx.setInput(bufferToProtobufBytes(data))
+    callTx.setValue(marshalBigUIntPB(value))
 
     const msgTx = new MessageTx()
     msgTx.setFrom(caller.MarshalPB())
@@ -564,7 +573,7 @@ export class LoomProvider {
   private _callStaticAsync(payload: { to: string; from: string; data: string }): Promise<any> {
     const caller = new Address(this._client.chainId, LocalAddress.fromHexString(payload.from))
     const address = new Address(this._client.chainId, LocalAddress.fromHexString(payload.to))
-    const data = Buffer.from(payload.data.substring(2), 'hex')
+    const data = Buffer.from(payload.data.slice(2), 'hex')
     return this._client.queryAsync(address, data, VMType.EVM, caller)
   }
 
@@ -630,7 +639,7 @@ export class LoomProvider {
   }
 
   private async _getTransaction(txHash: string): Promise<IEthTransaction> {
-    const data = Buffer.from(txHash.substring(2), 'hex')
+    const data = Buffer.from(txHash.slice(2), 'hex')
     const transaction = await this._client.getEvmTxByHashAsync(bufferToProtobufBytes(data))
     if (!transaction) {
       throw Error('Transaction cannot be empty')
@@ -664,7 +673,7 @@ export class LoomProvider {
   }
 
   private async _getReceipt(txHash: string): Promise<IEthReceipt> {
-    const data = Buffer.from(txHash.substring(2), 'hex')
+    const data = Buffer.from(txHash.slice(2), 'hex')
     const receipt = await this._client.getEvmTxReceiptAsync(bufferToProtobufBytes(data))
     if (!receipt) {
       throw Error('Receipt cannot be empty')

@@ -266,6 +266,11 @@ export class CallTx extends jspb.Message {
   getInput_asB64(): string;
   setInput(value: Uint8Array | string): void;
 
+  hasValue(): boolean;
+  clearValue(): void;
+  getValue(): BigUInt | undefined;
+  setValue(value?: BigUInt): void;
+
   serializeBinary(): Uint8Array;
   toObject(includeInstance?: boolean): CallTx.AsObject;
   static toObject(includeInstance: boolean, msg: CallTx): CallTx.AsObject;
@@ -280,6 +285,7 @@ export namespace CallTx {
   export type AsObject = {
     vmType: VMType,
     input: Uint8Array | string,
+    value?: BigUInt.AsObject,
   }
 }
 

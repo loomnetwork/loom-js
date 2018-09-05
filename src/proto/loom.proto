@@ -55,6 +55,7 @@ message DeployResponseData {
 message CallTx {
     VMType vm_type = 1;
     bytes input = 2;
+    BigUInt value = 3;
 }
 
 enum EncodingType {
