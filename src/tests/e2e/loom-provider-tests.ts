@@ -69,8 +69,8 @@ test('LoomProvider', async t => {
 
     t.deepEqual(
       netVersionResult,
-      { id: 1, jsonrpc: '2.0', result: '474747' },
-      'net_version should be 474747'
+      { id: 1, jsonrpc: '2.0', result: client.chainId },
+      'net_version should match the chain id'
     )
 
     const ethAccountsResult = await loomProvider.sendAsync({
