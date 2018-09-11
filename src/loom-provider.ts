@@ -504,8 +504,7 @@ export class LoomProvider {
   }
 
   private _netVersion() {
-    // Fixed network version 474747
-    return '474747'
+    return this._client.chainId
   }
 
   // PRIVATE FUNCTIONS IMPLEMENTATIONS
