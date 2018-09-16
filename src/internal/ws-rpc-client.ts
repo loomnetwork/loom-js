@@ -150,6 +150,9 @@ export class WSRPCClient extends EventEmitter {
    * Gracefully closes the underlying web socket connection.
    */
   disconnect() {
+    // if `max_reconnects` is zero the client will attempt to reconnect even if `reconnect` is `false`,
+    // this seems like a bug in rpc-websockets, but the workaround is simple enough...
+    this._client.max_reconnects = 1
     this._client.reconnect = false
     this._client.close(0)
   }
