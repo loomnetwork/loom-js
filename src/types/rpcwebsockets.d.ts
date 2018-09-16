@@ -10,6 +10,7 @@ declare module 'rpc-websockets' {
   export class Client {
     ready: boolean
     reconnect: boolean
+    max_reconnects: number
 
     constructor(
       address: string,
