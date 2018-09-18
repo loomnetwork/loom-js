@@ -26,9 +26,11 @@ import { bytesToHexAddr } from '../../crypto-utils'
  */
 
 test('LoomProvider', async t => {
+  let client
+
   try {
     const privKey = CryptoUtils.generatePrivateKey()
-    const client = createTestClient()
+    client = createTestClient()
     const fromAddr = LocalAddress.fromPublicKey(
       CryptoUtils.publicKeyFromPrivateKey(privKey)
     ).toString()
@@ -264,10 +266,12 @@ test('LoomProvider', async t => {
 
     t.equal(ethUninstallFilter.id, id, `Id for eth_subscribe should be equal ${id}`)
     t.equal(ethUninstallFilter.result, true, 'Uninstall filter should return true')
-
-    client.disconnect()
   } catch (err) {
     console.log(err)
+  }
+
+  if (client) {
+    client.disconnect()
   }
 
   t.end()

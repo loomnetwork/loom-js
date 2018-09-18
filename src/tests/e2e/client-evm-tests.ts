@@ -6,10 +6,14 @@ import { EthBlockHashList, EthBlockInfo } from '../../proto/evm_pb'
 import { bytesToHexAddr } from '../../crypto-utils'
 
 test('Client EVM test (newBlockEvmFilterAsync)', async t => {
+  let client
+
   try {
     const privateKey = CryptoUtils.generatePrivateKey()
     const publicKey = CryptoUtils.publicKeyFromPrivateKey(privateKey)
-    const client = createTestClient()
+    client = createTestClient()
+
+    client.on('error', err => t.error(err))
 
     client.txMiddleware = [
       new NonceTxMiddleware(publicKey, client),
@@ -44,20 +48,26 @@ test('Client EVM test (newBlockEvmFilterAsync)', async t => {
     }
 
     t.assert(block.getHash(), 'Block should have a hash')
-
-    client.disconnect()
   } catch (err) {
     console.error(err)
     t.fail(err.message)
   }
+
+  if (client) {
+    client.disconnect()
+  }
+
   t.end()
 })
 
 test('Client EVM test (newPendingTransactionEvmFilterAsync)', async t => {
+  let client
   try {
     const privateKey = CryptoUtils.generatePrivateKey()
     const publicKey = CryptoUtils.publicKeyFromPrivateKey(privateKey)
-    const client = createTestClient()
+    client = createTestClient()
+
+    client.on('error', err => t.error(err))
 
     client.txMiddleware = [
       new NonceTxMiddleware(publicKey, client),
@@ -79,11 +89,14 @@ test('Client EVM test (newPendingTransactionEvmFilterAsync)', async t => {
     if (!hash) {
       t.fail('Transaction cannot be null')
     }
-
-    client.disconnect()
   } catch (err) {
     console.error(err)
     t.fail(err.message)
   }
+
+  if (client) {
+    client.disconnect()
+  }
+
   t.end()
 })
