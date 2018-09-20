@@ -39,7 +39,14 @@ setup_weave_blueprint() {
   $loom_bin run &
   loom_pid=$!
   sleep 5
-  $loom_bin deploy -a public_key_acc_1 -k private_key_acc_1 -b ./SimpleStore.bin
+  $loom_bin deploy -a public_key_acc_1 -k private_key_acc_1 -n SimpleStore -b ./SimpleStore.bin
+}
+
+run_test() {
+  cd
+  yarn test:node
+  yarn test:browser
+  yarn e2e:node
 }
 
 cleanup() {
@@ -47,8 +54,11 @@ cleanup() {
   kill -9 $loom_pid
 }
 
+trap cleanup EXIT
+
 setup_ganache
 setup_go
 setup_go_loom
 setup_dappchain
 setup_weave_blueprint
+run_test
