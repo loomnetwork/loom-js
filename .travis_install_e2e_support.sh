@@ -38,6 +38,7 @@ setup_weave_blueprint() {
   cp -R ./../../e2e_support/* .
   $loom_bin run &
   loom_pid=$!
+  sleep 5
   $loom_bin deploy -a public_key_acc_1 -k private_key_acc_1 -b ./SimpleStore.bin
 }
 
