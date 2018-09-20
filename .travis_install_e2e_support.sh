@@ -3,7 +3,7 @@
 set -euxo pipefail
 
 # Prepare env
-BUILD_NUMBER=392
+BUILD_NUMBER=432
 GANACHE_PORT=8545
 
 # Setup and spins up a Ganache node
@@ -38,6 +38,7 @@ setup_weave_blueprint() {
   cp -R ./../../e2e_support/* .
   $loom_bin run &
   loom_pid=$!
+  $loom_bin deploy -a public_key_acc_1 -k private_key_acc_1 -b ./SimpleStore.bin
 }
 
 cleanup() {

@@ -1,12 +1,6 @@
 {
   "contracts": [
     {
-        "vm": "EVM",
-        "format": "hex",
-        "name": "SimpleStore",
-        "location": "./SimpleStore.bin"
-    },
-    {
       "vm": "plugin",
       "format": "plugin",
       "name": "BluePrint",

@@ -1,6 +1,7 @@
 ChainID: 'default'
 QueryServerHost: "tcp://0.0.0.0:9999"
 RegistryVersion: 2
+LogDestination: 'file://loom2.log'
 EVMAccountsEnabled: true
 TransferGateway:
   # Enables the Transfer Gateway Go contract, must be the same on all nodes.
@@ -23,6 +24,7 @@ TransferGateway:
   DAppChainPollInterval: 1 # seconds
   MainnetPollInterval: 1 # seconds
   OracleLogLevel: 'debug'
+  OracleLogDestination: 'file://oracle.log'
   # Number of seconds to wait before starting the Oracle.
   OracleStartupDelay: 5
   # Number of seconds to wait between reconnection attempts.
