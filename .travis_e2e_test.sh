@@ -40,10 +40,10 @@ setup_weave_blueprint() {
   loom_pid=$!
   sleep 5
   $loom_bin deploy -a public_key_acc_1 -k private_key_acc_1 -n SimpleStore -b ./SimpleStore.bin
+  cd ../..
 }
 
 run_test() {
-  cd
   yarn test:node
   yarn test:browser
   yarn e2e:node
