@@ -3,7 +3,7 @@
 set -euxo pipefail
 
 # Prepare env
-BUILD_NUMBER=432
+BUILD_NUMBER=392
 GANACHE_PORT=8545
 
 # Setup and spins up a Ganache node
