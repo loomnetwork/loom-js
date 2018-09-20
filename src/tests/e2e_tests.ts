@@ -10,7 +10,7 @@ import './e2e/loom-provider-eth-get-logs'
 import './e2e/loom-provider-eth-filters'
 import './e2e/loom-provider-eth-filters-2'
 import './e2e/loom-provider-subscribe'
-// import './e2e/coin-tests'
+import './e2e/coin-tests'
 // import './e2e/dpos-tests'
 
 // Weave Blueprint Contract
