@@ -2,9 +2,9 @@
   "contracts": [
     {
         "vm": "EVM",
-        "format": "truffle",
+        "format": "hex",
         "name": "SimpleStore",
-        "location": "SimpleStore.json"
+        "location": "./SimpleStore.bin"
     },
     {
       "vm": "plugin",
