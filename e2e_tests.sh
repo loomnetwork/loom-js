@@ -74,11 +74,11 @@ if [[ -z "${LOOM_BLUEPRINT_DIR:-}" ]]; then
   setup_weave_blueprint
 fi
 
-setup_dappchain
-
 if [[ -z "${LOOM_BIN:-}" ]]; then
   download_dappchain
 fi
+
+setup_dappchain
 
 trap cleanup EXIT
 
