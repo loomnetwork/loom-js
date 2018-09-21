@@ -1,0 +1,80 @@
+{
+  "contracts": [
+    {
+      "vm": "plugin",
+      "format": "plugin",
+      "name": "BluePrint",
+      "location": "blueprint:0.0.1",
+      "init": {}
+    },
+    {
+      "vm": "plugin",
+      "format": "plugin",
+      "name": "coin",
+      "location": "coin:1.0.0",
+      "init": {
+          "accounts": [
+              {
+                  "owner": {
+                      "chain_id": "default",
+                      "local": "dHVZ95Bqnn3dsget6tyq72cJS3E="
+                  },
+                  "balance": 100
+              }
+          ]
+      }
+    },
+    {
+      "vm": "plugin",
+      "format": "plugin",
+      "name": "dpos",
+      "location": "dpos:1.0.0",
+      "init": {
+        "params": {
+          "witnessCount": "21",
+          "electionCycleLength": "0",
+          "minPowerFraction": "5",
+          "witnessSalary": "10"
+        },
+        "validators": [
+          {
+            "pubKey": "dHVZ95Bqnn3dsget6tyq72cJS3E=",
+            "power": "10"
+          }
+        ]
+      }
+    },
+    {
+      "vm": "plugin",
+      "format": "plugin",
+      "name": "ethcoin",
+      "location": "ethcoin:1.0.0",
+      "init": null
+    },
+    {
+      "vm": "plugin",
+      "format": "plugin",
+      "name": "addressmapper",
+      "location": "addressmapper:0.1.0",
+      "init": null
+    },
+    {
+      "vm": "plugin",
+      "format": "plugin",
+      "name": "gateway",
+      "location": "gateway:0.1.0",
+      "init": {
+        "owner": {
+          "chain_id": "default",
+          "local": "c/IFoEFkm4+D3wdqLmFU9F3t3Sk="
+        },
+        "oracles": [
+          {
+            "chain_id": "default",
+            "local": "RRKeOYv/IQpcmxBs3dgGz9rBWu4="
+          }
+        ]
+      }
+    }
+  ]
+}

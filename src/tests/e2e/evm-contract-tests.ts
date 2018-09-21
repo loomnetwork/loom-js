@@ -31,6 +31,9 @@ test('EVM Contract Calls', async t => {
     const privKey = CryptoUtils.generatePrivateKey()
     const pubKey = CryptoUtils.publicKeyFromPrivateKey(privKey)
     const client = createTestClient()
+
+    client.on('error', err => t.error(err))
+
     client.txMiddleware = createDefaultTxMiddleware(client, privKey)
 
     const contractAddr = await client.getContractAddressAsync('SimpleStore')

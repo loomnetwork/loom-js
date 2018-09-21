@@ -4,6 +4,7 @@ set -euxo pipefail
 
 PROTOBUF_VERSION=3.5.1
 
+pwd
 cd /tmp
 
 # Grab the latest version

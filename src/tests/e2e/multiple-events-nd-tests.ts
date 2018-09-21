@@ -267,9 +267,9 @@ const newContractAndClient = async () => {
 
 test('LoomProvider + Web3', async t => {
   t.plan(3) // EXPECTS 3 ASSERTIONS
-  try {
-    const { contract, client } = await newContractAndClient()
+  const { contract, client } = await newContractAndClient()
 
+  try {
     contract.events.Transfer({}, (err: any, event: any) => {
       console.log('Transfer after mint')
       t.assert(!err)
@@ -287,10 +287,13 @@ test('LoomProvider + Web3', async t => {
     t.assert(totalSupply == 1, 'Total Supply eq 1')
 
     await waitForMillisecondsAsync(2000)
-
-    client.disconnect()
   } catch (err) {
     console.log(err)
   }
+
+  if (client) {
+    client.disconnect()
+  }
+
   t.end()
 })

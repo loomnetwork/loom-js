@@ -63,11 +63,14 @@ const callTransactionAsync = async (
   await client.commitTxAsync<Transaction>(tx)
 }
 
-test('Client EVM Event test', async t => {
+test('Client EVM Event test (two filters)', async t => {
+  let client
   try {
     const privateKey = CryptoUtils.generatePrivateKey()
     const publicKey = CryptoUtils.publicKeyFromPrivateKey(privateKey)
-    const client = createTestClient()
+    client = createTestClient()
+
+    client.on('error', err => t.error(err))
 
     // Only used for deploy the contract
     const loomProvider = new LoomProvider(client, privateKey)
@@ -122,11 +125,13 @@ test('Client EVM Event test', async t => {
     await callTransactionAsync(client, caller, address, functionSetAgain)
 
     waitForMillisecondsAsync(2000)
-
-    client.disconnect()
   } catch (err) {
     console.error(err)
     t.fail(err.message)
+  }
+
+  if (client) {
+    client.disconnect()
   }
 
   t.end()

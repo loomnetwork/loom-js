@@ -19,7 +19,7 @@ async function getClientAndContract(
   pubKey: Uint8Array
 }> {
   const privKey = B64ToUint8Array(
-    'h/+I7gVOCtsyR5Asc9yS2xDIcYsci/r5LaWHkiyDDrGgtEDArc70E6yIyuCickJ/GYJHFRSup8V8prHk30Z3lw=='
+    'Hz9P3aHH62mO75A6uMVW3mn0U1KkZSq3t03jfOZfyZxjyJoJctNDY6awaVqOpjCGTjHZZxkc23Z3l39EjLOIFQ=='
   )
   const pubKey = CryptoUtils.publicKeyFromPrivateKey(privKey)
   const client = createClient()
@@ -88,16 +88,15 @@ test('DPOS', async t => {
   try {
     await registerCandidate(t, createTestHttpClient)
     await waitForMillisecondsAsync(1000)
-    await waitForMillisecondsAsync(1000)
     await voteRequest(t, createTestHttpClient)
     await waitForMillisecondsAsync(1000)
     await electionRequest(t, createTestHttpClient)
-    await waitForMillisecondsAsync(1000)
-    await listCandidates(t, createTestHttpClient)
-    await waitForMillisecondsAsync(1000)
-    await unregisterCandidate(t, createTestHttpClient)
-    await waitForMillisecondsAsync(1000)
-    await listWitness(t, createTestHttpClient)
+    // await waitForMillisecondsAsync(1000)
+    // await listCandidates(t, createTestHttpClient)
+    // await waitForMillisecondsAsync(1000)
+    // await unregisterCandidate(t, createTestHttpClient)
+    // await waitForMillisecondsAsync(1000)
+    // await listWitness(t, createTestHttpClient)
   } catch (err) {
     t.fail(err)
   }

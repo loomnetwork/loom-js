@@ -5,9 +5,11 @@ import { createTestClient, waitForMillisecondsAsync } from '../helpers'
 import { LoomProvider } from '../../loom-provider'
 
 test('LoomProvider + Filters 2', async t => {
+  let client
+
   try {
     const privKey = CryptoUtils.generatePrivateKey()
-    const client = createTestClient()
+    client = createTestClient()
     client.on('error', msg => console.error('Error on client:', msg))
     const loomProvider = new LoomProvider(client, privKey)
 
@@ -43,10 +45,12 @@ test('LoomProvider + Filters 2', async t => {
     })
 
     t.assert(ethGetBlockByHash.result, 'Should return the block requested by hash')
-
-    client.disconnect()
   } catch (err) {
     console.log(err)
+  }
+
+  if (client) {
+    client.disconnect()
   }
 
   t.end()

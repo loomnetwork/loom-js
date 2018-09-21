@@ -44,6 +44,10 @@ test('Client nonce retry strategy', async t => {
     const pubKey = CryptoUtils.publicKeyFromPrivateKey(privKey)
     const client = createTestClient()
 
+    client.on('error', err => {
+      console.error('error', err)
+    })
+
     const nonceMiddlware = new InvalidNonceTxMiddleware(pubKey, client)
     client.txMiddleware = [nonceMiddlware, new SignedTxMiddleware(privKey)]
 

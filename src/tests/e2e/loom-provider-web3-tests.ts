@@ -88,8 +88,9 @@ const newContractAndClient = async () => {
 
 test('LoomProvider + Web3 not matching topic', async t => {
   t.plan(2)
+  const { contract, client } = await newContractAndClient()
+
   try {
-    const { contract, client } = await newContractAndClient()
     const newValue = 1
 
     contract.events.NewValueSet({ filter: { _value: [4, 5] } }, (err: Error, event: any) => {
@@ -106,17 +107,19 @@ test('LoomProvider + Web3 not matching topic', async t => {
     t.equal(+resultOfGet, newValue, `SimpleStore.get should return correct value`)
 
     await waitForMillisecondsAsync(1000)
-
-    client.disconnect()
   } catch (err) {
     console.log(err)
+  }
+
+  if (client) {
+    client.disconnect()
   }
 })
 
 test('LoomProvider + Web3 multiple topics', async t => {
   t.plan(3)
+  const { contract, client } = await newContractAndClient()
   try {
-    const { contract, client } = await newContractAndClient()
     const newValue = 1
 
     contract.events.NewValueSet({ filter: { _value: [1, 2, 3] } }, (err: Error, event: any) => {
@@ -133,19 +136,20 @@ test('LoomProvider + Web3 multiple topics', async t => {
     t.equal(+resultOfGet, newValue, `SimpleStore.get should return correct value`)
 
     await waitForMillisecondsAsync(1000)
-
-    client.disconnect()
   } catch (err) {
     console.log(err)
+  }
+
+  if (client) {
+    client.disconnect()
   }
 
   t.end()
 })
 
 test('LoomProvider + Eth Sign', async t => {
+  const { client, web3, from, privKey } = await newContractAndClient()
   try {
-    const { client, web3, from, privKey } = await newContractAndClient()
-
     const msg = '0xff'
     const result = await web3.eth.sign(msg, from)
 
@@ -163,10 +167,12 @@ test('LoomProvider + Eth Sign', async t => {
       bytesToHexAddr(privateToPublic(Buffer.from(privateHash, 'hex'))),
       'Should pubKey from ecrecover be valid'
     )
-
-    client.disconnect()
   } catch (err) {
     console.log(err)
+  }
+
+  if (client) {
+    client.disconnect()
   }
 
   t.end()
