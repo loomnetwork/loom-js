@@ -154,31 +154,33 @@ export class Entity {
     })
       .on('data', async (event: any, err: any) => {
         // console.log('Exit values: ', event.returnValues)
-        await this.challengeExit(slot, event.returnValues.owner)
+        this.challengeExit(slot, event.returnValues.owner)
       })
       .on('error', (err: any) => console.log(err))
   }
 
-  async challengeExit(slot: BN, owner: String) {
+  challengeExit(slot: BN, owner: String) {
     console.log('FOUND EXIT BY', owner)
     if (owner === this.ethAddress) {
       console.log("Exit is valid, continuing...")
       return
     }
 
-    const exit = await this.getExitAsync(slot)
-    const coin = await this.getPlasmaCoinAsync(slot)
-
-    // Get proofs and block indexes
-    const proofs = await this.getCoinHistoryAsync(slot)
-    const blocks = await this.getBlockNumbers(slot)
-
-    // Iterate and find the correct block to challenge
-    // https://github.com/loomnetwork/plasma-cash/blob/master/plasma_cash/client/client.py#L377
+    // console.log('Starting the promise chain')
+    // Buggy, hangs currently
+    var a = this.getPlasmaCoinAsync(slot)
+    var b = a.then(coin => { return this.getBlockNumbers(coin.depositBlockNum) })
+    var c = b.then(blocks => { return this.getCoinHistory(slot, blocks)})
+    var d = this.getExitAsync(slot)
+    return Promise.all([a,b,c,d]).then(values => {
+      const coin = values[0]
+      const blockNumbers = values[1]
+      const proofs = values[2]
+      const exit = values[3]
+    })
   }
 
-  async getCoinHistoryAsync(slot: BN): Promise<IProofs> {
-    const blocks = this.getBlockNumbers(slot)
+  async getCoinHistory(slot: BN, blocks: BN[]): Promise<IProofs> {
     let proofs: IProofs = {
       exclusion: 1,
       inclusion: 2
@@ -188,17 +190,15 @@ export class Entity {
     return proofs
   }
 
-  async getBlockNumbers(slot: BN): Promise<number[]> {
-    const coin =  await this.getPlasmaCoinAsync(slot)
-    const startBlock: any = coin.depositBlockNum
-    const nextDepositBlock: number = Math.ceil(startBlock / this._childBlockInterval) * this._childBlockInterval
-    const endBlock = await this.getCurrentBlockAsync()
-
-    let blockNumbers: number[] = [startBlock]
-    for(let i = startBlock; i <= endBlock; i+= this._childBlockInterval) {
-      blockNumbers.push(i);
-    }
-    return blockNumbers
+  async getBlockNumbers(startBlock: any): Promise<BN[]> {
+    return this.getCurrentBlockAsync().then(endBlock => {
+      const nextDepositBlock: number = Math.ceil(startBlock / this._childBlockInterval) * this._childBlockInterval
+      let blockNumbers: BN[] = [startBlock]
+      for(let i = startBlock; i <= endBlock; i+= this._childBlockInterval) {
+        blockNumbers.push(i);
+      }
+      return blockNumbers
+    })
   }
 
   // This doesn't worth yet, still hangs when unsubscribing.
