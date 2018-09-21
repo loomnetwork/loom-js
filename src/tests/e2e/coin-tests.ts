@@ -175,8 +175,7 @@ test('Coin', async t => {
     await testBalanceOf(t, createTestHttpClient)
     await testTransfer(t, createTestHttpClient)
     await testApprove(t, createTestHttpClient)
-    // Fixed on PR https://github.com/loomnetwork/loomchain/pull/280
-    // await testAllowance(t, createTestHttpClient)
+    await testAllowance(t, createTestHttpClient)
     await testTransferFrom(t, createTestHttpClient)
   } catch (err) {
     t.fail(err)
