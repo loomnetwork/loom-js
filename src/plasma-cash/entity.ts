@@ -1,10 +1,15 @@
 import BN from 'bn.js'
 import Web3 from 'web3'
 
-import { EthereumPlasmaClient, IPlasmaCoin, IPlasmaDeposit } from './ethereum-client'
+import { EthereumPlasmaClient, IPlasmaCoin, IPlasmaDeposit, IPlasmaExitParams, IPlasmaExitData } from './ethereum-client'
 import { DAppChainPlasmaClient } from './dappchain-client'
 import { PlasmaCashTx } from './plasma-cash-tx'
 import { Web3Signer } from '../solidity-helpers'
+
+export interface IProofs {
+  inclusion: any
+  exclusion: any
+}
 
 export interface IEntityParams {
   /** Web3 account for use on Ethereum */
@@ -66,7 +71,15 @@ export class Entity {
     await this._dAppPlasmaClient.sendTxAsync(tx)
   }
 
-  getPlasmaCoinAsync(slot: BN): Promise<IPlasmaCoin> {
+  async getExitAsync(slot: BN): Promise<IPlasmaExitData> {
+    return this._ethPlasmaClient.getExitAsync({ slot, from: this.ethAddress })
+  }
+
+  async getCurrentBlockAsync(): Promise<BN> {
+    return this._dAppPlasmaClient.getCurrentPlasmaBlockNumAsync()
+  }
+
+  async getPlasmaCoinAsync(slot: BN): Promise<IPlasmaCoin> {
     return this._ethPlasmaClient.getPlasmaCoinAsync({ slot, from: this.ethAddress })
   }
 
@@ -78,7 +91,7 @@ export class Entity {
     return blockNum
   }
 
-  submitPlasmaDepositAsync(deposit: IPlasmaDeposit): Promise<void> {
+  async submitPlasmaDepositAsync(deposit: IPlasmaDeposit): Promise<void> {
     return this._dAppPlasmaClient.debugSubmitDepositAsync(deposit)
   }
 
@@ -133,13 +146,64 @@ export class Entity {
     })
   }
 
-  watchExit(slot: BN) {
-    console.log('Started watching')
-    console.log(this.plasmaCashContract.events.StartedExit)
-    this.plasmaCashContract.events.StartedExit({
-      // filter: {slot: slot},
-      // fromBlock: 0
-    },function (err: any, event: any) {console.log('GOT EVENT', event)})
+  watchExit(slot: BN): any {
+    console.log(`Started watching events for Coin ${slot}`)
+    return this.plasmaCashContract.events.StartedExit({
+      filter: { slot: slot },
+      fromBlock: 0
+    })
+      .on('data', async (event: any, err: any) => {
+        // console.log('Exit values: ', event.returnValues)
+        await this.challengeExit(slot, event.returnValues.owner)
+      })
+      .on('error', (err: any) => console.log(err))
+  }
+
+  async challengeExit(slot: BN, owner: String) {
+    console.log('FOUND EXIT BY', owner)
+    if (owner === this.ethAddress) {
+      console.log("Exit is valid, continuing...")
+      return
+    }
+
+    const exit = await this.getExitAsync(slot)
+    const coin = await this.getPlasmaCoinAsync(slot)
+
+    // Get proofs and block indexes
+    const proofs = await this.getCoinHistoryAsync(slot)
+    const blocks = await this.getBlockNumbers(slot)
+
+    // Iterate and find the correct block to challenge
+    // https://github.com/loomnetwork/plasma-cash/blob/master/plasma_cash/client/client.py#L377
+  }
+
+  async getCoinHistoryAsync(slot: BN): Promise<IProofs> {
+    const blocks = this.getBlockNumbers(slot)
+    let proofs: IProofs = {
+      exclusion: 1,
+      inclusion: 2
+    }
+    // Gather the inclusion / exclusion proofs
+    // https://github.com/loomnetwork/plasma-cash/blob/master/plasma_cash/client/client.py#L262
+    return proofs
+  }
+
+  async getBlockNumbers(slot: BN): Promise<number[]> {
+    const coin =  await this.getPlasmaCoinAsync(slot)
+    const startBlock: any = coin.depositBlockNum
+    const nextDepositBlock: number = Math.ceil(startBlock / this._childBlockInterval) * this._childBlockInterval
+    const endBlock = await this.getCurrentBlockAsync()
+
+    let blockNumbers: number[] = [startBlock]
+    for(let i = startBlock; i <= endBlock; i+= this._childBlockInterval) {
+      blockNumbers.push(i);
+    }
+    return blockNumbers
+  }
+
+  // This doesn't worth yet, still hangs when unsubscribing.
+  stopWatching(filter: any) {
+    filter.unsubscribe()
   }
 
   withdrawAsync(slot: BN): Promise<object> {

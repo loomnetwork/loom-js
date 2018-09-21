@@ -23,6 +23,18 @@ export interface IPlasmaCoin {
   contractAddress: string
   state: PlasmaCoinState
 }
+export interface IPlasmaExitData {
+  /** Identifier of a coin's exit. */
+  slot: BN
+  /** Owner of the coin's exit. */
+  owner: String
+  /** Plasma block number at which the exit's parent transaction was included. */
+  prevBlock: BN
+  /** Plasma block number at which the exit's transaction was included. */
+  exitBlock: BN
+  state: PlasmaCoinState
+}
+
 
 export interface IPlasmaChallenge {
   slot: BN
@@ -124,6 +136,18 @@ export class EthereumPlasmaClient {
     this._web3 = web3
     const plasmaABI = require(`./contracts/plasma-cash-abi.json`)
     this._plasmaContract = new this._web3.eth.Contract(plasmaABI, plasmaContractAddr)
+  }
+
+  async getExitAsync(params: { slot: BN; from: string }): Promise<IPlasmaExitData> {
+    const { slot, from } = params
+    const exit = await this._plasmaContract.methods.getPlasmaCoin(slot).call({ from })
+    return {
+      slot: slot,
+      owner: exit[0],
+      prevBlock: new BN(exit[1]),
+      exitBlock: new BN(exit[2]),
+      state: parseInt(exit[3], 10)
+    }
   }
 
   async getPlasmaCoinAsync(params: { slot: BN; from: string }): Promise<IPlasmaCoin> {
