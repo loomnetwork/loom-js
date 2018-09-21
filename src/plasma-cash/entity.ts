@@ -1,7 +1,13 @@
 import BN from 'bn.js'
 import Web3 from 'web3'
 
-import { EthereumPlasmaClient, IPlasmaCoin, IPlasmaDeposit, IPlasmaExitParams, IPlasmaExitData } from './ethereum-client'
+import {
+  EthereumPlasmaClient,
+  IPlasmaCoin,
+  IPlasmaDeposit,
+  IPlasmaExitParams,
+  IPlasmaExitData
+} from './ethereum-client'
 import { DAppChainPlasmaClient } from './dappchain-client'
 import { PlasmaCashTx } from './plasma-cash-tx'
 import { Web3Signer } from '../solidity-helpers'
@@ -148,57 +154,77 @@ export class Entity {
 
   watchExit(slot: BN): any {
     console.log(`Started watching events for Coin ${slot}`)
-    return this.plasmaCashContract.events.StartedExit({
-      filter: { slot: slot },
-      fromBlock: 0
-    })
+    return this.plasmaCashContract.events
+      .StartedExit({
+        filter: { slot: slot },
+        fromBlock: 0
+      })
       .on('data', async (event: any, err: any) => {
         // console.log('Exit values: ', event.returnValues)
-        this.challengeExit(slot, event.returnValues.owner)
+        await this.challengeExit(slot, event.returnValues.owner)
       })
       .on('error', (err: any) => console.log(err))
   }
 
-  challengeExit(slot: BN, owner: String) {
-    console.log('FOUND EXIT BY', owner)
+  async challengeExit(slot: BN, owner: String) {
     if (owner === this.ethAddress) {
-      console.log("Exit is valid, continuing...")
+      console.log('Exit is valid, continuing...')
       return
     }
 
-    // console.log('Starting the promise chain')
-    // Buggy, hangs currently
-    var a = this.getPlasmaCoinAsync(slot)
-    var b = a.then(coin => { return this.getBlockNumbers(coin.depositBlockNum) })
-    var c = b.then(blocks => { return this.getCoinHistory(slot, blocks)})
-    var d = this.getExitAsync(slot)
-    return Promise.all([a,b,c,d]).then(values => {
-      const coin = values[0]
-      const blockNumbers = values[1]
-      const proofs = values[2]
-      const exit = values[3]
-    })
+    const coin = await this.getPlasmaCoinAsync(slot)
+    const blocks = await this.getBlockNumbers(coin.depositBlockNum)
+    const proofs: object = (await this.getCoinHistory(slot, blocks)).inclusion // get only the inclusion proofs
+    const exit = await this.getExitAsync(slot)
+
+    for (let i in blocks) {
+      const blk = blocks[i]
+      if (!(blk.toString() in proofs)) {
+        continue
+      }
+      if (blk > exit.exitBlock) {
+        console.log('Challenge Spent Coin!')
+        console.log(`Challenging with block ${blk}`)
+        await this.challengeAfterAsync({ slot: slot, challengingBlockNum: blk })
+        break
+      } else if (exit.prevBlock < blk && blk < exit.exitBlock) {
+        console.log('Challenge Double Spend!!')
+        await this.challengeBetweenAsync({ slot: slot, challengingBlockNum: blk })
+        break
+      } else if (blk < exit.prevBlock) {
+        console.log('Challenge Invalid History!')
+        // TODO: https://github.com/loomnetwork/plasma-cash/blob/master/plasma_cash/client/client.py#L396
+        await this.challengeBeforeAsync({
+          slot: slot,
+          prevBlockNum: new BN(0),
+          challengingBlockNum: blk
+        })
+        break
+      }
+    }
   }
 
   async getCoinHistory(slot: BN, blocks: BN[]): Promise<IProofs> {
     let proofs: IProofs = {
-      exclusion: 1,
-      inclusion: 2
+      exclusion: {1000: 5, 2000: 3},
+      inclusion: { 3000: 100 }
     }
-    // Gather the inclusion / exclusion proofs
+    // TODO: Gather the inclusion / exclusion proofs
     // https://github.com/loomnetwork/plasma-cash/blob/master/plasma_cash/client/client.py#L262
     return proofs
   }
 
   async getBlockNumbers(startBlock: any): Promise<BN[]> {
-    return this.getCurrentBlockAsync().then(endBlock => {
-      const nextDepositBlock: number = Math.ceil(startBlock / this._childBlockInterval) * this._childBlockInterval
-      let blockNumbers: BN[] = [startBlock]
-      for(let i = startBlock; i <= endBlock; i+= this._childBlockInterval) {
-        blockNumbers.push(i);
-      }
-      return blockNumbers
-    })
+    const endBlock: BN = await this.getCurrentBlockAsync()
+    const nextDepositBlock: BN = new BN(
+      Math.ceil(startBlock / this._childBlockInterval) * this._childBlockInterval
+    )
+    let blockNumbers: BN[] = [startBlock]
+    const interval = new BN(this._childBlockInterval)
+    for (let i: BN = nextDepositBlock; i <= endBlock; i = i.add(interval)) {
+      blockNumbers.push(i)
+    }
+    return blockNumbers
   }
 
   // This doesn't worth yet, still hangs when unsubscribing.

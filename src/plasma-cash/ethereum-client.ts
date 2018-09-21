@@ -35,16 +35,12 @@ export interface IPlasmaExitData {
   state: PlasmaCoinState
 }
 
-
 export interface IPlasmaChallenge {
   slot: BN
   txHash: string
 }
 
-export function marshalChallengeEvent(data: {
-  slot: string
-  txHash: string
-}): IPlasmaChallenge {
+export function marshalChallengeEvent(data: { slot: string; txHash: string }): IPlasmaChallenge {
   const { slot, txHash } = data
   return {
     slot: new BN(slot),
@@ -119,7 +115,6 @@ export interface IPlasmaRspondChallengeBeforeParams extends ISendTxOptions {
   respondingBlockNum: BN
   respondingTx: PlasmaCashTx
 }
-
 
 export class EthereumPlasmaClient {
   private _web3: Web3
