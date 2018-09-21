@@ -1,6 +1,9 @@
 # gitignore
 
 node_modules
+tmp
+chaindata
+app.data
 .DS_Store
 
 # Only apps should have lockfiles

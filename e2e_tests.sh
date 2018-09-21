@@ -9,14 +9,26 @@ set -euxo pipefail
 
 # Prepare env
 DEFAULT_GOPATH=$GOPATH
-BUILD_NUMBER=432
+BUILD_NUMBER=434
 GANACHE_PORT=8545
 REPO_ROOT=`pwd`
 LOOM_DIR=`pwd`/tmp/e2e
 
+# Check available platforms
+PLATFORM='unknown'
+unamestr=`uname`
+if [[ "$unamestr" == 'Linux' ]]; then
+  PLATFORM='linux'
+elif [[ "$unamestr" == 'Darwin' ]]; then
+  PLATFORM='osx'
+else
+  echo "Platform not supported on this script yet"
+  exit -1
+fi
+
 download_dappchain() {
   cd $LOOM_DIR
-  wget https://private.delegatecall.com/loom/linux/build-$BUILD_NUMBER/loom
+  wget https://private.delegatecall.com/loom/$PLATFORM/build-$BUILD_NUMBER/loom
   chmod +x loom
   LOOM_BIN=`pwd`/loom
 }
@@ -39,7 +51,7 @@ setup_dappchain() {
 }
 
 start_chains() {
-  $REPO_ROOT/node_modules/.bin/ganache-cli -d -p $GANACHE_PORT &
+  $REPO_ROOT/node_modules/.bin/ganache-cli -d -p $GANACHE_PORT >> ganache.log &
   GANACHE_PID=$!
 
   cd $LOOM_DIR
