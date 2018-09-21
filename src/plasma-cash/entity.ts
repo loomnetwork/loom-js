@@ -133,6 +133,15 @@ export class Entity {
     })
   }
 
+  watchExit(slot: BN) {
+    console.log('Started watching')
+    console.log(this.plasmaCashContract.events.StartedExit)
+    this.plasmaCashContract.events.StartedExit({
+      // filter: {slot: slot},
+      // fromBlock: 0
+    },function (err: any, event: any) {console.log('GOT EVENT', event)})
+  }
+
   withdrawAsync(slot: BN): Promise<object> {
     return this._ethPlasmaClient.withdrawAsync({
       slot,
