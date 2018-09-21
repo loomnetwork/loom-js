@@ -1,6 +1,8 @@
 import debug from 'debug'
 import BN from 'bn.js'
 import { ecsign, toBuffer } from 'ethereumjs-util'
+import retry from 'retry'
+
 import { Client, ClientEvent, IChainEventArgs, ITxMiddlewareHandler } from './client'
 import { createDefaultTxMiddleware } from './helpers'
 import {
@@ -103,6 +105,19 @@ export class LoomProvider {
   private _accountMiddlewares: Map<string, Array<ITxMiddlewareHandler>>
   protected notificationCallbacks: Array<Function>
   readonly accounts: Map<string, Uint8Array>
+
+  /**
+   * The retry strategy that should be used to retry some web3 requests.
+   * Default is a binary exponential retry strategy with 5 retries.
+   * To understand how to tweak the retry strategy see
+   * https://github.com/tim-kos/node-retry#retrytimeoutsoptions
+   */
+  retryStrategy: retry.OperationOptions = {
+    retries: 3,
+    minTimeout: 1000, // 1s
+    maxTimeout: 30000, // 30s
+    randomize: true
+  }
 
   /**
    * Constructs the LoomProvider to bridges communication between Web3 and Loom DappChains
@@ -421,8 +436,35 @@ export class LoomProvider {
     return this._getTransaction(payload.params[0])
   }
 
-  private async _ethGetTransactionReceipt(payload: IEthRPCPayload) {
-    return this._getReceipt(payload.params[0])
+  private async _ethGetTransactionReceipt(payload: IEthRPCPayload): Promise<IEthReceipt> {
+    const txHash = payload.params[0]
+    const data = Buffer.from(txHash.slice(2), 'hex')
+    const op = retry.operation(this.retryStrategy)
+    const receipt = await new Promise<EvmTxReceipt | null>((resolve, reject) => {
+      op.attempt(currentAttempt => {
+        this._client
+          .getEvmTxReceiptAsync(bufferToProtobufBytes(data))
+          .then(receipt => {
+            if (receipt) {
+              resolve(receipt)
+            } else {
+              const err = new Error('Receipt cannot be empty')
+              error(err.message)
+              if (!op.retry(err)) {
+                reject(err)
+              }
+            }
+          })
+          .catch(err => {
+            if (!op.retry(err)) {
+              reject(err)
+            } else {
+              error(err.message)
+            }
+          })
+      })
+    })
+    return this._createReceiptResult(receipt!)
   }
 
   private async _ethNewBlockFilter() {
@@ -669,16 +711,6 @@ export class LoomProvider {
       gas,
       input
     } as IEthTransaction
-  }
-
-  private async _getReceipt(txHash: string): Promise<IEthReceipt> {
-    const data = Buffer.from(txHash.slice(2), 'hex')
-    const receipt = await this._client.getEvmTxReceiptAsync(bufferToProtobufBytes(data))
-    if (!receipt) {
-      throw Error('Receipt cannot be empty')
-    }
-
-    return this._createReceiptResult(receipt)
   }
 
   private _createLogResult(log: EthFilterLog): IEthFilterLog {
