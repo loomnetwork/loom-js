@@ -145,6 +145,26 @@ export class EthereumPlasmaClient {
     }
   }
 
+  async checkMembershipAsync(params: {
+    leaf: string
+    root: string
+    slot: BN
+    proof: string
+    from: string
+  }): Promise<boolean> {
+    const { leaf, root, slot, proof, from } = params
+    const isIncluded = await this._plasmaContract.methods
+      .checkMembership(leaf, root, slot, proof)
+      .call({ from })
+    return isIncluded
+  }
+
+  async getBlockRootAsync(params: { blockNumber: BN; from: string }): Promise<string> {
+    const { blockNumber, from } = params
+    const root = await this._plasmaContract.methods.getBlockRoot(blockNumber).call({ from })
+    return root
+  }
+
   async getPlasmaCoinAsync(params: { slot: BN; from: string }): Promise<IPlasmaCoin> {
     const { slot, from } = params
     const coin = await this._plasmaContract.methods.getPlasmaCoin(slot).call({ from })

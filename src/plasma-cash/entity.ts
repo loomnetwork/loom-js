@@ -11,10 +11,12 @@ import {
 import { DAppChainPlasmaClient } from './dappchain-client'
 import { PlasmaCashTx } from './plasma-cash-tx'
 import { Web3Signer } from '../solidity-helpers'
+import { Transaction } from '../proto/loom_pb'
 
 export interface IProofs {
   inclusion: any
   exclusion: any
+  transactions: any
 }
 
 export interface IEntityParams {
@@ -87,6 +89,25 @@ export class Entity {
 
   async getPlasmaCoinAsync(slot: BN): Promise<IPlasmaCoin> {
     return this._ethPlasmaClient.getPlasmaCoinAsync({ slot, from: this.ethAddress })
+  }
+
+  async getBlockRootAsync(blockNumber: BN): Promise<string> {
+    return this._ethPlasmaClient.getBlockRootAsync({ blockNumber, from: this.ethAddress })
+  }
+
+  async checkMembershipAsync(
+    leaf: string,
+    root: string,
+    slot: BN,
+    proof: string
+  ): Promise<boolean> {
+    return this._ethPlasmaClient.checkMembershipAsync({
+      leaf,
+      root,
+      slot,
+      proof,
+      from: this.ethAddress
+    })
   }
 
   async submitPlasmaBlockAsync(): Promise<BN> {
@@ -204,14 +225,48 @@ export class Entity {
     }
   }
 
-  async getCoinHistory(slot: BN, blocks: BN[]): Promise<IProofs> {
-    let proofs: IProofs = {
-      exclusion: {1000: 5, 2000: 3},
-      inclusion: { 3000: 100 }
+  async getCoinHistory(slot: BN, blockNumbers: BN[]): Promise<IProofs> {
+    let inclProofs: any = {}
+    let exclProofs: any = {}
+    let txs: any = {}
+
+    for (let i in blockNumbers) {
+      const blockNumber = blockNumbers[i]
+      const root = await this.getBlockRootAsync(blockNumber)
+
+      // This should happen on the DAppChain side and return the specified tx, instead of the whole block
+      const block = await this._dAppPlasmaClient.getPlasmaBlockAtAsync(blockNumber)
+      const tx = block.findTxWithSlot(slot)
+
+      txs[blockNumber.toString()] = tx
+      if (this.checkInclusion(tx, root, slot, tx.proof)) {
+        inclProofs[blockNumber.toString()] = tx.proof
+      } else {
+        exclProofs[blockNumber.toString()] = tx.proof
+      }
     }
-    // TODO: Gather the inclusion / exclusion proofs
-    // https://github.com/loomnetwork/plasma-cash/blob/master/plasma_cash/client/client.py#L262
-    return proofs
+    return {
+      exclusion: exclProofs,
+      inclusion: inclProofs,
+      transactions: txs
+    }
+  }
+
+  async checkExclusion(root: string, slot: BN, proof: string): Promise<boolean> {
+    // keccak(uint256(0))
+    const emptyHash = '0x290decd9548b62a8d60345a988386fc84ba6bc95484008f6362f93160ef3e563'
+    const ret = await this.checkMembershipAsync(emptyHash, root, slot, proof)
+    return ret
+  }
+
+  async checkInclusion(tx: PlasmaCashTx, root: string, slot: BN, proof: string): Promise<boolean> {
+    let ret
+    if (tx.prevBlockNum == new BN(0)) {
+      ret = tx.hash == root
+    } else {
+      ret = await this.checkMembershipAsync(tx.hash, root, slot, proof)
+    }
+    return ret
   }
 
   async getBlockNumbers(startBlock: any): Promise<BN[]> {
