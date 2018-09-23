@@ -238,8 +238,25 @@ export class Entity {
       const block = await this._dAppPlasmaClient.getPlasmaBlockAtAsync(blockNumber)
       const tx = block.findTxWithSlot(slot)
 
+      // If no tx was found add it to the eclusion proofs
+      // TODO make this better when dappchain api is updated
+      if (
+        tx ===
+        new PlasmaCashTx({
+          slot: new BN(0),
+          prevBlockNum: new BN(0),
+          denomination: new BN(0),
+          newOwner: '0x0'
+        })
+      ) {
+        exclProofs[blockNumber.toString()] = tx.proof
+        continue
+      }
+
       txs[blockNumber.toString()] = tx
-      if (this.checkInclusion(tx, root, slot, tx.proof)) {
+      const included = await this.checkInclusion(tx, root, slot, tx.proof)
+
+      if (included) {
         inclProofs[blockNumber.toString()] = tx.proof
       } else {
         exclProofs[blockNumber.toString()] = tx.proof
@@ -261,7 +278,7 @@ export class Entity {
 
   async checkInclusion(tx: PlasmaCashTx, root: string, slot: BN, proof: string): Promise<boolean> {
     let ret
-    if (tx.prevBlockNum == new BN(0)) {
+    if (tx.prevBlockNum.eq(new BN(0))) {
       ret = tx.hash == root
     } else {
       ret = await this.checkMembershipAsync(tx.hash, root, slot, proof)
