@@ -173,7 +173,7 @@ export class Entity {
     })
   }
 
-  watchExit(slot: BN): any {
+  watchExit(slot: BN, fromBlock: BN): any {
     console.log(`Started watching events for Coin ${slot}`)
     return this.plasmaCashContract.events
       .StartedExit({
@@ -191,33 +191,36 @@ export class Entity {
     if (owner === this.ethAddress) {
       console.log('Exit is valid, continuing...')
       return
+    } else {
+      console.log('FOUND EXIT! CHALLENGING!!')
     }
 
     const coin = await this.getPlasmaCoinAsync(slot)
     const blocks = await this.getBlockNumbers(coin.depositBlockNum)
-    const proofs: object = (await this.getCoinHistory(slot, blocks)).inclusion // get only the inclusion proofs
+    const proofs = await this.getCoinHistory(slot, blocks) // get only the inclusion proofs
     const exit = await this.getExitAsync(slot)
 
     for (let i in blocks) {
       const blk = blocks[i]
-      if (!(blk.toString() in proofs)) {
+      if (!(blk.toString() in proofs.inclusion)) {
         continue
       }
-      if (blk > exit.exitBlock) {
+      if (blk.gt(exit.exitBlock)) {
         console.log('Challenge Spent Coin!')
-        console.log(`Challenging with block ${blk}`)
         await this.challengeAfterAsync({ slot: slot, challengingBlockNum: blk })
         break
-      } else if (exit.prevBlock < blk && blk < exit.exitBlock) {
+      } else if (exit.prevBlock.lt(blk) && blk.lt(exit.exitBlock)) {
         console.log('Challenge Double Spend!!')
         await this.challengeBetweenAsync({ slot: slot, challengingBlockNum: blk })
         break
-      } else if (blk < exit.prevBlock) {
+      } else if (blk.lt(exit.prevBlock)) {
         console.log('Challenge Invalid History!')
-        // TODO: https://github.com/loomnetwork/plasma-cash/blob/master/plasma_cash/client/client.py#L396
+        // This should happen on the DAppChain side and return the specified tx, instead of the whole block
+        const block = await this._dAppPlasmaClient.getPlasmaBlockAtAsync(blk)
+        const tx = block.findTxWithSlot(slot)
         await this.challengeBeforeAsync({
           slot: slot,
-          prevBlockNum: new BN(0),
+          prevBlockNum: tx.prevBlockNum,
           challengingBlockNum: blk
         })
         break
@@ -239,7 +242,7 @@ export class Entity {
       const tx = block.findTxWithSlot(slot)
 
       // If no tx was found add it to the eclusion proofs
-      // TODO make this better when dappchain api is updated
+      // TODO make this better when Dappchain API is updated
       if (
         tx ===
         new PlasmaCashTx({
@@ -255,7 +258,6 @@ export class Entity {
 
       txs[blockNumber.toString()] = tx
       const included = await this.checkInclusion(tx, root, slot, tx.proof)
-
       if (included) {
         inclProofs[blockNumber.toString()] = tx.proof
       } else {
@@ -299,9 +301,8 @@ export class Entity {
     return blockNumbers
   }
 
-  // This doesn't worth yet, still hangs when unsubscribing.
-  stopWatching(filter: any) {
-    filter.unsubscribe()
+  async stopWatching(filter: any, callback: any) {
+    await filter.unsubscribe(callback)
   }
 
   withdrawAsync(slot: BN): Promise<object> {

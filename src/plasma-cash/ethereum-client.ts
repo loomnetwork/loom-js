@@ -5,12 +5,18 @@ import { PlasmaCashBlock } from './plasma-cash-block'
 import { bytesToHexAddr } from '../crypto-utils'
 import { PlasmaCashTx } from './plasma-cash-tx'
 
+export enum PlasmaCoinMode {
+  ETH = 0,
+  ERC20 = 1,
+  ERC721 = 2
+}
+
 export enum PlasmaCoinState {
   Deposited = 0,
   Exiting = 1,
-  Challenged = 2,
-  Exited = 3
+  Exited = 2
 }
+
 export interface IPlasmaCoin {
   /** Identifier of an ERC721 token. */
   uid: BN
@@ -19,9 +25,12 @@ export interface IPlasmaCoin {
   denomination: BN
   /** Hex encoded Ethereum address of the current owner of the coin, prefixed by 0x. */
   owner: string
+  /** The coin's state */
+  state: PlasmaCoinState
+  /** the coin type */
+  mode: PlasmaCoinMode
   /** Hex encoded Ethereum address of the token contract, prefixed by 0x. */
   contractAddress: string
-  state: PlasmaCoinState
 }
 export interface IPlasmaExitData {
   /** Identifier of a coin's exit. */
@@ -135,7 +144,7 @@ export class EthereumPlasmaClient {
 
   async getExitAsync(params: { slot: BN; from: string }): Promise<IPlasmaExitData> {
     const { slot, from } = params
-    const exit = await this._plasmaContract.methods.getPlasmaCoin(slot).call({ from })
+    const exit = await this._plasmaContract.methods.getExit(slot).call({ from })
     return {
       slot: slot,
       owner: exit[0],
@@ -173,8 +182,9 @@ export class EthereumPlasmaClient {
       depositBlockNum: new BN(coin[1]),
       denomination: new BN(coin[2]),
       owner: coin[3],
-      contractAddress: coin[4],
-      state: parseInt(coin[5], 10)
+      state: parseInt(coin[4], 10),
+      mode: parseInt(coin[5], 10),
+      contractAddress: coin[6]
     }
   }
 
