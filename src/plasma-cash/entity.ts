@@ -307,6 +307,28 @@ export class Entity {
     }
   }
 
+  async verifyCoinHistoryAsync(slot: BN, proofs: IProofs): Promise<boolean> {
+    // Check inclusion proofs
+    for (let p in proofs.inclusion) {
+      const tx = proofs.transactions[p] // get the block number from the proof of inclusion and get the tx from that
+      const root = await this.getBlockRootAsync(p)
+      const included = this.checkInclusionAsync(tx, root, slot, proofs.inclusion[p])  
+      if (!included) {
+          return false
+        }
+    }
+    // Check exclusion proofs
+    for (let p in proofs.exclusion) {
+      const root = await this.getBlockRootAsync(p)
+      const excluded = this.checkExclusionAsync(root, slot, proofs.exclusion[p])  
+      if (!excluded) {
+          return false
+        }
+    }
+    return true
+  }
+  
+
   checkExclusionAsync(root: string, slot: BN, proof: string): Promise<boolean> {
     // keccak(uint256(0))
     const emptyHash = '0x290decd9548b62a8d60345a988386fc84ba6bc95484008f6362f93160ef3e563'
