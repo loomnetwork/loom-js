@@ -195,6 +195,11 @@ export class TransferGatewayWithdrawTokenRequest extends jspb.Message {
   getTokenAmount(): proto_loom_pb.BigUInt | undefined;
   setTokenAmount(value?: proto_loom_pb.BigUInt): void;
 
+  hasRecipient(): boolean;
+  clearRecipient(): void;
+  getRecipient(): proto_loom_pb.Address | undefined;
+  setRecipient(value?: proto_loom_pb.Address): void;
+
   serializeBinary(): Uint8Array;
   toObject(includeInstance?: boolean): TransferGatewayWithdrawTokenRequest.AsObject;
   static toObject(includeInstance: boolean, msg: TransferGatewayWithdrawTokenRequest): TransferGatewayWithdrawTokenRequest.AsObject;
@@ -211,6 +216,7 @@ export namespace TransferGatewayWithdrawTokenRequest {
     tokenKind: TransferGatewayTokenKind,
     tokenId?: proto_loom_pb.BigUInt.AsObject,
     tokenAmount?: proto_loom_pb.BigUInt.AsObject,
+    recipient?: proto_loom_pb.Address.AsObject,
   }
 }
 
@@ -224,6 +230,11 @@ export class TransferGatewayWithdrawETHRequest extends jspb.Message {
   clearMainnetGateway(): void;
   getMainnetGateway(): proto_loom_pb.Address | undefined;
   setMainnetGateway(value?: proto_loom_pb.Address): void;
+
+  hasRecipient(): boolean;
+  clearRecipient(): void;
+  getRecipient(): proto_loom_pb.Address | undefined;
+  setRecipient(value?: proto_loom_pb.Address): void;
 
   serializeBinary(): Uint8Array;
   toObject(includeInstance?: boolean): TransferGatewayWithdrawETHRequest.AsObject;
@@ -239,6 +250,7 @@ export namespace TransferGatewayWithdrawETHRequest {
   export type AsObject = {
     amount?: proto_loom_pb.BigUInt.AsObject,
     mainnetGateway?: proto_loom_pb.Address.AsObject,
+    recipient?: proto_loom_pb.Address.AsObject,
   }
 }
 

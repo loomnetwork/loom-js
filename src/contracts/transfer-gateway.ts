@@ -126,6 +126,10 @@ export class TransferGateway extends Contract {
     })
   }
 
+  /**
+   * Adds a contract mapping to the DAppChain Gateway.
+   * A contract mapping associates a token contract on the DAppChain with it's counterpart on Ethereum.
+   */
   addContractMappingAsync(params: {
     foreignContract: Address
     localContract: Address
@@ -148,42 +152,112 @@ export class TransferGateway extends Contract {
     return this.callAsync<void>('AddContractMapping', mappingContractRequest)
   }
 
-  withdrawERC721Async(tokenId: BN, tokenContract: Address): Promise<void> {
+  /**
+   * Sends a request to the DAppChain Gateway to begin withdrawal of an ERC721 token from the
+   * current DAppChain account to an Ethereum account.
+   * @param tokenId ERC721 token ID.
+   * @param tokenContract DAppChain address of ERC721 contract.
+   * @param recipient Ethereum address of the account the token should be withdrawn to, if this is
+   *                  omitted the Gateway will attempt to use the Address Mapper to retrieve the
+   *                  address of the Ethereum account mapped to the current DAppChain account.
+   * @returns A promise that will be resolved when the DAppChain Gateway has accepted the withdrawal
+   *          request.
+   */
+  withdrawERC721Async(tokenId: BN, tokenContract: Address, recipient?: Address): Promise<void> {
     const req = new TransferGatewayWithdrawTokenRequest()
     req.setTokenKind(TransferGatewayTokenKind.ERC721)
     req.setTokenId(marshalBigUIntPB(tokenId))
     req.setTokenContract(tokenContract.MarshalPB())
+    if (recipient) {
+      req.setRecipient(recipient.MarshalPB())
+    }
 
     return this.callAsync<void>('WithdrawToken', req)
   }
 
-  withdrawERC721XAsync(tokenId: BN, amount: BN, tokenContract: Address): Promise<void> {
+  /**
+   * Sends a request to the DAppChain Gateway to begin withdrawal of ERC721X tokens from the current
+   * DAppChain account to an Ethereum account.
+   * @param tokenId ERC721X token ID.
+   * @param amount Amount of tokenId to withdraw.
+   * @param tokenContract DAppChain address of ERC721X contract.
+   * @param recipient Ethereum address of the account the token should be withdrawn to, if this is
+   *                  omitted the Gateway will attempt to use the Address Mapper to retrieve the
+   *                  address of the Ethereum account mapped to the current DAppChain account.
+   * @returns A promise that will be resolved when the DAppChain Gateway has accepted the withdrawal
+   *          request.
+   */
+  withdrawERC721XAsync(
+    tokenId: BN,
+    amount: BN,
+    tokenContract: Address,
+    recipient?: Address
+  ): Promise<void> {
     const req = new TransferGatewayWithdrawTokenRequest()
     req.setTokenKind(TransferGatewayTokenKind.ERC721X)
     req.setTokenId(marshalBigUIntPB(tokenId))
     req.setTokenAmount(marshalBigUIntPB(amount))
     req.setTokenContract(tokenContract.MarshalPB())
+    if (recipient) {
+      req.setRecipient(recipient.MarshalPB())
+    }
 
     return this.callAsync<void>('WithdrawToken', req)
   }
 
-  withdrawERC20Async(amount: BN, tokenContract: Address): Promise<void> {
+  /**
+   * Sends a request to the DAppChain Gateway to begin withdrawal ERC20 tokens from the current
+   * DAppChain account to an Ethereum account.
+   * @param amount Amount to withdraw.
+   * @param tokenContract DAppChain address of ERC20 contract.
+   * @param recipient Ethereum address of the account the token should be withdrawn to, if this is
+   *                  omitted the Gateway will attempt to use the Address Mapper to retrieve the
+   *                  address of the Ethereum account mapped to the current DAppChain account.
+   * @returns A promise that will be resolved when the DAppChain Gateway has accepted the withdrawal
+   *          request.
+   */
+  withdrawERC20Async(amount: BN, tokenContract: Address, recipient?: Address): Promise<void> {
     const req = new TransferGatewayWithdrawTokenRequest()
     req.setTokenKind(TransferGatewayTokenKind.ERC20)
     req.setTokenAmount(marshalBigUIntPB(amount))
     req.setTokenContract(tokenContract.MarshalPB())
+    if (recipient) {
+      req.setRecipient(recipient.MarshalPB())
+    }
 
     return this.callAsync<void>('WithdrawToken', req)
   }
 
-  withdrawETHAsync(amount: BN, mainNetGateway: Address): Promise<void> {
-    const tgWithdrawETHReq = new TransferGatewayWithdrawETHRequest()
-    tgWithdrawETHReq.setAmount(marshalBigUIntPB(amount))
-    tgWithdrawETHReq.setMainnetGateway(mainNetGateway.MarshalPB())
+  /**
+   * Sends a request to the DAppChain Gateway to begin withdrawal ERC20 tokens from the current
+   * DAppChain account to an Ethereum account.
+   * @param amount Amount to withdraw.
+   * @param ethereumGateway Ethereum address of Ethereum Gateway.
+   * @param recipient Ethereum address of the account the token should be withdrawn to, if this is
+   *                  omitted the Gateway will attempt to use the Address Mapper to retrieve the
+   *                  address of the Ethereum account mapped to the current DAppChain account.
+   * @returns A promise that will be resolved when the DAppChain Gateway has accepted the withdrawal
+   *          request.
+   */
+  withdrawETHAsync(amount: BN, ethereumGateway: Address, recipient?: Address): Promise<void> {
+    const req = new TransferGatewayWithdrawETHRequest()
+    req.setAmount(marshalBigUIntPB(amount))
+    req.setMainnetGateway(ethereumGateway.MarshalPB())
+    if (recipient) {
+      req.setRecipient(recipient.MarshalPB())
+    }
 
-    return this.callAsync<void>('WithdrawETH', tgWithdrawETHReq)
+    return this.callAsync<void>('WithdrawETH', req)
   }
 
+  /**
+   * Retrieves the current withdrawal receipt (if any) for the given DAppChain account.
+   * Withdrawal receipts are created by calling one of the withdraw methods.
+   * @param owner DAppChain address of a user account.
+   * @returns A promise that will be resolved with the withdrawal receipt, or null if no withdrawal
+   *          receipt exists (this indicates there's no withdrawal from the specified account
+   *          currently in progress).
+   */
   async withdrawalReceiptAsync(owner: Address): Promise<IWithdrawalReceipt | null> {
     const tgWithdrawReceiptReq = new TransferGatewayWithdrawalReceiptRequest()
     tgWithdrawReceiptReq.setOwner(owner.MarshalPB())
