@@ -187,6 +187,23 @@ export class Entity {
       .on('error', (err: any) => console.log(err))
   }
 
+  /**
+   * @return Web3 subscription object that can be passed to stopWatchingAsync().
+   */
+  watchChallenge(slot: BN, fromBlock: BN): IWeb3EventSub {
+    console.log(`Started watching challenges for Coin ${slot}`)
+    return this.plasmaCashContract.events
+      .ChallengedExit({
+        filter: { slot: slot },
+        fromBlock: 0
+      })
+      .on('data', (event: any, err: any) => {
+        // console.log('Challenge values: ', event.returnValues)
+        this.respondChallengeAsync(slot, event.returnValues.txHash, event.returnValues.challengingBlockNumber)
+      })
+      .on('error', (err: any) => console.log(err))
+  }
+
   async challengeExitAsync(slot: BN, owner: String) {
     if (owner === this.ethAddress) {
       console.log('Exit is valid, continuing...')
@@ -223,6 +240,25 @@ export class Entity {
           prevBlockNum: tx.prevBlockNum,
           challengingBlockNum: blk
         })
+        break
+      }
+    }
+  }
+
+  async respondChallengeAsync(slot: BN,  txHash: string, challengingBlockNum: BN) {
+    const coin = await this.getPlasmaCoinAsync(slot)
+    const blocks = await this.getBlockNumbersAsync(coin.depositBlockNum)
+    // We challenge with the block that includes a transaction right after the challenging block
+    const proofs = await this.getCoinHistoryAsync(slot, blocks)
+    for (let i in blocks) {
+      const blk = blocks[i]
+      // check only inclusion blocks
+      if (!(blk.toString() in proofs.inclusion)) { 
+        continue
+      }
+      // challenge with the first block after the challengingBlock
+      if (blk.gt(challengingBlockNum)) {
+        this.respondChallengeAsync(slot, txHash, challengingBlockNum)
         break
       }
     }
