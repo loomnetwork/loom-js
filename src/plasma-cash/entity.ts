@@ -1,10 +1,21 @@
 import BN from 'bn.js'
 import Web3 from 'web3'
 
-import { EthereumPlasmaClient, IPlasmaCoin, IPlasmaDeposit } from './ethereum-client'
+import {
+  EthereumPlasmaClient,
+  IPlasmaCoin,
+  IPlasmaDeposit,
+  IPlasmaExitData
+} from './ethereum-client'
 import { DAppChainPlasmaClient } from './dappchain-client'
 import { PlasmaCashTx } from './plasma-cash-tx'
 import { Web3Signer } from '../solidity-helpers'
+
+export interface IProofs {
+  inclusion: { [blockNumber: string]: string }
+  exclusion: { [blockNumber: string]: string }
+  transactions: { [blockNumber: string]: PlasmaCashTx }
+}
 
 export interface IEntityParams {
   /** Web3 account for use on Ethereum */
@@ -14,6 +25,10 @@ export interface IEntityParams {
   /** Allows to override the amount of gas used when sending txs to Ethereum. */
   defaultGas?: string | number
   childBlockInterval: number
+}
+
+export interface IWeb3EventSub {
+  unsubscribe(callback?: (error: Error, result: boolean) => void): void
 }
 
 // TODO: Maybe come up with a better name?
@@ -66,8 +81,30 @@ export class Entity {
     await this._dAppPlasmaClient.sendTxAsync(tx)
   }
 
+  getExitAsync(slot: BN): Promise<IPlasmaExitData> {
+    return this._ethPlasmaClient.getExitAsync({ slot, from: this.ethAddress })
+  }
+
+  getCurrentBlockAsync(): Promise<BN> {
+    return this._dAppPlasmaClient.getCurrentPlasmaBlockNumAsync()
+  }
+
   getPlasmaCoinAsync(slot: BN): Promise<IPlasmaCoin> {
     return this._ethPlasmaClient.getPlasmaCoinAsync({ slot, from: this.ethAddress })
+  }
+
+  getBlockRootAsync(blockNumber: BN): Promise<string> {
+    return this._ethPlasmaClient.getBlockRootAsync({ blockNumber, from: this.ethAddress })
+  }
+
+  checkMembershipAsync(leaf: string, root: string, slot: BN, proof: string): Promise<boolean> {
+    return this._ethPlasmaClient.checkMembershipAsync({
+      leaf,
+      root,
+      slot,
+      proof,
+      from: this.ethAddress
+    })
   }
 
   async submitPlasmaBlockAsync(): Promise<BN> {
@@ -131,6 +168,195 @@ export class Entity {
       from: this.ethAddress,
       gas: this._defaultGas
     })
+  }
+
+  /**
+   * @return Web3 subscription object that can be passed to stopWatching().
+   */
+  watchExit(slot: BN, fromBlock: BN): IWeb3EventSub {
+    console.log(`Started watching events for Coin ${slot}`)
+    return this.plasmaCashContract.events
+      .StartedExit({
+        filter: { slot: slot },
+        fromBlock: 0
+      })
+      .on('data', (event: any, err: any) => {
+        this.challengeExitAsync(slot, event.returnValues.owner)
+      })
+      .on('error', (err: any) => console.log(err))
+  }
+
+  /**
+   * @return Web3 subscription object that can be passed to stopWatching().
+   */
+  watchChallenge(slot: BN, fromBlock: BN): IWeb3EventSub {
+    console.log(`Started watching challenges for Coin ${slot}`)
+    return this.plasmaCashContract.events
+      .ChallengedExit({
+        filter: { slot: slot },
+        fromBlock: fromBlock
+      })
+      .on('data', (event: any, err: any) => {
+        this.respondChallengeAsync(
+          slot,
+          event.returnValues.txHash,
+          event.returnValues.challengingBlockNumber
+        )
+      })
+      .on('error', (err: any) => console.log(err))
+  }
+
+  async challengeExitAsync(slot: BN, owner: String) {
+    if (owner === this.ethAddress) {
+      console.log('Exit is valid, continuing...')
+      return
+    } else {
+      console.log('FOUND EXIT! CHALLENGING!!')
+    }
+
+    const coin = await this.getPlasmaCoinAsync(slot)
+    const blocks = await this.getBlockNumbersAsync(coin.depositBlockNum)
+    const proofs = await this.getCoinHistoryAsync(slot, blocks)
+    const exit = await this.getExitAsync(slot)
+
+    for (let i in blocks) {
+      const blk = blocks[i]
+      if (!(blk.toString() in proofs.inclusion)) {
+        continue
+      }
+      if (blk.gt(exit.exitBlock)) {
+        console.log('Challenge Spent Coin!')
+        await this.challengeAfterAsync({ slot: slot, challengingBlockNum: blk })
+        break
+      } else if (exit.prevBlock.lt(blk) && blk.lt(exit.exitBlock)) {
+        console.log('Challenge Double Spend!!')
+        await this.challengeBetweenAsync({ slot: slot, challengingBlockNum: blk })
+        break
+      } else if (blk.lt(exit.prevBlock)) {
+        console.log('Challenge Invalid History!')
+        // This should happen on the DAppChain side and return the specified tx, instead of the whole block
+        const block = await this._dAppPlasmaClient.getPlasmaBlockAtAsync(blk)
+        const tx = block.findTxWithSlot(slot)
+        await this.challengeBeforeAsync({
+          slot: slot,
+          prevBlockNum: tx.prevBlockNum,
+          challengingBlockNum: blk
+        })
+        break
+      }
+    }
+  }
+
+  async respondChallengeAsync(slot: BN, txHash: string, challengingBlockNum: BN) {
+    const coin = await this.getPlasmaCoinAsync(slot)
+    const blocks = await this.getBlockNumbersAsync(coin.depositBlockNum)
+    // We challenge with the block that includes a transaction right after the challenging block
+    const proofs = await this.getCoinHistoryAsync(slot, blocks)
+    for (let i in blocks) {
+      const blk = blocks[i]
+      // check only inclusion blocks
+      if (!(blk.toString() in proofs.inclusion)) {
+        continue
+      }
+      // challenge with the first block after the challengingBlock
+      if (blk.gt(new BN(challengingBlockNum))) {
+        await this.respondChallengeBeforeAsync({
+          slot,
+          challengingTxHash: txHash,
+          respondingBlockNum: blk
+        })
+        break
+      }
+    }
+  }
+
+  async getCoinHistoryAsync(slot: BN, blockNumbers: BN[]): Promise<IProofs> {
+    const inclProofs: { [blockNumber: string]: string } = {}
+    const exclProofs: { [blockNumber: string]: string } = {}
+    const txs: { [blockNumber: string]: PlasmaCashTx } = {}
+
+    for (let i in blockNumbers) {
+      const blockNumber = blockNumbers[i]
+      const root = await this.getBlockRootAsync(blockNumber)
+
+      // This should happen on the DAppChain side and return the specified tx, instead of the whole block
+      const block = await this._dAppPlasmaClient.getPlasmaBlockAtAsync(blockNumber)
+      const tx = block.findTxWithSlot(slot)
+
+      txs[blockNumber.toString()] = tx
+      const included = await this.checkInclusionAsync(tx, root, slot, tx.proof)
+      if (included) {
+        inclProofs[blockNumber.toString()] = tx.proof
+      } else {
+        exclProofs[blockNumber.toString()] = tx.proof
+      }
+    }
+    return {
+      exclusion: exclProofs,
+      inclusion: inclProofs,
+      transactions: txs
+    }
+  }
+
+  async verifyCoinHistoryAsync(slot: BN, proofs: IProofs): Promise<boolean> {
+    // Check inclusion proofs
+    for (let p in proofs.inclusion) {
+      const blockNumber = new BN(p)
+      const tx = proofs.transactions[p] // get the block number from the proof of inclusion and get the tx from that
+      const root = await this.getBlockRootAsync(blockNumber)
+      const included = this.checkInclusionAsync(tx, root, slot, proofs.inclusion[p])
+      if (!included) {
+        return false
+      }
+    }
+    // Check exclusion proofs
+    for (let p in proofs.exclusion) {
+      const blockNumber = new BN(p)
+      const root = await this.getBlockRootAsync(blockNumber)
+      const excluded = this.checkExclusionAsync(root, slot, proofs.exclusion[p])
+      if (!excluded) {
+        return false
+      }
+    }
+    return true
+  }
+
+  checkExclusionAsync(root: string, slot: BN, proof: string): Promise<boolean> {
+    // keccak(uint256(0))
+    const emptyHash = '0x290decd9548b62a8d60345a988386fc84ba6bc95484008f6362f93160ef3e563'
+    return this.checkMembershipAsync(emptyHash, root, slot, proof)
+  }
+
+  async checkInclusionAsync(
+    tx: PlasmaCashTx,
+    root: string,
+    slot: BN,
+    proof: string
+  ): Promise<boolean> {
+    let ret
+    if (tx.prevBlockNum.eq(new BN(0))) {
+      ret = tx.hash === root
+    } else {
+      ret = await this.checkMembershipAsync(tx.hash, root, slot, proof)
+    }
+    return ret
+  }
+
+  async getBlockNumbersAsync(startBlock: any): Promise<BN[]> {
+    const endBlock: BN = await this.getCurrentBlockAsync()
+    const nextDepositBlock: BN = new BN(
+      Math.ceil(startBlock / this._childBlockInterval) * this._childBlockInterval
+    )
+    const blockNumbers: BN[] = [startBlock]
+    const interval = new BN(this._childBlockInterval)
+    for (let i: BN = nextDepositBlock; i <= endBlock; i = i.add(interval)) {
+      blockNumbers.push(i)
+    }
+    return blockNumbers
+  }
+
+  stopWatching(filter: IWeb3EventSub) {
+    filter.unsubscribe()
   }
 
   withdrawAsync(slot: BN): Promise<object> {
