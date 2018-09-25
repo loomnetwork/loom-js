@@ -205,6 +205,11 @@
         "indexed": false,
         "name": "txHash",
         "type": "bytes32"
+      },
+      {
+        "indexed": false,
+        "name": "challengingBlockNumber",
+        "type": "uint256"
       }
     ],
     "name": "ChallengedExit",
@@ -679,6 +684,41 @@
       {
         "name": "",
         "type": "address"
+      }
+    ],
+    "payable": false,
+    "stateMutability": "view",
+    "type": "function"
+  },
+  {
+    "constant": true,
+    "inputs": [
+      {
+        "name": "slot",
+        "type": "uint64"
+      },
+      {
+        "name": "txHash",
+        "type": "bytes32"
+      }
+    ],
+    "name": "getChallenge",
+    "outputs": [
+      {
+        "name": "",
+        "type": "address"
+      },
+      {
+        "name": "",
+        "type": "address"
+      },
+      {
+        "name": "",
+        "type": "bytes32"
+      },
+      {
+        "name": "",
+        "type": "uint256"
       }
     ],
     "payable": false,

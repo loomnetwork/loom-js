@@ -195,11 +195,14 @@ export class Entity {
     return this.plasmaCashContract.events
       .ChallengedExit({
         filter: { slot: slot },
-        fromBlock: 0
+        fromBlock: fromBlock
       })
       .on('data', (event: any, err: any) => {
-        // console.log('Challenge values: ', event.returnValues)
-        this.respondChallengeAsync(slot, event.returnValues.txHash, event.returnValues.challengingBlockNumber)
+        this.respondChallengeAsync(
+          slot,
+          event.returnValues.txHash,
+          event.returnValues.challengingBlockNumber
+        )
       })
       .on('error', (err: any) => console.log(err))
   }
@@ -245,7 +248,7 @@ export class Entity {
     }
   }
 
-  async respondChallengeAsync(slot: BN,  txHash: string, challengingBlockNum: BN) {
+  async respondChallengeAsync(slot: BN, txHash: string, challengingBlockNum: BN) {
     const coin = await this.getPlasmaCoinAsync(slot)
     const blocks = await this.getBlockNumbersAsync(coin.depositBlockNum)
     // We challenge with the block that includes a transaction right after the challenging block
@@ -253,12 +256,16 @@ export class Entity {
     for (let i in blocks) {
       const blk = blocks[i]
       // check only inclusion blocks
-      if (!(blk.toString() in proofs.inclusion)) { 
+      if (!(blk.toString() in proofs.inclusion)) {
         continue
       }
       // challenge with the first block after the challengingBlock
-      if (blk.gt(challengingBlockNum)) {
-        this.respondChallengeAsync(slot, txHash, challengingBlockNum)
+      if (blk.gt(new BN(challengingBlockNum))) {
+        await this.respondChallengeBeforeAsync({
+          slot,
+          challengingTxHash: txHash,
+          respondingBlockNum: blk
+        })
         break
       }
     }
@@ -310,24 +317,25 @@ export class Entity {
   async verifyCoinHistoryAsync(slot: BN, proofs: IProofs): Promise<boolean> {
     // Check inclusion proofs
     for (let p in proofs.inclusion) {
+      const blockNumber = new BN(p)
       const tx = proofs.transactions[p] // get the block number from the proof of inclusion and get the tx from that
-      const root = await this.getBlockRootAsync(p)
-      const included = this.checkInclusionAsync(tx, root, slot, proofs.inclusion[p])  
+      const root = await this.getBlockRootAsync(blockNumber)
+      const included = this.checkInclusionAsync(tx, root, slot, proofs.inclusion[p])
       if (!included) {
-          return false
-        }
+        return false
+      }
     }
     // Check exclusion proofs
     for (let p in proofs.exclusion) {
-      const root = await this.getBlockRootAsync(p)
-      const excluded = this.checkExclusionAsync(root, slot, proofs.exclusion[p])  
+      const blockNumber = new BN(p)
+      const root = await this.getBlockRootAsync(blockNumber)
+      const excluded = this.checkExclusionAsync(root, slot, proofs.exclusion[p])
       if (!excluded) {
-          return false
-        }
+        return false
+      }
     }
     return true
   }
-  
 
   checkExclusionAsync(root: string, slot: BN, proof: string): Promise<boolean> {
     // keccak(uint256(0))
@@ -363,16 +371,17 @@ export class Entity {
     return blockNumbers
   }
 
-  stopWatchingAsync(filter: IWeb3EventSub): Promise<boolean> {
-    return new Promise((resolve, reject) => {
-      filter.unsubscribe((err: Error, result: boolean) => {
-        if (err) {
-          reject(err)
-        } else {
-          resolve(result)
-        }
-      })
-    })
+  stopWatchingAsync(filter: IWeb3EventSub) {
+    filter.unsubscribe()
+    // return new Promise((resolve, reject) => {
+    //   filter.unsubscribe((err: Error, result: boolean) => {
+    //     if (err) {
+    //       reject(err)
+    //     } else {
+    //       resolve(result)
+    //     }
+    //   })
+    // })
   }
 
   withdrawAsync(slot: BN): Promise<object> {

@@ -27,6 +27,7 @@
     "prepublish": "yarn proto && yarn plasmaabi && yarn build && webpack"
   },
   "dependencies": {
+    "@types/web3": "^1.0.6",
     "axios": "^0.18.0",
     "bn.js": "^4.11.8",
     "crypto-browserify": "^3.12.0",
