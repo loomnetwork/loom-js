@@ -171,7 +171,7 @@ export class Entity {
   }
 
   /**
-   * @return Web3 subscription object that can be passed to stopWatchingAsync().
+   * @return Web3 subscription object that can be passed to stopWatching().
    */
   watchExit(slot: BN, fromBlock: BN): IWeb3EventSub {
     console.log(`Started watching events for Coin ${slot}`)
@@ -187,7 +187,7 @@ export class Entity {
   }
 
   /**
-   * @return Web3 subscription object that can be passed to stopWatchingAsync().
+   * @return Web3 subscription object that can be passed to stopWatching().
    */
   watchChallenge(slot: BN, fromBlock: BN): IWeb3EventSub {
     console.log(`Started watching challenges for Coin ${slot}`)
@@ -355,7 +355,7 @@ export class Entity {
     return blockNumbers
   }
 
-  stopWatchingAsync(filter: IWeb3EventSub) {
+  stopWatching(filter: IWeb3EventSub) {
     filter.unsubscribe()
   }
 
