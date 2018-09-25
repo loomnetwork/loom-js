@@ -181,7 +181,6 @@ export class Entity {
         fromBlock: 0
       })
       .on('data', (event: any, err: any) => {
-        // console.log('Exit values: ', event.returnValues)
         this.challengeExitAsync(slot, event.returnValues.owner)
       })
       .on('error', (err: any) => console.log(err))
@@ -217,7 +216,7 @@ export class Entity {
 
     const coin = await this.getPlasmaCoinAsync(slot)
     const blocks = await this.getBlockNumbersAsync(coin.depositBlockNum)
-    const proofs = await this.getCoinHistoryAsync(slot, blocks) // get only the inclusion proofs
+    const proofs = await this.getCoinHistoryAsync(slot, blocks)
     const exit = await this.getExitAsync(slot)
 
     for (let i in blocks) {
@@ -283,21 +282,6 @@ export class Entity {
       // This should happen on the DAppChain side and return the specified tx, instead of the whole block
       const block = await this._dAppPlasmaClient.getPlasmaBlockAtAsync(blockNumber)
       const tx = block.findTxWithSlot(slot)
-
-      // If no tx was found add it to the eclusion proofs
-      // TODO make this better when Dappchain API is updated
-      if (
-        tx ===
-        new PlasmaCashTx({
-          slot: new BN(0),
-          prevBlockNum: new BN(0),
-          denomination: new BN(0),
-          newOwner: '0x0'
-        })
-      ) {
-        exclProofs[blockNumber.toString()] = tx.proof
-        continue
-      }
 
       txs[blockNumber.toString()] = tx
       const included = await this.checkInclusionAsync(tx, root, slot, tx.proof)
@@ -373,15 +357,6 @@ export class Entity {
 
   stopWatchingAsync(filter: IWeb3EventSub) {
     filter.unsubscribe()
-    // return new Promise((resolve, reject) => {
-    //   filter.unsubscribe((err: Error, result: boolean) => {
-    //     if (err) {
-    //       reject(err)
-    //     } else {
-    //       resolve(result)
-    //     }
-    //   })
-    // })
   }
 
   withdrawAsync(slot: BN): Promise<object> {
