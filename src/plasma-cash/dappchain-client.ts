@@ -3,13 +3,15 @@ import BN from 'bn.js'
 import { Client } from '../client'
 import { Contract } from '../contract'
 import { Address, LocalAddress } from '../address'
-import { PlasmaCashTx, marshalPlasmaTxPB } from './plasma-cash-tx'
+import { PlasmaCashTx, marshalPlasmaTxPB, unmarshalPlasmaTxPB } from './plasma-cash-tx'
 import { PlasmaCashBlock, unmarshalPlasmaBlockPB } from './plasma-cash-block'
 import { unmarshalBigUIntPB, marshalBigUIntPB } from '../big-uint'
 import { IPlasmaDeposit } from './ethereum-client'
 import {
   GetCurrentBlockRequest,
   GetCurrentBlockResponse,
+  GetPlasmaTxRequest,
+  GetPlasmaTxResponse,
   GetBlockRequest,
   GetBlockResponse,
   DepositRequest,
@@ -80,6 +82,27 @@ export class DAppChainPlasmaClient {
     )
     return unmarshalPlasmaBlockPB(resp.getBlock()!)
   }
+
+  /**
+   * Retrieves a merkle proof from the DAppChain regarding a coin at a block
+   *
+   * @param blockNum Height of the block to be retrieved.
+   * @param slot The coin id
+   * @return 
+   */
+  async getPlasmaTxAsync(slot: BN, blockNum: BN): Promise<PlasmaCashTx> {
+    const contract = await this._resolvePlasmaContractAsync()
+    const req = new GetPlasmaTxRequest()
+    req.setBlockHeight(marshalBigUIntPB(blockNum))
+    req.setSlot(slot.toString(10) as any)
+    const resp = await contract.staticCallAsync<GetPlasmaTxResponse>(
+      'GetPlasmaTxRequest',
+      req,
+      new GetPlasmaTxResponse()
+    )
+    return unmarshalPlasmaTxPB(resp.getPlasmatx()!)
+  }
+
 
   /**
    * Transfers a Plasma token from one entity to another.
