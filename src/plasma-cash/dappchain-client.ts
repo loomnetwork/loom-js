@@ -96,7 +96,7 @@ export class DAppChainPlasmaClient {
     req.setBlockHeight(marshalBigUIntPB(blockNum))
     req.setSlot(slot.toString(10) as any)
     const resp = await contract.staticCallAsync<GetPlasmaTxResponse>(
-      'GetPlasmaTxRequest',
+      'GetPlasmaTx',
       req,
       new GetPlasmaTxResponse()
     )
