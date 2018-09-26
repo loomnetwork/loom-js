@@ -81,6 +81,10 @@ export class Entity {
     await this._dAppPlasmaClient.sendTxAsync(tx)
   }
 
+  getPlasmaTx(slot: BN, blockNumber: BN): Promise<PlasmaCashTx> {
+    return this._dAppPlasmaClient.getPlasmaTxAsync(slot, blockNumber)
+  }
+
   getExitAsync(slot: BN): Promise<IPlasmaExitData> {
     return this._ethPlasmaClient.getExitAsync({ slot, from: this.ethAddress })
   }
@@ -141,14 +145,11 @@ export class Entity {
       })
     }
 
-    // Otherwise, they should get the raw tx info from the blocks, and the merkle proofs.
-    const exitBlock = await this._dAppPlasmaClient.getPlasmaBlockAtAsync(exitBlockNum)
-    const exitTx = exitBlock.findTxWithSlot(slot)
+    const exitTx = await this.getPlasmaTx(slot, exitBlockNum)
     if (!exitTx) {
       throw new Error(`Invalid exit block: missing tx for slot ${slot.toString(10)}.`)
     }
-    const prevBlock = await this._dAppPlasmaClient.getPlasmaBlockAtAsync(prevBlockNum)
-    const prevTx = prevBlock.findTxWithSlot(slot)
+    const prevTx = await this.getPlasmaTx(slot, prevBlockNum)
     if (!prevTx) {
       throw new Error(`Invalid prev block: missing tx for slot ${slot.toString(10)}.`)
     }
@@ -235,8 +236,7 @@ export class Entity {
       } else if (blk.lt(exit.prevBlock)) {
         console.log('Challenge Invalid History!')
         // This should happen on the DAppChain side and return the specified tx, instead of the whole block
-        const block = await this._dAppPlasmaClient.getPlasmaBlockAtAsync(blk)
-        const tx = block.findTxWithSlot(slot)
+        const tx = await this.getPlasmaTx(slot, blk)
         await this.challengeBeforeAsync({
           slot: slot,
           prevBlockNum: tx.prevBlockNum,
@@ -279,9 +279,7 @@ export class Entity {
       const blockNumber = blockNumbers[i]
       const root = await this.getBlockRootAsync(blockNumber)
 
-      // This should happen on the DAppChain side and return the specified tx, instead of the whole block
-      const block = await this._dAppPlasmaClient.getPlasmaBlockAtAsync(blockNumber)
-      const tx = block.findTxWithSlot(slot)
+      const tx = await this.getPlasmaTx(slot, blockNumber)
 
       txs[blockNumber.toString()] = tx
       const included = await this.checkInclusionAsync(tx, root, slot, tx.proof)
@@ -378,10 +376,7 @@ export class Entity {
 
   async challengeAfterAsync(params: { slot: BN; challengingBlockNum: BN }): Promise<object> {
     const { slot, challengingBlockNum } = params
-    const challengingBlock = await this._dAppPlasmaClient.getPlasmaBlockAtAsync(
-      challengingBlockNum
-    )
-    const challengingTx = challengingBlock.findTxWithSlot(slot)
+    const challengingTx = await this.getPlasmaTx(slot, challengingBlockNum)
     if (!challengingTx) {
       throw new Error(`Invalid challenging block: missing tx for slot ${slot.toString(10)}.`)
     }
@@ -396,10 +391,7 @@ export class Entity {
 
   async challengeBetweenAsync(params: { slot: BN; challengingBlockNum: BN }): Promise<object> {
     const { slot, challengingBlockNum } = params
-    const challengingBlock = await this._dAppPlasmaClient.getPlasmaBlockAtAsync(
-      challengingBlockNum
-    )
-    const challengingTx = challengingBlock.findTxWithSlot(slot)
+    const challengingTx = await this.getPlasmaTx(slot, challengingBlockNum)
     if (!challengingTx) {
       throw new Error(`Invalid challenging block: missing tx for slot ${slot.toString(10)}.`)
     }
@@ -439,13 +431,11 @@ export class Entity {
     }
 
     // Otherwise, they should get the raw tx info from the blocks, and the merkle proofs.
-    const exitBlock = await this._dAppPlasmaClient.getPlasmaBlockAtAsync(challengingBlockNum)
-    const challengingTx = exitBlock.findTxWithSlot(slot)
+    const challengingTx = await this.getPlasmaTx(slot, challengingBlockNum)
     if (!challengingTx) {
       throw new Error(`Invalid exit block: missing tx for slot ${slot.toString(10)}.`)
     }
-    const prevBlock = await this._dAppPlasmaClient.getPlasmaBlockAtAsync(prevBlockNum)
-    const prevTx = prevBlock.findTxWithSlot(slot)
+    const prevTx = await this.getPlasmaTx(slot, challengingBlockNum)
     if (!prevTx) {
       throw new Error(`Invalid prev block: missing tx for slot ${slot.toString(10)}.`)
     }
@@ -466,8 +456,7 @@ export class Entity {
     respondingBlockNum: BN
   }): Promise<object> {
     const { slot, challengingTxHash, respondingBlockNum } = params
-    const respondingBlock = await this._dAppPlasmaClient.getPlasmaBlockAtAsync(respondingBlockNum)
-    const respondingTx = respondingBlock.findTxWithSlot(slot)
+    const respondingTx = await this.getPlasmaTx(slot, respondingBlockNum)
     if (!respondingTx) {
       throw new Error(`Invalid responding block: missing tx for slot ${slot.toString(10)}.`)
     }
