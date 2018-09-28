@@ -6,9 +6,7 @@ message PlasmaCashAccount {
     Address owner = 1;
     // Address of ERC721 contract the tokens in the Plasma coins originated
     // from
-    Address contract = 2;
-    // Plasma coins in this account, identified by their slot number.
-    repeated uint64 slots = 3;
+    repeated uint64 slots = 2;
 }
 
 message PlasmaBlock {
@@ -72,10 +70,11 @@ message GetPlasmaTxResponse {
 }
 
 message GetUserSlotsRequest {
-    PlasmaCashAccount account = 1;
+    Address from = 1;
 }
 
 message GetUserSlotsResponse {
+    repeated uint64 slots = 1;
 }
 
 message DepositRequest {
