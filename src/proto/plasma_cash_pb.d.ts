@@ -10,11 +10,6 @@ export class PlasmaCashAccount extends jspb.Message {
   getOwner(): proto_loom_pb.Address | undefined;
   setOwner(value?: proto_loom_pb.Address): void;
 
-  hasContract(): boolean;
-  clearContract(): void;
-  getContract(): proto_loom_pb.Address | undefined;
-  setContract(value?: proto_loom_pb.Address): void;
-
   clearSlotsList(): void;
   getSlotsList(): Array<number>;
   setSlotsList(value: Array<number>): void;
@@ -33,7 +28,6 @@ export class PlasmaCashAccount extends jspb.Message {
 export namespace PlasmaCashAccount {
   export type AsObject = {
     owner?: proto_loom_pb.Address.AsObject,
-    contract?: proto_loom_pb.Address.AsObject,
     slotsList: Array<number>,
   }
 }
@@ -365,10 +359,10 @@ export namespace GetPlasmaTxResponse {
 }
 
 export class GetUserSlotsRequest extends jspb.Message {
-  hasAccount(): boolean;
-  clearAccount(): void;
-  getAccount(): PlasmaCashAccount | undefined;
-  setAccount(value?: PlasmaCashAccount): void;
+  hasFrom(): boolean;
+  clearFrom(): void;
+  getFrom(): proto_loom_pb.Address | undefined;
+  setFrom(value?: proto_loom_pb.Address): void;
 
   serializeBinary(): Uint8Array;
   toObject(includeInstance?: boolean): GetUserSlotsRequest.AsObject;
@@ -382,11 +376,16 @@ export class GetUserSlotsRequest extends jspb.Message {
 
 export namespace GetUserSlotsRequest {
   export type AsObject = {
-    account?: PlasmaCashAccount.AsObject,
+    from?: proto_loom_pb.Address.AsObject,
   }
 }
 
 export class GetUserSlotsResponse extends jspb.Message {
+  clearSlotsList(): void;
+  getSlotsList(): Array<number>;
+  setSlotsList(value: Array<number>): void;
+  addSlots(value: number, index?: number): number;
+
   serializeBinary(): Uint8Array;
   toObject(includeInstance?: boolean): GetUserSlotsResponse.AsObject;
   static toObject(includeInstance: boolean, msg: GetUserSlotsResponse): GetUserSlotsResponse.AsObject;
@@ -399,6 +398,7 @@ export class GetUserSlotsResponse extends jspb.Message {
 
 export namespace GetUserSlotsResponse {
   export type AsObject = {
+    slotsList: Array<number>,
   }
 }
 
