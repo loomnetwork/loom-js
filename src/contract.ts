@@ -130,6 +130,7 @@ export class Contract extends EventEmitter {
     const query = new ContractMethodCall()
     query.setMethod(method)
     query.setArgs(args.serializeBinary())
+
     const result = await this._client.queryAsync(
       this.address,
       query.serializeBinary(),

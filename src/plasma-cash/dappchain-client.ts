@@ -12,6 +12,8 @@ import {
   GetCurrentBlockResponse,
   GetPlasmaTxRequest,
   GetPlasmaTxResponse,
+  GetUserSlotsRequest,
+  GetUserSlotsResponse,
   GetBlockRequest,
   GetBlockResponse,
   DepositRequest,
@@ -102,6 +104,27 @@ export class DAppChainPlasmaClient {
     )
     return unmarshalPlasmaTxPB(resp.getPlasmatx()!)
   }
+
+  /**
+   * Retrieves a merkle proof from the DAppChain regarding a coin at a block
+   *
+   * @param blockNum Height of the block to be retrieved.
+   * @param slot The coin id
+   * @return 
+   */
+  async getUserSlotsAsync(): Promise<any[]> {
+    const contract = await this._resolvePlasmaContractAsync()
+    const req = new GetUserSlotsRequest()
+    req.setFrom(this._callerAddress.MarshalPB())
+    const resp: GetUserSlotsResponse = await contract.staticCallAsync<GetUserSlotsResponse>(
+      'GetUserSlotsRequest',
+      req,
+      new GetUserSlotsResponse()
+    )
+    console.log('GOT USER SLOTS', resp.getSlotsList())
+    return resp.getSlotsList()
+  }
+
 
 
   /**
