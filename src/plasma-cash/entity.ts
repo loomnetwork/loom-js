@@ -101,6 +101,11 @@ export class Entity {
     return this._ethPlasmaClient.getBlockRootAsync({ blockNumber, from: this.ethAddress })
   }
 
+  getUserSlotsAsync(): Promise<any> {
+    return this._dAppPlasmaClient.getUserSlotsAsync()
+  }
+
+
   checkMembershipAsync(leaf: string, root: string, slot: BN, proof: string): Promise<boolean> {
     return this._ethPlasmaClient.checkMembershipAsync({
       leaf,
