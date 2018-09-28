@@ -31,10 +31,9 @@ test('LoomProvider + Filters 2', async t => {
       params: [ethNewBlockFilter.result]
     })
 
-    t.assert(
-      ethGetFilterChanges.result.length > 0,
-      'Should return the hash for a new block created'
-    )
+    await waitForMillisecondsAsync(1000)
+
+    t.assert(ethGetFilterChanges.result.length > 0, '')
 
     console.log('Hash for the latest block is:', ethGetFilterChanges.result)
 
