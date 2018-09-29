@@ -94,7 +94,6 @@ export class DAppChainPlasmaClient {
    * @return 
    */
   async getPlasmaTxAsync(slot: BN, blockNum: BN): Promise<PlasmaCashTx> {
-    console.log(`Getting tx at ${slot} and block ${blockNum}`)
     const contract = await this._resolvePlasmaContractAsync()
     const req = new GetPlasmaTxRequest()
     req.setBlockHeight(marshalBigUIntPB(blockNum))
@@ -127,19 +126,17 @@ export class DAppChainPlasmaClient {
    * @param slot The coin id
    * @return 
    */
-  async getUserSlotsAsync(): Promise<any[]> {
+  async getUserSlotsAsync(_ethAddress: Address): Promise<BN[]> {
     const contract = await this._resolvePlasmaContractAsync()
     const req = new GetUserSlotsRequest()
-    req.setFrom(this._callerAddress.MarshalPB())
+    req.setFrom(_ethAddress.MarshalPB())
     const resp: GetUserSlotsResponse = await contract.staticCallAsync<GetUserSlotsResponse>(
       'GetUserSlotsRequest',
       req,
       new GetUserSlotsResponse()
     )
-    return resp.getSlotsList()
+    return resp.getSlotsList().map(s => new BN(s))
   }
-
-
 
   /**
    * Transfers a Plasma token from one entity to another.

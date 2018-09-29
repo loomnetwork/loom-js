@@ -7,6 +7,7 @@ import {
   IPlasmaDeposit,
   IPlasmaExitData
 } from './ethereum-client'
+import { Address, LocalAddress } from '../address'
 import { DAppChainPlasmaClient } from './dappchain-client'
 import { PlasmaCashTx } from './plasma-cash-tx'
 import { Web3Signer } from '../solidity-helpers'
@@ -101,8 +102,12 @@ export class Entity {
     return this._ethPlasmaClient.getBlockRootAsync({ blockNumber, from: this.ethAddress })
   }
 
-  getUserSlotsAsync(): Promise<any> {
-    return this._dAppPlasmaClient.getUserSlotsAsync()
+  async getUserSlotsAsync(): Promise<IPlasmaCoin[]> {
+    const addr = new Address('eth', LocalAddress.fromHexString(this.ethAddress))
+    const slots = await this._dAppPlasmaClient.getUserSlotsAsync(addr)
+
+    const coins = slots.map(s => this.getPlasmaCoinAsync(s))
+    return (await Promise.all(coins))
   }
 
 
