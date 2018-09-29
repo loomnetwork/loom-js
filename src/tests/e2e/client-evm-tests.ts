@@ -1,7 +1,7 @@
 import test from 'tape'
 
 import { NonceTxMiddleware, SignedTxMiddleware, CryptoUtils } from '../../index'
-import { createTestClient, waitForMillisecondsAsync } from '../helpers'
+import { createTestClient, execAndWaitForMillisecondsAsync } from '../helpers'
 import { EthBlockHashList, EthBlockInfo } from '../../proto/evm_pb'
 import { bytesToHexAddr } from '../../crypto-utils'
 
@@ -21,18 +21,16 @@ test('Client EVM test (newBlockEvmFilterAsync)', async t => {
     ]
 
     // calls newblockevmfilter
-    const filterId = await client.newBlockEvmFilterAsync()
-
-    await waitForMillisecondsAsync(1000)
+    const filterId = await execAndWaitForMillisecondsAsync(client.newBlockEvmFilterAsync())
 
     if (!filterId) {
       t.fail('Filter Id cannot be null')
     }
 
     // calls getevmfilterchanges
-    const hash = await client.getEvmFilterChangesAsync(filterId as string)
-
-    await waitForMillisecondsAsync(1000)
+    const hash = await execAndWaitForMillisecondsAsync(
+      client.getEvmFilterChangesAsync(filterId as string)
+    )
 
     if (!hash) {
       t.fail('Block cannot be null')
@@ -41,11 +39,9 @@ test('Client EVM test (newBlockEvmFilterAsync)', async t => {
     const blockList = (hash as EthBlockHashList).getEthBlockHashList()
 
     // calls getevmblockbyhash
-    const block: EthBlockInfo = (await client.getEvmBlockByHashAsync(
-      bytesToHexAddr(blockList[0] as Uint8Array)
+    const block: EthBlockInfo = (await execAndWaitForMillisecondsAsync(
+      client.getEvmBlockByHashAsync(bytesToHexAddr(blockList[0] as Uint8Array))
     )) as EthBlockInfo
-
-    await waitForMillisecondsAsync(1000)
 
     if (!block) {
       t.fail('Block cannot be null')
@@ -79,13 +75,13 @@ test('Client EVM test (newPendingTransactionEvmFilterAsync)', async t => {
     ]
 
     // calls newblockevmfilter
-    const filterId = await client.newPendingTransactionEvmFilterAsync()
+    const filterId = await execAndWaitForMillisecondsAsync(
+      client.newPendingTransactionEvmFilterAsync()
+    )
 
     if (!filterId) {
       t.fail('Filter Id cannot be null')
     }
-
-    await waitForMillisecondsAsync(1000)
 
     // calls getevmfilterchanges
     const hash = await client.getEvmFilterChangesAsync(filterId as string)

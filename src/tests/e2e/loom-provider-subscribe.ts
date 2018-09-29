@@ -1,7 +1,7 @@
 import test from 'tape'
 
 import { LocalAddress, CryptoUtils } from '../../index'
-import { createTestClient } from '../helpers'
+import { createTestClient, execAndWaitForMillisecondsAsync } from '../helpers'
 import { LoomProvider } from '../../loom-provider'
 import { deployContract } from '../evm-helpers'
 
@@ -49,11 +49,13 @@ test('LoomProvider + Subscribe', async t => {
     const contractDeployResult = await deployContract(loomProvider, contractData)
     const id = 1
 
-    const ethSubscribeNewHardsResult = await loomProvider.sendAsync({
-      id,
-      method: 'eth_subscribe',
-      params: ['newHeads', {}]
-    })
+    const ethSubscribeNewHardsResult = await execAndWaitForMillisecondsAsync(
+      loomProvider.sendAsync({
+        id,
+        method: 'eth_subscribe',
+        params: ['newHeads', {}]
+      })
+    )
 
     t.equal(ethSubscribeNewHardsResult.id, id, `Id for eth_subscribe should be equal ${id}`)
     t.assert(
@@ -61,20 +63,24 @@ test('LoomProvider + Subscribe', async t => {
       'Filter identification should be returned on eth_subscribe'
     )
 
-    const ethUnsubscribeNewHeadsResult = await loomProvider.sendAsync({
-      id,
-      method: 'eth_unsubscribe',
-      params: [ethSubscribeNewHardsResult.result]
-    })
+    const ethUnsubscribeNewHeadsResult = await execAndWaitForMillisecondsAsync(
+      loomProvider.sendAsync({
+        id,
+        method: 'eth_unsubscribe',
+        params: [ethSubscribeNewHardsResult.result]
+      })
+    )
 
     t.equal(ethUnsubscribeNewHeadsResult.id, id, `Id for eth_unsubscribe should be equal ${id}`)
     t.assert(ethUnsubscribeNewHeadsResult.result, 'Unsubscribed for newHeads')
 
-    const ethSubscribeLogsResult = await loomProvider.sendAsync({
-      id,
-      method: 'eth_subscribe',
-      params: ['logs', {}]
-    })
+    const ethSubscribeLogsResult = await execAndWaitForMillisecondsAsync(
+      loomProvider.sendAsync({
+        id,
+        method: 'eth_subscribe',
+        params: ['logs', {}]
+      })
+    )
 
     t.equal(ethSubscribeLogsResult.id, id, `Id for eth_subscribe should be equal ${id}`)
     t.assert(
@@ -82,11 +88,13 @@ test('LoomProvider + Subscribe', async t => {
       'Filter identification should be returned on eth_subscribe'
     )
 
-    const ethUnsubscribeLogsResult = await loomProvider.sendAsync({
-      id,
-      method: 'eth_unsubscribe',
-      params: [ethSubscribeLogsResult.result]
-    })
+    const ethUnsubscribeLogsResult = await execAndWaitForMillisecondsAsync(
+      loomProvider.sendAsync({
+        id,
+        method: 'eth_unsubscribe',
+        params: [ethSubscribeLogsResult.result]
+      })
+    )
 
     t.equal(ethUnsubscribeLogsResult.id, id, `Id for eth_unsubscribe should be equal ${id}`)
     t.assert(ethUnsubscribeLogsResult.result, 'Unsubscribed for Logs')
