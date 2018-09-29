@@ -189,7 +189,7 @@ export class Entity {
     return this.plasmaCashContract.events
       .StartedExit({
         filter: { slot: slot },
-        fromBlock: 0
+        fromBlock: fromBlock
       })
       .on('data', (event: any, err: any) => {
         this.challengeExitAsync(slot, event.returnValues.owner)
