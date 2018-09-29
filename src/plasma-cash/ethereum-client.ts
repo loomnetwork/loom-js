@@ -18,6 +18,7 @@ export enum PlasmaCoinState {
 }
 
 export interface IPlasmaCoin {
+  slot: BN
   /** Identifier of an ERC721 token. */
   uid: BN
   /** Plasma block number at which this coin was deposited. */
@@ -178,6 +179,7 @@ export class EthereumPlasmaClient {
     const { slot, from } = params
     const coin = await this._plasmaContract.methods.getPlasmaCoin(slot).call({ from })
     return {
+      slot: slot,
       uid: new BN(coin[0]),
       depositBlockNum: new BN(coin[1]),
       denomination: new BN(coin[2]),
