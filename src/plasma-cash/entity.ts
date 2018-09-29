@@ -102,7 +102,7 @@ export class Entity {
     return this._ethPlasmaClient.getBlockRootAsync({ blockNumber, from: this.ethAddress })
   }
 
-  async getUserSlotsAsync(): Promise<IPlasmaCoin[]> {
+  async getUserCoinsAsync(): Promise<IPlasmaCoin[]> {
     const addr = new Address('eth', LocalAddress.fromHexString(this.ethAddress))
     const slots = await this._dAppPlasmaClient.getUserSlotsAsync(addr)
 
