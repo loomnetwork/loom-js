@@ -2,13 +2,6 @@ syntax = "proto3";
 
 import "proto/loom.proto";
 
-message PlasmaCashAccount {
-    Address owner = 1;
-    // Address of ERC721 contract the tokens in the Plasma coins originated
-    // from
-    repeated uint64 slots = 2;
-}
-
 message PlasmaBlock {
     BigUInt uid = 1; // Plasma block height/number
     repeated PlasmaTx transactions = 2; // Transactions included in the block
@@ -74,7 +67,7 @@ message GetUserSlotsRequest {
 }
 
 message GetUserSlotsResponse {
-    repeated uint64 slots = 1;
+    repeated uint64 slots = 1 [jstype = JS_STRING];
 }
 
 message DepositRequest {

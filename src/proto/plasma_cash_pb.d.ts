@@ -4,34 +4,6 @@
 import * as jspb from "google-protobuf";
 import * as proto_loom_pb from "../proto/loom_pb";
 
-export class PlasmaCashAccount extends jspb.Message {
-  hasOwner(): boolean;
-  clearOwner(): void;
-  getOwner(): proto_loom_pb.Address | undefined;
-  setOwner(value?: proto_loom_pb.Address): void;
-
-  clearSlotsList(): void;
-  getSlotsList(): Array<number>;
-  setSlotsList(value: Array<number>): void;
-  addSlots(value: number, index?: number): number;
-
-  serializeBinary(): Uint8Array;
-  toObject(includeInstance?: boolean): PlasmaCashAccount.AsObject;
-  static toObject(includeInstance: boolean, msg: PlasmaCashAccount): PlasmaCashAccount.AsObject;
-  static extensions: {[key: number]: jspb.ExtensionFieldInfo<jspb.Message>};
-  static extensionsBinary: {[key: number]: jspb.ExtensionFieldBinaryInfo<jspb.Message>};
-  static serializeBinaryToWriter(message: PlasmaCashAccount, writer: jspb.BinaryWriter): void;
-  static deserializeBinary(bytes: Uint8Array): PlasmaCashAccount;
-  static deserializeBinaryFromReader(message: PlasmaCashAccount, reader: jspb.BinaryReader): PlasmaCashAccount;
-}
-
-export namespace PlasmaCashAccount {
-  export type AsObject = {
-    owner?: proto_loom_pb.Address.AsObject,
-    slotsList: Array<number>,
-  }
-}
-
 export class PlasmaBlock extends jspb.Message {
   hasUid(): boolean;
   clearUid(): void;
