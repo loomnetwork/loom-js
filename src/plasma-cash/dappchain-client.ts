@@ -18,7 +18,8 @@ import {
   GetBlockResponse,
   DepositRequest,
   PlasmaTxRequest,
-  SubmitBlockToMainnetRequest
+  SubmitBlockToMainnetRequest,
+  PlasmaTx
 } from '../proto/plasma_cash_pb'
 
 export class DAppChainPlasmaClient {
@@ -93,15 +94,29 @@ export class DAppChainPlasmaClient {
    * @return 
    */
   async getPlasmaTxAsync(slot: BN, blockNum: BN): Promise<PlasmaCashTx> {
+    console.log(`Getting tx at ${slot} and block ${blockNum}`)
     const contract = await this._resolvePlasmaContractAsync()
     const req = new GetPlasmaTxRequest()
     req.setBlockHeight(marshalBigUIntPB(blockNum))
     req.setSlot(slot.toString(10) as any)
     const resp = await contract.staticCallAsync<GetPlasmaTxResponse>(
-      'GetPlasmaTx',
+      'GetPlasmaTxRequest',
       req,
       new GetPlasmaTxResponse()
     )
+    const rawTx : PlasmaTx = resp.getPlasmatx()!
+
+    // If we're getting a non-existing transaction, we just return its slot and its non-inclusion proof
+    if (!rawTx.hasNewOwner()) {
+      return new PlasmaCashTx({
+        slot: slot,
+        prevBlockNum: new BN(0),
+        denomination: 1,
+        newOwner: '0x0000000000000000000000000000000000000000',
+        proof: rawTx.getProof_asU8(),
+      })
+    }
+
     return unmarshalPlasmaTxPB(resp.getPlasmatx()!)
   }
 
@@ -121,7 +136,6 @@ export class DAppChainPlasmaClient {
       req,
       new GetUserSlotsResponse()
     )
-    console.log('GOT USER SLOTS', resp.getSlotsList())
     return resp.getSlotsList()
   }
 

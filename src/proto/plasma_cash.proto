@@ -61,7 +61,7 @@ message PlasmaTxResponse {
 }
 
 message GetPlasmaTxRequest {
-    uint64 slot = 1; // The slot of the UTXO - Currently uint64, subject to change.
+    uint64 slot = 1 [jstype = JS_STRING]; // The slot of the UTXO - Currently uint64, subject to change.
     BigUInt block_height = 2;
 }
 
