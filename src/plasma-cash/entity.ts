@@ -5,7 +5,8 @@ import {
   EthereumPlasmaClient,
   IPlasmaCoin,
   IPlasmaDeposit,
-  IPlasmaExitData
+  IPlasmaExitData,
+  marshalDepositEvent
 } from './ethereum-client'
 import { Address, LocalAddress } from '../address'
 import { DAppChainPlasmaClient } from './dappchain-client'
@@ -107,9 +108,8 @@ export class Entity {
     const slots = await this._dAppPlasmaClient.getUserSlotsAsync(addr)
 
     const coins = slots.map(s => this.getPlasmaCoinAsync(s))
-    return (await Promise.all(coins))
+    return await Promise.all(coins)
   }
-
 
   checkMembershipAsync(leaf: string, root: string, slot: BN, proof: string): Promise<boolean> {
     return this._ethPlasmaClient.checkMembershipAsync({
@@ -351,6 +351,17 @@ export class Entity {
     }
     return ret
   }
+
+  async getDepositEvents(all?: boolean): Promise<IPlasmaDeposit[]> {
+    const filter = !all ? { from: this.ethAddress } : {}
+    const events: any[] = await this.plasmaCashContract.getPastEvents('Deposit', {
+      filter: filter,
+      fromBlock: 0
+    })
+    const deposits = events.map<IPlasmaDeposit>(e => marshalDepositEvent(e.returnValues))
+    return deposits
+  }
+
 
   async getBlockNumbersAsync(startBlock: any): Promise<BN[]> {
     const endBlock: BN = await this.getCurrentBlockAsync()
