@@ -79,7 +79,7 @@ export class Entity {
       newOwner: newOwner.ethAddress,
       prevOwner: this.ethAddress
     })
-    await tx.signAsync(new Web3Signer(this._web3, this.ethAddress))
+    await tx.signAsync(new Web3Signer(this._web3, this._ethAccount))
     await this._dAppPlasmaClient.sendTxAsync(tx)
   }
 
@@ -145,7 +145,7 @@ export class Entity {
         denomination: 1,
         newOwner: this.ethAddress
       })
-      await exitTx.signAsync(new Web3Signer(this._web3, this.ethAddress))
+      await exitTx.signAsync(new Web3Signer(this._web3, this._ethAccount))
       return this._ethPlasmaClient.startExitAsync({
         slot,
         exitTx,
@@ -440,7 +440,7 @@ export class Entity {
         denomination: 1,
         newOwner: this.ethAddress
       })
-      await challengingTx.signAsync(new Web3Signer(this._web3, this.ethAddress))
+      await challengingTx.signAsync(new Web3Signer(this._web3, this._ethAccount))
       return this._ethPlasmaClient.challengeBeforeAsync({
         slot,
         challengingTx,

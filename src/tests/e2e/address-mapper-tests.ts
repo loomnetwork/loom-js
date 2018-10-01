@@ -41,12 +41,14 @@ async function getClientAndContract(
 async function testAddIdentity(t: test.Test, createClient: () => Client) {
   const { client, addressMapper, pubKey } = await getClientAndContract(createClient)
 
-  const ethAddress = '0x90f8bf6a479f320ead074411a4b0e7944ea8c9c1'
+  const ethAddress = '0x7292694902bcaf4e1620629e7198cdcb3f572a24'
+  const pkey = '0x7920ca01d3d1ac463dfd55b5ddfdcbb64ae31830f31be045ce2d51a305516a37'
   const from = new Address('eth', LocalAddress.fromHexString(ethAddress))
   const to = new Address(client.chainId, LocalAddress.fromPublicKey(pubKey))
 
   const web3 = getWeb3Connection()
-  const web3Signer = new Web3Signer(web3, ethAddress)
+  const account = web3.eth.accounts.privateKeyToAccount(pkey)
+  const web3Signer = new Web3Signer(web3, account)
 
   await addressMapper.addIdentityMappingAsync(from, to, web3Signer)
 

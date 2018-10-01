@@ -4,6 +4,8 @@ import Web3 from 'web3'
 import { PlasmaCashBlock } from './plasma-cash-block'
 import { bytesToHexAddr } from '../crypto-utils'
 import { PlasmaCashTx } from './plasma-cash-tx'
+import SignedContract from './signed-contract'
+import { Account } from 'web3/eth/accounts';
 
 export enum PlasmaCoinMode {
   ETH = 0,
