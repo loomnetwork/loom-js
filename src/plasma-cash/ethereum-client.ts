@@ -131,7 +131,6 @@ export interface IPlasmaRspondChallengeBeforeParams extends ISendTxOptions {
 export class EthereumPlasmaClient {
   private _web3: Web3
   private _plasmaContract: any // TODO: figure out how to type this properly
-  public _new_plasmaContract: any
 
   /**
    * Web3 contract instance of the Plasma Cash contract on Ethereum.
