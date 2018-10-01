@@ -352,11 +352,11 @@ export class Entity {
     return ret
   }
 
-  async getDepositEvents(all?: boolean): Promise<IPlasmaDeposit[]> {
+  async getDepositEvents(fromBlock?: BN, all?: boolean): Promise<IPlasmaDeposit[]> {
     const filter = !all ? { from: this.ethAddress } : {}
     const events: any[] = await this.plasmaCashContract.getPastEvents('Deposit', {
       filter: filter,
-      fromBlock: 0
+      fromBlock: fromBlock ? fromBlock: 0
     })
     const deposits = events.map<IPlasmaDeposit>(e => marshalDepositEvent(e.returnValues))
     return deposits
