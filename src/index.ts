@@ -39,3 +39,6 @@ export { Web3Signer, soliditySha3 } from './solidity-helpers'
 export { EthErc721Contract } from './plasma-cash/eth-erc721-contract'
 export { Entity, IEntityParams } from './plasma-cash/entity'
 export { SparseMerkleTree, ISparseMerkleTreeLevel } from './plasma-cash/sparse-merkle-tree'
+
+import SignedContract from './plasma-cash/signed-contract';
+export { SignedContract } 

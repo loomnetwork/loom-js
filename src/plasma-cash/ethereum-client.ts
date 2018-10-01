@@ -131,6 +131,7 @@ export interface IPlasmaRspondChallengeBeforeParams extends ISendTxOptions {
 export class EthereumPlasmaClient {
   private _web3: Web3
   private _plasmaContract: any // TODO: figure out how to type this properly
+  public _new_plasmaContract: any
 
   /**
    * Web3 contract instance of the Plasma Cash contract on Ethereum.
@@ -139,10 +140,11 @@ export class EthereumPlasmaClient {
     return this._plasmaContract
   }
 
-  constructor(web3: Web3, plasmaContractAddr: string) {
+  constructor(web3: Web3, ethAccount: Account, plasmaContractAddr: string) {
     this._web3 = web3
     const plasmaABI = require(`./contracts/plasma-cash-abi.json`)
-    this._plasmaContract = new this._web3.eth.Contract(plasmaABI, plasmaContractAddr)
+    this._plasmaContract = new web3.eth.Contract(plasmaABI, plasmaContractAddr)
+    this._new_plasmaContract = new SignedContract(web3, plasmaABI, plasmaContractAddr, ethAccount).instance
   }
 
   async getExitAsync(params: { slot: BN; from: string }): Promise<IPlasmaExitData> {
@@ -201,7 +203,7 @@ export class EthereumPlasmaClient {
     const exitTxBytes = exitTx.rlpEncode()
     const bond = this._web3.utils.toWei('0.1', 'ether')
 
-    return this._plasmaContract.methods
+    return this._new_plasmaContract
       .startExit(
         slot,
         prevTxBytes,
@@ -211,7 +213,6 @@ export class EthereumPlasmaClient {
         exitTx.sig,
         [prevBlockNum || 0, exitBlockNum]
       )
-      .send({ from, value: bond, gas, gasPrice })
   }
 
   /**
