@@ -41,3 +41,9 @@ export function createTestHttpWSClient(): Client {
 export function waitForMillisecondsAsync(ms: number) {
   return new Promise(res => setTimeout(res, ms))
 }
+
+export async function execAndWaitForMillisecondsAsync(fn: Promise<any>, ms: number = 2000) {
+  const ret = await fn
+  await waitForMillisecondsAsync(ms)
+  return ret
+}

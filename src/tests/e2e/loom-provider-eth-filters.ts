@@ -1,7 +1,7 @@
 import test from 'tape'
 
-import { LocalAddress, CryptoUtils } from '../../index'
-import { createTestClient } from '../helpers'
+import { CryptoUtils } from '../../index'
+import { createTestClient, execAndWaitForMillisecondsAsync } from '../helpers'
 import { LoomProvider } from '../../loom-provider'
 import { deployContract } from '../evm-helpers'
 
@@ -42,46 +42,53 @@ test('LoomProvider + Filters', async t => {
     const privKey = CryptoUtils.generatePrivateKey()
     client = createTestClient()
     client.on('error', msg => console.error('Error on client:', msg))
-    const fromAddr = LocalAddress.fromPublicKey(
-      CryptoUtils.publicKeyFromPrivateKey(privKey)
-    ).toString()
     const loomProvider = new LoomProvider(client, privKey)
 
-    const contractDeployResult = await deployContract(loomProvider, contractData)
-    const contractAddress = contractDeployResult.contractAddress
+    await deployContract(loomProvider, contractData)
 
     // Transaction receipt in order to obtain the topic of the event NewValueSet
-    const ethNewFilterResult = await loomProvider.sendAsync({
-      id: 10,
-      method: 'eth_newFilter',
-      params: [{ toBlock: 'latest' }]
-    })
+    const ethNewFilterResult = await execAndWaitForMillisecondsAsync(
+      loomProvider.sendAsync({
+        id: 10,
+        method: 'eth_newFilter',
+        params: [{ toBlock: 'latest' }]
+      })
+    )
 
     t.assert(/0x.+/.test(ethNewFilterResult.result), 'New id should be created for new filter')
 
-    const ethNewBlockFilter = await loomProvider.sendAsync({
-      id: 11,
-      method: 'eth_newBlockFilter'
-    })
+    const ethNewBlockFilter = await execAndWaitForMillisecondsAsync(
+      loomProvider.sendAsync({
+        id: 11,
+        method: 'eth_newBlockFilter'
+      })
+    )
 
     t.assert(
       /0x.+/.test(ethNewBlockFilter.result),
       'New id should be created for new block filter'
     )
 
-    const ethGetFilterChanges = await loomProvider.sendAsync({
-      id: 12,
-      method: 'eth_getFilterChanges',
-      params: [ethNewBlockFilter.result]
-    })
+    const ethGetFilterChanges = await execAndWaitForMillisecondsAsync(
+      loomProvider.sendAsync({
+        id: 12,
+        method: 'eth_getFilterChanges',
+        params: [ethNewBlockFilter.result]
+      })
+    )
 
-    t.deepEqual(ethGetFilterChanges.result, [], 'Get filter changes should return empty array')
+    t.assert(
+      ethGetFilterChanges.result.length > 0,
+      'Get filter changes should return array with new blocks'
+    )
 
-    const ethUninstallFilterResult = await loomProvider.sendAsync({
-      id: 13,
-      method: 'eth_uninstallFilter',
-      params: [ethNewBlockFilter.result]
-    })
+    const ethUninstallFilterResult = await execAndWaitForMillisecondsAsync(
+      loomProvider.sendAsync({
+        id: 13,
+        method: 'eth_uninstallFilter',
+        params: [ethNewBlockFilter.result]
+      })
+    )
 
     t.deepEqual(ethUninstallFilterResult.result, true, 'Should uninstall filter and return true')
   } catch (err) {
