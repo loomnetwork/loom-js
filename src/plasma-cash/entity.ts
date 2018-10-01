@@ -12,6 +12,7 @@ import { Address, LocalAddress } from '../address'
 import { DAppChainPlasmaClient } from './dappchain-client'
 import { PlasmaCashTx } from './plasma-cash-tx'
 import { Web3Signer } from '../solidity-helpers'
+import { Account } from 'web3/eth/accounts'
 
 export interface IProofs {
   inclusion: { [blockNumber: string]: string }
@@ -21,7 +22,7 @@ export interface IProofs {
 
 export interface IEntityParams {
   /** Web3 account for use on Ethereum */
-  ethAccount: any // TODO: Type this properly, also this should probably be obtained from ethPlasmaClient
+  ethAccount: Account
   ethPlasmaClient: EthereumPlasmaClient
   dAppPlasmaClient: DAppChainPlasmaClient
   /** Allows to override the amount of gas used when sending txs to Ethereum. */
@@ -42,7 +43,7 @@ export interface IWeb3EventSub {
 export class Entity {
   private _web3: Web3
   // web3 account
-  private _ethAccount: any // TODO: type this properly
+  private _ethAccount: Account
   private _dAppPlasmaClient: DAppChainPlasmaClient
   private _ethPlasmaClient: EthereumPlasmaClient
   private _defaultGas?: string | number
@@ -50,6 +51,10 @@ export class Entity {
 
   get ethAddress(): string {
     return this._ethAccount.address
+  }
+
+  get ethAccount(): Account {
+    return this._ethAccount
   }
 
   get plasmaCashContract(): any {
@@ -356,7 +361,7 @@ export class Entity {
     const filter = !all ? { from: this.ethAddress } : {}
     const events: any[] = await this.plasmaCashContract.getPastEvents('Deposit', {
       filter: filter,
-      fromBlock: fromBlock ? fromBlock: 0
+      fromBlock: fromBlock ? fromBlock : 0
     })
     const deposits = events.map<IPlasmaDeposit>(e => marshalDepositEvent(e.returnValues))
     return deposits
