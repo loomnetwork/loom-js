@@ -309,10 +309,10 @@ export namespace GetPlasmaTxRequest {
 }
 
 export class GetPlasmaTxResponse extends jspb.Message {
-  hasPlasmatx(): boolean;
-  clearPlasmatx(): void;
-  getPlasmatx(): PlasmaTx | undefined;
-  setPlasmatx(value?: PlasmaTx): void;
+  hasPlasmaTx(): boolean;
+  clearPlasmaTx(): void;
+  getPlasmaTx(): PlasmaTx | undefined;
+  setPlasmaTx(value?: PlasmaTx): void;
 
   serializeBinary(): Uint8Array;
   toObject(includeInstance?: boolean): GetPlasmaTxResponse.AsObject;
@@ -326,7 +326,7 @@ export class GetPlasmaTxResponse extends jspb.Message {
 
 export namespace GetPlasmaTxResponse {
   export type AsObject = {
-    plasmatx?: PlasmaTx.AsObject,
+    plasmaTx?: PlasmaTx.AsObject,
   }
 }
 
