@@ -91,7 +91,7 @@ export class DAppChainPlasmaClient {
    *
    * @param blockNum Height of the block to be retrieved.
    * @param slot The coin id
-   * @return 
+   * @return
    */
   async getPlasmaTxAsync(slot: BN, blockNum: BN): Promise<PlasmaCashTx> {
     const contract = await this._resolvePlasmaContractAsync()
@@ -103,7 +103,7 @@ export class DAppChainPlasmaClient {
       req,
       new GetPlasmaTxResponse()
     )
-    const rawTx : PlasmaTx = resp.getPlasmatx()!
+    const rawTx: PlasmaTx = resp.getPlasmaTx()!
 
     // If we're getting a non-existing transaction, we just return its slot and its non-inclusion proof
     if (!rawTx.hasNewOwner()) {
@@ -112,11 +112,11 @@ export class DAppChainPlasmaClient {
         prevBlockNum: new BN(0),
         denomination: 1,
         newOwner: '0x0000000000000000000000000000000000000000',
-        proof: rawTx.getProof_asU8(),
+        proof: rawTx.getProof_asU8()
       })
     }
 
-    return unmarshalPlasmaTxPB(resp.getPlasmatx()!)
+    return unmarshalPlasmaTxPB(resp.getPlasmaTx()!)
   }
 
   /**
@@ -124,7 +124,7 @@ export class DAppChainPlasmaClient {
    *
    * @param blockNum Height of the block to be retrieved.
    * @param slot The coin id
-   * @return 
+   * @return
    */
   async getUserSlotsAsync(_ethAddress: Address): Promise<BN[]> {
     const contract = await this._resolvePlasmaContractAsync()

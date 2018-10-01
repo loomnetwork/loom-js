@@ -83,7 +83,7 @@ export class Entity {
     await this._dAppPlasmaClient.sendTxAsync(tx)
   }
 
-  getPlasmaTx(slot: BN, blockNumber: BN): Promise<PlasmaCashTx> {
+  getPlasmaTxAsync(slot: BN, blockNumber: BN): Promise<PlasmaCashTx> {
     return this._dAppPlasmaClient.getPlasmaTxAsync(slot, blockNumber)
   }
 
@@ -155,11 +155,11 @@ export class Entity {
       })
     }
 
-    const exitTx = await this.getPlasmaTx(slot, exitBlockNum)
+    const exitTx = await this.getPlasmaTxAsync(slot, exitBlockNum)
     if (!exitTx) {
       throw new Error(`Invalid exit block: missing tx for slot ${slot.toString(10)}.`)
     }
-    const prevTx = await this.getPlasmaTx(slot, prevBlockNum)
+    const prevTx = await this.getPlasmaTxAsync(slot, prevBlockNum)
     if (!prevTx) {
       throw new Error(`Invalid prev block: missing tx for slot ${slot.toString(10)}.`)
     }
@@ -246,7 +246,7 @@ export class Entity {
       } else if (blk.lt(exit.prevBlock)) {
         console.log('Challenge Invalid History!')
         // This should happen on the DAppChain side and return the specified tx, instead of the whole block
-        const tx = await this.getPlasmaTx(slot, blk)
+        const tx = await this.getPlasmaTxAsync(slot, blk)
         await this.challengeBeforeAsync({
           slot: slot,
           prevBlockNum: tx.prevBlockNum,
@@ -289,7 +289,7 @@ export class Entity {
       const blockNumber = blockNumbers[i]
       const root = await this.getBlockRootAsync(blockNumber)
 
-      const tx = await this.getPlasmaTx(slot, blockNumber)
+      const tx = await this.getPlasmaTxAsync(slot, blockNumber)
 
       txs[blockNumber.toString()] = tx
       const included = await this.checkInclusionAsync(tx, root, slot, tx.proof)
@@ -362,7 +362,6 @@ export class Entity {
     return deposits
   }
 
-
   async getBlockNumbersAsync(startBlock: any): Promise<BN[]> {
     const endBlock: BN = await this.getCurrentBlockAsync()
     const nextDepositBlock: BN = new BN(
@@ -397,7 +396,7 @@ export class Entity {
 
   async challengeAfterAsync(params: { slot: BN; challengingBlockNum: BN }): Promise<object> {
     const { slot, challengingBlockNum } = params
-    const challengingTx = await this.getPlasmaTx(slot, challengingBlockNum)
+    const challengingTx = await this.getPlasmaTxAsync(slot, challengingBlockNum)
     if (!challengingTx) {
       throw new Error(`Invalid challenging block: missing tx for slot ${slot.toString(10)}.`)
     }
@@ -412,7 +411,7 @@ export class Entity {
 
   async challengeBetweenAsync(params: { slot: BN; challengingBlockNum: BN }): Promise<object> {
     const { slot, challengingBlockNum } = params
-    const challengingTx = await this.getPlasmaTx(slot, challengingBlockNum)
+    const challengingTx = await this.getPlasmaTxAsync(slot, challengingBlockNum)
     if (!challengingTx) {
       throw new Error(`Invalid challenging block: missing tx for slot ${slot.toString(10)}.`)
     }
@@ -452,11 +451,11 @@ export class Entity {
     }
 
     // Otherwise, they should get the raw tx info from the blocks, and the merkle proofs.
-    const challengingTx = await this.getPlasmaTx(slot, challengingBlockNum)
+    const challengingTx = await this.getPlasmaTxAsync(slot, challengingBlockNum)
     if (!challengingTx) {
       throw new Error(`Invalid exit block: missing tx for slot ${slot.toString(10)}.`)
     }
-    const prevTx = await this.getPlasmaTx(slot, challengingBlockNum)
+    const prevTx = await this.getPlasmaTxAsync(slot, challengingBlockNum)
     if (!prevTx) {
       throw new Error(`Invalid prev block: missing tx for slot ${slot.toString(10)}.`)
     }
@@ -477,7 +476,7 @@ export class Entity {
     respondingBlockNum: BN
   }): Promise<object> {
     const { slot, challengingTxHash, respondingBlockNum } = params
-    const respondingTx = await this.getPlasmaTx(slot, respondingBlockNum)
+    const respondingTx = await this.getPlasmaTxAsync(slot, respondingBlockNum)
     if (!respondingTx) {
       throw new Error(`Invalid responding block: missing tx for slot ${slot.toString(10)}.`)
     }
