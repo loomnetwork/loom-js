@@ -1,6 +1,6 @@
 import ethutil from 'ethereumjs-util'
 import Web3 from 'web3'
-import { Account } from 'web3/types';
+import { Account } from 'web3/types'
 
 const web3 = new Web3()
 

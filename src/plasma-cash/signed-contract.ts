@@ -56,8 +56,9 @@ class SignedContract {
         nonce: nonce,
         value: value ? value : 0
       }
-      const gas = await method(...args).estimateGas({from: this.account.address})
-      // Giveui extra gas since we may be off in the estimation
+
+      // TODO Fix gas calculation
+      // const gas = await method(...args).estimateGas({from: this.account.address})
       tx['gas'] = 4000000
 
       // console.log("GOT ESTIMATE", gas)
