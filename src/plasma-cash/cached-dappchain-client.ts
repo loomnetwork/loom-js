@@ -1,7 +1,7 @@
 import { DAppChainPlasmaClient } from './dappchain-client'
 import { Client, Address, PlasmaDB, PlasmaCashTx } from '..'
 import BN from 'bn.js'
-import {keys, countBy} from 'lodash'
+import { keys, countBy } from 'lodash'
 
 export class CachedDAppChainPlasmaClient extends DAppChainPlasmaClient {
   private _database: PlasmaDB
@@ -29,8 +29,8 @@ export class CachedDAppChainPlasmaClient extends DAppChainPlasmaClient {
   }
 
   getAllCoins(): BN[] {
-      const coins = this._database.getAllCoins()
-      const slots: string[] = keys(countBy(coins, (c) => c.slot))
-      return slots.map(s => new BN(s, 16))
+    const coins = this._database.getAllCoins()
+    const slots: string[] = keys(countBy(coins, c => c.slot))
+    return slots.map(s => new BN(s, 16))
   }
 }

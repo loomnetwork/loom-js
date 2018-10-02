@@ -399,12 +399,12 @@ export class Entity {
   async getBlockNumbersAsync(startBlock: any): Promise<BN[]> {
     const endBlock: BN = await this.getCurrentBlockAsync()
     const blockNumbers: BN[] = [startBlock]
-    const nextDepositBlock: BN = new BN(
+    const nextNonDepositBlock: BN = new BN(
       Math.ceil(startBlock / this._childBlockInterval) * this._childBlockInterval
     )
-    if (nextDepositBlock > endBlock) {
+    if (nextNonDepositBlock.lt(endBlock)) {
       const interval = new BN(this._childBlockInterval)
-      for (let i: BN = nextDepositBlock; i <= endBlock; i = i.add(interval)) {
+      for (let i: BN = nextNonDepositBlock; i <= endBlock; i = i.add(interval)) {
         blockNumbers.push(i)
       }
     }

@@ -57,11 +57,13 @@ class SignedContract {
         value: value ? value : 0
       }
 
-      // TODO Fix gas calculation
-      // const gas = await method(...args).estimateGas({from: this.account.address})
-      tx['gas'] = 4000000
-
-      // console.log("GOT ESTIMATE", gas)
+      let gas
+      try {
+        gas = await method(...args).estimateGas({from: this.account.address, value: value})
+      } catch (e) {
+        gas = 300000 // default gas amount
+      }
+      tx['gas'] = Math.ceil(gas * 1.25) // give some extra gas and round the decimal
 
       // Sign the raw transaction
       const signedTx = await (<Signature>this.web3.eth.accounts.signTransaction(

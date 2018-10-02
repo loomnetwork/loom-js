@@ -55,7 +55,7 @@ export class PlasmaCashTx {
    * Hex encoded signature of the tx, prefixed by "0x".
    */
   get sig(): string {
-    return '0x' + (this.sigBytes ? bytesToHex(this.sigBytes) : '')
+    return '0x' + (this.sigBytes ? bytesToHex(Uint8Array.from(this.sigBytes)) : '')
   }
 
   /**

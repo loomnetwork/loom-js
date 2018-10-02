@@ -37,6 +37,8 @@ class PlasmaDB {
 
     // @ts-ignore
     tx.proofBytes = Array.from(tx.proofBytes!)
+    // @ts-ignore
+    tx.sigBytes = Array.from(tx.sigBytes!)
     // Append for new coinId
     const result = this.db
       .get('coins')
@@ -46,7 +48,7 @@ class PlasmaDB {
         tx: tx
       })
       .write()
-    console.log('State updated', result)
+    // console.log('State updated', result)
   }
 
   getTx(coinId: string, block: string): PlasmaCashTx {
@@ -57,11 +59,11 @@ class PlasmaDB {
     const tx = result[0].tx
     return new PlasmaCashTx({
       slot: new BN(tx.slot, 16),
-      prevBlockNum: new BN(tx.prevBlockNum),
+      prevBlockNum: new BN(tx.prevBlockNum, 16),
       denomination: new BN(1),
       newOwner: tx.newOwner,
       prevOwner: tx.prevOwner,
-      sig: tx.sigBytes,
+      sig: Uint8Array.from(tx.sigBytes),
       proof: Uint8Array.from(tx.proofBytes)
     })
   }
@@ -100,7 +102,6 @@ class PlasmaDB {
 }
 
 export default PlasmaDB
-
 
 // Example -> transform in a test
 // const db = new PlasmaDB('localhost:8545', 'localhost:46658', '0x1234', '0x6666')
