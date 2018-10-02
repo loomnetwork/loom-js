@@ -28,12 +28,14 @@
     "prepublish": "yarn proto && yarn plasmaabi && yarn build && webpack"
   },
   "dependencies": {
+    "@types/lowdb": "^1.0.5",
     "axios": "^0.18.0",
     "bn.js": "^4.11.8",
     "crypto-browserify": "^3.12.0",
     "debug": "^3.1.0",
     "ethereumjs-util": "^5.2.0",
     "google-protobuf": "3.6",
+    "lowdb": "^1.0.0",
     "retry": "^0.12.0",
     "ripemd160": "^2.0.1",
     "rlp": "^2.1.0",
