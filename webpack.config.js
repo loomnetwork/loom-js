@@ -14,6 +14,7 @@ module.exports = {
     library: 'loom'
   },
   node: {
+    fs: 'empty',
     crypto: true,
     util: true,
     stream: true,
