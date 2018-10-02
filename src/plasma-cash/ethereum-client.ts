@@ -6,7 +6,7 @@ import { bytesToHexAddr } from '../crypto-utils'
 import { PlasmaCashTx } from './plasma-cash-tx'
 import SignedContract from './signed-contract'
 import { Account } from 'web3/eth/accounts'
-import { Contract } from 'web3/types';
+import { Contract } from 'web3/types'
 
 export enum PlasmaCoinMode {
   ETH = 0,

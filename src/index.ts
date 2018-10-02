@@ -25,6 +25,7 @@ export { createJSONRPCClient, IJSONRPCProtocolOptions } from './rpc-client-facto
 
 // The Plasma Cash client API should be considered experimental, interfaces are likely to change.
 export { DAppChainPlasmaClient } from './plasma-cash/dappchain-client'
+export { CachedDAppChainPlasmaClient } from './plasma-cash/cached-dappchain-client'
 export {
   EthereumPlasmaClient,
   IPlasmaCoin,

@@ -1,6 +1,8 @@
 import low from 'lowdb'
 import FileSync from 'lowdb/adapters/FileSync'
 import LocalStorage from 'lowdb/adapters/LocalStorage'
+import { PlasmaCashTx } from './plasma-cash-tx'
+import BN from 'bn.js'
 
 class PlasmaDB {
   db: any
@@ -27,40 +29,47 @@ class PlasmaDB {
     console.log('Initialized database', this.db.value())
   }
 
-  receiveCoin(coinId: Number, block: Number, proof: String) {
+  receiveCoin(coinId: BN, block: BN, tx: PlasmaCashTx) {
     // Find the coin in the database and add the block/proof.
     // Throw for duplicate block
-    // Append for new coinId
-
-    if (this.exists(coinId, block, proof)) {
+    if (this.exists(coinId, block)) {
       return
     }
 
+    // Append for new coinId
     const result = this.db
       .get('coins')
       .push({
         id: coinId,
         block: block,
-        merkleProof: proof
+        tx: tx
       })
       .write()
-    // console.log('State updated', result)
+    console.log('State updated', result)
   }
 
-  exists(coinId: Number, block: Number, proof: String): Boolean {
+  getTx(coinId: BN, block: BN): PlasmaCashTx {
+    const result = this.db
+      .get('coins')
+      .filter({ id: coinId, block: block })
+      .value()
+    return result[0].tx
+  }
+
+  exists(coinId: BN, block: BN): Boolean {
     const result = this.db
       .get('coins')
       .filter({ id: coinId, block: block })
       .value()
     if (result.length > 0) {
-      console.log(`Proof for Coin: ${coinId} at Block: ${block} already exists`)
+      console.log(`Transaction: ${coinId} at Block: ${block} already exists in local state`)
       return true
     } else {
       return false
     }
   }
 
-  removeCoin(coinId: Number) {
+  removeCoin(coinId: BN) {
     this.db
       .get('coins')
       .remove({ id: coinId })
