@@ -11,7 +11,7 @@ import {
 import { Address, LocalAddress } from '../address'
 import { DAppChainPlasmaClient } from './dappchain-client'
 import { PlasmaCashTx } from './plasma-cash-tx'
-import { Web3Signer } from '../solidity-helpers'
+import { OfflineWeb3Signer } from '../solidity-helpers'
 import { Account } from 'web3/eth/accounts'
 
 export interface IProofs {
@@ -84,7 +84,7 @@ export class Entity {
       newOwner: newOwner.ethAddress,
       prevOwner: this.ethAddress
     })
-    await tx.signAsync(new Web3Signer(this._web3, this._ethAccount))
+    await tx.signAsync(new OfflineWeb3Signer(this._web3, this._ethAccount))
     await this._dAppPlasmaClient.sendTxAsync(tx)
   }
 
@@ -150,7 +150,7 @@ export class Entity {
         denomination: 1,
         newOwner: this.ethAddress
       })
-      await exitTx.signAsync(new Web3Signer(this._web3, this._ethAccount))
+      await exitTx.signAsync(new OfflineWeb3Signer(this._web3, this._ethAccount))
       return this._ethPlasmaClient.startExitAsync({
         slot,
         exitTx,
@@ -445,7 +445,7 @@ export class Entity {
         denomination: 1,
         newOwner: this.ethAddress
       })
-      await challengingTx.signAsync(new Web3Signer(this._web3, this._ethAccount))
+      await challengingTx.signAsync(new OfflineWeb3Signer(this._web3, this._ethAccount))
       return this._ethPlasmaClient.challengeBeforeAsync({
         slot,
         challengingTx,
