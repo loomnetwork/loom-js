@@ -62,7 +62,7 @@ export class PlasmaCashTx {
    * Hex encoded merkle proof of the tx, prefixed by "0x".
    */
   get proof(): string {
-    return '0x' + (this.proofBytes ? bytesToHex(this.proofBytes) : '')
+    return '0x' + (this.proofBytes ? bytesToHex(Uint8Array.from(this.proofBytes)) : '')
   }
 
   /**

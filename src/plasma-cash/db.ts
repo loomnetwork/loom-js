@@ -10,7 +10,6 @@ class PlasmaDB {
     // If we're on node.js
     let adapter
     if (typeof localStorage === 'undefined' || localStorage === null) {
-      const low = require('lowdb')
       adapter = new FileSync(`db/db_${privateKey}.json`)
     } else {
       adapter = new LocalStorage('db')
@@ -29,18 +28,20 @@ class PlasmaDB {
     console.log('Initialized database', this.db.value())
   }
 
-  receiveCoin(coinId: BN, block: BN, tx: PlasmaCashTx) {
+  receiveCoin(coinId: string, block: string, tx: PlasmaCashTx) {
     // Find the coin in the database and add the block/proof.
     // Throw for duplicate block
     if (this.exists(coinId, block)) {
       return
     }
 
+    // @ts-ignore
+    tx.proofBytes = Array.from(tx.proofBytes!)
     // Append for new coinId
     const result = this.db
       .get('coins')
       .push({
-        id: coinId,
+        slot: coinId,
         block: block,
         tx: tx
       })
@@ -48,18 +49,27 @@ class PlasmaDB {
     console.log('State updated', result)
   }
 
-  getTx(coinId: BN, block: BN): PlasmaCashTx {
+  getTx(coinId: string, block: string): PlasmaCashTx {
     const result = this.db
       .get('coins')
-      .filter({ id: coinId, block: block })
+      .filter({ slot: coinId, block: block })
       .value()
-    return result[0].tx
+    const tx = result[0].tx
+    return new PlasmaCashTx({
+      slot: new BN(tx.slot, 16),
+      prevBlockNum: new BN(tx.prevBlockNum),
+      denomination: new BN(1),
+      newOwner: tx.newOwner,
+      prevOwner: tx.prevOwner,
+      sig: tx.sigBytes,
+      proof: Uint8Array.from(tx.proofBytes)
+    })
   }
 
-  exists(coinId: BN, block: BN): Boolean {
+  exists(coinId: string, block: string): Boolean {
     const result = this.db
       .get('coins')
-      .filter({ id: coinId, block: block })
+      .filter({ slot: coinId, block: block })
       .value()
     if (result.length > 0) {
       console.log(`Transaction: ${coinId} at Block: ${block} already exists in local state`)
@@ -69,29 +79,28 @@ class PlasmaDB {
     }
   }
 
-  removeCoin(coinId: BN) {
+  removeCoin(coinId: string) {
     this.db
       .get('coins')
-      .remove({ id: coinId })
+      .remove({ slot: coinId })
       .write()
     console.log(`Coin ${coinId} removed`)
   }
 
-  getCoin(coinId: any): any {
-    // todo organize the filter to not return the id in every row
+  getCoin(coinId: string): any {
     return this.db
       .get('coins')
-      .filter({ id: coinId })
+      .filter({ slot: coinId })
       .value()
   }
 
   getAllCoins(): any {
-    // todo group by coinId
     return this.db.get('coins').value()
   }
 }
 
 export default PlasmaDB
+
 
 // Example -> transform in a test
 // const db = new PlasmaDB('localhost:8545', 'localhost:46658', '0x1234', '0x6666')
