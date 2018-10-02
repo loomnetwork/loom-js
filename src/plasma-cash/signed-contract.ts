@@ -8,7 +8,7 @@ class SignedContract {
   address: string
   web3: Web3
 
-  get instance() {
+  get instance(): Contract {
     return this.contract
   }
 
