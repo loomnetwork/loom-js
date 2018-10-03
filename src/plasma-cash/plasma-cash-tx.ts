@@ -4,7 +4,7 @@ import BN from 'bn.js'
 import { Address, LocalAddress } from '../address'
 import { unmarshalBigUIntPB, marshalBigUIntPB } from '../big-uint'
 import { bufferToProtobufBytes, bytesToHex } from '../crypto-utils'
-import { soliditySha3, Web3Signer } from '../solidity-helpers'
+import { soliditySha3, OfflineWeb3Signer } from '../solidity-helpers'
 import { PlasmaTx } from '../proto/plasma_cash_pb'
 
 export class PlasmaCashTx {
@@ -55,14 +55,14 @@ export class PlasmaCashTx {
    * Hex encoded signature of the tx, prefixed by "0x".
    */
   get sig(): string {
-    return '0x' + (this.sigBytes ? bytesToHex(this.sigBytes) : '')
+    return '0x' + (this.sigBytes ? bytesToHex(Uint8Array.from(this.sigBytes)) : '')
   }
 
   /**
    * Hex encoded merkle proof of the tx, prefixed by "0x".
    */
   get proof(): string {
-    return '0x' + (this.proofBytes ? bytesToHex(this.proofBytes) : '')
+    return '0x' + (this.proofBytes ? bytesToHex(Uint8Array.from(this.proofBytes)) : '')
   }
 
   /**
@@ -79,7 +79,7 @@ export class PlasmaCashTx {
    * Signs the tx.
    * @param signer Signer to use for signing the tx.
    */
-  async signAsync(signer: Web3Signer) {
+  async signAsync(signer: OfflineWeb3Signer) {
     this.sigBytes = await signer.signAsync(this.hash)
   }
 }

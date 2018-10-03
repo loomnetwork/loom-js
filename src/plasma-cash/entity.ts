@@ -11,7 +11,9 @@ import {
 import { Address, LocalAddress } from '../address'
 import { DAppChainPlasmaClient } from './dappchain-client'
 import { PlasmaCashTx } from './plasma-cash-tx'
-import { Web3Signer } from '../solidity-helpers'
+import { OfflineWeb3Signer } from '../solidity-helpers'
+import { Account } from 'web3/eth/accounts'
+import { CachedDAppChainPlasmaClient } from './cached-dappchain-client'
 
 export interface IProofs {
   inclusion: { [blockNumber: string]: string }
@@ -21,9 +23,9 @@ export interface IProofs {
 
 export interface IEntityParams {
   /** Web3 account for use on Ethereum */
-  ethAccount: any // TODO: Type this properly, also this should probably be obtained from ethPlasmaClient
+  ethAccount: Account
   ethPlasmaClient: EthereumPlasmaClient
-  dAppPlasmaClient: DAppChainPlasmaClient
+  dAppPlasmaClient: DAppChainPlasmaClient | CachedDAppChainPlasmaClient
   /** Allows to override the amount of gas used when sending txs to Ethereum. */
   defaultGas?: string | number
   childBlockInterval: number
@@ -42,14 +44,18 @@ export interface IWeb3EventSub {
 export class Entity {
   private _web3: Web3
   // web3 account
-  private _ethAccount: any // TODO: type this properly
-  private _dAppPlasmaClient: DAppChainPlasmaClient
+  private _ethAccount: Account
+  private _dAppPlasmaClient: DAppChainPlasmaClient | CachedDAppChainPlasmaClient
   private _ethPlasmaClient: EthereumPlasmaClient
   private _defaultGas?: string | number
   private _childBlockInterval: number
 
   get ethAddress(): string {
     return this._ethAccount.address
+  }
+
+  get ethAccount(): Account {
+    return this._ethAccount
   }
 
   get plasmaCashContract(): any {
@@ -63,6 +69,35 @@ export class Entity {
     this._dAppPlasmaClient = params.dAppPlasmaClient
     this._defaultGas = params.defaultGas
     this._childBlockInterval = params.childBlockInterval
+  }
+
+  // This should be called whenever a new block gets received
+  // if there is no database we should not allow this to be called
+  async refreshAsync() {
+    // Get all coins as the dappchain says
+    const coins = await this.getUserCoinsAsync()
+
+    // For each coin we got from the dappchain
+    // coins.forEach(async coin => {
+    for (let i = 0; i < coins.length; i++) {
+      const coin = coins[i]
+      // @ts-ignore
+      const localSlots = this._dAppPlasmaClient.getAllCoins()
+      // If it's an empty list just add the coin
+      if (localSlots.length === 0) {
+        const blocks = await this.getBlockNumbersAsync(coin.depositBlockNum)
+        const proofs = await this.getCoinHistoryAsync(coin.slot, blocks)
+        continue
+      }
+
+      // Otherwise check for each coin that's not incldued and include that.
+      localSlots.forEach(async (s: BN) => {
+        if (s.cmp(coin.slot) !== 0) {
+          const blocks = await this.getBlockNumbersAsync(coin.depositBlockNum)
+          const proofs = await this.getCoinHistoryAsync(coin.slot, blocks)
+        }
+      })
+    }
   }
 
   async transferTokenAsync(params: {
@@ -79,7 +114,7 @@ export class Entity {
       newOwner: newOwner.ethAddress,
       prevOwner: this.ethAddress
     })
-    await tx.signAsync(new Web3Signer(this._web3, this.ethAddress))
+    await tx.signAsync(new OfflineWeb3Signer(this._web3, this._ethAccount))
     await this._dAppPlasmaClient.sendTxAsync(tx)
   }
 
@@ -145,7 +180,7 @@ export class Entity {
         denomination: 1,
         newOwner: this.ethAddress
       })
-      await exitTx.signAsync(new Web3Signer(this._web3, this.ethAddress))
+      await exitTx.signAsync(new OfflineWeb3Signer(this._web3, this._ethAccount))
       return this._ethPlasmaClient.startExitAsync({
         slot,
         exitTx,
@@ -245,7 +280,6 @@ export class Entity {
         break
       } else if (blk.lt(exit.prevBlock)) {
         console.log('Challenge Invalid History!')
-        // This should happen on the DAppChain side and return the specified tx, instead of the whole block
         const tx = await this.getPlasmaTxAsync(slot, blk)
         await this.challengeBeforeAsync({
           slot: slot,
@@ -352,11 +386,11 @@ export class Entity {
     return ret
   }
 
-  async getDepositEvents(all?: boolean): Promise<IPlasmaDeposit[]> {
+  async getDepositEvents(fromBlock?: BN, all?: boolean): Promise<IPlasmaDeposit[]> {
     const filter = !all ? { from: this.ethAddress } : {}
     const events: any[] = await this.plasmaCashContract.getPastEvents('Deposit', {
       filter: filter,
-      fromBlock: 0
+      fromBlock: fromBlock ? fromBlock : 0
     })
     const deposits = events.map<IPlasmaDeposit>(e => marshalDepositEvent(e.returnValues))
     return deposits
@@ -364,13 +398,15 @@ export class Entity {
 
   async getBlockNumbersAsync(startBlock: any): Promise<BN[]> {
     const endBlock: BN = await this.getCurrentBlockAsync()
-    const nextDepositBlock: BN = new BN(
+    const blockNumbers: BN[] = [startBlock]
+    const nextNonDepositBlock: BN = new BN(
       Math.ceil(startBlock / this._childBlockInterval) * this._childBlockInterval
     )
-    const blockNumbers: BN[] = [startBlock]
-    const interval = new BN(this._childBlockInterval)
-    for (let i: BN = nextDepositBlock; i <= endBlock; i = i.add(interval)) {
-      blockNumbers.push(i)
+    if (nextNonDepositBlock.lt(endBlock)) {
+      const interval = new BN(this._childBlockInterval)
+      for (let i: BN = nextNonDepositBlock; i <= endBlock; i = i.add(interval)) {
+        blockNumbers.push(i)
+      }
     }
     return blockNumbers
   }
@@ -440,7 +476,7 @@ export class Entity {
         denomination: 1,
         newOwner: this.ethAddress
       })
-      await challengingTx.signAsync(new Web3Signer(this._web3, this.ethAddress))
+      await challengingTx.signAsync(new OfflineWeb3Signer(this._web3, this._ethAccount))
       return this._ethPlasmaClient.challengeBeforeAsync({
         slot,
         challengingTx,
