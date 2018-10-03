@@ -31,13 +31,13 @@ export class CachedDAppChainPlasmaClient extends DAppChainPlasmaClient {
     const coins = this._database.getAllCoins()
 
     // Get unique keys, O(N) complexity, can't go lower
-    let unique: any = {};
-    let distinct: any = [];
+    let unique: any = {}
+    let distinct: any = []
     for (let i in coins) {
-      if (typeof (unique[coins[i].slot]) == "undefined") {
-        distinct.push(coins[i].age);
+      if (typeof unique[coins[i].slot] == 'undefined') {
+        distinct.push(coins[i].age)
       }
-      unique[coins[i].age] = 0;
+      unique[coins[i].age] = 0
     }
 
     // @ts-ignore
