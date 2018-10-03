@@ -1,7 +1,6 @@
 import { DAppChainPlasmaClient } from './dappchain-client'
 import { Client, Address, PlasmaDB, PlasmaCashTx } from '..'
 import BN from 'bn.js'
-import { keys, countBy } from 'lodash'
 
 export class CachedDAppChainPlasmaClient extends DAppChainPlasmaClient {
   private _database: PlasmaDB
@@ -30,7 +29,18 @@ export class CachedDAppChainPlasmaClient extends DAppChainPlasmaClient {
 
   getAllCoins(): BN[] {
     const coins = this._database.getAllCoins()
-    const slots: string[] = keys(countBy(coins, c => c.slot))
-    return slots.map(s => new BN(s, 16))
+
+    // Get unique keys, O(N) complexity, can't go lower
+    let unique: any = {};
+    let distinct: any = [];
+    for (let i in coins) {
+      if (typeof (unique[coins[i].slot]) == "undefined") {
+        distinct.push(coins[i].age);
+      }
+      unique[coins[i].age] = 0;
+    }
+
+    // @ts-ignore
+    return distinct.map(s => new BN(s, 16))
   }
 }

@@ -28,7 +28,6 @@
     "prepublish": "yarn proto && yarn plasmaabi && yarn build && webpack"
   },
   "dependencies": {
-    "@types/lowdb": "^1.0.5",
     "axios": "^0.18.0",
     "bn.js": "^4.11.8",
     "crypto-browserify": "^3.12.0",
@@ -54,6 +53,7 @@
     "@types/debug": "^0.0.30",
     "@types/ethereumjs-util": "^5.2.0",
     "@types/google-protobuf": "^3.2.7",
+    "@types/lowdb": "^1.0.5",
     "@types/node": "^10.0.3",
     "@types/retry": "^0.10.2",
     "@types/tape": "^4.2.32",

@@ -73,7 +73,7 @@ export class Entity {
 
   // This should be called whenever a new block gets received
   // if there is no database we should not allow this to be called
-  async refresh() {
+  async refreshAsync() {
     // Get all coins as the dappchain says
     const coins = await this.getUserCoinsAsync()
 

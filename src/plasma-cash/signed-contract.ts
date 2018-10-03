@@ -59,7 +59,7 @@ class SignedContract {
 
       let gas
       try {
-        gas = await method(...args).estimateGas({from: this.account.address, value: value})
+        gas = await method(...args).estimateGas({ from: this.account.address, value: value })
       } catch (e) {
         gas = 300000 // default gas amount
       }
