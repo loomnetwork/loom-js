@@ -1,6 +1,4 @@
 import low from 'lowdb'
-import FileSync from 'lowdb/adapters/FileSync'
-import LocalStorage from 'lowdb/adapters/LocalStorage'
 import { PlasmaCashTx } from './plasma-cash-tx'
 import BN from 'bn.js'
 
@@ -10,8 +8,10 @@ class PlasmaDB {
     // If we're on node.js
     let adapter
     if (typeof localStorage === 'undefined' || localStorage === null) {
+      const FileSync = require('lowdb/adapters/FileSync')
       adapter = new FileSync(`db/db_${privateKey}.json`)
     } else {
+      const LocalStorage = require('lowdb/adapters/LocalStorage')
       adapter = new LocalStorage('db')
     }
     this.db = low(adapter)
