@@ -104,14 +104,14 @@ export class Entity {
     slot: BN
     prevBlockNum: BN
     denomination: BN | number
-    newOwner: Entity
+    newOwner: string
   }) {
     const { slot, prevBlockNum, denomination, newOwner } = params
     const tx = new PlasmaCashTx({
       slot,
       prevBlockNum,
       denomination,
-      newOwner: newOwner.ethAddress,
+      newOwner,
       prevOwner: this.ethAddress
     })
     await tx.signAsync(new OfflineWeb3Signer(this._web3, this._ethAccount))
