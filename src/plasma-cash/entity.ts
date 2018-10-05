@@ -264,7 +264,6 @@ export class Entity {
     const blocks = await this.getBlockNumbersAsync(coin.depositBlockNum)
     const proofs = await this.getCoinHistoryAsync(slot, blocks)
     const exit = await this.getExitAsync(slot)
-
     for (let i in blocks) {
       const blk = blocks[i]
       if (!(blk.toString() in proofs.inclusion)) {
@@ -404,7 +403,7 @@ export class Entity {
     )
     if (nextNonDepositBlock.lt(endBlock)) {
       const interval = new BN(this._childBlockInterval)
-      for (let i: BN = nextNonDepositBlock; i <= endBlock; i = i.add(interval)) {
+      for (let i: BN = nextNonDepositBlock; i.lte(endBlock); i = i.add(interval)) {
         blockNumbers.push(i)
       }
     }
