@@ -104,14 +104,14 @@ export class Entity {
     slot: BN
     prevBlockNum: BN
     denomination: BN | number
-    newOwner: Entity
+    newOwner: string
   }) {
     const { slot, prevBlockNum, denomination, newOwner } = params
     const tx = new PlasmaCashTx({
       slot,
       prevBlockNum,
       denomination,
-      newOwner: newOwner.ethAddress,
+      newOwner,
       prevOwner: this.ethAddress
     })
     await tx.signAsync(new OfflineWeb3Signer(this._web3, this._ethAccount))
@@ -264,7 +264,6 @@ export class Entity {
     const blocks = await this.getBlockNumbersAsync(coin.depositBlockNum)
     const proofs = await this.getCoinHistoryAsync(slot, blocks)
     const exit = await this.getExitAsync(slot)
-
     for (let i in blocks) {
       const blk = blocks[i]
       if (!(blk.toString() in proofs.inclusion)) {
@@ -404,7 +403,7 @@ export class Entity {
     )
     if (nextNonDepositBlock.lt(endBlock)) {
       const interval = new BN(this._childBlockInterval)
-      for (let i: BN = nextNonDepositBlock; i <= endBlock; i = i.add(interval)) {
+      for (let i: BN = nextNonDepositBlock; i.lte(endBlock); i = i.add(interval)) {
         blockNumbers.push(i)
       }
     }
