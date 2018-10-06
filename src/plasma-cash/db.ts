@@ -4,11 +4,11 @@ import BN from 'bn.js'
 
 export interface IDatabaseCoin {
   slot: BN
-  blockNumber: BN,
+  blockNumber: BN
   tx: PlasmaCashTx
 }
 
-class PlasmaDB {
+export class PlasmaDB {
   db: any
   constructor(ethereum: String, dappchain: String, plasmaAddress: String, privateKey: String) {
     // If we're on node.js
@@ -106,8 +106,6 @@ class PlasmaDB {
     return this.db.get('coins').value()
   }
 }
-
-export default PlasmaDB
 
 // Example -> transform in a test
 // const db = new PlasmaDB('localhost:8545', 'localhost:46658', '0x1234', '0x6666')

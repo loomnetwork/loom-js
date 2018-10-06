@@ -41,8 +41,5 @@ export { EthErc721Contract } from './plasma-cash/eth-erc721-contract'
 export { Entity, IEntityParams } from './plasma-cash/entity'
 export { SparseMerkleTree, ISparseMerkleTreeLevel } from './plasma-cash/sparse-merkle-tree'
 
-import SignedContract from './plasma-cash/signed-contract'
-export { SignedContract }
-
-import PlasmaDB from './plasma-cash/db'
-export { PlasmaDB }
+export { SignedContract } from './plasma-cash/signed-contract'
+export { PlasmaDB, IDatabaseCoin } from './plasma-cash/db'

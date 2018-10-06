@@ -2,7 +2,7 @@ import Web3 from 'web3'
 import { Contract, Account, Signature } from 'web3/types'
 
 // Converts any contract to a signed contract
-class SignedContract {
+export class SignedContract {
   account: Account
   contract: Contract
   address: string
@@ -79,5 +79,3 @@ class SignedContract {
     this.contract[func] = wrappedFunction
   }
 }
-
-export default SignedContract
