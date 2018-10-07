@@ -4,7 +4,7 @@ import BN from 'bn.js'
 
 export interface IDatabaseCoin {
   slot: BN
-  blockNumber: BN,
+  blockNumber: BN
   tx: PlasmaCashTx
 }
 
@@ -15,7 +15,7 @@ class PlasmaDB {
     let adapter
     if (typeof localStorage === 'undefined' || localStorage === null) {
       const FileSync = require('lowdb/adapters/FileSync')
-      adapter = new FileSync(`db/db_${privateKey}.json`)
+      adapter = new FileSync(`./db_${privateKey}.json`)
     } else {
       const LocalStorage = require('lowdb/adapters/LocalStorage')
       adapter = new LocalStorage('db')
@@ -31,10 +31,10 @@ class PlasmaDB {
         coins: []
       })
       .write()
-    console.log('Initialized database', this.db.value())
+    // console.log('Initialized database', this.db.value())
   }
 
-  receiveCoin(coinId: string, block: string, tx: PlasmaCashTx) {
+  receiveCoin(coinId: BN, block: BN, tx: PlasmaCashTx) {
     // Find the coin in the database and add the block/proof.
     // Throw for duplicate block
     if (this.exists(coinId, block)) {
@@ -42,9 +42,9 @@ class PlasmaDB {
     }
 
     // @ts-ignore
-    tx.proofBytes = Array.from(tx.proofBytes!)
+    tx.proofBytes = Array.from(tx.proofBytes ? tx.proofBytes : [0, 0, 0, 0, 0, 0, 0, 0])
     // @ts-ignore
-    tx.sigBytes = Array.from(tx.sigBytes!)
+    tx.sigBytes = Array.from(tx.sigBytes ? tx.sigBytes : 0)
     // Append for new coinId
     const result = this.db
       .get('coins')
@@ -57,10 +57,10 @@ class PlasmaDB {
     // console.log('State updated', result)
   }
 
-  getTx(coinId: string, block: string): PlasmaCashTx {
+  getTx(coinId: BN, block: BN): PlasmaCashTx {
     const result = this.db
       .get('coins')
-      .filter({ slot: coinId, block: block })
+      .filter((c: any) => new BN(c.slot, 16).eq(coinId) && new BN(c.block, 16).eq(block))
       .value()
     const tx = result[0].tx
     return new PlasmaCashTx({
@@ -74,52 +74,57 @@ class PlasmaDB {
     })
   }
 
-  exists(coinId: string, block: string): Boolean {
+  exists(coinId: BN, block: BN): Boolean {
     const result = this.db
       .get('coins')
-      .filter({ slot: coinId, block: block })
+      .filter((c: any) => new BN(c.slot, 16).eq(coinId) && new BN(c.block, 16).eq(block))
       .value()
     if (result.length > 0) {
-      console.log(`Transaction: ${coinId} at Block: ${block} already exists in local state`)
+      // console.log(`Transaction: ${coinId} at Block: ${block} already exists in local state`)
       return true
     } else {
       return false
     }
   }
 
-  removeCoin(coinId: string) {
+  removeCoin(coinId: BN) {
     this.db
       .get('coins')
-      .remove({ slot: coinId })
+      .remove((c: any) => new BN(c.slot, 16).eq(coinId))
       .write()
-    console.log(`Coin ${coinId} removed`)
+    // console.log(`Coin ${coinId} removed`)
   }
 
-  getCoin(coinId: string): IDatabaseCoin[] {
-    return this.db
+  getCoin(coinId: BN): IDatabaseCoin[] {
+    // The first time we write to the database we have to filter wihtout toString(16)
+    let coins = this.db
       .get('coins')
-      .filter({ slot: coinId })
+      .filter((c: any) => new BN(c.slot, 16).eq(coinId))
       .value()
+    return coins.map((c: any) => this.marshalDBCoin(c))
   }
 
   getAllCoins(): any {
-    return this.db.get('coins').value()
+    return this.db
+      .get('coins')
+      .value()
+      .map((c: any) => this.marshalDBCoin(c))
+  }
+
+  marshalDBCoin(c: any): IDatabaseCoin {
+    return {
+      slot: new BN(c.slot, 16),
+      blockNumber: new BN(c.block, 16),
+      tx: new PlasmaCashTx({
+        slot: new BN(c.tx.slot, 16),
+        prevBlockNum: new BN(c.tx.prevBlockNum, 16),
+        denomination: new BN(c.tx.denomination, 16),
+        newOwner: c.tx.newOwner,
+        sig: c.tx.sigBytes,
+        proof: c.tx.proofBytes
+      })
+    }
   }
 }
 
 export default PlasmaDB
-
-// Example -> transform in a test
-// const db = new PlasmaDB('localhost:8545', 'localhost:46658', '0x1234', '0x6666')
-// const id = 123442112
-// db.receiveCoin(id, 0, '0x1234')
-// db.receiveCoin(id, 0, '0x9999')
-// db.receiveCoin(id, 1, '0x98973')
-// db.receiveCoin(id, 2, '0x6666')
-// db.receiveCoin(id+1, 2, '0x6666')
-// console.log(db.getCoin(id))
-// db.removeCoin(id)
-// console.log(db.getCoin(id))
-//
-// console.log(db.getAllCoins())
-//
