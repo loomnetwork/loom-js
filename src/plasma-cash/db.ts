@@ -2,6 +2,12 @@ import low from 'lowdb'
 import { PlasmaCashTx } from './plasma-cash-tx'
 import BN from 'bn.js'
 
+export interface IDatabaseCoin {
+  slot: BN
+  blockNumber: BN,
+  tx: PlasmaCashTx
+}
+
 class PlasmaDB {
   db: any
   constructor(ethereum: String, dappchain: String, plasmaAddress: String, privateKey: String) {
@@ -89,7 +95,7 @@ class PlasmaDB {
     console.log(`Coin ${coinId} removed`)
   }
 
-  getCoin(coinId: string): any {
+  getCoin(coinId: string): IDatabaseCoin[] {
     return this.db
       .get('coins')
       .filter({ slot: coinId })
