@@ -16,6 +16,10 @@ export class CachedDAppChainPlasmaClient extends DAppChainPlasmaClient {
     this._database = database
   }
 
+  get database(): PlasmaDB {
+    return this._database
+  }
+
   async getPlasmaTxAsync(slot: BN, blockNum: BN): Promise<PlasmaCashTx> {
     let tx: PlasmaCashTx
     if (this._database.exists(slot, blockNum)) {

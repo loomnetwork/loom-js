@@ -14,6 +14,7 @@ import { PlasmaCashTx } from './plasma-cash-tx'
 import { OfflineWeb3Signer } from '../solidity-helpers'
 import { Account } from 'web3/eth/accounts'
 import { CachedDAppChainPlasmaClient } from './cached-dappchain-client'
+import { PlasmaDB } from './db'
 
 export interface IProofs {
   inclusion: { [blockNumber: string]: string }
@@ -25,7 +26,7 @@ export interface IEntityParams {
   /** Web3 account for use on Ethereum */
   ethAccount: Account
   ethPlasmaClient: EthereumPlasmaClient
-  dAppPlasmaClient: DAppChainPlasmaClient | CachedDAppChainPlasmaClient
+  dAppPlasmaClient: CachedDAppChainPlasmaClient
   /** Allows to override the amount of gas used when sending txs to Ethereum. */
   defaultGas?: string | number
   childBlockInterval: number
@@ -45,10 +46,14 @@ export class Entity {
   private _web3: Web3
   // web3 account
   private _ethAccount: Account
-  private _dAppPlasmaClient: DAppChainPlasmaClient | CachedDAppChainPlasmaClient
+  public _dAppPlasmaClient: CachedDAppChainPlasmaClient
   private _ethPlasmaClient: EthereumPlasmaClient
   private _defaultGas?: string | number
   private _childBlockInterval: number
+
+  get database(): PlasmaDB {
+    return this._dAppPlasmaClient.database
+  }
 
   get ethAddress(): string {
     return this._ethAccount.address
@@ -75,14 +80,18 @@ export class Entity {
   // if there is no database we should not allow this to be called
   async refreshAsync() {
     // Get all coins as the dappchain says
-    const coins = await this.getUserCoinsAsync()
+    const coins = Array.from(new Set(await this.getUserCoinsAsync()))
 
     // For each coin we got from the dappchain
     // coins.forEach(async coin => {
     for (let i = 0; i < coins.length; i++) {
       const coin = coins[i]
+      // Skip any coins that have been exited
+      if (coin.contractAddress === '0x0000000000000000000000000000000000000000') continue
+
       // @ts-ignore
       const localSlots = this._dAppPlasmaClient.getAllCoins()
+
       // If it's an empty list just add the coin
       if (localSlots.length === 0) {
         const blocks = await this.getBlockNumbersAsync(coin.depositBlockNum)
