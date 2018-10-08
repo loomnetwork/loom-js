@@ -43,6 +43,10 @@ test('Database', t => {
     db2.receiveCoin(slot2, blkNumber2, tx3)
     coinData = db2.getAllCoins()
     t.equal(coinData.length, 3, 'should receive the new coin')
+
+    const slots = db2.getAllCoinSlots()
+    t.ok(slots[0].eq(slot), 'slots should be equal')
+    t.ok(slots[1].eq(slot2), 'slots should be equal')
   } catch (err) {
     console.log(err)
   }

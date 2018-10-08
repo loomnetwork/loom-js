@@ -111,6 +111,20 @@ class PlasmaDB {
       .map((c: any) => this.marshalDBCoin(c))
   }
 
+  getAllCoinSlots(): BN[] {
+    const coins = this.getAllCoins()
+
+    // Get unique keys, O(N) complexity, can't go lower
+    let flag: any = {}
+    let distinct: BN[] = []
+    for (let i in coins) {
+      if (flag[coins[i].slot]) continue
+      distinct.push(coins[i].slot)
+      flag[coins[i].slot] = true
+    }
+    return distinct
+  }
+
   marshalDBCoin(c: any): IDatabaseCoin {
     return {
       slot: new BN(c.slot, 16),

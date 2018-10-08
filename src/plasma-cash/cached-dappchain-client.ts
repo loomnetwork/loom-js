@@ -26,21 +26,4 @@ export class CachedDAppChainPlasmaClient extends DAppChainPlasmaClient {
     }
     return tx
   }
-
-  getAllCoins(): BN[] {
-    const coins = this._database.getAllCoins()
-
-    // Get unique keys, O(N) complexity, can't go lower
-    let unique: any = {}
-    let distinct: any = []
-    for (let i in coins) {
-      if (typeof unique[coins[i].slot] == 'undefined') {
-        distinct.push(coins[i].age)
-      }
-      unique[coins[i].age] = 0
-    }
-
-    // @ts-ignore
-    return distinct.map(s => new BN(s, 16))
-  }
 }
