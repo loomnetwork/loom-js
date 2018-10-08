@@ -8,7 +8,7 @@ export interface IDatabaseCoin {
   tx: PlasmaCashTx
 }
 
-class PlasmaDB {
+export class PlasmaDB {
   db: any
   constructor(ethereum: String, dappchain: String, plasmaAddress: String, privateKey: String) {
     // If we're on node.js
@@ -140,5 +140,3 @@ class PlasmaDB {
     }
   }
 }
-
-export default PlasmaDB

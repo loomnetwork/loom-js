@@ -1,6 +1,6 @@
 import test from 'tape'
 
-import PlasmaDB from '../../../plasma-cash/db'
+import { PlasmaDB } from '../../../plasma-cash/db'
 import { PlasmaCashTx } from '../../../plasma-cash/plasma-cash-tx'
 import BN from 'bn.js'
 

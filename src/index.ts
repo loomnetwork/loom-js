@@ -44,5 +44,4 @@ export { SparseMerkleTree, ISparseMerkleTreeLevel } from './plasma-cash/sparse-m
 import SignedContract from './plasma-cash/signed-contract'
 export { SignedContract }
 
-import PlasmaDB from './plasma-cash/db'
-export { PlasmaDB }
+export { PlasmaDB, IDatabaseCoin } from './plasma-cash/db'
