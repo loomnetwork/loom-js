@@ -5,6 +5,7 @@ import BN from 'bn.js'
 export interface IDatabaseCoin {
   slot: BN
   blockNumber: BN
+  included: boolean
   tx: PlasmaCashTx
 }
 
@@ -15,7 +16,7 @@ export class PlasmaDB {
     let adapter
     if (typeof localStorage === 'undefined' || localStorage === null) {
       const FileSync = require('lowdb/adapters/FileSync')
-      adapter = new FileSync(`./db_${privateKey}.json`)
+      adapter = new FileSync(`./db/db_${privateKey}.json`)
     } else {
       const LocalStorage = require('lowdb/adapters/LocalStorage')
       adapter = new LocalStorage('db')
@@ -34,7 +35,7 @@ export class PlasmaDB {
     // console.log('Initialized database', this.db.value())
   }
 
-  receiveCoin(coinId: BN, block: BN, tx: PlasmaCashTx) {
+  receiveCoin(coinId: BN, block: BN, included: boolean, tx: PlasmaCashTx) {
     // Find the coin in the database and add the block/proof.
     // Throw for duplicate block
     if (this.exists(coinId, block)) {
@@ -51,6 +52,7 @@ export class PlasmaDB {
       .push({
         slot: coinId,
         block: block,
+        included: included,
         tx: tx
       })
       .write()
@@ -128,6 +130,7 @@ export class PlasmaDB {
   marshalDBCoin(c: any): IDatabaseCoin {
     return {
       slot: new BN(c.slot, 16),
+      included: c.included,
       blockNumber: new BN(c.block, 16),
       tx: new PlasmaCashTx({
         slot: new BN(c.tx.slot, 16),

@@ -20,17 +20,6 @@ export class CachedDAppChainPlasmaClient extends DAppChainPlasmaClient {
     return this._database
   }
 
-  async getPlasmaTxAsync(slot: BN, blockNum: BN): Promise<PlasmaCashTx> {
-    let tx: PlasmaCashTx
-    if (this._database.exists(slot, blockNum)) {
-      tx = this._database.getTx(slot, blockNum)
-    } else {
-      tx = await super.getPlasmaTxAsync(slot, blockNum)
-      this._database.receiveCoin(slot, blockNum, tx)
-    }
-    return tx
-  }
-
   getAllCoins(): BN[] {
     return this._database.getAllCoinSlots()
   }

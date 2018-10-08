@@ -51,6 +51,10 @@ export class Entity {
   private _defaultGas?: string | number
   private _childBlockInterval: number
 
+  get web3(): Web3 {
+    return this._web3
+  }
+
   get database(): PlasmaDB {
     return this._dAppPlasmaClient.database
   }
@@ -83,7 +87,6 @@ export class Entity {
     const coins = Array.from(new Set(await this.getUserCoinsAsync()))
 
     // For each coin we got from the dappchain
-    // coins.forEach(async coin => {
     for (let i = 0; i < coins.length; i++) {
       const coin = coins[i]
       // Skip any coins that have been exited
@@ -91,6 +94,7 @@ export class Entity {
 
       // @ts-ignore
       const localSlots = this._dAppPlasmaClient.getAllCoins()
+      // console.log("Local state", localSlots)
 
       // If it's an empty list just add the coin
       if (localSlots.length === 0) {
@@ -104,6 +108,8 @@ export class Entity {
         if (s.cmp(coin.slot) !== 0) {
           const blocks = await this.getBlockNumbersAsync(coin.depositBlockNum)
           const proofs = await this.getCoinHistoryAsync(coin.slot, blocks)
+        } else {
+          console.log('Coin already in state')
         }
       })
     }
@@ -127,8 +133,17 @@ export class Entity {
     await this._dAppPlasmaClient.sendTxAsync(tx)
   }
 
-  getPlasmaTxAsync(slot: BN, blockNumber: BN): Promise<PlasmaCashTx> {
-    return this._dAppPlasmaClient.getPlasmaTxAsync(slot, blockNumber)
+  async getPlasmaTxAsync(slot: BN, blockNumber: BN): Promise<PlasmaCashTx> {
+    const root = await this.getBlockRootAsync(blockNumber)
+    let tx: PlasmaCashTx
+    if (this.database.exists(slot, blockNumber)) {
+      tx = this.database.getTx(slot, blockNumber)
+    } else {
+      tx = await this._dAppPlasmaClient.getPlasmaTxAsync(slot, blockNumber)
+    }
+    const included = await this.checkInclusionAsync(tx, root, slot, tx.proof)
+    this._dAppPlasmaClient.database.receiveCoin(slot, blockNumber, included, tx)
+    return tx
   }
 
   getExitAsync(slot: BN): Promise<IPlasmaExitData> {
@@ -332,6 +347,7 @@ export class Entity {
       const root = await this.getBlockRootAsync(blockNumber)
 
       const tx = await this.getPlasmaTxAsync(slot, blockNumber)
+      // console.log("Got tx", slot, blockNumber, tx)
 
       txs[blockNumber.toString()] = tx
       const included = await this.checkInclusionAsync(tx, root, slot, tx.proof)
@@ -340,6 +356,7 @@ export class Entity {
       } else {
         exclProofs[blockNumber.toString()] = tx.proof
       }
+      this._dAppPlasmaClient.database.receiveCoin(slot, blockNumber, included, tx)
     }
     return {
       exclusion: exclProofs,

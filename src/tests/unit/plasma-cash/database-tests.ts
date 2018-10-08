@@ -15,7 +15,7 @@ test('Database', t => {
     const newOwner = '0x3d5cf1f50c7124acbc6ea69b96a912fe890619d0'
     const tx = new PlasmaCashTx({ slot, prevBlockNum: prevBlk, denomination: 1, newOwner })
 
-    db.receiveCoin(slot, blkNumber, tx)
+    db.receiveCoin(slot, blkNumber, true, tx)
     let coinData = db.getCoin(slot)
     t.equal(coinData.length, 1, 'should receive the coin correctly')
     t.ok(coinData[0].slot.eq(slot), 'slots should be equal')
@@ -23,7 +23,7 @@ test('Database', t => {
     // Simulate disconnecting and reconnecting
     const db2 = new PlasmaDB('0x', '0x', '0x', uid)
 
-    db2.receiveCoin(slot, blkNumber, tx)
+    db2.receiveCoin(slot, blkNumber, true, tx)
     coinData = db2.getCoin(slot)
     t.equal(coinData.length, 1, 'should not add a duplicate coin')
     t.ok(coinData[0].slot.eq(slot), 'slots should be equal')
@@ -31,7 +31,7 @@ test('Database', t => {
     const blkNumber2 = new BN('bb8', 16) // 3000
     const prevBlk2 = new BN('7d0', 16) // 2000
     const tx2 = new PlasmaCashTx({ slot, prevBlockNum: prevBlk2, denomination: 1, newOwner })
-    db2.receiveCoin(slot, blkNumber2, tx2)
+    db2.receiveCoin(slot, blkNumber2, true, tx2)
 
     coinData = db2.getCoin(slot)
     t.equal(coinData.length, 2, 'should receive the new coin')
@@ -40,7 +40,7 @@ test('Database', t => {
     const slot2 = new BN('325f4cae865afba7', 16)
     const tx3 = new PlasmaCashTx({ slot, prevBlockNum: prevBlk, denomination: 1, newOwner })
 
-    db2.receiveCoin(slot2, blkNumber2, tx3)
+    db2.receiveCoin(slot2, blkNumber2, true, tx3)
     coinData = db2.getAllCoins()
     t.equal(coinData.length, 3, 'should receive the new coin')
 
