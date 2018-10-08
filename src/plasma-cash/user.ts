@@ -87,10 +87,10 @@ export class User extends Entity {
 
   // Transfer a coin by specifying slot & new owner
   async transfer(slot: BN, newOwner: string) {
-    const { prevBlockNum } = await this.findBlocks(slot)
+    const { prevBlockNum, blockNum } = await this.findBlocks(slot)
     await this.transferTokenAsync({
       slot,
-      prevBlockNum,
+      prevBlockNum: blockNum,
       denomination: 1,
       newOwner: newOwner
     })
@@ -100,6 +100,7 @@ export class User extends Entity {
   // Exiting a coin by specifying the slot. Finding the block numbers is done under the hood.
   async exit(slot: BN) {
     const { prevBlockNum, blockNum } = await this.findBlocks(slot)
+    console.log('Will exit', prevBlockNum, blockNum)
     return await this.startExitAsync({
       slot: slot,
       prevBlockNum: prevBlockNum,
@@ -132,16 +133,25 @@ export class User extends Entity {
 
   private async findBlocks(slot: BN): Promise<any> {
     const coinData: IDatabaseCoin[] = this.database.getCoin(slot)
-    if (coinData.length == 0) await this.refreshAsync()
+    if (coinData.length == 0) {
+      await this.refreshAsync()
+    }
     // Search for the latest transaction in the coin's history, O(N)
-    let blockNum = coinData[0].blockNumber
-    let prevBlockNum = coinData[0].tx.prevBlockNum
-    for (let i in coinData) {
-      const coin = coinData[i]
-      if (coin.blockNumber > blockNum) {
-        blockNum = coin.blockNumber
-        prevBlockNum = coin.tx.prevBlockNum
+    let blockNum, prevBlockNum
+    try {
+      blockNum = coinData[0].blockNumber
+      prevBlockNum = coinData[0].tx.prevBlockNum
+      for (let i in coinData) {
+        const coin = coinData[i]
+        if (!coin.included) continue // skip exclusion proofs
+        if (coin.blockNumber > blockNum) {
+          blockNum = coin.blockNumber
+          prevBlockNum = coin.tx.prevBlockNum
+        }
       }
+    } catch (e) {
+      prevBlockNum = new BN(0)
+      blockNum = (await this.getPlasmaCoinAsync(slot)).depositBlockNum
     }
     return { prevBlockNum, blockNum }
   }
