@@ -26,4 +26,8 @@ export class CachedDAppChainPlasmaClient extends DAppChainPlasmaClient {
     }
     return tx
   }
+
+  getAllCoins(): BN[] {
+    return this._database.getAllCoinSlots()
+  }
 }

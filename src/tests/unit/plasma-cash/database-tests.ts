@@ -44,9 +44,18 @@ test('Database', t => {
     coinData = db2.getAllCoins()
     t.equal(coinData.length, 3, 'should receive the new coin')
 
-    const slots = db2.getAllCoinSlots()
+    let slots = db2.getAllCoinSlots()
     t.ok(slots[0].eq(slot), 'slots should be equal')
     t.ok(slots[1].eq(slot2), 'slots should be equal')
+
+    const tx_ret = db2.getTx(slot, blkNumber)
+    t.deepEqual(tx, tx_ret, 'Retrieved tx should match the one initially set')
+
+    db2.removeCoin(slot)
+    coinData = db2.getAllCoins()
+    t.equal(coinData.length, 1, 'should delete instances of the coin')
+    slots = db2.getAllCoinSlots()
+    t.ok(slots[0].eq(slot2), 'slots should be equal')
   } catch (err) {
     console.log(err)
   }
