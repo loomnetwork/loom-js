@@ -113,15 +113,6 @@ export class User extends Entity {
     })
   }
 
-  async finalizeExitAsync(slot: BN): Promise<any> {
-    return await this.plasmaCashContract.finalizeExit([slot])
-  }
-
-  async withdrawCoinAsync(slot: BN): Promise<any> {
-    this.database.removeCoin(slot) // remove the coin from the state
-    return await this.withdrawAsync(slot)
-  }
-
   // Get all deposits, filtered by the user's address.
   async deposits(): Promise<any[]> {
     return await this.getDepositEvents(this._startBlock || new BN(0), false)

@@ -241,6 +241,11 @@ export class Entity {
     })
   }
 
+  async finalizeExitAsync(slot: BN): Promise<any> {
+    return await this.plasmaCashContract.finalizeExit([slot])
+  }
+
+
   /**
    * @return Web3 subscription object that can be passed to stopWatching().
    */
@@ -441,12 +446,13 @@ export class Entity {
     filter.unsubscribe()
   }
 
-  withdrawAsync(slot: BN): Promise<object> {
-    return this._ethPlasmaClient.withdrawAsync({
+  async withdrawAsync(slot: BN) {
+    await this._ethPlasmaClient.withdrawAsync({
       slot,
       from: this.ethAddress,
       gas: this._defaultGas
     })
+    this.database.removeCoin(slot) // remove the coin from the state
   }
 
   withdrawBondsAsync(): Promise<object> {
