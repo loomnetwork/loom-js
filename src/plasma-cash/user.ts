@@ -16,6 +16,11 @@ import {
   PlasmaDB
 } from '..'
 
+let contractName = 'plasmacash'
+export function setContractName(_contractName: string) {
+  contractName= _contractName
+}
+
 // Helper function to create a user instance.
 export function createUser(
   web3Endpoint: string,
@@ -24,8 +29,7 @@ export function createUser(
   ethPrivateKey: string,
   addressbook?: object,
   token?: any, // TODO Type
-  startBlock?: BN,
-  contractName?: string
+  startBlock?: BN
 ): User {
   const provider = new Web3.providers.WebsocketProvider(web3Endpoint)
   const web3 = new Web3(provider)

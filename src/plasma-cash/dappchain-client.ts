@@ -28,6 +28,8 @@ export class DAppChainPlasmaClient {
   private _callerAddress: Address
   private _plasmaContractName: string
 
+  get contractName() { return this._plasmaContractName }
+
   constructor(params: { dAppClient: Client; callerAddress: Address; contractName?: string }) {
     const { dAppClient, callerAddress, contractName = 'plasmacash' } = params
     this._dAppClient = dAppClient
