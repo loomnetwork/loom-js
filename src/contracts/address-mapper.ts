@@ -6,7 +6,7 @@ import {
   AddressMapperGetMappingRequest,
   AddressMapperGetMappingResponse
 } from '../proto/address_mapper_pb'
-import { Web3Signer, soliditySha3 } from '../solidity-helpers'
+import { IEthereumSigner, soliditySha3 } from '../solidity-helpers'
 
 export interface IAddressMapping {
   from: Address
@@ -30,7 +30,7 @@ export class AddressMapper extends Contract {
   async addIdentityMappingAsync(
     from: Address,
     to: Address,
-    web3Signer: Web3Signer
+    web3Signer: IEthereumSigner
   ): Promise<Uint8Array | void> {
     const mappingIdentityRequest = new AddressMapperAddIdentityMappingRequest()
     mappingIdentityRequest.setFrom(from.MarshalPB())

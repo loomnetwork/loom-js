@@ -9,9 +9,17 @@ export function soliditySha3(...values: any[]): string {
 }
 
 /**
- * Signs message using a Web3 account.
+ * Signs messages using an Ethereum private key.
  */
-export class Web3Signer {
+export interface IEthereumSigner {
+  signAsync(msg: string): Promise<Uint8Array>
+}
+
+/**
+ * Signs message using a Web3 account.
+ * This signer should be used for interactive signing in the browser with MetaMask.
+ */
+export class Web3Signer implements IEthereumSigner {
   private _web3: Web3
   private _address: string
 
@@ -49,8 +57,9 @@ export class Web3Signer {
 
 /**
  * Signs message using a Web3 account.
+ * This signer should be used for signing in NodeJS.
  */
-export class OfflineWeb3Signer {
+export class OfflineWeb3Signer implements IEthereumSigner {
   private _web3: Web3
   private _account: Account
 
