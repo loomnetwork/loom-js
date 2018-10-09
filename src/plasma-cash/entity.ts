@@ -13,7 +13,7 @@ import { DAppChainPlasmaClient } from './dappchain-client'
 import { PlasmaCashTx } from './plasma-cash-tx'
 import { OfflineWeb3Signer } from '../solidity-helpers'
 import { Account } from 'web3/eth/accounts'
-import { CachedDAppChainPlasmaClient } from './cached-dappchain-client'
+import { PlasmaDB } from './db'
 
 export interface IProofs {
   inclusion: { [blockNumber: string]: string }
@@ -25,7 +25,7 @@ export interface IEntityParams {
   /** Web3 account for use on Ethereum */
   ethAccount: Account
   ethPlasmaClient: EthereumPlasmaClient
-  dAppPlasmaClient: DAppChainPlasmaClient | CachedDAppChainPlasmaClient
+  dAppPlasmaClient: DAppChainPlasmaClient
   /** Allows to override the amount of gas used when sending txs to Ethereum. */
   defaultGas?: string | number
   childBlockInterval: number
@@ -45,10 +45,18 @@ export class Entity {
   private _web3: Web3
   // web3 account
   private _ethAccount: Account
-  private _dAppPlasmaClient: DAppChainPlasmaClient | CachedDAppChainPlasmaClient
+  private _dAppPlasmaClient: DAppChainPlasmaClient
   private _ethPlasmaClient: EthereumPlasmaClient
   private _defaultGas?: string | number
   private _childBlockInterval: number
+
+  get web3(): Web3 {
+    return this._web3
+  }
+
+  get database(): PlasmaDB {
+    return this._dAppPlasmaClient.database
+  }
 
   get ethAddress(): string {
     return this._ethAccount.address
@@ -60,6 +68,10 @@ export class Entity {
 
   get plasmaCashContract(): any {
     return this._ethPlasmaClient.plasmaCashContract
+  }
+
+  get contractName(): any {
+    return this._dAppPlasmaClient.contractName
   }
 
   constructor(web3: Web3, params: IEntityParams) {
@@ -75,14 +87,16 @@ export class Entity {
   // if there is no database we should not allow this to be called
   async refreshAsync() {
     // Get all coins as the dappchain says
-    const coins = await this.getUserCoinsAsync()
+    const coins = Array.from(new Set(await this.getUserCoinsAsync()))
 
     // For each coin we got from the dappchain
-    // coins.forEach(async coin => {
     for (let i = 0; i < coins.length; i++) {
       const coin = coins[i]
-      // @ts-ignore
-      const localSlots = this._dAppPlasmaClient.getAllCoins()
+      // Skip any coins that have been exited
+      if (coin.contractAddress === '0x0000000000000000000000000000000000000000') continue
+
+      const localSlots = this.database.getAllCoinSlots()
+
       // If it's an empty list just add the coin
       if (localSlots.length === 0) {
         const blocks = await this.getBlockNumbersAsync(coin.depositBlockNum)
@@ -95,6 +109,8 @@ export class Entity {
         if (s.cmp(coin.slot) !== 0) {
           const blocks = await this.getBlockNumbersAsync(coin.depositBlockNum)
           const proofs = await this.getCoinHistoryAsync(coin.slot, blocks)
+        } else {
+          console.log('Coin already in state')
         }
       })
     }
@@ -118,8 +134,17 @@ export class Entity {
     await this._dAppPlasmaClient.sendTxAsync(tx)
   }
 
-  getPlasmaTxAsync(slot: BN, blockNumber: BN): Promise<PlasmaCashTx> {
-    return this._dAppPlasmaClient.getPlasmaTxAsync(slot, blockNumber)
+  async getPlasmaTxAsync(slot: BN, blockNumber: BN): Promise<PlasmaCashTx> {
+    const root = await this.getBlockRootAsync(blockNumber)
+    let tx: PlasmaCashTx
+    if (this.database.exists(slot, blockNumber)) {
+      tx = this.database.getTx(slot, blockNumber)
+    } else {
+      tx = await this._dAppPlasmaClient.getPlasmaTxAsync(slot, blockNumber)
+    }
+    const included = await this.checkInclusionAsync(tx, root, slot, tx.proof)
+    this._dAppPlasmaClient.database.receiveCoin(slot, blockNumber, included, tx)
+    return tx
   }
 
   getExitAsync(slot: BN): Promise<IPlasmaExitData> {
@@ -215,6 +240,11 @@ export class Entity {
       gas: this._defaultGas
     })
   }
+
+  async finalizeExitAsync(slot: BN): Promise<any> {
+    return await this.plasmaCashContract.finalizeExit([slot])
+  }
+
 
   /**
    * @return Web3 subscription object that can be passed to stopWatching().
@@ -323,6 +353,7 @@ export class Entity {
       const root = await this.getBlockRootAsync(blockNumber)
 
       const tx = await this.getPlasmaTxAsync(slot, blockNumber)
+      // console.log("Got tx", slot, blockNumber, tx)
 
       txs[blockNumber.toString()] = tx
       const included = await this.checkInclusionAsync(tx, root, slot, tx.proof)
@@ -331,6 +362,7 @@ export class Entity {
       } else {
         exclProofs[blockNumber.toString()] = tx.proof
       }
+      this._dAppPlasmaClient.database.receiveCoin(slot, blockNumber, included, tx)
     }
     return {
       exclusion: exclProofs,
@@ -414,12 +446,13 @@ export class Entity {
     filter.unsubscribe()
   }
 
-  withdrawAsync(slot: BN): Promise<object> {
-    return this._ethPlasmaClient.withdrawAsync({
+  async withdrawAsync(slot: BN) {
+    await this._ethPlasmaClient.withdrawAsync({
       slot,
       from: this.ethAddress,
       gas: this._defaultGas
     })
+    this.database.removeCoin(slot) // remove the coin from the state
   }
 
   withdrawBondsAsync(): Promise<object> {
