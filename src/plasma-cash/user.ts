@@ -15,16 +15,36 @@ import {
   createJSONRPCClient,
   PlasmaDB
 } from '..'
-// Helper function to create a user instance.
+
+export interface IAddressbook {
+  // Plasma contract address on Eth network
+  plasmaAddress: string
+  // Token address
+  token: string
+  // Address of the Eth node (ws://localhost:8545)
+  web3Endpoint: string
+  // Address of the DAppChain (http://localhost:46658)
+  dappchainEndpoint: string
+  // Self address
+  self: string
+  // Self user private key
+  selfPrivate: string
+}
 
 // User friendly wrapper for all Entity related functions, taking advantage of the database
 export class User extends Entity {
   private _startBlock?: BN
-  private _addressbook?: any
+  private _addressbook?: IAddressbook
   private _token?: any
   private static _contractName: string
 
-  constructor(web3: Web3, params: IEntityParams, addressbook?: any, token?: any, startBlock?: BN) {
+  constructor(
+    web3: Web3,
+    params: IEntityParams,
+    addressbook?: IAddressbook,
+    token?: any,
+    startBlock?: BN
+  ) {
     super(web3, params)
     this._token = token
     this._addressbook = addressbook
@@ -35,23 +55,28 @@ export class User extends Entity {
     User._contractName = contractName
   }
 
-
+  // Helper function to create a user instance.
   static createUser(
     web3Endpoint: string,
     plasmaAddress: string,
     dappchainEndpoint: string,
     ethPrivateKey: string,
-    addressbook?: object,
-    token?: any, // TODO Type
+    addressbook?: IAddressbook,
+    token?: any,
     startBlock?: BN
   ): User {
+    // TODO Type
     const provider = new Web3.providers.WebsocketProvider(web3Endpoint)
     const web3 = new Web3(provider)
     const database = new PlasmaDB(web3Endpoint, dappchainEndpoint, plasmaAddress, ethPrivateKey)
     const ethAccount = web3.eth.accounts.privateKeyToAccount(ethPrivateKey)
     const ethPlasmaClient = new EthereumPlasmaClient(web3, ethAccount, plasmaAddress)
-    const writer = createJSONRPCClient({ protocols: [{ url: dappchainEndpoint + '/rpc' }] })
-    const reader = createJSONRPCClient({ protocols: [{ url: dappchainEndpoint + '/query' }] })
+    const writer = createJSONRPCClient({
+      protocols: [{ url: dappchainEndpoint + '/rpc' }]
+    })
+    const reader = createJSONRPCClient({
+      protocols: [{ url: dappchainEndpoint + '/query' }]
+    })
     const dAppClient = new Client('default', writer, reader)
     // TODO: Key should not be generated each time, user should provide their key, or it should be retrieved through some one way mapping
     const privKey = CryptoUtils.generatePrivateKey()
@@ -69,12 +94,7 @@ export class User extends Entity {
     })
     return new User(
       web3,
-      {
-        ethAccount,
-        ethPlasmaClient,
-        dAppPlasmaClient,
-        childBlockInterval: 1000
-      },
+      { ethAccount, ethPlasmaClient, dAppPlasmaClient, childBlockInterval: 1000 },
       addressbook,
       token,
       startBlock
@@ -83,9 +103,9 @@ export class User extends Entity {
 
   // Initialize a demo erc721 token
   async depositAsync(uid: BN): Promise<any> {
-    return await this._token.safeTransferFrom([
-      this._addressbook.self,
-      this._addressbook.plasmaAddress,
+    return this._token.safeTransferFrom([
+      this._addressbook!.self,
+      this._addressbook!.plasmaAddress,
       uid
     ])
   }
@@ -106,7 +126,7 @@ export class User extends Entity {
   async exitAsync(slot: BN): Promise<any> {
     const { prevBlockNum, blockNum } = await this.findBlocks(slot)
     console.log('Will exit', prevBlockNum, blockNum)
-    return await this.startExitAsync({
+    return this.startExitAsync({
       slot: slot,
       prevBlockNum: prevBlockNum,
       exitBlockNum: blockNum
@@ -115,11 +135,11 @@ export class User extends Entity {
 
   // Get all deposits, filtered by the user's address.
   async deposits(): Promise<any[]> {
-    return await this.getDepositEvents(this._startBlock || new BN(0), false)
+    return this.getDepositEvents(this._startBlock || new BN(0), false)
   }
 
   async allDeposits(): Promise<any[]> {
-    return await this.getDepositEvents(this._startBlock || new BN(0), true)
+    return this.getDepositEvents(this._startBlock || new BN(0), true)
   }
 
   disconnect() {
@@ -138,7 +158,8 @@ export class User extends Entity {
       await this.refreshAsync()
     }
     // Search for the latest transaction in the coin's history, O(N)
-    let blockNum, prevBlockNum
+    let blockNum
+    let prevBlockNum
     try {
       blockNum = coinData[0].blockNumber
       prevBlockNum = coinData[0].tx.prevBlockNum
