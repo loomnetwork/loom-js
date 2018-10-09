@@ -15,12 +15,6 @@ import {
   createJSONRPCClient,
   PlasmaDB
 } from '..'
-
-let contractName = 'plasmacash'
-export function setContractName(_contractName: string) {
-  contractName = _contractName
-}
-
 // Helper function to create a user instance.
 
 // User friendly wrapper for all Entity related functions, taking advantage of the database
@@ -28,6 +22,7 @@ export class User extends Entity {
   private _startBlock?: BN
   private _addressbook?: any
   private _token?: any
+  private static _contractName: string
 
   constructor(web3: Web3, params: IEntityParams, addressbook?: any, token?: any, startBlock?: BN) {
     super(web3, params)
@@ -35,6 +30,11 @@ export class User extends Entity {
     this._addressbook = addressbook
     this._startBlock = startBlock
   }
+
+  static set contractName(contractName: string) {
+    User._contractName = contractName
+  }
+
 
   static createUser(
     web3Endpoint: string,
@@ -65,7 +65,7 @@ export class User extends Entity {
       dAppClient,
       callerAddress,
       database,
-      contractName
+      contractName: User._contractName
     })
     return new User(
       web3,
