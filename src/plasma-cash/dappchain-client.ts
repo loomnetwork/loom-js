@@ -21,19 +21,32 @@ import {
   SubmitBlockToMainnetRequest,
   PlasmaTx
 } from '../proto/plasma_cash_pb'
+import { PlasmaDB } from './db'
 
 export class DAppChainPlasmaClient {
   private _dAppClient: Client
   private _plasmaContract?: Contract
   private _callerAddress: Address
   private _plasmaContractName: string
+  private _database: PlasmaDB
 
-  get contractName() { return this._plasmaContractName }
+  get contractName() {
+    return this._plasmaContractName
+  }
+  get database() {
+    return this._database
+  }
 
-  constructor(params: { dAppClient: Client; callerAddress: Address; contractName?: string }) {
-    const { dAppClient, callerAddress, contractName = 'plasmacash' } = params
+  constructor(params: {
+    dAppClient: Client
+    callerAddress: Address
+    database: PlasmaDB
+    contractName?: string
+  }) {
+    const { dAppClient, callerAddress, database, contractName = 'plasmacash' } = params
     this._dAppClient = dAppClient
     this._callerAddress = callerAddress
+    this._database = database
     this._plasmaContractName = contractName
   }
 

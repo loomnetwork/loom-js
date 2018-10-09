@@ -13,7 +13,6 @@ import { DAppChainPlasmaClient } from './dappchain-client'
 import { PlasmaCashTx } from './plasma-cash-tx'
 import { OfflineWeb3Signer } from '../solidity-helpers'
 import { Account } from 'web3/eth/accounts'
-import { CachedDAppChainPlasmaClient } from './cached-dappchain-client'
 import { PlasmaDB } from './db'
 
 export interface IProofs {
@@ -26,7 +25,7 @@ export interface IEntityParams {
   /** Web3 account for use on Ethereum */
   ethAccount: Account
   ethPlasmaClient: EthereumPlasmaClient
-  dAppPlasmaClient: CachedDAppChainPlasmaClient
+  dAppPlasmaClient: DAppChainPlasmaClient
   /** Allows to override the amount of gas used when sending txs to Ethereum. */
   defaultGas?: string | number
   childBlockInterval: number
@@ -46,7 +45,7 @@ export class Entity {
   private _web3: Web3
   // web3 account
   private _ethAccount: Account
-  public _dAppPlasmaClient: CachedDAppChainPlasmaClient
+  public _dAppPlasmaClient: DAppChainPlasmaClient
   private _ethPlasmaClient: EthereumPlasmaClient
   private _defaultGas?: string | number
   private _childBlockInterval: number
@@ -92,9 +91,7 @@ export class Entity {
       // Skip any coins that have been exited
       if (coin.contractAddress === '0x0000000000000000000000000000000000000000') continue
 
-      // @ts-ignore
-      const localSlots = this._dAppPlasmaClient.getAllCoins()
-      // console.log("Local state", localSlots)
+      const localSlots = this.database.getAllCoinSlots()
 
       // If it's an empty list just add the coin
       if (localSlots.length === 0) {

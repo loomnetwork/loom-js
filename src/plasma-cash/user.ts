@@ -10,7 +10,7 @@ import {
   Address,
   LocalAddress,
   IDatabaseCoin,
-  CachedDAppChainPlasmaClient,
+  DAppChainPlasmaClient,
   Client,
   createJSONRPCClient,
   PlasmaDB
@@ -18,7 +18,7 @@ import {
 
 let contractName = 'plasmacash'
 export function setContractName(_contractName: string) {
-  contractName= _contractName
+  contractName = _contractName
 }
 
 // Helper function to create a user instance.
@@ -47,7 +47,7 @@ export function createUser(
     new SignedTxMiddleware(privKey)
   ]
   const callerAddress = new Address('default', LocalAddress.fromPublicKey(pubKey))
-  const dAppPlasmaClient = new CachedDAppChainPlasmaClient({
+  const dAppPlasmaClient = new DAppChainPlasmaClient({
     dAppClient,
     callerAddress,
     database,
