@@ -45,7 +45,7 @@ export class Entity {
   private _web3: Web3
   // web3 account
   private _ethAccount: Account
-  public _dAppPlasmaClient: DAppChainPlasmaClient
+  private _dAppPlasmaClient: DAppChainPlasmaClient
   private _ethPlasmaClient: EthereumPlasmaClient
   private _defaultGas?: string | number
   private _childBlockInterval: number
@@ -68,6 +68,10 @@ export class Entity {
 
   get plasmaCashContract(): any {
     return this._ethPlasmaClient.plasmaCashContract
+  }
+
+  get contractName(): any {
+    return this._dAppPlasmaClient.contractName
   }
 
   constructor(web3: Web3, params: IEntityParams) {
