@@ -36,7 +36,7 @@ export {
   marshalChallengeEvent
 } from './plasma-cash/ethereum-client'
 export { PlasmaCashTx } from './plasma-cash/plasma-cash-tx'
-export { Web3Signer, soliditySha3 } from './solidity-helpers'
+export { IEthereumSigner, Web3Signer, OfflineWeb3Signer, soliditySha3 } from './solidity-helpers'
 export { EthErc721Contract } from './plasma-cash/eth-erc721-contract'
 export { Entity, IEntityParams } from './plasma-cash/entity'
 export { SparseMerkleTree, ISparseMerkleTreeLevel } from './plasma-cash/sparse-merkle-tree'
