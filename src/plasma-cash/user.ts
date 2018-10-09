@@ -20,14 +20,10 @@ import {
 // User friendly wrapper for all Entity related functions, taking advantage of the database
 export class User extends Entity {
   private _startBlock?: BN
-  private _addressbook?: any
-  private _token?: any
   private static _contractName: string
 
-  constructor(web3: Web3, params: IEntityParams, addressbook?: any, token?: any, startBlock?: BN) {
+  constructor(web3: Web3, params: IEntityParams, startBlock?: BN) {
     super(web3, params)
-    this._token = token
-    this._addressbook = addressbook
     this._startBlock = startBlock
   }
 
@@ -35,14 +31,11 @@ export class User extends Entity {
     User._contractName = contractName
   }
 
-
   static createUser(
     web3Endpoint: string,
     plasmaAddress: string,
     dappchainEndpoint: string,
     ethPrivateKey: string,
-    addressbook?: object,
-    token?: any, // TODO Type
     startBlock?: BN
   ): User {
     const provider = new Web3.providers.WebsocketProvider(web3Endpoint)
@@ -75,19 +68,8 @@ export class User extends Entity {
         dAppPlasmaClient,
         childBlockInterval: 1000
       },
-      addressbook,
-      token,
       startBlock
     )
-  }
-
-  // Initialize a demo erc721 token
-  async depositAsync(uid: BN): Promise<any> {
-    return await this._token.safeTransferFrom([
-      this._addressbook.self,
-      this._addressbook.plasmaAddress,
-      uid
-    ])
   }
 
   // Transfer a coin by specifying slot & new owner
