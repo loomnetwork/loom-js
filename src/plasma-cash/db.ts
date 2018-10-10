@@ -65,7 +65,7 @@ export class PlasmaDB {
     const result = this.db.set(`blocks.${coinId}`, block).write()
   }
 
-  getBlock(coinId: BN) {
+  getBlock(coinId: BN): BN {
     const result = this.db.get(`blocks.${coinId}`).value()
     return result
   }
