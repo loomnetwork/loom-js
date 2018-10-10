@@ -73,7 +73,7 @@ export class User extends Entity {
   }
 
   // Transfer a coin by specifying slot & new owner
-  async transferAsync(slot: BN, newOwner: string) {
+  async transferAsync(slot: BN, newOwner: string): Promise<any> {
     const { prevBlockNum, blockNum } = await this.findBlocks(slot)
     await this.transferTokenAsync({
       slot,
@@ -81,13 +81,21 @@ export class User extends Entity {
       denomination: 1,
       newOwner: newOwner
     })
-    this.database.removeCoin(slot)
+    return this.getCurrentBlockAsync()
+  }
+
+  async verifyInclusion(slot: BN, block: BN): Promise<boolean> {
+    // Get block root and the tx and verify
+    const tx = await this.getPlasmaTxAsync(slot, block) // get the block number from the proof of inclusion and get the tx from that
+    console.log('Got tx', tx)
+    const root = await this.getBlockRootAsync(block)
+    console.log('Got root', root)
+    return this.checkInclusionAsync(tx, root, slot, tx.proof)
   }
 
   // Exiting a coin by specifying the slot. Finding the block numbers is done under the hood.
   async exitAsync(slot: BN): Promise<any> {
     const { prevBlockNum, blockNum } = await this.findBlocks(slot)
-    console.log('Will exit', prevBlockNum, blockNum)
     return await this.startExitAsync({
       slot: slot,
       prevBlockNum: prevBlockNum,
@@ -115,10 +123,8 @@ export class User extends Entity {
   }
 
   private async findBlocks(slot: BN): Promise<any> {
-    const coinData: IDatabaseCoin[] = this.database.getCoin(slot)
-    if (coinData.length == 0) {
-      await this.refreshAsync()
-    }
+    const coinData = await this.getCoinHistoryFromDBAsync(slot)
+    const lastUserBlock = this.database.getBlock(slot)
     // Search for the latest transaction in the coin's history, O(N)
     let blockNum, prevBlockNum
     try {
@@ -126,8 +132,13 @@ export class User extends Entity {
       prevBlockNum = coinData[0].tx.prevBlockNum
       for (let i in coinData) {
         const coin = coinData[i]
+        console.log('Comparing', coin.blockNumber, coin.tx.prevBlockNum, coin.included, blockNum)
         if (!coin.included) continue // skip exclusion proofs
-        if (coin.blockNumber > blockNum) {
+        if (lastUserBlock < blockNum) {
+          console.log('MALICIOUS OPERATOR DETECTED!')
+          break
+        } // in case the malicious operator includes invalid/double spends, we want to get the last legitimate state
+        if (coin.blockNumber.gt(blockNum)) {
           blockNum = coin.blockNumber
           prevBlockNum = coin.tx.prevBlockNum
         }
@@ -137,5 +148,17 @@ export class User extends Entity {
       blockNum = (await this.getPlasmaCoinAsync(slot)).depositBlockNum
     }
     return { prevBlockNum, blockNum }
+  }
+
+  private async getCoinHistoryFromDBAsync(slot: BN): Promise<IDatabaseCoin[]> {
+    let coinData: IDatabaseCoin[] = this.database.getCoin(slot)
+    const coin = await this.getPlasmaCoinAsync(slot)
+    console.log('coindata for ', slot, coinData)
+    if (coinData.length === 0) {
+      await this.checkHistoryAsync(coin) // retrieve the coin's history
+      coinData = this.database.getCoin(slot)
+      console.log('Refreshed ciondata', coinData)
+    }
+    return coinData
   }
 }
