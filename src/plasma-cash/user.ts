@@ -84,7 +84,7 @@ export class User extends Entity {
     return this.getCurrentBlockAsync()
   }
 
-  async verifyInclusion(slot: BN, block: BN): Promise<boolean> {
+  async verifyInclusionAsync(slot: BN, block: BN): Promise<boolean> {
     // Get block root and the tx and verify
     const tx = await this.getPlasmaTxAsync(slot, block) // get the block number from the proof of inclusion and get the tx from that
     const root = await this.getBlockRootAsync(block)
