@@ -116,7 +116,6 @@ export class Entity {
     const proofs = await this.getCoinHistoryAsync(coin.slot, blocks) // this will add the coin to state
     const valid = await this.verifyCoinHistoryAsync(coin.slot, proofs)
     if (valid) {
-      console.log('saving last valid block for', coin.slot, blocks[blocks.length - 1])
       this.database.saveBlock(coin.slot, blocks[blocks.length - 1])
     } else {
       this.database.removeCoin(coin.slot)
