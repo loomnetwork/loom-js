@@ -245,7 +245,6 @@ export class Entity {
     return await this.plasmaCashContract.finalizeExit([slot])
   }
 
-
   /**
    * @return Web3 subscription object that can be passed to stopWatching().
    */
