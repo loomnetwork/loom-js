@@ -84,7 +84,6 @@ export class Entity {
   }
 
   // This should be called whenever a new block gets received
-  // if there is no database we should not allow this to be called
   async refreshAsync() {
     // Get all coins as the dappchain says
     const coins = Array.from(new Set(await this.getUserCoinsAsync()))
@@ -99,21 +98,30 @@ export class Entity {
 
       // If it's an empty list just add the coin
       if (localSlots.length === 0) {
-        const blocks = await this.getBlockNumbersAsync(coin.depositBlockNum)
-        const proofs = await this.getCoinHistoryAsync(coin.slot, blocks)
+        await this.checkHistoryAsync(coin)
         continue
       }
 
-      // Otherwise check for each coin that's not incldued and include that.
+      // Otherwise check for each coin that's not included and include that.
       localSlots.forEach(async (s: BN) => {
         if (s.cmp(coin.slot) !== 0) {
-          const blocks = await this.getBlockNumbersAsync(coin.depositBlockNum)
-          const proofs = await this.getCoinHistoryAsync(coin.slot, blocks)
-        } else {
-          console.log('Coin already in state')
+          await this.checkHistoryAsync(coin)
         }
       })
     }
+  }
+
+  async checkHistoryAsync(coin: IPlasmaCoin): Promise<boolean> {
+    const blocks = await this.getBlockNumbersAsync(coin.depositBlockNum)
+    const proofs = await this.getCoinHistoryAsync(coin.slot, blocks) // this will add the coin to state
+    const valid = await this.verifyCoinHistoryAsync(coin.slot, proofs)
+    if (valid) {
+      this.database.saveBlock(coin.slot, blocks[blocks.length - 1])
+    } else {
+      this.database.removeCoin(coin.slot)
+      console.log(`Invalid history for ${coin.slot}...rejecting`)
+    }
+    return valid
   }
 
   async transferTokenAsync(params: {
@@ -244,7 +252,6 @@ export class Entity {
   async finalizeExitAsync(slot: BN): Promise<any> {
     return await this.plasmaCashContract.finalizeExit([slot])
   }
-
 
   /**
    * @return Web3 subscription object that can be passed to stopWatching().

@@ -56,6 +56,12 @@ test('Database', t => {
     t.equal(coinData.length, 1, 'should delete instances of the coin')
     slots = db2.getAllCoinSlots()
     t.ok(slots[0].eq(slot2), 'slots should be equal')
+
+    db2.saveBlock(slot, blkNumber)
+    db2.saveBlock(slot2, blkNumber)
+    db2.saveBlock(slot, blkNumber2)
+    const b = db2.getBlock(slot)
+    t.ok(blkNumber2.eq(b), 'should be able to save block numbers')
   } catch (err) {
     console.log(err)
   }

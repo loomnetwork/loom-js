@@ -20,14 +20,10 @@ import {
 // User friendly wrapper for all Entity related functions, taking advantage of the database
 export class User extends Entity {
   private _startBlock?: BN
-  private _addressbook?: any
-  private _token?: any
   private static _contractName: string
 
-  constructor(web3: Web3, params: IEntityParams, addressbook?: any, token?: any, startBlock?: BN) {
+  constructor(web3: Web3, params: IEntityParams, startBlock?: BN) {
     super(web3, params)
-    this._token = token
-    this._addressbook = addressbook
     this._startBlock = startBlock
   }
 
@@ -35,14 +31,11 @@ export class User extends Entity {
     User._contractName = contractName
   }
 
-
   static createUser(
     web3Endpoint: string,
     plasmaAddress: string,
     dappchainEndpoint: string,
     ethPrivateKey: string,
-    addressbook?: object,
-    token?: any, // TODO Type
     startBlock?: BN
   ): User {
     const provider = new Web3.providers.WebsocketProvider(web3Endpoint)
@@ -75,23 +68,12 @@ export class User extends Entity {
         dAppPlasmaClient,
         childBlockInterval: 1000
       },
-      addressbook,
-      token,
       startBlock
     )
   }
 
-  // Initialize a demo erc721 token
-  async depositAsync(uid: BN): Promise<any> {
-    return await this._token.safeTransferFrom([
-      this._addressbook.self,
-      this._addressbook.plasmaAddress,
-      uid
-    ])
-  }
-
   // Transfer a coin by specifying slot & new owner
-  async transferAsync(slot: BN, newOwner: string) {
+  async transferAsync(slot: BN, newOwner: string): Promise<any> {
     const { prevBlockNum, blockNum } = await this.findBlocks(slot)
     await this.transferTokenAsync({
       slot,
@@ -99,13 +81,19 @@ export class User extends Entity {
       denomination: 1,
       newOwner: newOwner
     })
-    this.database.removeCoin(slot)
+    return this.getCurrentBlockAsync()
+  }
+
+  async verifyInclusionAsync(slot: BN, block: BN): Promise<boolean> {
+    // Get block root and the tx and verify
+    const tx = await this.getPlasmaTxAsync(slot, block) // get the block number from the proof of inclusion and get the tx from that
+    const root = await this.getBlockRootAsync(block)
+    return this.checkInclusionAsync(tx, root, slot, tx.proof)
   }
 
   // Exiting a coin by specifying the slot. Finding the block numbers is done under the hood.
   async exitAsync(slot: BN): Promise<any> {
     const { prevBlockNum, blockNum } = await this.findBlocks(slot)
-    console.log('Will exit', prevBlockNum, blockNum)
     return await this.startExitAsync({
       slot: slot,
       prevBlockNum: prevBlockNum,
@@ -133,10 +121,8 @@ export class User extends Entity {
   }
 
   private async findBlocks(slot: BN): Promise<any> {
-    const coinData: IDatabaseCoin[] = this.database.getCoin(slot)
-    if (coinData.length == 0) {
-      await this.refreshAsync()
-    }
+    const coinData = await this.getCoinHistoryFromDBAsync(slot)
+    const lastUserBlock = this.database.getBlock(slot)
     // Search for the latest transaction in the coin's history, O(N)
     let blockNum, prevBlockNum
     try {
@@ -145,7 +131,12 @@ export class User extends Entity {
       for (let i in coinData) {
         const coin = coinData[i]
         if (!coin.included) continue // skip exclusion proofs
-        if (coin.blockNumber > blockNum) {
+        if (lastUserBlock < blockNum) {
+          // in case the malicious operator includes invalid/double spends, 
+          // we want to get the last legitimate state, so we stop iterating
+          break
+        }
+        if (coin.blockNumber.gt(blockNum)) {
           blockNum = coin.blockNumber
           prevBlockNum = coin.tx.prevBlockNum
         }
@@ -155,5 +146,15 @@ export class User extends Entity {
       blockNum = (await this.getPlasmaCoinAsync(slot)).depositBlockNum
     }
     return { prevBlockNum, blockNum }
+  }
+
+  private async getCoinHistoryFromDBAsync(slot: BN): Promise<IDatabaseCoin[]> {
+    let coinData: IDatabaseCoin[] = this.database.getCoin(slot)
+    const coin = await this.getPlasmaCoinAsync(slot)
+    if (coinData.length === 0) {
+      await this.checkHistoryAsync(coin) // retrieve the coin's history
+      coinData = this.database.getCoin(slot)
+    }
+    return coinData
   }
 }
