@@ -29,7 +29,8 @@ export class PlasmaDB {
         dappchain: dappchain,
         plasma: plasmaAddress,
         privatekey: privateKey,
-        coins: []
+        coins: [],
+        blocks: {}
       })
       .write()
     // console.log('Initialized database', this.db.value())
@@ -57,6 +58,16 @@ export class PlasmaDB {
       })
       .write()
     // console.log('State updated', result)
+  }
+
+  // Get the block at which the owner received the coin
+  saveBlock(coinId: BN, block: BN) {
+    const result = this.db.set(`blocks.${coinId}`, block).write()
+  }
+
+  getBlock(coinId: BN) {
+    const result = this.db.get(`blocks.${coinId}`).value()
+    return result
   }
 
   getTx(coinId: BN, block: BN): PlasmaCashTx {
