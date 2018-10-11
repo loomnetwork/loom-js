@@ -132,7 +132,7 @@ export class User extends Entity {
         const coin = coinData[i]
         if (!coin.included) continue // skip exclusion proofs
         if (lastUserBlock < blockNum) {
-          // in case the malicious operator includes invalid/double spends, 
+          // in case the malicious operator includes invalid/double spends,
           // we want to get the last legitimate state, so we stop iterating
           break
         }
