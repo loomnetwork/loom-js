@@ -121,17 +121,28 @@ export class User extends Entity {
   }
 
   private async findBlocks(slot: BN): Promise<any> {
+    const coin = await this.getPlasmaCoinAsync(slot)
+    // console.log('Expecting blocks', await this.getBlockNumbersAsync(coin.depositBlockNum))
     const coinData = await this.getCoinHistoryFromDBAsync(slot)
-    const lastUserBlock = this.database.getBlock(slot)
+    let lastUserBlock = this.database.getBlock(slot)
+    if (lastUserBlock === undefined) {
+      lastUserBlock = await this.getCurrentBlockAsync()
+    }
+    // console.log('[DEBUG: CoinData]', coinData)
+    // console.log('[DEBUG] Will check up to:', lastUserBlock)
+
     // Search for the latest transaction in the coin's history, O(N)
     let blockNum, prevBlockNum
     try {
       blockNum = coinData[0].blockNumber
       prevBlockNum = coinData[0].tx.prevBlockNum
-      for (let i in coinData) {
+      for (let i = 1 ; i < coinData.length; i++) {
         const coin = coinData[i]
         if (!coin.included) continue // skip exclusion proofs
-        if (lastUserBlock < blockNum) {
+        if (lastUserBlock.lt(coin.blockNumber)) {
+          console.log(
+            'MALICIOUS OPERATOR - SHOULD ONLY OCCUR FOR DOUBLE SPENDS/INVALID TRANSITIONS'
+          )
           // in case the malicious operator includes invalid/double spends,
           // we want to get the last legitimate state, so we stop iterating
           break
@@ -145,16 +156,14 @@ export class User extends Entity {
       prevBlockNum = new BN(0)
       blockNum = (await this.getPlasmaCoinAsync(slot)).depositBlockNum
     }
+    // console.log('[DEBUG: Selected blocks]', prevBlockNum, blockNum)
     return { prevBlockNum, blockNum }
   }
 
   private async getCoinHistoryFromDBAsync(slot: BN): Promise<IDatabaseCoin[]> {
-    let coinData: IDatabaseCoin[] = this.database.getCoin(slot)
     const coin = await this.getPlasmaCoinAsync(slot)
-    if (coinData.length === 0) {
-      await this.checkHistoryAsync(coin) // retrieve the coin's history
-      coinData = this.database.getCoin(slot)
-    }
-    return coinData
+    // Update the local database if needed.
+    await this.checkHistoryAsync(coin)
+    return this.database.getCoin(slot)
   }
 }
