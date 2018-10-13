@@ -93,32 +93,25 @@ export class Entity {
       const coin = coins[i]
       // Skip any coins that have been exited
       if (coin.contractAddress === '0x0000000000000000000000000000000000000000') continue
-
-      const localSlots = this.database.getAllCoinSlots()
-
-      // If it's an empty list just add the coin
-      if (localSlots.length === 0) {
-        await this.checkHistoryAsync(coin)
-        continue
-      }
-
-      // Otherwise check for each coin that's not included and include that.
-      localSlots.forEach(async (s: BN) => {
-        if (s.cmp(coin.slot) !== 0) {
-          await this.checkHistoryAsync(coin)
-        }
-      })
+      await this.checkHistoryAsync(coin)
     }
+  }
+
+  // Only called whenever the user receives a coin.
+  async receiveCoinAsync(slot: BN): Promise<boolean> {
+    const coin = await this.getPlasmaCoinAsync(slot)
+    const valid = await this.checkHistoryAsync(coin)
+    const blocks = await this.getBlockNumbersAsync(coin.depositBlockNum)
+    this.database.saveBlock(coin.slot, blocks[blocks.length - 1])
+    return valid
   }
 
   async checkHistoryAsync(coin: IPlasmaCoin): Promise<boolean> {
     const blocks = await this.getBlockNumbersAsync(coin.depositBlockNum)
     const proofs = await this.getCoinHistoryAsync(coin.slot, blocks) // this will add the coin to state
     const valid = await this.verifyCoinHistoryAsync(coin.slot, proofs)
-    if (valid) {
-      this.database.saveBlock(coin.slot, blocks[blocks.length - 1])
-    } else {
-      this.database.removeCoin(coin.slot)
+    if (!valid) {
+      // this.database.removeCoin(coin.slot)
       console.log(`Invalid history for ${coin.slot}...rejecting`)
     }
     return valid
@@ -360,7 +353,6 @@ export class Entity {
       const root = await this.getBlockRootAsync(blockNumber)
 
       const tx = await this.getPlasmaTxAsync(slot, blockNumber)
-      // console.log("Got tx", slot, blockNumber, tx)
 
       txs[blockNumber.toString()] = tx
       const included = await this.checkInclusionAsync(tx, root, slot, tx.proof)
@@ -395,6 +387,7 @@ export class Entity {
       const blockNumber = new BN(p)
       const root = await this.getBlockRootAsync(blockNumber)
       const excluded = await this.checkExclusionAsync(root, slot, proofs.exclusion[p])
+      console.log("Check:", slot, blockNumber, excluded)
       if (!excluded) {
         return false
       }
