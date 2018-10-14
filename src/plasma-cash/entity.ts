@@ -110,10 +110,6 @@ export class Entity {
     const blocks = await this.getBlockNumbersAsync(coin.depositBlockNum)
     const proofs = await this.getCoinHistoryAsync(coin.slot, blocks) // this will add the coin to state
     const valid = await this.verifyCoinHistoryAsync(coin.slot, proofs)
-    if (!valid) {
-      // this.database.removeCoin(coin.slot)
-      console.log(`Invalid history for ${coin.slot}...rejecting`)
-    }
     return valid
   }
 
@@ -387,7 +383,6 @@ export class Entity {
       const blockNumber = new BN(p)
       const root = await this.getBlockRootAsync(blockNumber)
       const excluded = await this.checkExclusionAsync(root, slot, proofs.exclusion[p])
-      console.log("Check:", slot, blockNumber, excluded)
       if (!excluded) {
         return false
       }
