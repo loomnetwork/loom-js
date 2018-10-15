@@ -132,7 +132,7 @@ export class User extends Entity {
     try {
       blockNum = coinData[0].blockNumber
       prevBlockNum = coinData[0].tx.prevBlockNum
-      for (let i = 1 ; i < coinData.length; i++) {
+      for (let i = 1; i < coinData.length; i++) {
         const coin = coinData[i]
         if (!coin.included) continue // skip exclusion proofs
         if (lastUserBlock.lt(coin.blockNumber)) {
