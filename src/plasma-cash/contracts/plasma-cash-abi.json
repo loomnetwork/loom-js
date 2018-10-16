@@ -617,6 +617,42 @@
     "type": "function"
   },
   {
+    "constant": false,
+    "inputs": [
+      {
+        "name": "amount",
+        "type": "uint256"
+      },
+      {
+        "name": "contractAddress",
+        "type": "address"
+      }
+    ],
+    "name": "depositERC20",
+    "outputs": [],
+    "payable": false,
+    "stateMutability": "nonpayable",
+    "type": "function"
+  },
+  {
+    "constant": false,
+    "inputs": [
+      {
+        "name": "uid",
+        "type": "uint256"
+      },
+      {
+        "name": "contractAddress",
+        "type": "address"
+      }
+    ],
+    "name": "depositERC721",
+    "outputs": [],
+    "payable": false,
+    "stateMutability": "nonpayable",
+    "type": "function"
+  },
+  {
     "constant": true,
     "inputs": [
       {
