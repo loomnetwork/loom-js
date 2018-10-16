@@ -97,15 +97,6 @@ export class Entity {
     }
   }
 
-  // Only called whenever the user receives a coin.
-  async receiveCoinAsync(slot: BN): Promise<boolean> {
-    const coin = await this.getPlasmaCoinAsync(slot)
-    const valid = await this.checkHistoryAsync(coin)
-    const blocks = await this.getBlockNumbersAsync(coin.depositBlockNum)
-    this.database.saveBlock(coin.slot, blocks[blocks.length - 1])
-    return valid
-  }
-
   async checkHistoryAsync(coin: IPlasmaCoin): Promise<boolean> {
     const blocks = await this.getBlockNumbersAsync(coin.depositBlockNum)
     const proofs = await this.getCoinHistoryAsync(coin.slot, blocks) // this will add the coin to state
