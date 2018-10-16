@@ -30,7 +30,8 @@ export class PlasmaDB {
         plasma: plasmaAddress,
         privatekey: privateKey,
         coins: [],
-        blocks: {}
+        blocks: {},
+        lastBlock: new BN(0)
       })
       .write()
     // console.log('Initialized database', this.db.value())
@@ -58,6 +59,14 @@ export class PlasmaDB {
       })
       .write()
     // console.log('State updated', result)
+  }
+
+  saveLastBlock(block: BN) {
+    const result = this.db.set(`lastBlock`, block).write()
+  }
+
+  getLastBlock(block: BN) {
+    const result = this.db.get(`lastBlock`, block).value()
   }
 
   // Get the block at which the owner received the coin

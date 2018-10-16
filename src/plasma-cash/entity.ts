@@ -49,6 +49,8 @@ export class Entity {
   private _ethPlasmaClient: EthereumPlasmaClient
   private _defaultGas?: string | number
   private _childBlockInterval: number
+  private _exitWatchers: { [slot: string]: IWeb3EventSub }
+  private _challengeWatchers: { [slot: string]: IWeb3EventSub }
 
   get web3(): Web3 {
     return this._web3
@@ -81,6 +83,8 @@ export class Entity {
     this._dAppPlasmaClient = params.dAppPlasmaClient
     this._defaultGas = params.defaultGas
     this._childBlockInterval = params.childBlockInterval
+    this._exitWatchers = {}
+    this._challengeWatchers = {}
   }
 
   // This should be called whenever a new block gets received
@@ -238,7 +242,7 @@ export class Entity {
    */
   watchExit(slot: BN, fromBlock: BN): IWeb3EventSub {
     console.log(`Started watching events for Coin ${slot}`)
-    return this.plasmaCashContract.events
+    this._exitWatchers[(slot.toString(), 0)] = this.plasmaCashContract.events
       .StartedExit({
         filter: { slot: slot },
         fromBlock: fromBlock
@@ -247,6 +251,7 @@ export class Entity {
         this.challengeExitAsync(slot, event.returnValues.owner)
       })
       .on('error', (err: any) => console.log(err))
+    return this._exitWatchers[slot.toString()]
   }
 
   /**
@@ -254,7 +259,7 @@ export class Entity {
    */
   watchChallenge(slot: BN, fromBlock: BN): IWeb3EventSub {
     console.log(`Started watching challenges for Coin ${slot}`)
-    return this.plasmaCashContract.events
+    this._challengeWatchers[slot.toString()] = this.plasmaCashContract.events
       .ChallengedExit({
         filter: { slot: slot },
         fromBlock: fromBlock
@@ -267,6 +272,7 @@ export class Entity {
         )
       })
       .on('error', (err: any) => console.log(err))
+    return this._challengeWatchers[slot.toString()]
   }
 
   async challengeExitAsync(slot: BN, owner: String) {
@@ -433,8 +439,10 @@ export class Entity {
     return new BN(Math.ceil(startBlock / this._childBlockInterval) * this._childBlockInterval)
   }
 
-  stopWatching(filter: IWeb3EventSub) {
-    filter.unsubscribe()
+  stopWatching(slot: BN) {
+    if (this._exitWatchers[slot.toString()]) this._exitWatchers[slot.toString()].unsubscribe()
+    if (this._challengeWatchers[slot.toString()])
+      this._challengeWatchers[slot.toString()].unsubscribe()
   }
 
   async withdrawAsync(slot: BN) {
