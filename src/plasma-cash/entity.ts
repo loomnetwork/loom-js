@@ -242,7 +242,7 @@ export class Entity {
    */
   watchExit(slot: BN, fromBlock: BN): IWeb3EventSub {
     console.log(`Started watching events for Coin ${slot}`)
-    this._exitWatchers[(slot.toString(), 0)] = this.plasmaCashContract.events
+    this._exitWatchers[slot.toString()] = this.plasmaCashContract.events
       .StartedExit({
         filter: { slot: slot },
         fromBlock: fromBlock
@@ -421,9 +421,9 @@ export class Entity {
 
   async getBlockNumbersAsync(startBlock: any): Promise<BN[]> {
     const endBlock: BN = await this.getCurrentBlockAsync()
-    const blockNumbers: BN[] = [startBlock]
+    const blockNumbers: BN[] = []
     if (startBlock.eq(endBlock)) {
-      return blockNumbers
+      return [startBlock]
     }
     const nextBlk = this.nextNonDepositBlock(startBlock)
     if (nextBlk.lte(endBlock)) {
@@ -432,7 +432,13 @@ export class Entity {
         blockNumbers.push(i)
       }
     }
-    return blockNumbers
+    let ret: BN[]
+    if (startBlock.eq(nextBlk)) {
+      ret = blockNumbers
+    } else {
+      ret = [startBlock, ...blockNumbers]
+    }
+    return ret
   }
 
   protected nextNonDepositBlock(startBlock: any): BN {

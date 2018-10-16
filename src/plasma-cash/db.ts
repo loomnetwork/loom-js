@@ -65,8 +65,9 @@ export class PlasmaDB {
     const result = this.db.set(`lastBlock`, block).write()
   }
 
-  getLastBlock(block: BN) {
-    const result = this.db.get(`lastBlock`, block).value()
+  getLastBlock(): BN {
+    const result = this.db.get(`lastBlock`).value()
+    return result
   }
 
   // Get the block at which the owner received the coin
