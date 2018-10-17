@@ -177,13 +177,13 @@ export class EthereumPlasmaClient {
 
   async getBlockRootAsync(params: { blockNumber: BN; from: string }): Promise<string> {
     const { blockNumber, from } = params
-    const root = await this._plasmaContract.getBlockRoot(blockNumber)
+    const root = await this._plasmaContract.getBlockRoot(blockNumber.toString())
     return root
   }
 
   async getPlasmaCoinAsync(params: { slot: BN; from: string }): Promise<IPlasmaCoin> {
     const { slot, from } = params
-    const coin = await this._plasmaContract.getPlasmaCoin(slot)
+    const coin = await this._plasmaContract.getPlasmaCoin(slot.toString())
     return {
       slot: slot,
       uid: new BN(coin[0]),
