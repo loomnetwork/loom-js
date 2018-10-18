@@ -18,7 +18,7 @@
     "build:dev": "tsc --project es2017.tsconfig.json",
     "format": "prettier --write \"src/**/*.ts\"",
     "test": "yarn test:node && yarn test:browser",
-    "test:node": "yarn proto && yarn plasmaabi && tsc && tape dist/tests/unit_tests.js | tap-spec",
+    "test:node": "mkdir -p db && yarn proto && yarn plasmaabi && tsc && tape dist/tests/unit_tests.js | tap-spec && rm -rf db",
     "test:browser": "yarn proto && yarn plasmaabi && tsc && webpack --config webpack.unit.tests.config.js | tap-spec",
     "test:e2e:local": "bash e2e_tests.sh",
     "e2e:node": "yarn proto && yarn plasmaabi && tsc && tape -r dotenv/config dotenv_config_path=./.env.test dist/tests/e2e_tests.js | tap-spec",
