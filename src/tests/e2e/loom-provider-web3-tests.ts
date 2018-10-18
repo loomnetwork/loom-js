@@ -94,6 +94,7 @@ test('LoomProvider + Web3 not matching topic', async t => {
     const newValue = 1
 
     contract.events.NewValueSet({ filter: { _value: [4, 5] } }, (err: Error, event: any) => {
+      console.log(err, event)
       if (err) t.error(err)
       else {
         t.fail('should not been dispatched')
@@ -116,64 +117,64 @@ test('LoomProvider + Web3 not matching topic', async t => {
   }
 })
 
-test('LoomProvider + Web3 multiple topics', async t => {
-  t.plan(3)
-  const { contract, client } = await newContractAndClient()
-  try {
-    const newValue = 1
+// test('LoomProvider + Web3 multiple topics', async t => {
+//   t.plan(3)
+//   const { contract, client } = await newContractAndClient()
+//   try {
+//     const newValue = 1
 
-    contract.events.NewValueSet({ filter: { _value: [1, 2, 3] } }, (err: Error, event: any) => {
-      if (err) t.error(err)
-      else {
-        t.equal(+event.returnValues._value, newValue, `Return value should be ${newValue}`)
-      }
-    })
+//     contract.events.NewValueSet({ filter: { _value: [1, 2, 3] } }, (err: Error, event: any) => {
+//       if (err) t.error(err)
+//       else {
+//         t.equal(+event.returnValues._value, newValue, `Return value should be ${newValue}`)
+//       }
+//     })
 
-    const tx = await contract.methods.set(newValue).send()
-    t.equal(tx.status, true, 'SimpleStore.set should return correct status')
+//     const tx = await contract.methods.set(newValue).send()
+//     t.equal(tx.status, true, 'SimpleStore.set should return correct status')
 
-    const resultOfGet = await contract.methods.get().call()
-    t.equal(+resultOfGet, newValue, `SimpleStore.get should return correct value`)
+//     const resultOfGet = await contract.methods.get().call()
+//     t.equal(+resultOfGet, newValue, `SimpleStore.get should return correct value`)
 
-    await waitForMillisecondsAsync(1000)
-  } catch (err) {
-    console.log(err)
-  }
+//     await waitForMillisecondsAsync(1000)
+//   } catch (err) {
+//     console.log(err)
+//   }
 
-  if (client) {
-    client.disconnect()
-  }
+//   if (client) {
+//     client.disconnect()
+//   }
 
-  t.end()
-})
+//   t.end()
+// })
 
-test('LoomProvider + Eth Sign', async t => {
-  const { client, web3, from, privKey } = await newContractAndClient()
-  try {
-    const msg = '0xff'
-    const result = await web3.eth.sign(msg, from)
+// test('LoomProvider + Eth Sign', async t => {
+//   const { client, web3, from, privKey } = await newContractAndClient()
+//   try {
+//     const msg = '0xff'
+//     const result = await web3.eth.sign(msg, from)
 
-    // Checking the ecrecover
+//     // Checking the ecrecover
 
-    const hash = soliditySha3('\x19Ethereum Signed Message:\n32', msg).slice(2)
+//     const hash = soliditySha3('\x19Ethereum Signed Message:\n32', msg).slice(2)
 
-    const { r, s, v } = fromRpcSig(result)
-    const pubKey = ecrecover(Buffer.from(hash, 'hex'), v, r, s)
+//     const { r, s, v } = fromRpcSig(result)
+//     const pubKey = ecrecover(Buffer.from(hash, 'hex'), v, r, s)
 
-    const privateHash = soliditySha3(privKey).slice(2)
+//     const privateHash = soliditySha3(privKey).slice(2)
 
-    t.equal(
-      bytesToHexAddr(pubKey),
-      bytesToHexAddr(privateToPublic(Buffer.from(privateHash, 'hex'))),
-      'Should pubKey from ecrecover be valid'
-    )
-  } catch (err) {
-    console.log(err)
-  }
+//     t.equal(
+//       bytesToHexAddr(pubKey),
+//       bytesToHexAddr(privateToPublic(Buffer.from(privateHash, 'hex'))),
+//       'Should pubKey from ecrecover be valid'
+//     )
+//   } catch (err) {
+//     console.log(err)
+//   }
 
-  if (client) {
-    client.disconnect()
-  }
+//   if (client) {
+//     client.disconnect()
+//   }
 
-  t.end()
-})
+//   t.end()
+// })
