@@ -6,7 +6,6 @@ import { bytesToHexAddr } from '../crypto-utils'
 import { PlasmaCashTx } from './plasma-cash-tx'
 import SignedContract from './signed-contract'
 import { Account } from 'web3/eth/accounts'
-import { Contract } from 'web3/types'
 
 export enum PlasmaCoinMode {
   ETH = 0,
@@ -136,11 +135,11 @@ export class EthereumPlasmaClient {
   /**
    * Web3 contract instance of the Plasma Cash contract on Ethereum.
    */
-  get plasmaCashContract(): Contract {
+  get plasmaCashContract(): any {
     return this._plasmaContract
   }
 
-  constructor(web3: Web3, ethAccount: Account, plasmaContractAddr: string) {
+  constructor(web3: Web3, ethAccount: any, plasmaContractAddr: string) {
     this._web3 = web3
     const plasmaABI = require(`./contracts/plasma-cash-abi.json`)
     this._plasmaContract = new SignedContract(

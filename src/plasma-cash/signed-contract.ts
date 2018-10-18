@@ -1,14 +1,13 @@
 import Web3 from 'web3'
-import { Contract, Account, Signature } from 'web3/types'
 
 // Converts any contract to a signed contract
 class SignedContract {
-  account: Account
-  contract: Contract
+  account: any
+  contract: any
   address: string
   web3: Web3
 
-  get instance(): Contract {
+  get instance(): any {
     return this.contract
   }
 
@@ -66,10 +65,7 @@ class SignedContract {
       tx['gas'] = Math.ceil(gas * 1.25) // give some extra gas and round the decimal
 
       // Sign the raw transaction
-      const signedTx = await (<Signature>this.web3.eth.accounts.signTransaction(
-        tx,
-        this.account.privateKey
-      ))
+      const signedTx = await this.web3.eth.accounts.signTransaction(tx, this.account.privateKey)
 
       // @ts-ignore
       // Bug in ts-types
