@@ -206,13 +206,13 @@ export class EthereumPlasmaClient {
 
     return this._plasmaContract.startExit(
       [
-        slot,
+        slot.toString(),
         prevTxBytes,
         exitTxBytes,
         prevTx ? prevTx.proof : '0x',
         exitTx.proof,
         exitTx.sig,
-        [prevBlockNum || 0, exitBlockNum]
+        [prevBlockNum ? prevBlockNum.toString() : 0, exitBlockNum.toString()]
       ],
       bond
     )

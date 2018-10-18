@@ -249,7 +249,7 @@ export class Entity {
     console.log(`Started watching events for Coin ${slot}`)
     return this.plasmaCashContract.events
       .StartedExit({
-        filter: { slot: slot },
+        filter: { slot: slot.toString() },
         fromBlock: fromBlock
       })
       .on('data', (event: any, err: any) => {
@@ -265,7 +265,7 @@ export class Entity {
     console.log(`Started watching challenges for Coin ${slot}`)
     return this.plasmaCashContract.events
       .ChallengedExit({
-        filter: { slot: slot },
+        filter: { slot: slot.toString() },
         fromBlock: fromBlock
       })
       .on('data', (event: any, err: any) => {
