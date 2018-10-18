@@ -66,7 +66,6 @@ stop_chains() {
   kill -9 $GANACHE_PID
   kill -9 $LOOM_PID
   pkill -f "${LOOM_DIR}/contracts/blueprint.0.0.1" || true
-  killall blueprint.0.0.1 # Double check to really kill
 }
 
 run_tests() {
