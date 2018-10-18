@@ -239,7 +239,7 @@ export class Entity {
   }
 
   async finalizeExitAsync(slot: BN): Promise<any> {
-    return await this.plasmaCashContract.finalizeExit([slot])
+    return await this.plasmaCashContract.finalizeExit([slot.toString()])
   }
 
   /**
