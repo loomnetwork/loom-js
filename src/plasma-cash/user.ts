@@ -74,7 +74,7 @@ export class User extends Entity {
   }
 
   // Buffer is how many blocks the client will wait for the tx to get confirmed
-  async transferAndVerifyAsync(slot: BN, newOwner: string, buffer: number): Promise<any> {
+  async transferAndVerifyAsync(slot: BN, newOwner: string, buffer: number = 6): Promise<any> {
     await this.transferAsync(slot, newOwner)
     let watcher = this.plasmaCashContract.events
       .SubmittedBlock({
