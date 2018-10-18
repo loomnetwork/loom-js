@@ -305,8 +305,13 @@
     "inputs": [
       {
         "indexed": true,
-        "name": "from",
+        "name": "owner",
         "type": "address"
+      },
+      {
+        "indexed": true,
+        "name": "slot",
+        "type": "uint64"
       },
       {
         "indexed": false,
