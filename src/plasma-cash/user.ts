@@ -21,6 +21,7 @@ import {
 export class User extends Entity {
   private _startBlock?: BN
   private static _contractName: string
+  private buffers: any = {}
 
   constructor(web3: Web3, params: IEntityParams, startBlock?: BN) {
     super(web3, params)
@@ -70,6 +71,33 @@ export class User extends Entity {
       },
       startBlock
     )
+  }
+
+  // Buffer is how many blocks the client will wait for the tx to get confirmed
+  async transferAndVerifyAsync(slot: BN, newOwner: string, buffer: number): Promise<any> {
+    await this.transferAsync(slot, newOwner)
+    let watcher = this.plasmaCashContract.events
+      .SubmittedBlock({
+        filter: {},
+        fromBlock: await this.web3.eth.getBlockNumber()
+      })
+      .on('data', (event: any, err: any) => {
+        if (this.verifyInclusionAsync(slot, new BN(event.returnValues.blockNumber))) {
+          console.log(
+            `Tx(${slot.toString(16)}, ${newOwner}) included & verified in block ${
+              event.returnValues.blockNumber
+            }`
+          )
+          watcher.unsubscribe()
+          this.buffers[slot.toString()] = 0
+        }
+        if (this.buffers[slot.toString()]++ == buffer) {
+          watcher.unsubscribe()
+          this.buffers[slot.toString()] = 0
+          throw new Error(`Tx was censored for ${buffer} blocks.`)
+        }
+      })
+      .on('error', (err: any) => console.log(err))
   }
 
   // Transfer a coin by specifying slot & new owner
