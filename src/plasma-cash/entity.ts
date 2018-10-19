@@ -234,7 +234,7 @@ export class Entity {
   }
 
   async finalizeExitAsync(slot: BN): Promise<any> {
-    return await this.plasmaCashContract.finalizeExit([slot])
+    return await this.plasmaCashContract.finalizeExit([slot.toString()])
   }
 
   /**
@@ -244,7 +244,7 @@ export class Entity {
     console.log(`Started watching events for Coin ${slot}`)
     this._exitWatchers[slot.toString()] = this.plasmaCashContract.events
       .StartedExit({
-        filter: { slot: slot },
+        filter: { slot: slot.toString() },
         fromBlock: fromBlock
       })
       .on('data', (event: any, err: any) => {
@@ -261,7 +261,7 @@ export class Entity {
     console.log(`Started watching challenges for Coin ${slot}`)
     this._challengeWatchers[slot.toString()] = this.plasmaCashContract.events
       .ChallengedExit({
-        filter: { slot: slot },
+        filter: { slot: slot.toString() },
         fromBlock: fromBlock
       })
       .on('data', (event: any, err: any) => {
