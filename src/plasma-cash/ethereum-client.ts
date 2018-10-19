@@ -258,7 +258,7 @@ export class EthereumPlasmaClient {
     const txBytes = challengingTx.rlpEncode()
     return this._plasmaContract.challengeAfter([
       slot.toString(),
-      challengingBlockNum,
+      challengingBlockNum.toString(),
       txBytes,
       challengingTx.proof,
       challengingTx.sig
