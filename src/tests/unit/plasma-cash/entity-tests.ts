@@ -19,6 +19,19 @@ test('Entity', async t => {
     expected = [new BN(3), new BN(1000)]
     t.deepEqual(blks, expected, 'blocks should match')
 
+    startBlock = new BN(1000)
+    entity.currBlock = new BN(2000)
+    blks = await entity.getBlockNumbersAsync(startBlock)
+    expected = [new BN(1000), new BN(2000)]
+    t.deepEqual(blks, expected, 'blocks should match')
+
+    startBlock = new BN(1000)
+    entity.currBlock = new BN(3000)
+    blks = await entity.getBlockNumbersAsync(startBlock)
+    expected = [new BN(1000), new BN(2000), new BN(3000)]
+    t.deepEqual(blks, expected, 'blocks should match')
+
+
     startBlock = new BN(1003)
     entity.currBlock = new BN(1000)
     blks = await entity.getBlockNumbersAsync(startBlock)
