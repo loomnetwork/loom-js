@@ -652,6 +652,11 @@ export class LoomProvider {
     const contractAddress = bytesToHexAddrLC(receipt.getContractAddress_asU8())
     const logs = receipt.getLogsList().map((logEvent: EventData, index: number) => {
       const logIndex = numberToHexLC(index)
+      let data = bytesToHexAddrLC(logEvent.getEncodedBody_asU8())
+
+      if (data === '0x') {
+        data = '0x0'
+      }
 
       return {
         logIndex,
@@ -661,7 +666,7 @@ export class LoomProvider {
         transactionHash: bytesToHexAddrLC(logEvent.getTxHash_asU8()),
         transactionIndex,
         type: 'mined',
-        data: bytesToHexAddrLC(logEvent.getEncodedBody_asU8()),
+        data,
         topics: logEvent.getTopicsList().map((topic: string) => topic.toLowerCase())
       }
     })

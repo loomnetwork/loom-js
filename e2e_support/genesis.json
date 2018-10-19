@@ -31,10 +31,9 @@
       "location": "dpos:1.0.0",
       "init": {
         "params": {
-          "witnessCount": "21",
+          "witnessCount": "100",
           "electionCycleLength": "0",
-          "minPowerFraction": "5",
-          "witnessSalary": "10"
+          "minPowerFraction": "5"
         },
         "validators": [
           {
