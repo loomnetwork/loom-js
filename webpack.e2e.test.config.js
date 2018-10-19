@@ -20,6 +20,10 @@ module.exports = {
     crypto: true,
     util: true,
     stream: true,
+    path: 'empty',
+  },
+  externals: {
+    shelljs: 'commonjs shelljs',
   },
   module: {
     rules: [

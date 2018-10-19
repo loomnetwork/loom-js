@@ -5,9 +5,11 @@ import { PlasmaCashTx } from '../../../plasma-cash/plasma-cash-tx'
 import BN from 'bn.js'
 
 test('Database', t => {
+  let db: PlasmaDB | null = null
+  let db2: PlasmaDB | null = null
   try {
     const uid = `${Math.random() * 10e16}`
-    const db = new PlasmaDB('0x', '0x', '0x', uid)
+    db = new PlasmaDB('0x', '0x', '0x', uid)
 
     const slot = new BN('9fe41685a061deda', 16)
     const blkNumber = new BN('7d0', 16) // 2000
@@ -21,7 +23,7 @@ test('Database', t => {
     t.ok(coinData[0].slot.eq(slot), 'slots should be equal')
 
     // Simulate disconnecting and reconnecting
-    const db2 = new PlasmaDB('0x', '0x', '0x', uid)
+    db2 = new PlasmaDB('0x', '0x', '0x', uid)
 
     db2.receiveCoin(slot, blkNumber, true, tx)
     coinData = db2.getCoin(slot)
@@ -68,6 +70,13 @@ test('Database', t => {
 
   } catch (err) {
     console.log(err)
+  } finally {
+    if (db) {
+      db.delete()
+    }
+    if (db2) {
+      db2.delete()
+    }
   }
   t.end()
 })
