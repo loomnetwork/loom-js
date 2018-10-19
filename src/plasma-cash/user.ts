@@ -112,6 +112,15 @@ export class User extends Entity {
     return this.getCurrentBlockAsync()
   }
 
+  // Called whenever the user receives a coin.
+  async receiveCoinAsync(slot: BN): Promise<boolean> {
+    const coin = await this.getPlasmaCoinAsync(slot)
+    const valid = await this.checkHistoryAsync(coin)
+    const blocks = await this.getBlockNumbersAsync(coin.depositBlockNum)
+    this.database.saveBlock(coin.slot, blocks[blocks.length - 1])
+    return valid
+  }
+
   async verifyInclusionAsync(slot: BN, block: BN): Promise<boolean> {
     // Get block root and the tx and verify
     const tx = await this.getPlasmaTxAsync(slot, block) // get the block number from the proof of inclusion and get the tx from that

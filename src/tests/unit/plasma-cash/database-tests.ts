@@ -62,6 +62,10 @@ test('Database', t => {
     db2.saveBlock(slot, blkNumber2)
     const b = db2.getBlock(slot)
     t.ok(blkNumber2.eq(b), 'should be able to save block numbers')
+
+    db2.saveLastBlock(blkNumber)
+    t.ok(db2.getLastBlock().eq(blkNumber), 'should be able to save latest block number')
+
   } catch (err) {
     console.log(err)
   }
