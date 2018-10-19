@@ -428,16 +428,18 @@ export class Entity {
     if (startBlock.eq(endBlock)) {
       return blockNumbers
     }
-    const nextNonDepositBlock: BN = new BN(
-      Math.ceil(startBlock / this._childBlockInterval) * this._childBlockInterval
-    )
-    if (nextNonDepositBlock.lte(endBlock)) {
+    const nextBlk = this.nextNonDepositBlock(startBlock)
+    if (nextBlk.lte(endBlock)) {
       const interval = new BN(this._childBlockInterval)
-      for (let i: BN = nextNonDepositBlock; i.lte(endBlock); i = i.add(interval)) {
+      for (let i: BN = nextBlk; i.lte(endBlock); i = i.add(interval)) {
         blockNumbers.push(i)
       }
     }
     return blockNumbers
+  }
+
+  protected nextNonDepositBlock(startBlock: any): BN {
+    return new BN(Math.ceil(startBlock / this._childBlockInterval) * this._childBlockInterval)
   }
 
   stopWatching(filter: IWeb3EventSub) {
