@@ -1,6 +1,9 @@
 import low from 'lowdb'
 import { PlasmaCashTx } from './plasma-cash-tx'
 import BN from 'bn.js'
+import fs from 'fs'
+import shelljs from 'shelljs'
+import path from 'path'
 
 export interface IDatabaseCoin {
   slot: BN
@@ -10,16 +13,24 @@ export interface IDatabaseCoin {
 }
 
 export class PlasmaDB {
+  dbPath: string
   db: any
+
   constructor(ethereum: String, dappchain: String, plasmaAddress: String, privateKey: String) {
+    // TODO: the db path shouldn't be hardcoded
     // If we're on node.js
     let adapter
     if (typeof localStorage === 'undefined' || localStorage === null) {
       const FileSync = require('lowdb/adapters/FileSync')
-      adapter = new FileSync(`./db/db_${privateKey}.json`)
+      this.dbPath = `./db/db_${privateKey}.json`
+      if (!fs.existsSync(this.dbPath)) {
+        shelljs.mkdir('-p', path.dirname(this.dbPath))
+      }
+      adapter = new FileSync(this.dbPath)
     } else {
       const LocalStorage = require('lowdb/adapters/LocalStorage')
-      adapter = new LocalStorage('db')
+      this.dbPath = 'db'
+      adapter = new LocalStorage(this.dbPath)
     }
     this.db = low(adapter)
     // Initialize the database
@@ -161,6 +172,21 @@ export class PlasmaDB {
         sig: c.tx.sigBytes,
         proof: c.tx.proofBytes
       })
+    }
+  }
+
+  /** Reclaims any space used by the database */
+  delete() {
+    if (typeof localStorage === 'undefined' || localStorage === null) {
+      if (fs.existsSync(this.dbPath)) {
+        fs.unlinkSync(this.dbPath)
+        try {
+          // this will throw an error if the directory isn't empty
+          fs.rmdirSync(path.dirname(this.dbPath))
+        } catch (err) {}
+      }
+    } else {
+      localStorage.removeItem(this.dbPath)
     }
   }
 }
