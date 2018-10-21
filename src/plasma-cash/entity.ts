@@ -14,6 +14,10 @@ import { PlasmaCashTx } from './plasma-cash-tx'
 import { OfflineWeb3Signer } from '../solidity-helpers'
 import { Account } from 'web3/eth/accounts'
 import { PlasmaDB } from './db'
+import Tx from 'ethereumjs-tx'
+const Plasma = require('./contracts/plasma-cash-abi.json')
+const abiDecoder = require('abi-decoder') // NodeJS
+abiDecoder.addABI(Plasma)
 
 export interface IProofs {
   inclusion: { [blockNumber: string]: string }
@@ -550,6 +554,22 @@ export class Entity {
     })
   }
 
+  async sendETH(to: string, value: BN, gas?: number): Promise<any> {
+    const nonce = await this._web3.eth.getTransactionCount(this.ethAddress)
+    const gasPrice = await this._web3.eth.getGasPrice()
+    const tx = new Tx({
+      to: to,
+      from: this.ethAddress,
+      gas: gas || 21000,
+      gasPrice: this._web3.utils.toHex(gasPrice),
+      nonce: this._web3.utils.toHex(nonce),
+      value: this._web3.utils.toHex(value || 0)
+    })
+    tx.sign(Buffer.from(this._ethAccount.privateKey.slice(2), 'hex'))
+    const serializedTx = tx.serialize()
+    return this._web3.eth.sendSignedTransaction(`0x${serializedTx.toString('hex')}`)
+  }
+
   async respondChallengeBeforeAsync(params: {
     slot: BN
     challengingTxHash: string
@@ -569,7 +589,16 @@ export class Entity {
       gas: this._defaultGas
     })
   }
-}
+
+  async logParser(tx: any): Promise<IPlasmaCoin> {
+    const _tx = await this.web3.eth.getTransactionReceipt(tx.transactionHash)
+
+    const data = abiDecoder.decodeLogs(_tx.logs)[0].events
+    const coinId = new BN(data[0].value.slice(2), 16)
+    return await this.getPlasmaCoinAsync(coinId)
+  }
+
   prefix(slot: BN) {
     return `[${this.ethAddress}, ${slot.toString(16)}]`
   }
+}
