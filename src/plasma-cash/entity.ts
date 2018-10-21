@@ -209,11 +209,11 @@ export class Entity {
 
     const exitTx = await this.getPlasmaTxAsync(slot, exitBlockNum)
     if (!exitTx) {
-      throw new Error(`Invalid exit block: missing tx for slot ${slot.toString(10)}.`)
+      throw new Error(`${this.prefix(slot)} Invalid exit block: missing tx`)
     }
     const prevTx = await this.getPlasmaTxAsync(slot, prevBlockNum)
     if (!prevTx) {
-      throw new Error(`Invalid prev block: missing tx for slot ${slot.toString(10)}.`)
+      throw new Error(`${this.prefix(slot)} Invalid prev block: missing tx`)
     }
     return this._ethPlasmaClient.startExitAsync({
       slot,
@@ -241,7 +241,7 @@ export class Entity {
    * @return Web3 subscription object that can be passed to stopWatching().
    */
   watchExit(slot: BN, fromBlock: BN): IWeb3EventSub {
-    console.log(`Started watching events for Coin ${slot}`)
+    console.log(`${this.prefix(slot)} Started watching exits`)
     this._exitWatchers[slot.toString()] = this.plasmaCashContract.events
       .StartedExit({
         filter: { slot: slot.toString() },
@@ -258,7 +258,7 @@ export class Entity {
    * @return Web3 subscription object that can be passed to stopWatching().
    */
   watchChallenge(slot: BN, fromBlock: BN): IWeb3EventSub {
-    console.log(`Started watching challenges for Coin ${slot}`)
+    console.log(`${this.prefix(slot)} Started watching challenges`)
     this._challengeWatchers[slot.toString()] = this.plasmaCashContract.events
       .ChallengedExit({
         filter: { slot: slot.toString() },
@@ -277,10 +277,10 @@ export class Entity {
 
   async challengeExitAsync(slot: BN, owner: String) {
     if (owner === this.ethAddress) {
-      console.log('Exit is valid, continuing...')
+      console.log(`${this.prefix(slot)} Valid exit!`)
       return
     } else {
-      console.log('FOUND EXIT! CHALLENGING!!')
+      console.log(`${this.prefix(slot)} Challenging exit!`)
     }
 
     const coin = await this.getPlasmaCoinAsync(slot)
@@ -293,15 +293,15 @@ export class Entity {
         continue
       }
       if (blk.gt(exit.exitBlock)) {
-        console.log('Challenge Spent Coin!')
+        console.log(`${this.prefix(slot)} Challenge Spent Coin!`)
         await this.challengeAfterAsync({ slot: slot, challengingBlockNum: blk })
         break
       } else if (exit.prevBlock.lt(blk) && blk.lt(exit.exitBlock)) {
-        console.log('Challenge Double Spend!!')
+        console.log(`${this.prefix(slot)} Challenge Double Spend!`)
         await this.challengeBetweenAsync({ slot: slot, challengingBlockNum: blk })
         break
       } else if (blk.lt(exit.prevBlock)) {
-        console.log('Challenge Invalid History!')
+        console.log(`${this.prefix(slot)} Challenge Invalid History!`)
         const tx = await this.getPlasmaTxAsync(slot, blk)
         await this.challengeBeforeAsync({
           slot: slot,
@@ -446,9 +446,16 @@ export class Entity {
   }
 
   stopWatching(slot: BN) {
-    if (this._exitWatchers[slot.toString()]) this._exitWatchers[slot.toString()].unsubscribe()
-    if (this._challengeWatchers[slot.toString()])
+    if (this._exitWatchers[slot.toString()]) {
+      console.log(`${this.prefix(slot)} Stopped watching exits`)
+      this._exitWatchers[slot.toString()].unsubscribe()
+      delete this._exitWatchers[slot.toString()]
+    }
+    if (this._challengeWatchers[slot.toString()]) {
+      console.log(`${this.prefix(slot)} Stopped watching challenges`)
       this._challengeWatchers[slot.toString()].unsubscribe()
+      delete this._challengeWatchers[slot.toString()]
+    }
   }
 
   async withdrawAsync(slot: BN) {
@@ -471,7 +478,7 @@ export class Entity {
     const { slot, challengingBlockNum } = params
     const challengingTx = await this.getPlasmaTxAsync(slot, challengingBlockNum)
     if (!challengingTx) {
-      throw new Error(`Invalid challenging block: missing tx for slot ${slot.toString(10)}.`)
+      throw new Error(`${this.prefix(slot)} Invalid challenging block: missing tx`)
     }
     return this._ethPlasmaClient.challengeAfterAsync({
       slot,
@@ -486,7 +493,7 @@ export class Entity {
     const { slot, challengingBlockNum } = params
     const challengingTx = await this.getPlasmaTxAsync(slot, challengingBlockNum)
     if (!challengingTx) {
-      throw new Error(`Invalid challenging block: missing tx for slot ${slot.toString(10)}.`)
+      throw new Error(`${this.prefix(slot)} Invalid challenging block: missing tx`)
     }
     return this._ethPlasmaClient.challengeBetweenAsync({
       slot,
@@ -526,11 +533,11 @@ export class Entity {
     // Otherwise, they should get the raw tx info from the blocks, and the merkle proofs.
     const challengingTx = await this.getPlasmaTxAsync(slot, challengingBlockNum)
     if (!challengingTx) {
-      throw new Error(`Invalid exit block: missing tx for slot ${slot.toString(10)}.`)
+      throw new Error(`${this.prefix(slot)} Invalid exit block: missing tx`)
     }
     const prevTx = await this.getPlasmaTxAsync(slot, challengingBlockNum)
     if (!prevTx) {
-      throw new Error(`Invalid prev block: missing tx for slot ${slot.toString(10)}.`)
+      throw new Error(`${this.prefix(slot)} Invalid prev block: missing tx`)
     }
     return this._ethPlasmaClient.challengeBeforeAsync({
       slot,
@@ -551,7 +558,7 @@ export class Entity {
     const { slot, challengingTxHash, respondingBlockNum } = params
     const respondingTx = await this.getPlasmaTxAsync(slot, respondingBlockNum)
     if (!respondingTx) {
-      throw new Error(`Invalid responding block: missing tx for slot ${slot.toString(10)}.`)
+      throw new Error(`${this.prefix(slot)} Invalid responding block: missing tx`)
     }
     return this._ethPlasmaClient.respondChallengeBeforeAsync({
       slot,
@@ -563,3 +570,6 @@ export class Entity {
     })
   }
 }
+  prefix(slot: BN) {
+    return `[${this.ethAddress}, ${slot.toString(16)}]`
+  }
