@@ -246,6 +246,9 @@ export class Entity {
    */
   watchExit(slot: BN, fromBlock: BN): IWeb3EventSub {
     console.log(`${this.prefix(slot)} Started watching exits`)
+    if (this._exitWatchers[slot.toString()] !== undefined) { // replace old filter for that coin
+      this._exitWatchers[slot.toString()].unsubscribe()
+    }
     this._exitWatchers[slot.toString()] = this.plasmaCashContract.events
       .StartedExit({
         filter: { slot: slot.toString() },
@@ -263,6 +266,9 @@ export class Entity {
    */
   watchChallenge(slot: BN, fromBlock: BN): IWeb3EventSub {
     console.log(`${this.prefix(slot)} Started watching challenges`)
+    if (this._challengeWatchers[slot.toString()] !== undefined) { // replace old filter for that coin
+      this._challengeWatchers[slot.toString()].unsubscribe()
+    }
     this._challengeWatchers[slot.toString()] = this.plasmaCashContract.events
       .ChallengedExit({
         filter: { slot: slot.toString() },

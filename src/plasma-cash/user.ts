@@ -18,6 +18,7 @@ import {
 } from '..'
 import { IPlasmaCoin } from './ethereum-client'
 import { sleep } from '../helpers'
+import { IWeb3EventSub } from './entity';
 
 const ERC721 = require('./contracts/ERC721.json')
 const ERC20 = require('./contracts/ERC20.json')
@@ -28,6 +29,7 @@ export class User extends Entity {
   private _startBlock?: BN
   private static _contractName: string
   private buffers: any = {}
+  private newBlocks: any
 
   constructor(web3: Web3, params: IEntityParams, startBlock?: BN) {
     super(web3, params)
@@ -166,6 +168,45 @@ export class User extends Entity {
     return this.getCurrentBlockAsync()
   }
 
+  // Whenever a new block gets submitted refresh the user's state for their coins
+  async watchBlocks() {
+    this.newBlocks = this.plasmaCashContract.events
+      .SubmittedBlock({
+        filter: {},
+        fromBlock: await this.web3.eth.getBlockNumber()
+      })
+      .on('data', async (event: any, err: any) => {
+        const blk = new BN(event.returnValues.blockNumber)
+        console.log(`Got new block: ${blk}`)
+
+        // Get user coins from the dappchain
+        const coins = await this.getUserCoinsAsync()
+
+        // For each coin he already had, just get the history
+        const localCoins = await this.database.getAllCoinSlots()
+
+        for (let i in coins) {
+          const coin = coins[i]
+          let exists = false
+          for (let j in localCoins) {
+            if (coin.slot.eq(localCoins[j])) exists = true
+          }
+          if (exists) {
+            await this.getPlasmaTxAsync(coin.slot, blk) // this will add the coin to state
+          } else {
+            this.receiveAndWatchCoinAsync(coin.slot)
+          }
+
+        }
+      })
+      .on('error', (err: any) => console.log(err))
+  }
+
+  stopWatchingBlocks() {
+    this.newBlocks.unsubscribe()
+    delete this.newBlocks
+  }
+
   // Receives a coin, checks if it's valid, and if it is checks if there's an exit pending for it e
   async receiveAndWatchCoinAsync(slot: BN): Promise<boolean> {
     const valid = await this.receiveCoinAsync(slot)
@@ -179,11 +220,11 @@ export class User extends Entity {
         const exit = events[events.length - 1]
         await this.challengeExitAsync(slot, exit.owner)
       }
-      console.log(`${this.prefix(slot)} Verified history, started watching.)`)
       this.watchExit(slot, new BN(await this.web3.eth.getBlockNumber()))
+      console.log(`${this.prefix(slot)} Verified history, started watching.`)
     } else {
       this.database.removeCoin(slot)
-      console.log(`${this.prefix(slot)} Invalid history, rejecting...)`)
+      console.log(`${this.prefix(slot)} Invalid history, rejecting...`)
     }
     return valid
   }
