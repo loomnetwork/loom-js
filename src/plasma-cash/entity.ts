@@ -286,6 +286,8 @@ export class Entity {
   }
 
   async challengeExitAsync(slot: BN, owner: String) {
+    const exit = await this.getExitAsync(slot)
+    if (exit.exitBlock.eq(new BN(0))) return
     if (owner === this.ethAddress) {
       console.log(`${this.prefix(slot)} Valid exit!`)
       return
@@ -296,23 +298,22 @@ export class Entity {
     const coin = await this.getPlasmaCoinAsync(slot)
     const blocks = await this.getBlockNumbersAsync(coin.depositBlockNum)
     const proofs = await this.getCoinHistoryAsync(slot, blocks)
-    const exit = await this.getExitAsync(slot)
     for (let i in blocks) {
       const blk = blocks[i]
       if (!(blk.toString() in proofs.inclusion)) {
         continue
       }
       if (blk.gt(exit.exitBlock)) {
-        console.log(`${this.prefix(slot)} Challenge Spent Coin!`)
+        console.log(`${this.prefix(slot)} Challenge Spent Coin with ${blk}!`)
         await this.challengeAfterAsync({ slot: slot, challengingBlockNum: blk })
         break
       } else if (exit.prevBlock.lt(blk) && blk.lt(exit.exitBlock)) {
-        console.log(`${this.prefix(slot)} Challenge Double Spend!`)
+        console.log(`${this.prefix(slot)} Challenge Double Spend with ${blk}!`)
         await this.challengeBetweenAsync({ slot: slot, challengingBlockNum: blk })
         break
       } else if (blk.lt(exit.prevBlock)) {
-        console.log(`${this.prefix(slot)} Challenge Invalid History!`)
         const tx = await this.getPlasmaTxAsync(slot, blk)
+        console.log(`${this.prefix(slot)} Challenge Invalid History! with ${tx.prevBlockNum} and ${blk}`)
         await this.challengeBeforeAsync({
           slot: slot,
           prevBlockNum: tx.prevBlockNum,
