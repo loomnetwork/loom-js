@@ -16,7 +16,6 @@ class SignedContract {
     this.web3 = web3
     this.address = address
     this.account = account
-
     const mutable = abi.filter((element: any) => element.type === 'function' && !element.constant)
     const nonMutable = abi.filter(
       (element: any) => element.type === 'function' && element.constant
@@ -40,6 +39,7 @@ class SignedContract {
     // @ts-ignore
     this.contract[func] = wrappedNonConstant
   }
+
   // Will sign the tx
   signedFunc(func: string) {
     const method = this.contract.methods[func]

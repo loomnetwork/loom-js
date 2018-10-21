@@ -5,7 +5,6 @@ import { PlasmaCashBlock } from './plasma-cash-block'
 import { bytesToHexAddr } from '../crypto-utils'
 import { PlasmaCashTx } from './plasma-cash-tx'
 import SignedContract from './signed-contract'
-import { Account } from 'web3/eth/accounts'
 
 export enum PlasmaCoinMode {
   ETH = 0,
@@ -333,7 +332,6 @@ export class EthereumPlasmaClient {
       respondingTx.sig
     ])
   }
-
   /**
    * Submits a Plasma block to the Plasma Cash Solidity contract on Ethereum.
    *
