@@ -590,10 +590,14 @@ export class Entity {
     })
   }
 
-  async logParser(tx: any): Promise<IPlasmaCoin> {
+  /**
+   * 
+   * @param tx The transaction's receipt that wea want to decode
+   * @param i The Deposit event is the i'th emitted event. Set to 0 for depositing ETH, Set to 1 for ERC20/ERC721 since the first event is a `Transfer` event
+   */
+  async logParser(tx: any, i: number): Promise<IPlasmaCoin> {
     const _tx = await this.web3.eth.getTransactionReceipt(tx.transactionHash)
-
-    const data = abiDecoder.decodeLogs(_tx.logs)[0].events
+    const data = abiDecoder.decodeLogs(_tx.logs)[i].events
     const coinId = new BN(data[0].value.slice(2), 16)
     return await this.getPlasmaCoinAsync(coinId)
   }

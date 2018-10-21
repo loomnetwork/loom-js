@@ -13,8 +13,14 @@ import {
   DAppChainPlasmaClient,
   Client,
   createJSONRPCClient,
+  SignedContract,
   PlasmaDB
 } from '..'
+import { IPlasmaCoin } from './ethereum-client'
+import { sleep } from '../helpers'
+
+const ERC721 = require('./contracts/ERC721.json')
+const ERC20 = require('./contracts/ERC20.json')
 // Helper function to create a user instance.
 
 // User friendly wrapper for all Entity related functions, taking advantage of the database
@@ -73,6 +79,53 @@ export class User extends Entity {
     )
   }
 
+  async depositETH(amount: BN): Promise<IPlasmaCoin> {
+    let currentBlock = await this.getCurrentBlockAsync()
+    const tx = await this.sendETH(this.plasmaCashContract._address, amount, 220000)
+    const coin = await this.logParser(tx, 0)
+    currentBlock = await this.pollForBlockChange(currentBlock, 20, 2000)
+    this.receiveAndWatchCoinAsync(coin.slot)
+    return coin
+  }
+
+  async depositERC721(uid: BN, address: string): Promise<IPlasmaCoin> {
+    // @ts-ignore
+    const token = new SignedContract(this._web3, ERC721, address, this.ethAccount).instance
+    let currentBlock = await this.getCurrentBlockAsync()
+    const tx = await token.safeTransferFrom([
+      this.ethAccount.address,
+      this.plasmaCashContract._address,
+      uid.toString()
+    ])
+    const coin = await this.logParser(tx, 1) // 2 events, transferred & deposited, we want the 2nd one
+    currentBlock = await this.pollForBlockChange(currentBlock, 20, 2000)
+    this.receiveAndWatchCoinAsync(coin.slot)
+    return coin
+  }
+
+  async depositERC20(amount: BN, address: string): Promise<IPlasmaCoin> {
+    // @ts-ignore
+    const token = new SignedContract(this._web3, ERC20, address, this.ethAccount).instance
+    // Get how much the user has approved
+    const currentApproval = new BN(
+      await token.allowance(this.ethAccount.address, this.plasmaCashContract._address)
+    )
+
+    // amount - approved
+    if (amount.gt(currentApproval)) {
+      await token.approve([
+        this.plasmaCashContract._address,
+        amount.sub(currentApproval).toString()
+      ])
+      console.log('Approved an extra', amount.sub(currentApproval))
+    }
+    let currentBlock = await this.getCurrentBlockAsync()
+    const tx = await this.plasmaCashContract.depositERC20([amount.toString(), address])
+    const coin = await this.logParser(tx, 1)
+    currentBlock = await this.pollForBlockChange(currentBlock, 20, 2000)
+    this.receiveAndWatchCoinAsync(coin.slot)
+    return coin
+  }
   // Buffer is how many blocks the client will wait for the tx to get confirmed
   async transferAndVerifyAsync(slot: BN, newOwner: string, buffer: number = 6): Promise<any> {
     await this.transferAsync(slot, newOwner)
@@ -84,17 +137,18 @@ export class User extends Entity {
       .on('data', (event: any, err: any) => {
         if (this.verifyInclusionAsync(slot, new BN(event.returnValues.blockNumber))) {
           console.log(
-            `Tx(${slot.toString(16)}, ${newOwner}) included & verified in block ${
+            `${this.prefix(slot)} Tx included & verified in block ${
               event.returnValues.blockNumber
             }`
           )
+          this.stopWatching(slot)
           watcher.unsubscribe()
           this.buffers[slot.toString()] = 0
         }
         if (this.buffers[slot.toString()]++ == buffer) {
           watcher.unsubscribe()
           this.buffers[slot.toString()] = 0
-          throw new Error(`Tx was censored for ${buffer} blocks.`)
+          throw new Error(`${this.prefix(slot)} Tx was censored for ${buffer} blocks.`)
         }
       })
       .on('error', (err: any) => console.log(err))
@@ -110,6 +164,28 @@ export class User extends Entity {
       newOwner: newOwner
     })
     return this.getCurrentBlockAsync()
+  }
+
+  // Receives a coin, checks if it's valid, and if it is checks if there's an exit pending for it e
+  async receiveAndWatchCoinAsync(slot: BN): Promise<boolean> {
+    const valid = await this.receiveCoinAsync(slot)
+    if (valid) {
+      const events: any[] = await this.plasmaCashContract.getPastEvents('StartedExit', {
+        filter: { slot: slot.toString() },
+        fromBlock: this._startBlock
+      })
+      if (events.length > 0) {
+        // Challenge the last exit of this coin if there were any exits at the time
+        const exit = events[events.length - 1]
+        await this.challengeExitAsync(slot, exit.owner)
+      }
+      console.log(`${this.prefix(slot)} Verified history, started watching.)`)
+      this.watchExit(slot, new BN(await this.web3.eth.getBlockNumber()))
+    } else {
+      this.database.removeCoin(slot)
+      console.log(`${this.prefix(slot)} Invalid history, rejecting...)`)
+    }
+    return valid
   }
 
   // Called whenever the user receives a coin.
@@ -129,9 +205,35 @@ export class User extends Entity {
   }
 
   // Exiting a coin by specifying the slot. Finding the block numbers is done under the hood.
+  // Stop watching for exits once the event is mined
   async exitAsync(slot: BN): Promise<any> {
+    // Once the exit is started, stop watching for exit events
+    this.plasmaCashContract.once(
+      'StartedExit',
+      {
+        filter: { slot: slot.toString() },
+        fromBlock: await this.web3.eth.getBlockNumber()
+      },
+      async () => {
+        // Stop watching for exit events
+        this.stopWatching(slot)
+        // Start watching challenge events
+        this.watchChallenge(slot, new BN(await this.web3.eth.getBlockNumber()))
+      }
+    )
+
+    // Once the exit has been finalized, stop watching for challenge events
+    this.plasmaCashContract.once(
+      'FinalizedExit',
+      {
+        filter: { slot: slot.toString() },
+        fromBlock: await this.web3.eth.getBlockNumber()
+      },
+      () => this.stopWatching(slot)
+    )
+
     const { prevBlockNum, blockNum } = await this.findBlocks(slot)
-    return await this.startExitAsync({
+    await this.startExitAsync({
       slot: slot,
       prevBlockNum: prevBlockNum,
       exitBlockNum: blockNum
@@ -140,11 +242,15 @@ export class User extends Entity {
 
   // Get all deposits, filtered by the user's address.
   async deposits(): Promise<any[]> {
-    return await this.getDepositEvents(this._startBlock || new BN(0), false)
+    const _deposits = await this.getDepositEvents(this._startBlock || new BN(0), false)
+    const coins = _deposits.map(d => this.getPlasmaCoinAsync(d.slot))
+    return await Promise.all(coins)
   }
 
   async allDeposits(): Promise<any[]> {
-    return await this.getDepositEvents(this._startBlock || new BN(0), true)
+    const _deposits = await this.getDepositEvents(this._startBlock || new BN(0), true)
+    const coins = _deposits.map(d => this.getPlasmaCoinAsync(d.slot))
+    return await Promise.all(coins)
   }
 
   disconnect() {
@@ -189,11 +295,28 @@ export class User extends Entity {
     }
     return { prevBlockNum, blockNum }
   }
-
   private async getCoinHistoryFromDBAsync(slot: BN): Promise<IDatabaseCoin[]> {
     const coin = await this.getPlasmaCoinAsync(slot)
     // Update the local database
     await this.checkHistoryAsync(coin)
     return this.database.getCoin(slot)
+  }
+
+  private async pollForBlockChange(
+    currentBlock: BN,
+    maxIters: number,
+    sleepTime: number
+  ): Promise<BN> {
+    let blk = await this.getCurrentBlockAsync()
+    for (let i = 0; i < maxIters; i++) {
+      await sleep(sleepTime)
+      blk = await this.getCurrentBlockAsync()
+      if (blk.gt(currentBlock)) {
+        return blk
+      }
+    }
+    throw new Error(
+      `Exceeded max iterations while waiting for the next block after ${currentBlock}`
+    )
   }
 }
