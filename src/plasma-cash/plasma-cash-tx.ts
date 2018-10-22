@@ -43,7 +43,7 @@ export class PlasmaCashTx {
 
   rlpEncode(): string {
     const data = [
-      this.slot.toArrayLike(Buffer as any, 'be') as Buffer,
+      this.slot.toArrayLike(Buffer as any, 'be') as any,
       this.prevBlockNum.toNumber(), // TODO: this won't be sufficient to encode the entire range of uint64
       this.denomination.toNumber(),
       this.newOwner
