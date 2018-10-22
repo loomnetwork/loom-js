@@ -86,67 +86,67 @@ const newContractAndClient = async () => {
   return { contract, client, web3, from, privKey }
 }
 
-// test('LoomProvider + Web3 not matching topic', async t => {
-//   t.plan(2)
-//   const { contract, client } = await newContractAndClient()
+test('LoomProvider + Web3 not matching topic', async t => {
+  t.plan(2)
+  const { contract, client } = await newContractAndClient()
 
-//   try {
-//     const newValue = 1
+  try {
+    const newValue = 1
 
-//     contract.events.NewValueSet({ filter: { _value: [4, 5] } }, (err: Error, event: any) => {
-//       console.log(err, event)
-//       if (err) t.error(err)
-//       else {
-//         t.fail('should not been dispatched')
-//       }
-//     })
+    contract.events.NewValueSet({ filter: { _value: [4, 5] } }, (err: Error, event: any) => {
+      console.log(err, event)
+      if (err) t.error(err)
+      else {
+        t.fail('should not been dispatched')
+      }
+    })
 
-//     const tx = await contract.methods.set(newValue).send()
-//     t.equal(tx.status, true, 'SimpleStore.set should return correct status')
+    const tx = await contract.methods.set(newValue).send()
+    t.equal(tx.status, true, 'SimpleStore.set should return correct status')
 
-//     const resultOfGet = await contract.methods.get().call()
-//     t.equal(+resultOfGet, newValue, `SimpleStore.get should return correct value`)
+    const resultOfGet = await contract.methods.get().call()
+    t.equal(+resultOfGet, newValue, `SimpleStore.get should return correct value`)
 
-//     await waitForMillisecondsAsync(1000)
-//   } catch (err) {
-//     console.log(err)
-//   }
+    await waitForMillisecondsAsync(1000)
+  } catch (err) {
+    console.log(err)
+  }
 
-//   if (client) {
-//     client.disconnect()
-//   }
-// })
+  if (client) {
+    client.disconnect()
+  }
+})
 
-// test('LoomProvider + Web3 multiple topics', async t => {
-//   t.plan(3)
-//   const { contract, client } = await newContractAndClient()
-//   try {
-//     const newValue = 1
+test('LoomProvider + Web3 multiple topics', async t => {
+  t.plan(3)
+  const { contract, client } = await newContractAndClient()
+  try {
+    const newValue = 1
 
-//     contract.events.NewValueSet({ filter: { _value: [1, 2, 3] } }, (err: Error, event: any) => {
-//       if (err) t.error(err)
-//       else {
-//         t.equal(+event.returnValues._value, newValue, `Return value should be ${newValue}`)
-//       }
-//     })
+    contract.events.NewValueSet({ filter: { _value: [1, 2, 3] } }, (err: Error, event: any) => {
+      if (err) t.error(err)
+      else {
+        t.equal(+event.returnValues._value, newValue, `Return value should be ${newValue}`)
+      }
+    })
 
-//     const tx = await contract.methods.set(newValue).send()
-//     t.equal(tx.status, true, 'SimpleStore.set should return correct status')
+    const tx = await contract.methods.set(newValue).send()
+    t.equal(tx.status, true, 'SimpleStore.set should return correct status')
 
-//     const resultOfGet = await contract.methods.get().call()
-//     t.equal(+resultOfGet, newValue, `SimpleStore.get should return correct value`)
+    const resultOfGet = await contract.methods.get().call()
+    t.equal(+resultOfGet, newValue, `SimpleStore.get should return correct value`)
 
-//     await waitForMillisecondsAsync(1000)
-//   } catch (err) {
-//     console.log(err)
-//   }
+    await waitForMillisecondsAsync(1000)
+  } catch (err) {
+    console.log(err)
+  }
 
-//   if (client) {
-//     client.disconnect()
-//   }
+  if (client) {
+    client.disconnect()
+  }
 
-//   t.end()
-// })
+  t.end()
+})
 
 test('LoomProvider + Eth Sign', async t => {
   const { client, web3, from, privKey } = await newContractAndClient()

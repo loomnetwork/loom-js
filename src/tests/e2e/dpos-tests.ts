@@ -53,7 +53,7 @@ async function voteRequest(t: test.Test, createClient: () => Client) {
   const { client, dpos, pubKey } = await getClientAndContract(createClient)
 
   const candidate = new Address(client.chainId, LocalAddress.fromPublicKey(pubKey))
-  await dpos.voteAsync(candidate, 10)
+  await dpos.voteAsync(candidate, 100)
 
   client.disconnect()
 }
@@ -91,12 +91,12 @@ test('DPOS', async t => {
     await voteRequest(t, createTestHttpClient)
     await waitForMillisecondsAsync(1000)
     await electionRequest(t, createTestHttpClient)
-    // await waitForMillisecondsAsync(1000)
-    // await listCandidates(t, createTestHttpClient)
-    // await waitForMillisecondsAsync(1000)
-    // await unregisterCandidate(t, createTestHttpClient)
-    // await waitForMillisecondsAsync(1000)
-    // await listWitness(t, createTestHttpClient)
+    await waitForMillisecondsAsync(1000)
+    await listCandidates(t, createTestHttpClient)
+    await waitForMillisecondsAsync(1000)
+    await unregisterCandidate(t, createTestHttpClient)
+    await waitForMillisecondsAsync(1000)
+    await listWitness(t, createTestHttpClient)
   } catch (err) {
     t.fail(err)
   }
