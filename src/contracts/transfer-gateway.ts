@@ -88,7 +88,10 @@ export class TransferGateway extends Contract {
           B64ToUint8Array(event.data)
         )
 
-        let tokenId: BN | undefined, tokenAmount: BN | undefined, value: BN
+        let tokenId: BN | undefined
+        let tokenAmount: BN | undefined
+        let value: BN
+
         const tokenKind = eventData.getTokenKind()
         switch (tokenKind) {
           case TransferGatewayTokenKind.ERC721:
@@ -98,6 +101,7 @@ export class TransferGateway extends Contract {
           case TransferGatewayTokenKind.ERC721X:
             tokenId = unmarshalBigUIntPB(eventData.getTokenId()!)
           // fallthrough
+          // tslint:disable-next-line: no-switch-case-fall-through
           default:
             tokenAmount = unmarshalBigUIntPB(eventData.getTokenAmount()!)
             value = tokenAmount
@@ -271,7 +275,10 @@ export class TransferGateway extends Contract {
     const receipt = result.getReceipt()
 
     if (receipt) {
-      let tokenId: BN | undefined, tokenAmount: BN | undefined, value: BN
+      let tokenId: BN | undefined
+      let tokenAmount: BN | undefined
+      let value: BN
+
       const tokenKind = receipt.getTokenKind()
       switch (tokenKind) {
         case TransferGatewayTokenKind.ERC721:
@@ -281,6 +288,7 @@ export class TransferGateway extends Contract {
         case TransferGatewayTokenKind.ERC721X:
           tokenId = unmarshalBigUIntPB(receipt.getTokenId()!)
         // fallthrough
+        // tslint:disable-next-line: no-switch-case-fall-through
         default:
           tokenAmount = unmarshalBigUIntPB(receipt.getTokenAmount()!)
           value = tokenAmount
