@@ -246,7 +246,8 @@ export class Entity {
    */
   watchExit(slot: BN, fromBlock: BN): IWeb3EventSub {
     console.log(`${this.prefix(slot)} Started watching exits`)
-    if (this._exitWatchers[slot.toString()] !== undefined) { // replace old filter for that coin
+    if (this._exitWatchers[slot.toString()] !== undefined) {
+      // replace old filter for that coin
       this._exitWatchers[slot.toString()].unsubscribe()
     }
     this._exitWatchers[slot.toString()] = this.plasmaCashContract.events
@@ -266,7 +267,8 @@ export class Entity {
    */
   watchChallenge(slot: BN, fromBlock: BN): IWeb3EventSub {
     console.log(`${this.prefix(slot)} Started watching challenges`)
-    if (this._challengeWatchers[slot.toString()] !== undefined) { // replace old filter for that coin
+    if (this._challengeWatchers[slot.toString()] !== undefined) {
+      // replace old filter for that coin
       this._challengeWatchers[slot.toString()].unsubscribe()
     }
     this._challengeWatchers[slot.toString()] = this.plasmaCashContract.events
@@ -313,7 +315,9 @@ export class Entity {
         break
       } else if (blk.lt(exit.prevBlock)) {
         const tx = await this.getPlasmaTxAsync(slot, blk)
-        console.log(`${this.prefix(slot)} Challenge Invalid History! with ${tx.prevBlockNum} and ${blk}`)
+        console.log(
+          `${this.prefix(slot)} Challenge Invalid History! with ${tx.prevBlockNum} and ${blk}`
+        )
         await this.challengeBeforeAsync({
           slot: slot,
           prevBlockNum: tx.prevBlockNum,
@@ -598,11 +602,11 @@ export class Entity {
   }
 
   /**
-   * 
+   *
    * @param tx The transaction's receipt that wea want to decode
    * @param i The Deposit event is the i'th emitted event. Set to 0 for depositing ETH, Set to 1 for ERC20/ERC721 since the first event is a `Transfer` event
    */
-  async logParser(tx: any, i: number): Promise<IPlasmaCoin> {
+  async getCoinFromTxAsync(tx: any, i: number): Promise<IPlasmaCoin> {
     const _tx = await this.web3.eth.getTransactionReceipt(tx.transactionHash)
     const data = abiDecoder.decodeLogs(_tx.logs)[i].events
     const coinId = new BN(data[0].value.slice(2), 16)

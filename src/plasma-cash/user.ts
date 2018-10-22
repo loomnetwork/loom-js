@@ -18,7 +18,7 @@ import {
 } from '..'
 import { IPlasmaCoin } from './ethereum-client'
 import { sleep } from '../helpers'
-import { IWeb3EventSub } from './entity';
+import { IWeb3EventSub } from './entity'
 
 const ERC721 = require('./contracts/ERC721.json')
 const ERC20 = require('./contracts/ERC20.json')
@@ -81,16 +81,16 @@ export class User extends Entity {
     )
   }
 
-  async depositETH(amount: BN): Promise<IPlasmaCoin> {
+  async depositETHAsync(amount: BN): Promise<IPlasmaCoin> {
     let currentBlock = await this.getCurrentBlockAsync()
     const tx = await this.sendETH(this.plasmaCashContract._address, amount, 220000)
-    const coin = await this.logParser(tx, 0)
+    const coin = await this.getCoinFromTxAsync(tx, 0)
     currentBlock = await this.pollForBlockChange(currentBlock, 20, 2000)
     this.receiveAndWatchCoinAsync(coin.slot)
     return coin
   }
 
-  async depositERC721(uid: BN, address: string): Promise<IPlasmaCoin> {
+  async depositERC721Async(uid: BN, address: string): Promise<IPlasmaCoin> {
     // @ts-ignore
     const token = new SignedContract(this._web3, ERC721, address, this.ethAccount).instance
     let currentBlock = await this.getCurrentBlockAsync()
@@ -99,13 +99,13 @@ export class User extends Entity {
       this.plasmaCashContract._address,
       uid.toString()
     ])
-    const coin = await this.logParser(tx, 1) // 2 events, transferred & deposited, we want the 2nd one
+    const coin = await this.getCoinFromTxAsync(tx, 1) // 2 events, transferred & deposited, we want the 2nd one
     currentBlock = await this.pollForBlockChange(currentBlock, 20, 2000)
     this.receiveAndWatchCoinAsync(coin.slot)
     return coin
   }
 
-  async depositERC20(amount: BN, address: string): Promise<IPlasmaCoin> {
+  async depositERC20Async(amount: BN, address: string): Promise<IPlasmaCoin> {
     // @ts-ignore
     const token = new SignedContract(this._web3, ERC20, address, this.ethAccount).instance
     // Get how much the user has approved
@@ -123,7 +123,7 @@ export class User extends Entity {
     }
     let currentBlock = await this.getCurrentBlockAsync()
     const tx = await this.plasmaCashContract.depositERC20([amount.toString(), address])
-    const coin = await this.logParser(tx, 1)
+    const coin = await this.getCoinFromTxAsync(tx, 1)
     currentBlock = await this.pollForBlockChange(currentBlock, 20, 2000)
     this.receiveAndWatchCoinAsync(coin.slot)
     return coin
@@ -196,7 +196,6 @@ export class User extends Entity {
           } else {
             this.receiveAndWatchCoinAsync(coin.slot)
           }
-
         }
       })
       .on('error', (err: any) => console.log(err))
