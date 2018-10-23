@@ -2,7 +2,6 @@ import low from 'lowdb'
 import { PlasmaCashTx } from './plasma-cash-tx'
 import BN from 'bn.js'
 import fs from 'fs'
-import shelljs from 'shelljs'
 import path from 'path'
 
 export interface IDatabaseCoin {
@@ -22,6 +21,8 @@ export class PlasmaDB {
     let adapter
     if (typeof localStorage === 'undefined' || localStorage === null) {
       const FileSync = require('lowdb/adapters/FileSync')
+      const shelljs = require('shelljs')
+
       this.dbPath = `./db/db_${privateKey}.json`
       if (!fs.existsSync(this.dbPath)) {
         shelljs.mkdir('-p', path.dirname(this.dbPath))
