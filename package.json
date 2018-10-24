@@ -38,6 +38,7 @@
     "google-protobuf": "3.6",
     "lodash": "^4.17.11",
     "lowdb": "^1.0.0",
+    "shelljs": "^0.8.2",
     "retry": "^0.12.0",
     "ripemd160": "^2.0.1",
     "rlp": "^2.1.0",
