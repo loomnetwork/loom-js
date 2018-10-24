@@ -4,7 +4,7 @@ import Web3 from 'web3'
 import { PlasmaCashBlock } from './plasma-cash-block'
 import { bytesToHexAddr } from '../crypto-utils'
 import { PlasmaCashTx } from './plasma-cash-tx'
-import SignedContract from './signed-contract'
+import Contract from 'web3/eth/contract'
 
 export enum PlasmaCoinMode {
   ETH = 0,
@@ -129,7 +129,8 @@ export interface IPlasmaRspondChallengeBeforeParams extends ISendTxOptions {
 
 export class EthereumPlasmaClient {
   private _web3: Web3
-  private _plasmaContract: any
+  private _plasmaContract: Contract
+  private _plasmaEventListener: Contract
 
   /**
    * Web3 contract instance of the Plasma Cash contract on Ethereum.
@@ -138,20 +139,25 @@ export class EthereumPlasmaClient {
     return this._plasmaContract
   }
 
-  constructor(web3: Web3, ethAccount: any, plasmaContractAddr: string) {
+  /**
+   * Web3 contract instance of the Plasma Cash contract linked to a wss enabled endpoint for listening to events
+   */
+  get plasmaEvents(): any {
+    return this._plasmaEventListener
+  }
+
+  constructor(web3: Web3, plasmaContractAddr: string, eventsEndpoint: string) {
     this._web3 = web3
     const plasmaABI = require(`./contracts/plasma-cash-abi.json`)
-    this._plasmaContract = new SignedContract(
-      web3,
-      plasmaABI,
-      plasmaContractAddr,
-      ethAccount
-    ).instance
+    this._plasmaContract = new this._web3.eth.Contract(plasmaABI, plasmaContractAddr)
+    this._plasmaEventListener = this._plasmaContract
+    const provider = new Web3.providers.WebsocketProvider(eventsEndpoint)
+    this._plasmaEventListener.setProvider(provider)
   }
 
   async getExitAsync(params: { slot: BN; from: string }): Promise<IPlasmaExitData> {
     const { slot, from } = params
-    const exit = await this._plasmaContract.getExit(slot.toString())
+    const exit = await this._plasmaContract.methods.getExit(slot).call({ from })
     return {
       slot: slot,
       owner: exit[0],
@@ -169,24 +175,21 @@ export class EthereumPlasmaClient {
     from: string
   }): Promise<boolean> {
     const { leaf, root, slot, proof, from } = params
-    const isIncluded = await this._plasmaContract.checkMembership(
-      leaf,
-      root,
-      slot.toString(),
-      proof
-    )
+    const isIncluded = await this._plasmaContract.methods
+      .checkMembership(leaf, root, slot, proof)
+      .call({ from })
     return isIncluded
   }
 
   async getBlockRootAsync(params: { blockNumber: BN; from: string }): Promise<string> {
     const { blockNumber, from } = params
-    const root = await this._plasmaContract.getBlockRoot(blockNumber.toString())
+    const root = await this._plasmaContract.methods.getBlockRoot(blockNumber).call({ from })
     return root
   }
 
   async getPlasmaCoinAsync(params: { slot: BN; from: string }): Promise<IPlasmaCoin> {
     const { slot, from } = params
-    const coin = await this._plasmaContract.getPlasmaCoin(slot.toString())
+    const coin = await this._plasmaContract.methods.getPlasmaCoin(slot).call({ from })
     return {
       slot: slot,
       uid: new BN(coin[0]),
@@ -208,18 +211,17 @@ export class EthereumPlasmaClient {
     const exitTxBytes = exitTx.rlpEncode()
     const bond = this._web3.utils.toWei('0.1', 'ether')
 
-    return this._plasmaContract.startExit(
-      [
-        slot.toString(),
+    return this._plasmaContract.methods
+      .startExit(
+        slot,
         prevTxBytes,
         exitTxBytes,
         prevTx ? prevTx.proof : '0x',
         exitTx.proof,
         exitTx.sig,
-        [prevBlockNum ? prevBlockNum.toString() : 0, exitBlockNum.toString()]
-      ],
-      bond
-    )
+        [prevBlockNum || 0, exitBlockNum]
+      )
+      .send({ from, value: bond, gas, gasPrice })
   }
 
   /**
@@ -227,7 +229,7 @@ export class EthereumPlasmaClient {
    * @returns Web3 tx receipt object.
    */
   finalizeExitsAsync(params: ISendTxOptions): Promise<object> {
-    return this._plasmaContract.finalizeExits([])
+    return this._plasmaContract.methods.finalizeExits().send(params)
   }
 
   /**
@@ -236,7 +238,7 @@ export class EthereumPlasmaClient {
    */
   withdrawAsync(params: IPlasmaWithdrawParams): Promise<object> {
     const { slot, ...rest } = params
-    return this._plasmaContract.withdraw([slot.toString()])
+    return this._plasmaContract.methods.withdraw(slot).send(rest)
   }
 
   /**
@@ -244,7 +246,7 @@ export class EthereumPlasmaClient {
    * @returns Web3 tx receipt object.
    */
   withdrawBondsAsync(params: ISendTxOptions): Promise<object> {
-    return this._plasmaContract.withdrawBonds([])
+    return this._plasmaContract.methods.withdrawBonds().send(params)
   }
 
   /**
@@ -255,13 +257,9 @@ export class EthereumPlasmaClient {
   challengeAfterAsync(params: IPlasmaChallengeParams): Promise<object> {
     const { slot, challengingBlockNum, challengingTx, ...rest } = params
     const txBytes = challengingTx.rlpEncode()
-    return this._plasmaContract.challengeAfter([
-      slot.toString(),
-      challengingBlockNum.toString(),
-      txBytes,
-      challengingTx.proof,
-      challengingTx.sig
-    ])
+    return this._plasmaContract.methods
+      .challengeAfter(slot, challengingBlockNum, txBytes, challengingTx.proof, challengingTx.sig)
+      .send(rest)
   }
 
   /**
@@ -272,13 +270,9 @@ export class EthereumPlasmaClient {
   challengeBetweenAsync(params: IPlasmaChallengeParams): Promise<object> {
     const { slot, challengingBlockNum, challengingTx, ...rest } = params
     const txBytes = challengingTx.rlpEncode()
-    return this._plasmaContract.challengeBetween([
-      slot.toString(),
-      challengingBlockNum.toString(),
-      txBytes,
-      challengingTx.proof,
-      challengingTx.sig
-    ])
+    return this._plasmaContract.methods
+      .challengeBetween(slot, challengingBlockNum, txBytes, challengingTx.proof, challengingTx.sig)
+      .send(rest)
   }
 
   /**
@@ -301,18 +295,17 @@ export class EthereumPlasmaClient {
     const challengingTxBytes = challengingTx.rlpEncode()
     const bond = this._web3.utils.toWei('0.1', 'ether')
 
-    return this._plasmaContract.challengeBefore(
-      [
-        slot.toString(),
+    return this._plasmaContract.methods
+      .challengeBefore(
+        slot,
         prevTxBytes,
         challengingTxBytes,
         prevTx ? prevTx.proof : '0x',
         challengingTx.proof,
         challengingTx.sig,
-        [prevBlockNum ? prevBlockNum.toString() : 0, challengingBlockNum.toString()]
-      ],
-      bond
-    )
+        [prevBlockNum || 0, challengingBlockNum]
+      )
+      .send({ from, value: bond, gas, gasPrice })
   }
 
   /**
@@ -323,15 +316,18 @@ export class EthereumPlasmaClient {
   respondChallengeBeforeAsync(params: IPlasmaRspondChallengeBeforeParams): Promise<object> {
     const { slot, challengingTxHash, respondingBlockNum, respondingTx, ...rest } = params
     const respondingTxBytes = respondingTx.rlpEncode()
-    return this._plasmaContract.respondChallengeBefore([
-      slot.toString(),
-      challengingTxHash,
-      respondingBlockNum.toString(),
-      respondingTxBytes,
-      respondingTx.proof,
-      respondingTx.sig
-    ])
+    return this._plasmaContract.methods
+      .respondChallengeBefore(
+        slot,
+        challengingTxHash,
+        respondingBlockNum,
+        respondingTxBytes,
+        respondingTx.proof,
+        respondingTx.sig
+      )
+      .send(rest)
   }
+
   /**
    * Submits a Plasma block to the Plasma Cash Solidity contract on Ethereum.
    *
@@ -342,6 +338,8 @@ export class EthereumPlasmaClient {
    */
   debugSubmitBlockAsync(params: { block: PlasmaCashBlock; from: string }): Promise<object> {
     const { block, from } = params
-    return this._plasmaContract.submitBlock([bytesToHexAddr(block.merkleHash)])
+    return this._plasmaContract.methods
+      .submitBlock(bytesToHexAddr(block.merkleHash))
+      .send({ from })
   }
 }
