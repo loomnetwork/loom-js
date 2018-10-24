@@ -11,7 +11,7 @@ import {
 import { Address, LocalAddress } from '../address'
 import { DAppChainPlasmaClient } from './dappchain-client'
 import { PlasmaCashTx } from './plasma-cash-tx'
-import { OfflineWeb3Signer } from '../solidity-helpers'
+import { Web3Signer } from '../solidity-helpers'
 import { Account } from 'web3/eth/accounts'
 import { PlasmaDB } from './db'
 import Tx from 'ethereumjs-tx'
@@ -27,11 +27,11 @@ export interface IProofs {
 
 export interface IEntityParams {
   /** Web3 account for use on Ethereum */
-  ethAccount: Account
   ethPlasmaClient: EthereumPlasmaClient
   dAppPlasmaClient: DAppChainPlasmaClient
   /** Allows to override the amount of gas used when sending txs to Ethereum. */
   defaultGas?: string | number
+  defaultAccount: string
   childBlockInterval: number
 }
 
@@ -47,14 +47,13 @@ export interface IWeb3EventSub {
  */
 export class Entity {
   private _web3: Web3
-  // web3 account
-  private _ethAccount: Account
   private _dAppPlasmaClient: DAppChainPlasmaClient
   private _ethPlasmaClient: EthereumPlasmaClient
-  private _defaultGas?: string | number
   private _childBlockInterval: number
   private _exitWatchers: { [slot: string]: IWeb3EventSub }
   private _challengeWatchers: { [slot: string]: IWeb3EventSub }
+  private _ethAddress: string
+  protected _defaultGas?: string | number
 
   get web3(): Web3 {
     return this._web3
@@ -65,11 +64,11 @@ export class Entity {
   }
 
   get ethAddress(): string {
-    return this._ethAccount.address
+    return this._ethAddress
   }
 
-  get ethAccount(): Account {
-    return this._ethAccount
+  get plasmaEvents(): any {
+    return this._ethPlasmaClient.plasmaEvents
   }
 
   get plasmaCashContract(): any {
@@ -82,13 +81,13 @@ export class Entity {
 
   constructor(web3: Web3, params: IEntityParams) {
     this._web3 = web3
-    this._ethAccount = params.ethAccount
     this._ethPlasmaClient = params.ethPlasmaClient
     this._dAppPlasmaClient = params.dAppPlasmaClient
     this._defaultGas = params.defaultGas
     this._childBlockInterval = params.childBlockInterval
     this._exitWatchers = {}
     this._challengeWatchers = {}
+    this._ethAddress = params.defaultAccount
   }
 
   // This should be called whenever a new block gets received
@@ -126,7 +125,7 @@ export class Entity {
       newOwner,
       prevOwner: this.ethAddress
     })
-    await tx.signAsync(new OfflineWeb3Signer(this._web3, this._ethAccount))
+    await tx.signAsync(new Web3Signer(this._web3, this.ethAddress))
     await this._dAppPlasmaClient.sendTxAsync(tx)
   }
 
@@ -201,7 +200,7 @@ export class Entity {
         denomination: 1,
         newOwner: this.ethAddress
       })
-      await exitTx.signAsync(new OfflineWeb3Signer(this._web3, this._ethAccount))
+      await exitTx.signAsync(new Web3Signer(this._web3, this.ethAddress))
       return this._ethPlasmaClient.startExitAsync({
         slot,
         exitTx,
@@ -250,7 +249,7 @@ export class Entity {
       // replace old filter for that coin
       this._exitWatchers[slot.toString()].unsubscribe()
     }
-    this._exitWatchers[slot.toString()] = this.plasmaCashContract.events
+    this._exitWatchers[slot.toString()] = this.plasmaEvents.events
       .StartedExit({
         filter: { slot: slot.toString() },
         fromBlock: fromBlock
@@ -271,7 +270,7 @@ export class Entity {
       // replace old filter for that coin
       this._challengeWatchers[slot.toString()].unsubscribe()
     }
-    this._challengeWatchers[slot.toString()] = this.plasmaCashContract.events
+    this._challengeWatchers[slot.toString()] = this.plasmaEvents.events
       .ChallengedExit({
         filter: { slot: slot.toString() },
         fromBlock: fromBlock
@@ -426,7 +425,7 @@ export class Entity {
 
   async getDepositEvents(fromBlock?: BN, all?: boolean): Promise<IPlasmaDeposit[]> {
     const filter = !all ? { from: this.ethAddress } : {}
-    const events: any[] = await this.plasmaCashContract.getPastEvents('Deposit', {
+    const events: any[] = await this.plasmaEvents.getPastEvents('Deposit', {
       filter: filter,
       fromBlock: fromBlock ? fromBlock : 0
     })
@@ -535,7 +534,7 @@ export class Entity {
         denomination: 1,
         newOwner: this.ethAddress
       })
-      await challengingTx.signAsync(new OfflineWeb3Signer(this._web3, this._ethAccount))
+      await challengingTx.signAsync(new Web3Signer(this._web3, this.ethAddress))
       return this._ethPlasmaClient.challengeBeforeAsync({
         slot,
         challengingTx,
@@ -565,22 +564,6 @@ export class Entity {
     })
   }
 
-  async sendETH(to: string, value: BN, gas?: number): Promise<any> {
-    const nonce = await this._web3.eth.getTransactionCount(this.ethAddress)
-    const gasPrice = await this._web3.eth.getGasPrice()
-    const tx = new Tx({
-      to: to,
-      from: this.ethAddress,
-      gas: gas || 21000,
-      gasPrice: this._web3.utils.toHex(gasPrice),
-      nonce: this._web3.utils.toHex(nonce),
-      value: this._web3.utils.toHex(value || 0)
-    })
-    tx.sign(Buffer.from(this._ethAccount.privateKey.slice(2), 'hex'))
-    const serializedTx = tx.serialize()
-    return this._web3.eth.sendSignedTransaction(`0x${serializedTx.toString('hex')}`)
-  }
-
   async respondChallengeBeforeAsync(params: {
     slot: BN
     challengingTxHash: string
@@ -603,12 +586,12 @@ export class Entity {
 
   /**
    *
-   * @param tx The transaction's receipt that wea want to decode
+   * @param tx The transaction hash which will retrie
    * @param i The Deposit event is the i'th emitted event. Set to 0 for depositing ETH, Set to 1 for ERC20/ERC721 since the first event is a `Transfer` event
    */
-  async getCoinFromTxAsync(tx: any, i: number): Promise<IPlasmaCoin> {
-    const _tx = await this.web3.eth.getTransactionReceipt(tx.transactionHash)
-    const data = abiDecoder.decodeLogs(_tx.logs)[i].events
+  async getCoinFromTxAsync(txHash: string, i: number): Promise<IPlasmaCoin> {
+    const receipt = await this.web3.eth.getTransactionReceipt(txHash)
+    const data = abiDecoder.decodeLogs(receipt.logs)[i].events
     const coinId = new BN(data[0].value.slice(2), 16)
     return await this.getPlasmaCoinAsync(coinId)
   }
