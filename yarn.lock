@@ -721,10 +721,10 @@
   resolved "https://registry.yarnpkg.com/@types/underscore/-/underscore-1.8.9.tgz#fef41f800cd23db1b4f262ddefe49cd952d82323"
   integrity sha512-vfzZGgZKRFy7KEWcBGfIFk+h6B+thDCLfkD1exMBMRlUsx2icA+J6y4kAbZs/TjSTeY1duw89QUU133TSzr60Q==
 
-"@types/web3@^1.0.6":
-  version "1.0.6"
-  resolved "https://registry.yarnpkg.com/@types/web3/-/web3-1.0.6.tgz#ea6bd4591a59efa73c3399b2bf172a268630edbf"
-  integrity sha512-WHCAL0E0TXzpfMNLPHOe3lyjBZt7JxBGHBZ5FbSiw0ptltTjJSKnBnYNhKNM69CHZbGPA20vOKmF4ew3H2P9Rw==
+"@types/web3@^1.0.11":
+  version "1.0.11"
+  resolved "https://registry.yarnpkg.com/@types/web3/-/web3-1.0.11.tgz#afe6f382aa5078c06be3f8018ab64d2517efb9ad"
+  integrity sha512-45puQrp3ubVTOa6ezkdgQqaj4nwmvOn1vI1GLfA7Q6cZdIRDpFhmg/Mue9rUTaQuhfeXMCUSZ71zbozHpQJ17w==
   dependencies:
     "@types/bn.js" "*"
     "@types/underscore" "*"
@@ -8899,18 +8899,7 @@ web3-utils@1.0.0-beta.36:
     underscore "1.8.3"
     utf8 "2.1.1"
 
-web3@^0.18.4:
-  version "0.18.4"
-  resolved "https://registry.yarnpkg.com/web3/-/web3-0.18.4.tgz#81ec1784145491f2eaa8955b31c06049e07c5e7d"
-  integrity sha1-gewXhBRUkfLqqJVbMcBgSeB8Xn0=
-  dependencies:
-    bignumber.js "git+https://github.com/debris/bignumber.js.git#94d7146671b9719e00a09c29b01a691bc85048c2"
-    crypto-js "^3.1.4"
-    utf8 "^2.1.1"
-    xhr2 "*"
-    xmlhttprequest "*"
-
-web3@^1.0.0-beta.36:
+web3@1.0.0-beta.36:
   version "1.0.0-beta.36"
   resolved "https://registry.yarnpkg.com/web3/-/web3-1.0.0-beta.36.tgz#2954da9e431124c88396025510d840ba731c8373"
   integrity sha512-fZDunw1V0AQS27r5pUN3eOVP7u8YAvyo6vOapdgVRolAu5LgaweP7jncYyLINqIX9ZgWdS5A090bt+ymgaYHsw==
@@ -8922,6 +8911,17 @@ web3@^1.0.0-beta.36:
     web3-net "1.0.0-beta.36"
     web3-shh "1.0.0-beta.36"
     web3-utils "1.0.0-beta.36"
+
+web3@^0.18.4:
+  version "0.18.4"
+  resolved "https://registry.yarnpkg.com/web3/-/web3-0.18.4.tgz#81ec1784145491f2eaa8955b31c06049e07c5e7d"
+  integrity sha1-gewXhBRUkfLqqJVbMcBgSeB8Xn0=
+  dependencies:
+    bignumber.js "git+https://github.com/debris/bignumber.js.git#94d7146671b9719e00a09c29b01a691bc85048c2"
+    crypto-js "^3.1.4"
+    utf8 "^2.1.1"
+    xhr2 "*"
+    xmlhttprequest "*"
 
 webpack-addons@^1.1.5:
   version "1.1.5"

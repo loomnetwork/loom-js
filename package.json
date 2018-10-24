@@ -5,7 +5,7 @@
     "name": "Loom Network",
     "url": "https://loomx.io"
   },
-  "version": "1.29.0",
+  "version": "1.29.1",
   "keywords": [
     "blockchain",
     "dappchain"
@@ -42,9 +42,10 @@
     "ripemd160": "^2.0.1",
     "rlp": "^2.1.0",
     "rpc-websockets": "^4.1.1",
+    "shelljs": "^0.8.2",
     "tslib": "^1.9.3",
     "tweetnacl": "^1.0.0",
-    "web3": "^1.0.0-beta.36"
+    "web3": "1.0.0-beta.36"
   },
   "devDependencies": {
     "@babel/core": "^7.0.0-beta.46",
@@ -61,14 +62,13 @@
     "@types/retry": "^0.10.2",
     "@types/shelljs": "^0.8.0",
     "@types/tape": "^4.2.32",
-    "@types/web3": "^1.0.6",
+    "@types/web3": "^1.0.11",
     "babel-cli": "^6.26.0",
     "babel-loader": "^8.0.0-beta.2",
     "dotenv": "^5.0.1",
     "dotenv-webpack": "^1.5.5",
     "ganache-cli": "^6.1.8",
     "prettier": "1.12.1",
-    "shelljs": "^0.8.2",
     "tap-spec": "^5.0.0",
     "tape": "4.9",
     "ts-protoc-gen": "^0.6.0",

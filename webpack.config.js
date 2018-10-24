@@ -15,6 +15,7 @@ module.exports = {
   },
   node: {
     fs: 'empty',
+    child_process: 'empty',
     crypto: true,
     util: true,
     stream: true,

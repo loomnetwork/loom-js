@@ -39,7 +39,7 @@ export class User extends Entity {
     User._contractName = contractName
   }
 
-  static async createUser(
+  static createUser(
     web3: any,
     plasmaAddress: string,
     dappchainEndpoint: string,
@@ -47,7 +47,7 @@ export class User extends Entity {
     defaultAccount: string,
     dbPath?: string,
     startBlock?: BN
-  ): Promise<User> {
+  ): User {
     const database = new PlasmaDB(dbPath)
     const ethPlasmaClient = new EthereumPlasmaClient(web3, plasmaAddress, eventsEndpoint)
     const writer = createJSONRPCClient({ protocols: [{ url: dappchainEndpoint + '/rpc' }] })
