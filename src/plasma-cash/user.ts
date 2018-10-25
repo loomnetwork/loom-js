@@ -88,7 +88,7 @@ export class User extends Entity {
       value: this.web3.utils.toHex(amount),
       gas: this._defaultGas
     })
-    const coin = await this.getCoinFromTxAsync(tx.transactionHash, 0)
+    const coin = await this.getCoinFromTxAsync(tx)
     currentBlock = await this.pollForBlockChange(currentBlock, 20, 2000)
     this.receiveAndWatchCoinAsync(coin.slot)
     return coin
@@ -100,7 +100,8 @@ export class User extends Entity {
     const tx = await token.methods
       .safeTransferFrom(this.ethAddress, this.plasmaCashContract._address, uid.toString())
       .send({ from: this.ethAddress, gas: this._defaultGas })
-    const coin = await this.getCoinFromTxAsync(tx.transactionHash, 0) // 2 events, transferred & deposited, we want the 2nd one
+    const coin = await this.getCoinFromTxAsync(tx.transactionHash) // 2 events, transferred & deposited, we want the 2nd one
+
     currentBlock = await this.pollForBlockChange(currentBlock, 20, 2000)
     this.receiveAndWatchCoinAsync(coin.slot)
     return coin
@@ -120,11 +121,12 @@ export class User extends Entity {
         .send({ from: this.ethAddress, gas: this._defaultGas })
       console.log('Approved an extra', amount.sub(currentApproval))
     }
+
     let currentBlock = await this.getCurrentBlockAsync()
     const tx = await this.plasmaCashContract.methods
       .depositERC20(amount, address)
       .send({ from: this.ethAddress, gas: this._defaultGas })
-    const coin = await this.getCoinFromTxAsync(tx, 0)
+    const coin = await this.getCoinFromTxAsync(tx)
     currentBlock = await this.pollForBlockChange(currentBlock, 20, 2000)
     this.receiveAndWatchCoinAsync(coin.slot)
     return coin

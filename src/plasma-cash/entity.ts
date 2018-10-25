@@ -237,7 +237,10 @@ export class Entity {
   }
 
   async finalizeExitAsync(slot: BN): Promise<any> {
-    return await this.plasmaCashContract.finalizeExit([slot.toString()])
+    return this.plasmaCashContract.methods.finalizeExit(slot.toString()).send({
+      from: this.ethAddress,
+      gas: this._defaultGas
+    })
   }
 
   /**
@@ -586,14 +589,25 @@ export class Entity {
 
   /**
    *
-   * @param tx The transaction hash which will retrie
-   * @param i The Deposit event is the i'th emitted event. Set to 0 for depositing ETH, Set to 1 for ERC20/ERC721 since the first event is a `Transfer` event
+   * @param tx The transaction's receipt that wea want to decode
    */
-  async getCoinFromTxAsync(txHash: string, i: number): Promise<IPlasmaCoin> {
-    const receipt = await this.web3.eth.getTransactionReceipt(txHash)
-    const data = abiDecoder.decodeLogs(receipt.logs)[i].events
+  async getCoinFromTxAsync(tx: any): Promise<IPlasmaCoin> {
+    const _tx = await this.web3.eth.getTransactionReceipt(tx.transactionHash || tx)
+    const decodedLogs = abiDecoder
+      .decodeLogs(_tx.logs)
+      .filter((decodedLogItem: any) => decodedLogItem)
+
+    const depositEventIdx = decodedLogs
+      .map((decodedLogItem: any) => decodedLogItem.name)
+      .indexOf('Deposit')
+
+    if (depositEventIdx === -1) {
+      throw Error('Deposit event not found')
+    }
+
+    const data = decodedLogs[depositEventIdx].events
     const coinId = new BN(data[0].value.slice(2), 16)
-    return await this.getPlasmaCoinAsync(coinId)
+    return this.getPlasmaCoinAsync(coinId)
   }
 
   prefix(slot: BN) {
