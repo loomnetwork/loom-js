@@ -607,19 +607,16 @@ export class Entity {
    */
   async getCoinFromTxAsync(tx: any): Promise<IPlasmaCoin> {
     const _tx = await this.web3.eth.getTransactionReceipt(tx.transactionHash)
-    const decodedLogs = abiDecoder
+
+    const depositLogs = abiDecoder
       .decodeLogs(_tx.logs)
-      .filter((decodedLogItem: any) => decodedLogItem)
+      .filter((logItem: any) => logItem && logItem.name.indexOf('Deposit') !== -1)
 
-    const depositEventIdx = decodedLogs
-      .map((decodedLogItem: any) => decodedLogItem.name)
-      .indexOf('Deposit')
-
-    if (depositEventIdx === -1) {
+    if (depositLogs.length === 0) {
       throw Error('Deposit event not found')
     }
 
-    const data = decodedLogs[depositEventIdx].events
+    const data = depositLogs[0].events
     const coinId = new BN(data[0].value.slice(2), 16)
     return this.getPlasmaCoinAsync(coinId)
   }
