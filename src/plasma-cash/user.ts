@@ -84,7 +84,7 @@ export class User extends Entity {
   async depositETHAsync(amount: BN): Promise<IPlasmaCoin> {
     let currentBlock = await this.getCurrentBlockAsync()
     const tx = await this.sendETH(this.plasmaCashContract._address, amount, 220000)
-    const coin = await this.getCoinFromTxAsync(tx, 0)
+    const coin = await this.getCoinFromTxAsync(tx)
     currentBlock = await this.pollForBlockChange(currentBlock, 20, 2000)
     this.receiveAndWatchCoinAsync(coin.slot)
     return coin
@@ -99,7 +99,7 @@ export class User extends Entity {
       this.plasmaCashContract._address,
       uid.toString()
     ])
-    const coin = await this.getCoinFromTxAsync(tx, 1) // 2 events, transferred & deposited, we want the 2nd one
+    const coin = await this.getCoinFromTxAsync(tx)
     currentBlock = await this.pollForBlockChange(currentBlock, 20, 2000)
     this.receiveAndWatchCoinAsync(coin.slot)
     return coin
@@ -123,7 +123,7 @@ export class User extends Entity {
     }
     let currentBlock = await this.getCurrentBlockAsync()
     const tx = await this.plasmaCashContract.depositERC20([amount.toString(), address])
-    const coin = await this.getCoinFromTxAsync(tx, 1)
+    const coin = await this.getCoinFromTxAsync(tx)
     currentBlock = await this.pollForBlockChange(currentBlock, 20, 2000)
     this.receiveAndWatchCoinAsync(coin.slot)
     return coin
