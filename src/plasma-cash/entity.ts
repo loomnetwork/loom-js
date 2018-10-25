@@ -87,7 +87,7 @@ export class Entity {
     this._childBlockInterval = params.childBlockInterval
     this._exitWatchers = {}
     this._challengeWatchers = {}
-    this._ethAddress = params.defaultAccount
+    this._ethAddress = web3.utils.toChecksumAddress(params.defaultAccount)
   }
 
   // This should be called whenever a new block gets received

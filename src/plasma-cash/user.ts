@@ -83,7 +83,7 @@ export class User extends Entity {
   async depositETHAsync(amount: BN): Promise<IPlasmaCoin> {
     let currentBlock = await this.getCurrentBlockAsync()
     const tx = await this.web3.eth.sendTransaction({
-      from: this.web3.utils.toChecksumAddress(this.ethAddress),
+      from: this.ethAddress,
       to: this.plasmaCashContract._address,
       value: this.web3.utils.toHex(amount),
       gas: this._defaultGas
@@ -99,7 +99,7 @@ export class User extends Entity {
     let currentBlock = await this.getCurrentBlockAsync()
     const tx = await token.methods
       .safeTransferFrom(this.ethAddress, this.plasmaCashContract._address, uid.toString())
-      .send({ from: this.web3.utils.toChecksumAddress(this.ethAddress), gas: this._defaultGas })
+      .send({ from: this.ethAddress, gas: this._defaultGas })
     const coin = await this.getCoinFromTxAsync(tx.transactionHash, 0) // 2 events, transferred & deposited, we want the 2nd one
     currentBlock = await this.pollForBlockChange(currentBlock, 20, 2000)
     this.receiveAndWatchCoinAsync(coin.slot)
@@ -111,19 +111,19 @@ export class User extends Entity {
     // Get how much the user has approved
     const currentApproval = await token.methods
       .allowance(this.ethAddress, this.plasmaCashContract._address)
-      .call({ from: this.web3.utils.toChecksumAddress(this.ethAddress) })
+      .call({ from: this.ethAddress })
 
     // amount - approved
     if (amount.gt(currentApproval)) {
       await token.methods
         .approve(this.plasmaCashContract._address, amount.sub(currentApproval).toString())
-        .send({ from: this.web3.utils.toChecksumAddress(this.ethAddress), gas: this._defaultGas })
+        .send({ from: this.ethAddress, gas: this._defaultGas })
       console.log('Approved an extra', amount.sub(currentApproval))
     }
     let currentBlock = await this.getCurrentBlockAsync()
     const tx = await this.plasmaCashContract.methods
       .depositERC20(amount, address)
-      .send({ from: this.web3.utils.toChecksumAddress(this.ethAddress), gas: this._defaultGas })
+      .send({ from: this.ethAddress, gas: this._defaultGas })
     const coin = await this.getCoinFromTxAsync(tx, 0)
     currentBlock = await this.pollForBlockChange(currentBlock, 20, 2000)
     this.receiveAndWatchCoinAsync(coin.slot)
