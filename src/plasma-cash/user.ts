@@ -117,14 +117,14 @@ export class User extends Entity {
     // amount - approved
     if (amount.gt(currentApproval)) {
       await token.methods
-        .approve(this.plasmaCashContract._address, amount.sub(currentApproval).toString())
+        .approve(this.plasmaCashContract._address, amount.sub(new BN(currentApproval)).toString())
         .send({ from: this.ethAddress, gas: this._defaultGas })
-      console.log('Approved an extra', amount.sub(currentApproval))
+      console.log('Approved an extra', amount.sub(new BN(currentApproval)))
     }
 
     let currentBlock = await this.getCurrentBlockAsync()
     const tx = await this.plasmaCashContract.methods
-      .depositERC20(amount, address)
+      .depositERC20(amount.toString(), address)
       .send({ from: this.ethAddress, gas: this._defaultGas })
     const coin = await this.getCoinFromTxAsync(tx)
     currentBlock = await this.pollForBlockChange(currentBlock, 20, 2000)
