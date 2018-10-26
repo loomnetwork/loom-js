@@ -87,7 +87,7 @@ export class Entity {
     this._childBlockInterval = params.childBlockInterval
     this._exitWatchers = {}
     this._challengeWatchers = {}
-    this._ethAddress = params.defaultAccount
+    this._ethAddress = web3.utils.toChecksumAddress(params.defaultAccount)
   }
 
   // This should be called whenever a new block gets received
@@ -237,7 +237,10 @@ export class Entity {
   }
 
   async finalizeExitAsync(slot: BN): Promise<any> {
-    return await this.plasmaCashContract.finalizeExit([slot.toString()])
+    return this.plasmaCashContract.methods.finalizeExit(slot.toString()).send({
+      from: this.ethAddress,
+      gas: this._defaultGas
+    })
   }
 
   /**
@@ -585,15 +588,25 @@ export class Entity {
   }
 
   /**
+   * Retrieves the Plasma coin created by a deposit tx.
+   * Throws an error if the given tx receipt doesn't contain a Plasma deposit event.
    *
-   * @param tx The transaction hash which will retrie
-   * @param i The Deposit event is the i'th emitted event. Set to 0 for depositing ETH, Set to 1 for ERC20/ERC721 since the first event is a `Transfer` event
+   * @param tx The transaction that we want to decode.
    */
-  async getCoinFromTxAsync(txHash: string, i: number): Promise<IPlasmaCoin> {
-    const receipt = await this.web3.eth.getTransactionReceipt(txHash)
-    const data = abiDecoder.decodeLogs(receipt.logs)[i].events
+  async getCoinFromTxAsync(tx: any): Promise<IPlasmaCoin> {
+    const _tx = await this.web3.eth.getTransactionReceipt(tx.transactionHash)
+
+    const depositLogs = abiDecoder
+      .decodeLogs(_tx.logs)
+      .filter((logItem: any) => logItem && logItem.name.indexOf('Deposit') !== -1)
+
+    if (depositLogs.length === 0) {
+      throw Error('Deposit event not found')
+    }
+
+    const data = depositLogs[0].events
     const coinId = new BN(data[0].value.slice(2), 16)
-    return await this.getPlasmaCoinAsync(coinId)
+    return this.getPlasmaCoinAsync(coinId)
   }
 
   prefix(slot: BN) {

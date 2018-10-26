@@ -88,7 +88,7 @@ export class User extends Entity {
       value: this.web3.utils.toHex(amount),
       gas: this._defaultGas
     })
-    const coin = await this.getCoinFromTxAsync(tx.transactionHash, 0)
+    const coin = await this.getCoinFromTxAsync(tx)
     currentBlock = await this.pollForBlockChange(currentBlock, 20, 2000)
     this.receiveAndWatchCoinAsync(coin.slot)
     return coin
@@ -100,7 +100,8 @@ export class User extends Entity {
     const tx = await token.methods
       .safeTransferFrom(this.ethAddress, this.plasmaCashContract._address, uid.toString())
       .send({ from: this.ethAddress, gas: this._defaultGas })
-    const coin = await this.getCoinFromTxAsync(tx.transactionHash, 1) // 2 events, transferred & deposited, we want the 2nd one
+    const coin = await this.getCoinFromTxAsync(tx.transactionHash) // 2 events, transferred & deposited, we want the 2nd one
+
     currentBlock = await this.pollForBlockChange(currentBlock, 20, 2000)
     this.receiveAndWatchCoinAsync(coin.slot)
     return coin
@@ -116,19 +117,21 @@ export class User extends Entity {
     // amount - approved
     if (amount.gt(currentApproval)) {
       await token.methods
-        .approve(this.plasmaCashContract._address, amount.sub(currentApproval).toString())
+        .approve(this.plasmaCashContract._address, amount.sub(new BN(currentApproval)).toString())
         .send({ from: this.ethAddress, gas: this._defaultGas })
-      console.log('Approved an extra', amount.sub(currentApproval))
+      console.log('Approved an extra', amount.sub(new BN(currentApproval)))
     }
+
     let currentBlock = await this.getCurrentBlockAsync()
     const tx = await this.plasmaCashContract.methods
-      .depositERC20(amount, address)
+      .depositERC20(amount.toString(), address)
       .send({ from: this.ethAddress, gas: this._defaultGas })
-    const coin = await this.getCoinFromTxAsync(tx, 1)
+    const coin = await this.getCoinFromTxAsync(tx)
     currentBlock = await this.pollForBlockChange(currentBlock, 20, 2000)
     this.receiveAndWatchCoinAsync(coin.slot)
     return coin
   }
+
   // Buffer is how many blocks the client will wait for the tx to get confirmed
   async transferAndVerifyAsync(slot: BN, newOwner: string, buffer: number = 6): Promise<any> {
     await this.transferAsync(slot, newOwner)
