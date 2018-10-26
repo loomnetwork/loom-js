@@ -602,8 +602,10 @@ export class Entity {
   }
 
   /**
+   * Retrieves the Plasma coin created by a deposit tx.
+   * Throws an error if the given tx receipt doesn't contain a Plasma deposit event.
    *
-   * @param tx The transaction's receipt that wea want to decode
+   * @param tx The transaction that we want to decode.
    */
   async getCoinFromTxAsync(tx: any): Promise<IPlasmaCoin> {
     const _tx = await this.web3.eth.getTransactionReceipt(tx.transactionHash)
