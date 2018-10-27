@@ -380,12 +380,16 @@ export class Entity {
 
   async verifyCoinHistoryAsync(slot: BN, proofs: IProofs): Promise<boolean> {
     // Check inclusion proofs
+    const coin = await this.getPlasmaCoinAsync(slot)
+    let earliestValidBlock = coin.depositBlockNum
     for (let p in proofs.inclusion) {
       const blockNumber = new BN(p)
       const tx = proofs.transactions[p] // get the block number from the proof of inclusion and get the tx from that
       const root = await this.getBlockRootAsync(blockNumber)
       const included = await this.checkInclusionAsync(tx, root, slot, proofs.inclusion[p])
-      if (!included) {
+      if (included && tx.prevBlockNum.eq(earliestValidBlock)) {
+        earliestValidBlock = tx.prevBlockNum
+      } else {
         return false
       }
     }
