@@ -38,14 +38,14 @@
     "google-protobuf": "3.6",
     "lodash": "^4.17.11",
     "lowdb": "^1.0.0",
-    "shelljs": "^0.8.2",
     "retry": "^0.12.0",
     "ripemd160": "^2.0.1",
     "rlp": "^2.1.0",
     "rpc-websockets": "^4.1.1",
+    "shelljs": "^0.8.2",
     "tslib": "^1.9.3",
     "tweetnacl": "^1.0.0",
-    "web3": "^1.0.0-beta.36"
+    "web3": "1.0.0-beta.35"
   },
   "devDependencies": {
     "@babel/core": "^7.0.0-beta.46",
