@@ -63,7 +63,7 @@ export class User extends Entity {
       new NonceTxMiddleware(pubKey, dAppClient),
       new SignedTxMiddleware(privKey)
     ]
-    const callerAddress = new Address('default', LocalAddress.fromPublicKey(pubKey))
+    const callerAddress = new Address(chainId || 'default', LocalAddress.fromPublicKey(pubKey))
     const dAppPlasmaClient = new DAppChainPlasmaClient({
       dAppClient,
       callerAddress,
