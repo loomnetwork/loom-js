@@ -45,7 +45,8 @@ export class User extends Entity {
     plasmaAddress: string,
     dappchainEndpoint: string,
     ethPrivateKey: string,
-    startBlock?: BN
+    startBlock?: BN,
+    chainId?: string
   ): User {
     const provider = new Web3.providers.WebsocketProvider(web3Endpoint)
     const web3 = new Web3(provider)
@@ -54,7 +55,7 @@ export class User extends Entity {
     const ethPlasmaClient = new EthereumPlasmaClient(web3, ethAccount, plasmaAddress)
     const writer = createJSONRPCClient({ protocols: [{ url: dappchainEndpoint + '/rpc' }] })
     const reader = createJSONRPCClient({ protocols: [{ url: dappchainEndpoint + '/query' }] })
-    const dAppClient = new Client('default', writer, reader)
+    const dAppClient = new Client(chainId || 'default', writer, reader)
     // TODO: Key should not be generated each time, user should provide their key, or it should be retrieved through some one way mapping
     const privKey = CryptoUtils.generatePrivateKey()
     const pubKey = CryptoUtils.publicKeyFromPrivateKey(privKey)
