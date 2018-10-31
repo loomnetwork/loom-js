@@ -1,0 +1,31 @@
+import BN from 'bn.js';
+import Web3 from 'web3';
+import { Entity, IEntityParams } from '..';
+import { IPlasmaCoin } from './ethereum-client';
+export declare class User extends Entity {
+    private _startBlock?;
+    private static _contractName;
+    private buffers;
+    private newBlocks;
+    constructor(web3: Web3, params: IEntityParams, startBlock?: BN);
+    static contractName: string;
+    static createUser(web3Endpoint: string, plasmaAddress: string, dappchainEndpoint: string, ethPrivateKey: string, startBlock?: BN, chainId?: string): User;
+    depositETHAsync(amount: BN): Promise<IPlasmaCoin>;
+    depositERC721Async(uid: BN, address: string): Promise<IPlasmaCoin>;
+    depositERC20Async(amount: BN, address: string): Promise<IPlasmaCoin>;
+    transferAndVerifyAsync(slot: BN, newOwner: string, buffer?: number): Promise<any>;
+    transferAsync(slot: BN, newOwner: string): Promise<any>;
+    watchBlocks(): Promise<void>;
+    stopWatchingBlocks(): void;
+    receiveAndWatchCoinAsync(slot: BN): Promise<boolean>;
+    receiveCoinAsync(slot: BN): Promise<boolean>;
+    verifyInclusionAsync(slot: BN, block: BN): Promise<boolean>;
+    exitAsync(slot: BN): Promise<any>;
+    deposits(): Promise<any[]>;
+    allDeposits(): Promise<any[]>;
+    disconnect(): void;
+    debug(i: number): Promise<void>;
+    private findBlocks;
+    private getCoinHistoryFromDBAsync;
+    private pollForBlockChange;
+}
