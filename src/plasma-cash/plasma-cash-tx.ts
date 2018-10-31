@@ -70,7 +70,7 @@ export class PlasmaCashTx {
    */
   get hash(): string {
     if (this.prevBlockNum.cmp(new BN(0)) === 0) {
-      return soliditySha3({ type: 'uint64', value: this.slot })
+      return soliditySha3({ type: 'uint64', value: this.slot.toString() })
     }
     return soliditySha3({ type: 'bytes', value: this.rlpEncode() })
   }
