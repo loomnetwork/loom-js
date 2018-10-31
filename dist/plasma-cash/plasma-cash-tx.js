@@ -53,7 +53,7 @@ var PlasmaCashTx = /** @class */ (function () {
          */
         get: function () {
             if (this.prevBlockNum.cmp(new bn_js_1.default(0)) === 0) {
-                return solidity_helpers_1.soliditySha3({ type: 'uint64', value: this.slot });
+                return solidity_helpers_1.soliditySha3({ type: 'uint64', value: this.slot.toString() });
             }
             return solidity_helpers_1.soliditySha3({ type: 'bytes', value: this.rlpEncode() });
         },
