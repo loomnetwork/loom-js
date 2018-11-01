@@ -102,7 +102,7 @@ test('LoomProvider + Web3 not matching topic', async t => {
     })
 
     const tx = await contract.methods.set(newValue).send()
-    t.equal(tx.status, true, 'SimpleStore.set should return correct status')
+    t.equal(tx.status, '0x1', 'SimpleStore.set should return correct status')
 
     const resultOfGet = await contract.methods.get().call()
     t.equal(+resultOfGet, newValue, `SimpleStore.get should return correct value`)
@@ -131,7 +131,7 @@ test('LoomProvider + Web3 multiple topics', async t => {
     })
 
     const tx = await contract.methods.set(newValue).send()
-    t.equal(tx.status, true, 'SimpleStore.set should return correct status')
+    t.equal(tx.status, '0x1', 'SimpleStore.set should return correct status')
 
     const resultOfGet = await contract.methods.get().call()
     t.equal(+resultOfGet, newValue, `SimpleStore.get should return correct value`)
