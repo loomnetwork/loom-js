@@ -14,7 +14,8 @@ const protoFiles = [
   'transfer_gateway.proto',
   'address_mapper.proto',
   'coin.proto',
-  'dpos.proto'
+  'dpos.proto',
+  'dposv2.proto'
 ]
 
 // copy the proto so end users can import it from node_modules in their own proto files
