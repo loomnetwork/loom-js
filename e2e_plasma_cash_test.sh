@@ -75,14 +75,15 @@ start_chains() {
 
   cd $LOOM_DIR
   $LOOM_BIN reset
-  $LOOM_BIN run &
+  $LOOM_BIN run >> loom.log &
   LOOM_PID=$!
   sleep 5
 }
 
 stop_chains() {
-  kill -9 $GANACHE_PID
-  kill -9 $LOOM_PID
+  kill -9 $GANACHE_PID || true
+  kill -9 $LOOM_PID || true
+  killall hostileoperator.1.0.0 || true
 }
 
 run_honest_test() {
@@ -105,16 +106,15 @@ cleanup() {
   stop_chains
 }
 
-rm -rf $LOOM_DIR; true
-mkdir -p $LOOM_DIR
-
-if [[ -z "${LOOM_BIN:-}" ]]; then
+function e2e_setup() {
+  rm -rf $LOOM_DIR; true
+  mkdir -p $LOOM_DIR
   download_dappchain
-fi
-
-if [[ -z "${PLASMA_CASH_DIR:-}" ]]; then
   download_plasma_cash
-fi
+}
+
+# Clean da'house
+e2e_setup
 
 setup_honest_dappchain
 trap cleanup EXIT
@@ -123,9 +123,10 @@ setup_plasma_cash
 run_honest_test
 cleanup
 
+# Clean da'house
+e2e_setup
+
 setup_hostile_dappchain
-trap cleanup EXIT
 start_chains
 setup_plasma_cash
 run_hostile_test
-cleanup
