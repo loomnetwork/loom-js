@@ -13,8 +13,6 @@ BUILD_NUMBER=560
 GANACHE_PORT=8545
 REPO_ROOT=`pwd`
 LOOM_DIR=`pwd`/tmp/e2e
-# LOOM_BIN=$LOOM_DIR/loom
-# PLASMA_CASH_DIR=$LOOM_DIR/plasma-cash
 
 
 # Check available platforms
@@ -44,11 +42,25 @@ download_plasma_cash() {
 
 setup_honest_dappchain() {
   cd $LOOM_DIR
-  $LOOM_BIN init -f
-  cp $PLASMA_CASH_DIR/loom_test/honest.genesis.json genesis.json
   cp $PLASMA_CASH_DIR/loom_test/loom-test.yml loom.yaml
   cp $PLASMA_CASH_DIR/loom_test/oracle.key .
   cp $PLASMA_CASH_DIR/loom_test/eth.key .
+  $LOOM_BIN init -f
+  cp $PLASMA_CASH_DIR/loom_test/honest.genesis.json genesis.json
+}
+
+setup_hostile_dappchain() {
+  cd $LOOM_DIR
+  cp $PLASMA_CASH_DIR/loom_test/loom-hostile-test.yml loom.yaml
+  cp $PLASMA_CASH_DIR/loom_test/oracle.key .
+  cp $PLASMA_CASH_DIR/loom_test/eth.key .
+  $LOOM_BIN init -f
+  cp $PLASMA_CASH_DIR/loom_test/hostile.genesis.json genesis.json
+  cd $PLASMA_CASH_DIR/loom_test
+  GOPATH=$DEFAULT_GOPATH:$PLASMA_CASH_DIR/loom_test
+  make deps
+  make contracts
+  mv contracts ../..
 }
 
 setup_plasma_cash() {
@@ -73,12 +85,20 @@ stop_chains() {
   kill -9 $LOOM_PID
 }
 
-run_tests() {
+run_honest_test() {
   cd $PLASMA_CASH_DIR/loom_js_test
   yarn install
   yarn build
   yarn test
   yarn tape:honest
+}
+
+run_hostile_test() {
+  cd $PLASMA_CASH_DIR/loom_js_test
+  yarn install
+  yarn build
+  yarn test
+  yarn tape:hostile
 }
 
 cleanup() {
@@ -97,11 +117,15 @@ if [[ -z "${PLASMA_CASH_DIR:-}" ]]; then
 fi
 
 setup_honest_dappchain
-
 trap cleanup EXIT
-
 start_chains
-
 setup_plasma_cash
+run_honest_test
+cleanup
 
-run_tests
+setup_hostile_dappchain
+trap cleanup EXIT
+start_chains
+setup_plasma_cash
+run_hostile_test
+cleanup
