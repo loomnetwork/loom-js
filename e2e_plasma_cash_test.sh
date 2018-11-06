@@ -13,6 +13,8 @@ BUILD_NUMBER=560
 GANACHE_PORT=8545
 REPO_ROOT=`pwd`
 LOOM_DIR=`pwd`/tmp/e2e
+# LOOM_BIN=$LOOM_DIR/loom
+# PLASMA_CASH_DIR=$LOOM_DIR/plasma-cash
 
 
 # Check available platforms
@@ -60,6 +62,7 @@ start_chains() {
   GANACHE_PID=$!
 
   cd $LOOM_DIR
+  $LOOM_BIN reset
   $LOOM_BIN run &
   LOOM_PID=$!
   sleep 5
@@ -74,6 +77,7 @@ run_tests() {
   cd $PLASMA_CASH_DIR/loom_js_test
   yarn install
   yarn build
+  yarn test
   yarn tape:honest
 }
 
