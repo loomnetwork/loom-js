@@ -8,6 +8,11 @@ message ParamsV2 {
     Address coin_contract_address = 5;
 }
 
+message Validator {
+    bytes pub_key = 1;
+    int64 power = 2;
+}
+
 message StateV2 {
     ParamsV2 params = 1;
     repeated Validator validators = 2;
