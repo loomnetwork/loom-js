@@ -24,7 +24,8 @@ export interface ICandidate {
 }
 
 export interface IValidator {
-
+  pubKey: Uint8Array
+  power: number
 }
 
 export interface IWitness {
