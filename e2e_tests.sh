@@ -9,7 +9,6 @@ set -euxo pipefail
 
 # Prepare env
 DEFAULT_GOPATH=$GOPATH
-BUILD_NUMBER=560
 GANACHE_PORT=8545
 REPO_ROOT=`pwd`
 LOOM_DIR=`pwd`/tmp/e2e
