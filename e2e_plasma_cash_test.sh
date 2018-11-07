@@ -74,7 +74,7 @@ start_chains() {
 
   cd $LOOM_DIR
   $LOOM_BIN reset
-  $LOOM_BIN run >> loom.log &
+  $LOOM_BIN run > loom.log 2>&1 &
   LOOM_PID=$!
   sleep 5
 }
