@@ -106,10 +106,13 @@ cleanup() {
 }
 
 function e2e_setup() {
-  rm -rf $LOOM_DIR; true
-  mkdir -p $LOOM_DIR
-  download_dappchain
-  download_plasma_cash
+  if [ "${TRAVIS:-}" ]; then
+    rm -rf $LOOM_DIR; true
+    mkdir -p $LOOM_DIR
+
+    download_dappchain
+    download_plasma_cash
+  fi
 }
 
 # Clean da'house
@@ -129,3 +132,7 @@ setup_hostile_dappchain
 start_chains
 setup_plasma_cash
 run_hostile_test
+
+if [ "${TRAVIS:-}" ]; then
+  rm -rf $LOOM_DIR
+fi
