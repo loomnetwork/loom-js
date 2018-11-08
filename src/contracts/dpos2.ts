@@ -36,7 +36,7 @@ export interface IWitness {
 
 export class DPOS2 extends Contract {
   static async createAsync(client: Client, callerAddr: Address): Promise<DPOS2> {
-    const contractAddr = await client.getContractAddressAsync('dposv2')
+    const contractAddr = await client.getContractAddressAsync('dposV2')
     if (!contractAddr) {
       throw Error('Failed to resolve contract address')
     }
