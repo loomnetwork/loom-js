@@ -1,5 +1,5 @@
 import BN from 'bn.js'
-import Web3 from 'web3'
+import { providers, utils } from 'ethers'
 
 import {
   EthereumPlasmaClient,
@@ -27,11 +27,11 @@ export interface IProofs {
 
 export interface IEntityParams {
   /** Web3 account for use on Ethereum */
-  ethAccount: Account
   ethPlasmaClient: EthereumPlasmaClient
   dAppPlasmaClient: DAppChainPlasmaClient
   /** Allows to override the amount of gas used when sending txs to Ethereum. */
   defaultGas?: string | number
+  defaultAccount: string
   childBlockInterval: number
 }
 
@@ -46,18 +46,17 @@ export interface IWeb3EventSub {
  * on Ethereum, and one on the DAppChain, each identity has its own private/public key pair.
  */
 export class Entity {
-  private _web3: Web3
-  // web3 account
-  private _ethAccount: Account
+  protected _wallet: providers.JsonRpcSigner
   private _dAppPlasmaClient: DAppChainPlasmaClient
   private _ethPlasmaClient: EthereumPlasmaClient
   private _defaultGas?: string | number
   private _childBlockInterval: number
   private _exitWatchers: { [slot: string]: IWeb3EventSub }
   private _challengeWatchers: { [slot: string]: IWeb3EventSub }
+  private _ethAddress: string
 
-  get web3(): Web3 {
-    return this._web3
+  get web3(): providers.JsonRpcSigner {
+    return this._wallet
   }
 
   get database(): PlasmaDB {
@@ -65,11 +64,7 @@ export class Entity {
   }
 
   get ethAddress(): string {
-    return this._ethAccount.address
-  }
-
-  get ethAccount(): Account {
-    return this._ethAccount
+    return this._ethAddress
   }
 
   get plasmaCashContract(): any {
@@ -80,15 +75,15 @@ export class Entity {
     return this._dAppPlasmaClient.contractName
   }
 
-  constructor(web3: Web3, params: IEntityParams) {
-    this._web3 = web3
-    this._ethAccount = params.ethAccount
+  constructor(wallet: providers.JsonRpcSigner, params: IEntityParams) {
+    this._wallet = wallet
     this._ethPlasmaClient = params.ethPlasmaClient
     this._dAppPlasmaClient = params.dAppPlasmaClient
     this._defaultGas = params.defaultGas
     this._childBlockInterval = params.childBlockInterval
     this._exitWatchers = {}
     this._challengeWatchers = {}
+    this._ethAddress = utils.getAddress(params.defaultAccount)
   }
 
   // This should be called whenever a new block gets received
@@ -126,7 +121,8 @@ export class Entity {
       newOwner,
       prevOwner: this.ethAddress
     })
-    await tx.signAsync(new OfflineWeb3Signer(this._web3, this._ethAccount))
+    // TODO: Need to fix offline web3 signer
+    await tx.signAsync(new OfflineWeb3Signer(this._wallet, this._ethAccount))
     await this._dAppPlasmaClient.sendTxAsync(tx)
   }
 
@@ -164,7 +160,7 @@ export class Entity {
     const slots = await this._dAppPlasmaClient.getUserSlotsAsync(addr)
 
     const coins = slots.map(s => this.getPlasmaCoinAsync(s))
-    return await Promise.all(coins)
+    return Promise.all(coins)
   }
 
   checkMembershipAsync(leaf: string, root: string, slot: BN, proof: string): Promise<boolean> {
@@ -201,7 +197,9 @@ export class Entity {
         denomination: 1,
         newOwner: this.ethAddress
       })
-      await exitTx.signAsync(new OfflineWeb3Signer(this._web3, this._ethAccount))
+
+      // TODO: Need to fix offline web3 signer
+      await exitTx.signAsync(new OfflineWeb3Signer(this._wallet, this._ethAccount))
       return this._ethPlasmaClient.startExitAsync({
         slot,
         exitTx,
@@ -238,7 +236,7 @@ export class Entity {
   }
 
   async finalizeExitAsync(slot: BN): Promise<any> {
-    return await this.plasmaCashContract.finalizeExit([slot.toString()])
+    return this.plasmaCashContract.finalizeExit([slot.toString()])
   }
 
   /**
@@ -535,7 +533,9 @@ export class Entity {
         denomination: 1,
         newOwner: this.ethAddress
       })
-      await challengingTx.signAsync(new OfflineWeb3Signer(this._web3, this._ethAccount))
+
+      // TODO: Need to fix offline web3 signer
+      await challengingTx.signAsync(new OfflineWeb3Signer(this._wallet, this._ethAccount))
       return this._ethPlasmaClient.challengeBeforeAsync({
         slot,
         challengingTx,
@@ -566,19 +566,21 @@ export class Entity {
   }
 
   async sendETH(to: string, value: BN, gas?: number): Promise<any> {
-    const nonce = await this._web3.eth.getTransactionCount(this.ethAddress)
-    const gasPrice = await this._web3.eth.getGasPrice()
+    const nonce = await this._wallet.getTransactionCount()
+    const gasPrice = await this._wallet.provider.getGasPrice()
     const tx = new Tx({
       to: to,
       from: this.ethAddress,
       gas: gas || 21000,
-      gasPrice: this._web3.utils.toHex(gasPrice),
-      nonce: this._web3.utils.toHex(nonce),
-      value: this._web3.utils.toHex(value || 0)
+      gasPrice: utils.hexlify(gasPrice),
+      nonce: utils.hexlify(nonce),
+      value: utils.hexlify(value.toString())
     })
-    tx.sign(Buffer.from(this._ethAccount.privateKey.slice(2), 'hex'))
+
+    // TODO: Need to sign
+    // tx.sign(Buffer.from(this._ethAccount.privateKey.slice(2), 'hex'))
     const serializedTx = tx.serialize()
-    return this._web3.eth.sendSignedTransaction(`0x${serializedTx.toString('hex')}`)
+    return this._wallet.provider.sendTransaction(`0x${serializedTx.toString('hex')}`)
   }
 
   async respondChallengeBeforeAsync(params: {
@@ -608,7 +610,7 @@ export class Entity {
    * @param tx The transaction that we want to decode.
    */
   async getCoinFromTxAsync(tx: any): Promise<IPlasmaCoin> {
-    const _tx = await this.web3.eth.getTransactionReceipt(tx.transactionHash)
+    const _tx = await this._wallet.provider.getTransactionReceipt(tx.transactionHash)
 
     const depositLogs = abiDecoder
       .decodeLogs(_tx.logs)

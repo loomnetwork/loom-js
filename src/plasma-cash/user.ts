@@ -1,5 +1,5 @@
 import BN from 'bn.js'
-import Web3 from 'web3'
+import Ethers, { providers } from 'ethers'
 import {
   Entity,
   IEntityParams,
@@ -18,7 +18,6 @@ import {
 } from '..'
 import { IPlasmaCoin } from './ethereum-client'
 import { sleep } from '../helpers'
-import { IWeb3EventSub } from './entity'
 
 const ERC721 = require('./contracts/ERC721.json')
 const ERC20 = require('./contracts/ERC20.json')
@@ -31,8 +30,8 @@ export class User extends Entity {
   private buffers: any = {}
   private newBlocks: any
 
-  constructor(web3: Web3, params: IEntityParams, startBlock?: BN) {
-    super(web3, params)
+  constructor(wallet: providers.JsonRpcSigner, params: IEntityParams, startBlock?: BN) {
+    super(wallet, params)
     this._startBlock = startBlock
   }
 
@@ -40,22 +39,22 @@ export class User extends Entity {
     User._contractName = contractName
   }
 
-  static createUser(
-    web3Endpoint: string,
+  static async newMetamaskUser(
     plasmaAddress: string,
     dappchainEndpoint: string,
     ethPrivateKey: string,
     startBlock?: BN,
     chainId?: string
-  ): User {
-    const provider = new Web3.providers.WebsocketProvider(web3Endpoint)
-    const web3 = new Web3(provider)
-    const database = new PlasmaDB(web3Endpoint, dappchainEndpoint, plasmaAddress, ethPrivateKey)
-    const ethAccount = web3.eth.accounts.privateKeyToAccount(ethPrivateKey)
-    const ethPlasmaClient = new EthereumPlasmaClient(web3, ethAccount, plasmaAddress)
+  ) {
+    const provider = new Ethers.providers.Web3Provider((window as any).web3.currentProvider)
+    const wallet = provider.getSigner()
+    const database = new PlasmaDB('web3endpoint', dappchainEndpoint, plasmaAddress, ethPrivateKey)
+    const defaultAccount = await wallet.getAddress()
+    const ethPlasmaClient = new EthereumPlasmaClient(wallet, defaultAccount, plasmaAddress)
     const writer = createJSONRPCClient({ protocols: [{ url: dappchainEndpoint + '/rpc' }] })
     const reader = createJSONRPCClient({ protocols: [{ url: dappchainEndpoint + '/query' }] })
     const dAppClient = new Client(chainId || 'default', writer, reader)
+
     // TODO: Key should not be generated each time, user should provide their key, or it should be retrieved through some one way mapping
     const privKey = CryptoUtils.generatePrivateKey()
     const pubKey = CryptoUtils.publicKeyFromPrivateKey(privKey)
@@ -63,6 +62,7 @@ export class User extends Entity {
       new NonceTxMiddleware(pubKey, dAppClient),
       new SignedTxMiddleware(privKey)
     ]
+
     const callerAddress = new Address(chainId || 'default', LocalAddress.fromPublicKey(pubKey))
     const dAppPlasmaClient = new DAppChainPlasmaClient({
       dAppClient,
@@ -70,17 +70,60 @@ export class User extends Entity {
       database,
       contractName: User._contractName
     })
+
     return new User(
-      web3,
+      wallet,
       {
-        ethAccount,
         ethPlasmaClient,
         dAppPlasmaClient,
+        defaultAccount,
         childBlockInterval: 1000
       },
       startBlock
     )
   }
+
+  // static createUser(
+  //   web3Endpoint: string,
+  //   plasmaAddress: string,
+  //   dappchainEndpoint: string,
+  //   ethPrivateKey: string,
+  //   startBlock?: BN,
+  //   chainId?: string
+  // ): User {
+  //   const provider = new Web3.providers.WebsocketProvider(web3Endpoint)
+  //   const web3 = new Web3(provider)
+  //   const database = new PlasmaDB(web3Endpoint, dappchainEndpoint, plasmaAddress, ethPrivateKey)
+  //   const defaultAccount = web3.eth.accounts.privateKeyToAccount(ethPrivateKey)
+  //   const ethPlasmaClient = new EthereumPlasmaClient(web3, ethAccount, plasmaAddress)
+  //   const writer = createJSONRPCClient({ protocols: [{ url: dappchainEndpoint + '/rpc' }] })
+  //   const reader = createJSONRPCClient({ protocols: [{ url: dappchainEndpoint + '/query' }] })
+  //   const dAppClient = new Client(chainId || 'default', writer, reader)
+  //   // TODO: Key should not be generated each time, user should provide their key, or it should be retrieved through some one way mapping
+  //   const privKey = CryptoUtils.generatePrivateKey()
+  //   const pubKey = CryptoUtils.publicKeyFromPrivateKey(privKey)
+  //   dAppClient.txMiddleware = [
+  //     new NonceTxMiddleware(pubKey, dAppClient),
+  //     new SignedTxMiddleware(privKey)
+  //   ]
+  //   const callerAddress = new Address(chainId || 'default', LocalAddress.fromPublicKey(pubKey))
+  //   const dAppPlasmaClient = new DAppChainPlasmaClient({
+  //     dAppClient,
+  //     callerAddress,
+  //     database,
+  //     contractName: User._contractName
+  //   })
+  //   return new User(
+  //     web3,
+  //     {
+  //       ethAccount,
+  //       ethPlasmaClient,
+  //       dAppPlasmaClient,
+  //       childBlockInterval: 1000
+  //     },
+  //     startBlock
+  //   )
+  // }
 
   async depositETHAsync(amount: BN): Promise<IPlasmaCoin> {
     let currentBlock = await this.getCurrentBlockAsync()
@@ -96,7 +139,7 @@ export class User extends Entity {
     const token = new SignedContract(this._web3, ERC721, address, this.ethAccount).instance
     let currentBlock = await this.getCurrentBlockAsync()
     const tx = await token.safeTransferFrom([
-      this.ethAccount.address,
+      this.ethAddress,
       this.plasmaCashContract._address,
       uid.toString()
     ])
@@ -111,7 +154,7 @@ export class User extends Entity {
     const token = new SignedContract(this._web3, ERC20, address, this.ethAccount).instance
     // Get how much the user has approved
     const currentApproval = new BN(
-      await token.allowance(this.ethAccount.address, this.plasmaCashContract._address)
+      await token.allowance(this.ethAddress, this.plasmaCashContract._address)
     )
 
     // amount - approved
@@ -135,7 +178,7 @@ export class User extends Entity {
     let watcher = this.plasmaCashContract.events
       .SubmittedBlock({
         filter: {},
-        fromBlock: await this.web3.eth.getBlockNumber()
+        fromBlock: await this._wallet.provider.getBlockNumber()
       })
       .on('data', (event: any, err: any) => {
         if (this.verifyInclusionAsync(slot, new BN(event.returnValues.blockNumber))) {
@@ -148,7 +191,7 @@ export class User extends Entity {
           watcher.unsubscribe()
           this.buffers[slot.toString()] = 0
         }
-        if (this.buffers[slot.toString()]++ == buffer) {
+        if (this.buffers[slot.toString()]++ === buffer) {
           watcher.unsubscribe()
           this.buffers[slot.toString()] = 0
           throw new Error(`${this.prefix(slot)} Tx was censored for ${buffer} blocks.`)
@@ -174,7 +217,7 @@ export class User extends Entity {
     this.newBlocks = this.plasmaCashContract.events
       .SubmittedBlock({
         filter: {},
-        fromBlock: await this.web3.eth.getBlockNumber()
+        fromBlock: await this._wallet.provider.getBlockNumber()
       })
       .on('data', async (event: any, err: any) => {
         const blk = new BN(event.returnValues.blockNumber)
@@ -220,7 +263,7 @@ export class User extends Entity {
         const exit = events[events.length - 1]
         await this.challengeExitAsync(slot, exit.owner)
       }
-      this.watchExit(slot, new BN(await this.web3.eth.getBlockNumber()))
+      this.watchExit(slot, new BN(await this._wallet.provider.getBlockNumber()))
       console.log(`${this.prefix(slot)} Verified history, started watching.`)
     } else {
       this.database.removeCoin(slot)
@@ -253,13 +296,13 @@ export class User extends Entity {
       'StartedExit',
       {
         filter: { slot: slot.toString() },
-        fromBlock: await this.web3.eth.getBlockNumber()
+        fromBlock: await this._wallet.provider.getBlockNumber()
       },
       async () => {
         // Stop watching for exit events
         this.stopWatching(slot)
         // Start watching challenge events
-        this.watchChallenge(slot, new BN(await this.web3.eth.getBlockNumber()))
+        this.watchChallenge(slot, new BN(await this._wallet.provider.getBlockNumber()))
       }
     )
 
@@ -268,7 +311,7 @@ export class User extends Entity {
       'FinalizedExit',
       {
         filter: { slot: slot.toString() },
-        fromBlock: await this.web3.eth.getBlockNumber()
+        fromBlock: await this._wallet.provider.getBlockNumber()
       },
       () => this.stopWatching(slot)
     )
@@ -285,13 +328,13 @@ export class User extends Entity {
   async deposits(): Promise<any[]> {
     const _deposits = await this.getDepositEvents(this._startBlock || new BN(0), false)
     const coins = _deposits.map(d => this.getPlasmaCoinAsync(d.slot))
-    return await Promise.all(coins)
+    return Promise.all(coins)
   }
 
   async allDeposits(): Promise<any[]> {
     const _deposits = await this.getDepositEvents(this._startBlock || new BN(0), true)
     const coins = _deposits.map(d => this.getPlasmaCoinAsync(d.slot))
-    return await Promise.all(coins)
+    return Promise.all(coins)
   }
 
   disconnect() {
@@ -312,7 +355,9 @@ export class User extends Entity {
     }
 
     // Search for the latest transaction in the coin's history, O(N)
-    let blockNum, prevBlockNum
+    let blockNum
+    let prevBlockNum
+
     try {
       blockNum = coinData[0].blockNumber
       prevBlockNum = coinData[0].tx.prevBlockNum
