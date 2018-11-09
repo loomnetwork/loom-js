@@ -9,10 +9,10 @@ set -euxo pipefail
 
 # Prepare env
 DEFAULT_GOPATH=$GOPATH
-BUILD_NUMBER=512
 GANACHE_PORT=8545
 REPO_ROOT=`pwd`
 LOOM_DIR=`pwd`/tmp/e2e
+
 
 # Check available platforms
 PLATFORM='unknown'
@@ -79,14 +79,10 @@ cleanup() {
   export GOPATH=$DEFAULT_GOPATH
 }
 
-rm -rf $LOOM_DIR; true
-mkdir -p $LOOM_DIR
+if [ "${TRAVIS:-}" ]; then
+  mkdir -p $LOOM_DIR
 
-if [[ -z "${LOOM_BLUEPRINT_DIR:-}" ]]; then
   setup_weave_blueprint
-fi
-
-if [[ -z "${LOOM_BIN:-}" ]]; then
   download_dappchain
 fi
 
@@ -96,3 +92,7 @@ trap cleanup EXIT
 
 start_chains
 run_tests
+
+if [ "${TRAVIS:-}" ]; then
+  rm -rf $LOOM_DIR
+fi
