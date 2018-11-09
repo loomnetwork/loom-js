@@ -11,8 +11,7 @@ import {
 import { Address, LocalAddress } from '../address'
 import { DAppChainPlasmaClient } from './dappchain-client'
 import { PlasmaCashTx } from './plasma-cash-tx'
-import { OfflineWeb3Signer } from '../solidity-helpers'
-import { Account } from 'web3/eth/accounts'
+import { Web3Signer } from '../solidity-helpers'
 import { PlasmaDB } from './db'
 import Tx from 'ethereumjs-tx'
 const Plasma = require('./contracts/plasma-cash-abi.json')
@@ -46,16 +45,16 @@ export interface IWeb3EventSub {
  * on Ethereum, and one on the DAppChain, each identity has its own private/public key pair.
  */
 export class Entity {
-  protected _wallet: providers.JsonRpcSigner
+  private _wallet: providers.JsonRpcSigner
   private _dAppPlasmaClient: DAppChainPlasmaClient
   private _ethPlasmaClient: EthereumPlasmaClient
-  private _defaultGas?: string | number
   private _childBlockInterval: number
   private _exitWatchers: { [slot: string]: IWeb3EventSub }
   private _challengeWatchers: { [slot: string]: IWeb3EventSub }
   private _ethAddress: string
+  private _defaultGas?: string | number
 
-  get web3(): providers.JsonRpcSigner {
+  get wallet(): providers.JsonRpcSigner {
     return this._wallet
   }
 
@@ -121,8 +120,9 @@ export class Entity {
       newOwner,
       prevOwner: this.ethAddress
     })
-    // TODO: Need to fix offline web3 signer
-    await tx.signAsync(new OfflineWeb3Signer(this._wallet, this._ethAccount))
+
+    // TODO: FIX HERE
+    await tx.signAsync(new Web3Signer(this._wallet, this.ethAddress))
     await this._dAppPlasmaClient.sendTxAsync(tx)
   }
 
@@ -199,7 +199,7 @@ export class Entity {
       })
 
       // TODO: Need to fix offline web3 signer
-      await exitTx.signAsync(new OfflineWeb3Signer(this._wallet, this._ethAccount))
+      await exitTx.signAsync(new Web3Signer(this._wallet, this.ethAddress))
       return this._ethPlasmaClient.startExitAsync({
         slot,
         exitTx,
@@ -535,7 +535,7 @@ export class Entity {
       })
 
       // TODO: Need to fix offline web3 signer
-      await challengingTx.signAsync(new OfflineWeb3Signer(this._wallet, this._ethAccount))
+      await challengingTx.signAsync(new Web3Signer(this._wallet, this.ethAddress))
       return this._ethPlasmaClient.challengeBeforeAsync({
         slot,
         challengingTx,

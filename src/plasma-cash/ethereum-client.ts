@@ -287,16 +287,7 @@ export class EthereumPlasmaClient {
    * @returns Web3 tx receipt object.
    */
   challengeBeforeAsync(params: IPlasmaChallengeBeforeParams): Promise<object> {
-    const {
-      slot,
-      challengingTx,
-      challengingBlockNum,
-      prevTx,
-      prevBlockNum,
-      from,
-      gas,
-      gasPrice
-    } = params
+    const { slot, challengingTx, challengingBlockNum, prevTx, prevBlockNum } = params
     const prevTxBytes = prevTx ? prevTx.rlpEncode() : '0x'
     const challengingTxBytes = challengingTx.rlpEncode()
     const bond = utils.parseEther('0.1')

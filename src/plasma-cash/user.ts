@@ -1,5 +1,5 @@
 import BN from 'bn.js'
-import Ethers, { providers } from 'ethers'
+import { providers } from 'ethers'
 import {
   Entity,
   IEntityParams,
@@ -40,17 +40,19 @@ export class User extends Entity {
   }
 
   static async newMetamaskUser(
+    web3provider: any,
     plasmaAddress: string,
     dappchainEndpoint: string,
-    ethPrivateKey: string,
+    eventsEndpoint: string,
+    defaultAccount: string,
     startBlock?: BN,
+    dbPath?: string,
     chainId?: string
   ) {
-    const provider = new Ethers.providers.Web3Provider((window as any).web3.currentProvider)
+    const database = new PlasmaDB(dbPath)
+    const provider = new providers.Web3Provider(web3provider)
     const wallet = provider.getSigner()
-    const database = new PlasmaDB('web3endpoint', dappchainEndpoint, plasmaAddress, ethPrivateKey)
-    const defaultAccount = await wallet.getAddress()
-    const ethPlasmaClient = new EthereumPlasmaClient(wallet, defaultAccount, plasmaAddress)
+    const ethPlasmaClient = new EthereumPlasmaClient(wallet, plasmaAddress, eventsEndpoint)
     const writer = createJSONRPCClient({ protocols: [{ url: dappchainEndpoint + '/rpc' }] })
     const reader = createJSONRPCClient({ protocols: [{ url: dappchainEndpoint + '/query' }] })
     const dAppClient = new Client(chainId || 'default', writer, reader)
@@ -82,48 +84,6 @@ export class User extends Entity {
       startBlock
     )
   }
-
-  // static createUser(
-  //   web3Endpoint: string,
-  //   plasmaAddress: string,
-  //   dappchainEndpoint: string,
-  //   ethPrivateKey: string,
-  //   startBlock?: BN,
-  //   chainId?: string
-  // ): User {
-  //   const provider = new Web3.providers.WebsocketProvider(web3Endpoint)
-  //   const web3 = new Web3(provider)
-  //   const database = new PlasmaDB(web3Endpoint, dappchainEndpoint, plasmaAddress, ethPrivateKey)
-  //   const defaultAccount = web3.eth.accounts.privateKeyToAccount(ethPrivateKey)
-  //   const ethPlasmaClient = new EthereumPlasmaClient(web3, ethAccount, plasmaAddress)
-  //   const writer = createJSONRPCClient({ protocols: [{ url: dappchainEndpoint + '/rpc' }] })
-  //   const reader = createJSONRPCClient({ protocols: [{ url: dappchainEndpoint + '/query' }] })
-  //   const dAppClient = new Client(chainId || 'default', writer, reader)
-  //   // TODO: Key should not be generated each time, user should provide their key, or it should be retrieved through some one way mapping
-  //   const privKey = CryptoUtils.generatePrivateKey()
-  //   const pubKey = CryptoUtils.publicKeyFromPrivateKey(privKey)
-  //   dAppClient.txMiddleware = [
-  //     new NonceTxMiddleware(pubKey, dAppClient),
-  //     new SignedTxMiddleware(privKey)
-  //   ]
-  //   const callerAddress = new Address(chainId || 'default', LocalAddress.fromPublicKey(pubKey))
-  //   const dAppPlasmaClient = new DAppChainPlasmaClient({
-  //     dAppClient,
-  //     callerAddress,
-  //     database,
-  //     contractName: User._contractName
-  //   })
-  //   return new User(
-  //     web3,
-  //     {
-  //       ethAccount,
-  //       ethPlasmaClient,
-  //       dAppPlasmaClient,
-  //       childBlockInterval: 1000
-  //     },
-  //     startBlock
-  //   )
-  // }
 
   async depositETHAsync(amount: BN): Promise<IPlasmaCoin> {
     let currentBlock = await this.getCurrentBlockAsync()
@@ -178,7 +138,7 @@ export class User extends Entity {
     let watcher = this.plasmaCashContract.events
       .SubmittedBlock({
         filter: {},
-        fromBlock: await this._wallet.provider.getBlockNumber()
+        fromBlock: await this.wallet.provider.getBlockNumber()
       })
       .on('data', (event: any, err: any) => {
         if (this.verifyInclusionAsync(slot, new BN(event.returnValues.blockNumber))) {
@@ -217,7 +177,7 @@ export class User extends Entity {
     this.newBlocks = this.plasmaCashContract.events
       .SubmittedBlock({
         filter: {},
-        fromBlock: await this._wallet.provider.getBlockNumber()
+        fromBlock: await this.wallet.provider.getBlockNumber()
       })
       .on('data', async (event: any, err: any) => {
         const blk = new BN(event.returnValues.blockNumber)
@@ -263,7 +223,7 @@ export class User extends Entity {
         const exit = events[events.length - 1]
         await this.challengeExitAsync(slot, exit.owner)
       }
-      this.watchExit(slot, new BN(await this._wallet.provider.getBlockNumber()))
+      this.watchExit(slot, new BN(await this.wallet.provider.getBlockNumber()))
       console.log(`${this.prefix(slot)} Verified history, started watching.`)
     } else {
       this.database.removeCoin(slot)
@@ -296,13 +256,13 @@ export class User extends Entity {
       'StartedExit',
       {
         filter: { slot: slot.toString() },
-        fromBlock: await this._wallet.provider.getBlockNumber()
+        fromBlock: await this.wallet.provider.getBlockNumber()
       },
       async () => {
         // Stop watching for exit events
         this.stopWatching(slot)
         // Start watching challenge events
-        this.watchChallenge(slot, new BN(await this._wallet.provider.getBlockNumber()))
+        this.watchChallenge(slot, new BN(await this.wallet.provider.getBlockNumber()))
       }
     )
 
@@ -311,7 +271,7 @@ export class User extends Entity {
       'FinalizedExit',
       {
         filter: { slot: slot.toString() },
-        fromBlock: await this._wallet.provider.getBlockNumber()
+        fromBlock: await this.wallet.provider.getBlockNumber()
       },
       () => this.stopWatching(slot)
     )
@@ -339,7 +299,7 @@ export class User extends Entity {
 
   disconnect() {
     // @ts-ignore
-    this.web3.currentProvider.connection.close()
+    this.wallet.currentProvider.connection.close()
   }
 
   async debug(i: number) {

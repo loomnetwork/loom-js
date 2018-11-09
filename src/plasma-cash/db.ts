@@ -15,7 +15,7 @@ export class PlasmaDB {
   dbPath: string
   db: any
 
-  constructor(ethereum: String, dappchain: String, plasmaAddress: String, privateKey: String) {
+  constructor(dbPath?: string) {
     // TODO: the db path shouldn't be hardcoded
     // If we're on node.js
     let adapter
@@ -23,10 +23,16 @@ export class PlasmaDB {
       const FileSync = require('lowdb/adapters/FileSync')
       const shelljs = require('shelljs')
 
-      this.dbPath = `./db/db_${privateKey}.json`
+      if (dbPath) {
+        this.dbPath = dbPath
+      } else {
+        this.dbPath = `./db/db.json`
+      }
+
       if (!fs.existsSync(this.dbPath)) {
         shelljs.mkdir('-p', path.dirname(this.dbPath))
       }
+
       adapter = new FileSync(this.dbPath)
     } else {
       const LocalStorage = require('lowdb/adapters/LocalStorage')
@@ -37,10 +43,6 @@ export class PlasmaDB {
     // Initialize the database
     this.db
       .defaults({
-        ethereum: ethereum,
-        dappchain: dappchain,
-        plasma: plasmaAddress,
-        privatekey: privateKey,
         coins: [],
         blocks: {},
         lastBlock: new BN(0)
