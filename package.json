@@ -45,11 +45,7 @@
     "shelljs": "^0.8.2",
     "tslib": "^1.9.3",
     "tweetnacl": "^1.0.0",
-<<<<<<< HEAD
-    "web3": "1.0.0-beta.36"
-=======
     "web3": "1.0.0-beta.33"
->>>>>>> master
   },
   "devDependencies": {
     "@babel/core": "^7.0.0-beta.46",

@@ -8814,20 +8814,6 @@ web3-utils@1.0.0-beta.33:
     underscore "1.8.3"
     utf8 "2.1.1"
 
-<<<<<<< HEAD
-web3@1.0.0-beta.36:
-  version "1.0.0-beta.36"
-  resolved "https://registry.yarnpkg.com/web3/-/web3-1.0.0-beta.36.tgz#2954da9e431124c88396025510d840ba731c8373"
-  integrity sha512-fZDunw1V0AQS27r5pUN3eOVP7u8YAvyo6vOapdgVRolAu5LgaweP7jncYyLINqIX9ZgWdS5A090bt+ymgaYHsw==
-  dependencies:
-    web3-bzz "1.0.0-beta.36"
-    web3-core "1.0.0-beta.36"
-    web3-eth "1.0.0-beta.36"
-    web3-eth-personal "1.0.0-beta.36"
-    web3-net "1.0.0-beta.36"
-    web3-shh "1.0.0-beta.36"
-    web3-utils "1.0.0-beta.36"
-=======
 web3@1.0.0-beta.33:
   version "1.0.0-beta.33"
   resolved "https://registry.yarnpkg.com/web3/-/web3-1.0.0-beta.33.tgz#c6021b5769927726371c184b868445311b139295"
@@ -8840,7 +8826,6 @@ web3@1.0.0-beta.33:
     web3-net "1.0.0-beta.33"
     web3-shh "1.0.0-beta.33"
     web3-utils "1.0.0-beta.33"
->>>>>>> master
 
 web3@^0.18.4:
   version "0.18.4"

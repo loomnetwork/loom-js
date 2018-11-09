@@ -43,16 +43,11 @@ export class User extends Entity {
     web3: any,
     plasmaAddress: string,
     dappchainEndpoint: string,
-<<<<<<< HEAD
     eventsEndpoint: string,
     defaultAccount: string,
     dbPath?: string,
-    startBlock?: BN
-=======
-    ethPrivateKey: string,
     startBlock?: BN,
     chainId?: string
->>>>>>> master
   ): User {
     const database = new PlasmaDB(dbPath)
     const ethPlasmaClient = new EthereumPlasmaClient(web3, plasmaAddress, eventsEndpoint)
@@ -88,18 +83,13 @@ export class User extends Entity {
 
   async depositETHAsync(amount: BN): Promise<IPlasmaCoin> {
     let currentBlock = await this.getCurrentBlockAsync()
-<<<<<<< HEAD
     const tx = await this.web3.eth.sendTransaction({
       from: this.ethAddress,
       to: this.plasmaCashContract._address,
       value: this.web3.utils.toHex(amount),
       gas: this._defaultGas
     })
-    const coin = await this.getCoinFromTxAsync(tx.transactionHash, 0)
-=======
-    const tx = await this.sendETH(this.plasmaCashContract._address, amount, 220000)
-    const coin = await this.getCoinFromTxAsync(tx)
->>>>>>> master
+    const coin = await this.getCoinFromTxAsync(tx.transactionHash)
     currentBlock = await this.pollForBlockChange(currentBlock, 20, 2000)
     this.receiveAndWatchCoinAsync(coin.slot)
     return coin
@@ -108,19 +98,10 @@ export class User extends Entity {
   async depositERC721Async(uid: BN, address: string): Promise<IPlasmaCoin> {
     const token = new this.web3.eth.Contract(ERC721, address)
     let currentBlock = await this.getCurrentBlockAsync()
-<<<<<<< HEAD
     const tx = await token.methods
       .safeTransferFrom(this.ethAddress, this.plasmaCashContract._address, uid.toString())
       .send({ from: this.ethAddress, gas: this._defaultGas })
-    const coin = await this.getCoinFromTxAsync(tx.transactionHash, 1) // 2 events, transferred & deposited, we want the 2nd one
-=======
-    const tx = await token.safeTransferFrom([
-      this.ethAccount.address,
-      this.plasmaCashContract._address,
-      uid.toString()
-    ])
-    const coin = await this.getCoinFromTxAsync(tx)
->>>>>>> master
+    const coin = await this.getCoinFromTxAsync(tx.transactionHash)
     currentBlock = await this.pollForBlockChange(currentBlock, 20, 2000)
     this.receiveAndWatchCoinAsync(coin.slot)
     return coin
@@ -141,15 +122,10 @@ export class User extends Entity {
       console.log('Approved an extra', amount.sub(currentApproval))
     }
     let currentBlock = await this.getCurrentBlockAsync()
-<<<<<<< HEAD
     const tx = await this.plasmaCashContract.methods
       .depositERC20(amount, address)
       .send({ from: this.ethAddress, gas: this._defaultGas })
-    const coin = await this.getCoinFromTxAsync(tx, 1)
-=======
-    const tx = await this.plasmaCashContract.depositERC20([amount.toString(), address])
-    const coin = await this.getCoinFromTxAsync(tx)
->>>>>>> master
+    const coin = await this.getCoinFromTxAsync(tx.transactionHash)
     currentBlock = await this.pollForBlockChange(currentBlock, 20, 2000)
     this.receiveAndWatchCoinAsync(coin.slot)
     return coin
