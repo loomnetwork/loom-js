@@ -2,12 +2,11 @@ import test from 'tape'
 
 import { MockEntity } from './mock-entity'
 import BN from 'bn.js'
-import Web3 from 'web3'
-import { IEntityParams } from '../../../plasma-cash/entity'
+import { ethers } from 'ethers'
 
 test('Entity', async t => {
   try {
-    let web3 = new Web3()
+    let web3 = new ethers.Wallet(ethers.utils.sha256('0x1'))
     let params: any = { childBlockInterval: 1000 }
     const entity = new MockEntity(web3, params)
 
