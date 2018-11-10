@@ -183,18 +183,6 @@ export class Entity {
     })
   }
 
-  async submitPlasmaBlockAsync(): Promise<BN> {
-    await this._dAppPlasmaClient.debugFinalizeBlockAsync()
-    const blockNum = await this._dAppPlasmaClient.getCurrentPlasmaBlockNumAsync()
-    const block = await this._dAppPlasmaClient.getPlasmaBlockAtAsync(blockNum)
-    await this._ethPlasmaClient.debugSubmitBlockAsync({ block, from: this.ethAddress })
-    return blockNum
-  }
-
-  submitPlasmaDepositAsync(deposit: IPlasmaDeposit): Promise<void> {
-    return this._dAppPlasmaClient.debugSubmitDepositAsync(deposit)
-  }
-
   async startExitAsync(params: { slot: BN; prevBlockNum: BN; exitBlockNum: BN }): Promise<object> {
     const { slot, prevBlockNum, exitBlockNum } = params
 
