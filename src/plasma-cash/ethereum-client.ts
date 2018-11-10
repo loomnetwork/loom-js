@@ -5,7 +5,7 @@ import { PlasmaCashBlock } from './plasma-cash-block'
 import { bytesToHexAddr } from '../crypto-utils'
 import { PlasmaCashTx } from './plasma-cash-tx'
 import { ethers } from 'ethers'
-import { hexBN } from '../helpers';
+import { hexBN } from '../helpers'
 
 export enum PlasmaCoinMode {
   ETH = 0,
@@ -257,7 +257,7 @@ export class EthereumPlasmaClient {
    */
   withdrawAsync(params: IPlasmaWithdrawParams): Promise<object> {
     const { slot, from, gas, gasPrice } = params
-    return this._plasmaContract.withdraw('0x' + slot.toString(16), { gasLimit: gas})
+    return this._plasmaContract.withdraw('0x' + slot.toString(16), { gasLimit: gas })
   }
 
   /**
@@ -266,7 +266,7 @@ export class EthereumPlasmaClient {
    */
   withdrawBondsAsync(params: ISendTxOptions): Promise<object> {
     const { from, gas, gasPrice } = params
-    return this._plasmaContract.withdrawBonds({ gasLimit: gas} )
+    return this._plasmaContract.withdrawBonds({ gasLimit: gas })
   }
 
   /**
@@ -278,8 +278,14 @@ export class EthereumPlasmaClient {
     const { slot, challengingBlockNum, challengingTx, from, gas, gasPrice } = params
     // console.log("challenging with", params)
     const txBytes = challengingTx.rlpEncode()
-    return this._plasmaContract
-      .challengeAfter('0x' + slot.toString(16), '0x' + challengingBlockNum.toString(16), txBytes, challengingTx.proof, challengingTx.sig, { gasLimit: gas} )
+    return this._plasmaContract.challengeAfter(
+      '0x' + slot.toString(16),
+      '0x' + challengingBlockNum.toString(16),
+      txBytes,
+      challengingTx.proof,
+      challengingTx.sig,
+      { gasLimit: gas }
+    )
   }
 
   /**
@@ -290,8 +296,14 @@ export class EthereumPlasmaClient {
   challengeBetweenAsync(params: IPlasmaChallengeParams): Promise<object> {
     const { slot, challengingBlockNum, challengingTx, from, gas, gasPrice } = params
     const txBytes = challengingTx.rlpEncode()
-    return this._plasmaContract
-      .challengeBetween('0x' + slot.toString(16), '0x' + challengingBlockNum.toString(16), txBytes, challengingTx.proof, challengingTx.sig, { gasLimit: gas})
+    return this._plasmaContract.challengeBetween(
+      '0x' + slot.toString(16),
+      '0x' + challengingBlockNum.toString(16),
+      txBytes,
+      challengingTx.proof,
+      challengingTx.sig,
+      { gasLimit: gas }
+    )
   }
 
   /**
@@ -321,17 +333,16 @@ export class EthereumPlasmaClient {
       prevBlk = 0
     }
 
-    return this._plasmaContract
-      .challengeBefore(
-        '0x' + slot.toString(16),
-        prevTxBytes,
-        challengingTxBytes,
-        prevTx ? prevTx.proof : '0x',
-        challengingTx.proof,
-        challengingTx.sig,
-        [prevBlk, '0x' + challengingBlockNum.toString(16)],
-        { value: bond, gasLimit: gas }
-      )
+    return this._plasmaContract.challengeBefore(
+      '0x' + slot.toString(16),
+      prevTxBytes,
+      challengingTxBytes,
+      prevTx ? prevTx.proof : '0x',
+      challengingTx.proof,
+      challengingTx.sig,
+      [prevBlk, '0x' + challengingBlockNum.toString(16)],
+      { value: bond, gasLimit: gas }
+    )
   }
 
   /**
@@ -340,18 +351,25 @@ export class EthereumPlasmaClient {
    * @returns Web3 tx receipt object.
    */
   respondChallengeBeforeAsync(params: IPlasmaRspondChallengeBeforeParams): Promise<object> {
-    const { slot, challengingTxHash, respondingBlockNum, respondingTx, from, gas, gasPrice } = params
+    const {
+      slot,
+      challengingTxHash,
+      respondingBlockNum,
+      respondingTx,
+      from,
+      gas,
+      gasPrice
+    } = params
     const respondingTxBytes = respondingTx.rlpEncode()
-    return this._plasmaContract
-      .respondChallengeBefore(
-        '0x' + slot.toString(16),
-        challengingTxHash,
-        '0x' + respondingBlockNum.toString(16),
-        respondingTxBytes,
-        respondingTx.proof,
-        respondingTx.sig,
-        { gasLimit: gas }
-      )
+    return this._plasmaContract.respondChallengeBefore(
+      '0x' + slot.toString(16),
+      challengingTxHash,
+      '0x' + respondingBlockNum.toString(16),
+      respondingTxBytes,
+      respondingTx.proof,
+      respondingTx.sig,
+      { gasLimit: gas }
+    )
   }
 
   marshalDepositEvent(log: ethers.providers.Log): IPlasmaDeposit {
@@ -364,5 +382,4 @@ export class EthereumPlasmaClient {
       contractAddress: decoded.contractAddress
     }
   }
-
 }

@@ -22,9 +22,9 @@ export function sleep(ms: any) {
 }
 
 /**
- * @param num Ethers BigNumber object, e.g. { _hex: '0x123' }. 
+ * @param num Ethers BigNumber object, e.g. { _hex: '0x123' }.
  * Need to take the _hex, strip the '0x' and then make a hex BN
  */
-export function hexBN(num: any) : BN {
+export function hexBN(num: any): BN {
   return new BN(num._hex.slice(2), 16)
 }

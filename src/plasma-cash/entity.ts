@@ -20,7 +20,7 @@ const abiDecoder = require('abi-decoder') // NodeJS
 abiDecoder.addABI(Plasma)
 import { ethers } from 'ethers'
 import { hexBN } from '../helpers'
-import Contract from 'web3/eth/contract';
+import Contract from 'web3/eth/contract'
 
 export interface IProofs {
   inclusion: { [blockNumber: string]: string }
@@ -55,7 +55,7 @@ export class Entity {
   private _childBlockInterval: number
   private _ethAddress: string
   protected _defaultGas?: number
-  protected _exitWatchers: { [slot: string]: IWeb3EventSub}
+  protected _exitWatchers: { [slot: string]: IWeb3EventSub }
   protected _challengeWatchers: { [slot: string]: IWeb3EventSub }
 
   get ethers(): ethers.Signer {

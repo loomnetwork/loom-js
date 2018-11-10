@@ -52,7 +52,15 @@ export class User extends Entity {
   ): User {
     const provider = new ethers.providers.Web3Provider(web3.currentProvider)
     const signer = provider.getSigner()
-    return this.createUser(signer, plasmaAddress, dappchainEndpoint, eventsEndpoint, undefined, startBlock, chainId)
+    return this.createUser(
+      signer,
+      plasmaAddress,
+      dappchainEndpoint,
+      eventsEndpoint,
+      undefined,
+      startBlock,
+      chainId
+    )
   }
 
   static createOfflineUser(
@@ -67,7 +75,15 @@ export class User extends Entity {
   ): User {
     const provider = new ethers.providers.JsonRpcProvider(endpoint)
     const wallet = new ethers.Wallet(privateKey, provider)
-    return this.createUser(wallet, plasmaAddress, dappchainEndpoint, eventsEndpoint, dbPath, startBlock, chainId)
+    return this.createUser(
+      wallet,
+      plasmaAddress,
+      dappchainEndpoint,
+      eventsEndpoint,
+      dbPath,
+      startBlock,
+      chainId
+    )
   }
 
   static createUser(
@@ -169,7 +185,7 @@ export class User extends Entity {
         if (this.verifyInclusionAsync(slot, new BN(event.returnValues.blockNumber))) {
           console.log(
             `${this.prefix(slot)} Tx included & verified in block ${
-            event.returnValues.blockNumber
+              event.returnValues.blockNumber
             }`
           )
           this.stopWatching(slot)
@@ -223,7 +239,7 @@ export class User extends Entity {
           }
           if (exists) {
             await this.getPlasmaTxAsync(coin.slot, blk) // this will add the coin to state
-            // TODO: If a new block arrives and we have the coin already in state but are not watching for its exits, e.g. after restarting the client, we need to start watching again. 
+            // TODO: If a new block arrives and we have the coin already in state but are not watching for its exits, e.g. after restarting the client, we need to start watching again.
           } else {
             this.receiveAndWatchCoinAsync(coin.slot)
           }
@@ -300,7 +316,7 @@ export class User extends Entity {
         filter: { slot: slot.toString() },
         fromBlock: await this.web3.eth.getBlockNumber()
       },
-      () => { 
+      () => {
         this.stopWatching(slot)
       }
     )
