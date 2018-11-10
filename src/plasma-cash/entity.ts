@@ -18,6 +18,9 @@ import Tx from 'ethereumjs-tx'
 const Plasma = require('./contracts/plasma-cash-abi.json')
 const abiDecoder = require('abi-decoder') // NodeJS
 abiDecoder.addABI(Plasma)
+import { ethers } from 'ethers'
+import { hexBN } from '../helpers'
+import Contract from 'web3/eth/contract';
 
 export interface IProofs {
   inclusion: { [blockNumber: string]: string }
@@ -30,7 +33,7 @@ export interface IEntityParams {
   ethPlasmaClient: EthereumPlasmaClient
   dAppPlasmaClient: DAppChainPlasmaClient
   /** Allows to override the amount of gas used when sending txs to Ethereum. */
-  defaultGas?: string | number
+  defaultGas?: number
   defaultAccount: string
   childBlockInterval: number
 }
@@ -46,17 +49,21 @@ export interface IWeb3EventSub {
  * on Ethereum, and one on the DAppChain, each identity has its own private/public key pair.
  */
 export class Entity {
-  private _web3: Web3
+  private _ethers: ethers.Signer
   private _dAppPlasmaClient: DAppChainPlasmaClient
   private _ethPlasmaClient: EthereumPlasmaClient
   private _childBlockInterval: number
-  private _exitWatchers: { [slot: string]: IWeb3EventSub }
-  private _challengeWatchers: { [slot: string]: IWeb3EventSub }
   private _ethAddress: string
-  protected _defaultGas?: string | number
+  protected _defaultGas?: number
+  protected _exitWatchers: { [slot: string]: IWeb3EventSub}
+  protected _challengeWatchers: { [slot: string]: IWeb3EventSub }
+
+  get ethers(): ethers.Signer {
+    return this._ethers
+  }
 
   get web3(): Web3 {
-    return this._web3
+    return this._ethPlasmaClient.web3
   }
 
   get database(): PlasmaDB {
@@ -71,7 +78,7 @@ export class Entity {
     return this._ethPlasmaClient.plasmaEvents
   }
 
-  get plasmaCashContract(): any {
+  get plasmaCashContract(): ethers.Contract {
     return this._ethPlasmaClient.plasmaCashContract
   }
 
@@ -79,8 +86,8 @@ export class Entity {
     return this._dAppPlasmaClient.contractName
   }
 
-  constructor(web3: Web3, params: IEntityParams) {
-    this._web3 = web3
+  constructor(ethers: ethers.Signer, params: IEntityParams) {
+    this._ethers = ethers
     this._ethPlasmaClient = params.ethPlasmaClient
     this._dAppPlasmaClient = params.dAppPlasmaClient
     this._defaultGas = params.defaultGas
@@ -125,7 +132,7 @@ export class Entity {
       newOwner,
       prevOwner: this.ethAddress
     })
-    await tx.signAsync(new Web3Signer(this._web3, this.ethAddress))
+    await tx.signAsync(new Web3Signer(this._ethers))
     await this._dAppPlasmaClient.sendTxAsync(tx)
   }
 
@@ -200,7 +207,7 @@ export class Entity {
         denomination: 1,
         newOwner: this.ethAddress
       })
-      await exitTx.signAsync(new Web3Signer(this._web3, this.ethAddress))
+      await exitTx.signAsync(new Web3Signer(this._ethers))
       return this._ethPlasmaClient.startExitAsync({
         slot,
         exitTx,
@@ -534,7 +541,7 @@ export class Entity {
         denomination: 1,
         newOwner: this.ethAddress
       })
-      await challengingTx.signAsync(new Web3Signer(this._web3, this.ethAddress))
+      await challengingTx.signAsync(new Web3Signer(this._ethers))
       return this._ethPlasmaClient.challengeBeforeAsync({
         slot,
         challengingTx,
@@ -590,19 +597,18 @@ export class Entity {
    *
    * @param tx The transaction that we want to decode.
    */
-  async getCoinFromTxAsync(tx: any): Promise<IPlasmaCoin> {
-    const _tx = await this.web3.eth.getTransactionReceipt(tx.transactionHash)
-
-    const depositLogs = abiDecoder
-      .decodeLogs(_tx.logs)
-      .filter((logItem: any) => logItem && logItem.name.indexOf('Deposit') !== -1)
-
-    if (depositLogs.length === 0) {
-      throw Error('Deposit event not found')
+  async getCoinFromTxAsync(tx: ethers.providers.TransactionResponse): Promise<IPlasmaCoin> {
+    const _tx = await tx.wait()
+    if (_tx.logs === undefined) {
+      throw Error('No logs were found')
     }
 
-    const data = depositLogs[0].events
-    const coinId = new BN(data[0].value.slice(2), 16)
+    const logs = _tx.logs.map(l => this.plasmaCashContract.interface.parseLog(l))
+    const depositLog = logs.find(l => l !== null && l.name === 'Deposit')
+    if (depositLog === undefined) {
+      throw Error('No deposit event found')
+    }
+    const coinId = hexBN(depositLog.values.slot)
     return this.getPlasmaCoinAsync(coinId)
   }
 

@@ -13,13 +13,16 @@ import {
   DAppChainPlasmaClient,
   Client,
   createJSONRPCClient,
-  SignedContract,
   PlasmaDB
 } from '..'
 import { IPlasmaCoin } from './ethereum-client'
-import { sleep } from '../helpers'
+import { sleep, hexBN } from '../helpers'
+import { ethers, providers } from 'ethers'
 
 const ERC721 = require('./contracts/ERC721.json')
+
+const ERC721_ABI = ['function safeTransferFrom(address _from, address _to, uint256 _tokenId)']
+
 const ERC20 = require('./contracts/ERC20.json')
 // Helper function to create a user instance.
 
@@ -30,7 +33,7 @@ export class User extends Entity {
   private buffers: any = {}
   private newBlocks: any
 
-  constructor(web3: Web3, params: IEntityParams, startBlock?: BN) {
+  constructor(web3: ethers.Signer, params: IEntityParams, startBlock?: BN) {
     super(web3, params)
     this._startBlock = startBlock
   }
@@ -40,17 +43,16 @@ export class User extends Entity {
   }
 
   static createUser(
-    web3: any,
+    wallet: ethers.Signer,
     plasmaAddress: string,
     dappchainEndpoint: string,
     eventsEndpoint: string,
-    defaultAccount: string,
     dbPath?: string,
     startBlock?: BN,
     chainId?: string
   ): User {
     const database = new PlasmaDB(dbPath)
-    const ethPlasmaClient = new EthereumPlasmaClient(web3, plasmaAddress, eventsEndpoint)
+    const ethPlasmaClient = new EthereumPlasmaClient(wallet, plasmaAddress, eventsEndpoint)
     const writer = createJSONRPCClient({ protocols: [{ url: dappchainEndpoint + '/rpc' }] })
     const reader = createJSONRPCClient({ protocols: [{ url: dappchainEndpoint + '/query' }] })
     const dAppClient = new Client(chainId || 'default', writer, reader)
@@ -69,12 +71,13 @@ export class User extends Entity {
       contractName: User._contractName
     })
     return new User(
-      web3,
+      wallet,
       {
         ethPlasmaClient,
         dAppPlasmaClient,
-        defaultAccount: defaultAccount,
-        defaultGas: '3141592',
+        // @ts-ignore
+        defaultAccount: wallet.address,
+        defaultGas: 3141592,
         childBlockInterval: 1000
       },
       startBlock
@@ -83,53 +86,49 @@ export class User extends Entity {
 
   async depositETHAsync(amount: BN): Promise<IPlasmaCoin> {
     let currentBlock = await this.getCurrentBlockAsync()
-    const tx = await this.web3.eth.sendTransaction({
-      from: this.ethAddress,
-      to: this.plasmaCashContract._address,
-      value: this.web3.utils.toHex(amount),
-      gas: this._defaultGas
+    const tx = await this.ethers.sendTransaction({
+      to: this.plasmaCashContract.address,
+      value: '0x' + amount.toString(16)
     })
-    const coin = await this.getCoinFromTxAsync(tx.transactionHash)
+    const coin = await this.getCoinFromTxAsync(tx)
     currentBlock = await this.pollForBlockChange(currentBlock, 20, 2000)
     this.receiveAndWatchCoinAsync(coin.slot)
     return coin
   }
 
   async depositERC721Async(uid: BN, address: string): Promise<IPlasmaCoin> {
-    const token = new this.web3.eth.Contract(ERC721, address)
+    const token = new ethers.Contract(address, ERC721_ABI, this.ethers)
     let currentBlock = await this.getCurrentBlockAsync()
-    const tx = await token.methods
-      .safeTransferFrom(this.ethAddress, this.plasmaCashContract._address, uid.toString())
-      .send({ from: this.ethAddress, gas: this._defaultGas })
-    const coin = await this.getCoinFromTxAsync(tx.transactionHash)
+    const tx = await token.safeTransferFrom(
+      this.ethAddress,
+      this.plasmaCashContract.address,
+      '0x' + uid.toString(16),
+      { gasLimit: ethers.utils.hexlify(this._defaultGas!) }
+    )
+    const coin = await this.getCoinFromTxAsync(tx)
     currentBlock = await this.pollForBlockChange(currentBlock, 20, 2000)
     this.receiveAndWatchCoinAsync(coin.slot)
     return coin
   }
 
   async depositERC20Async(amount: BN, address: string): Promise<IPlasmaCoin> {
-    const token = new this.web3.eth.Contract(ERC20, address)
+    const token = new ethers.Contract(address, ERC20, this.ethers)
     // Get how much the user has approved
-    const currentApproval = await token.methods
-      .allowance(this.ethAddress, this.plasmaCashContract._address)
-      .call({ from: this.ethAddress })
+    const currentApproval = await token.allowance(this.ethAddress, this.plasmaCashContract.address)
 
     // amount - approved
     if (amount.gt(currentApproval)) {
-      await token.methods
-        .approve(this.plasmaCashContract._address, amount.sub(currentApproval).toString())
-        .send({ from: this.ethAddress, gas: this._defaultGas })
+      await token.approve(this.plasmaCashContract._address, amount.sub(currentApproval).toString())
       console.log('Approved an extra', amount.sub(currentApproval))
     }
     let currentBlock = await this.getCurrentBlockAsync()
-    const tx = await this.plasmaCashContract.methods
-      .depositERC20(amount, address)
-      .send({ from: this.ethAddress, gas: this._defaultGas })
+    const tx = await this.plasmaCashContract.depositERC20(amount, address)
     const coin = await this.getCoinFromTxAsync(tx.transactionHash)
     currentBlock = await this.pollForBlockChange(currentBlock, 20, 2000)
     this.receiveAndWatchCoinAsync(coin.slot)
     return coin
   }
+
   // Buffer is how many blocks the client will wait for the tx to get confirmed
   async transferAndVerifyAsync(slot: BN, newOwner: string, buffer: number = 6): Promise<any> {
     await this.transferAsync(slot, newOwner)
@@ -142,10 +141,11 @@ export class User extends Entity {
         if (this.verifyInclusionAsync(slot, new BN(event.returnValues.blockNumber))) {
           console.log(
             `${this.prefix(slot)} Tx included & verified in block ${
-              event.returnValues.blockNumber
+            event.returnValues.blockNumber
             }`
           )
           this.stopWatching(slot)
+          // this.database.removeCoin(slot)
           watcher.unsubscribe()
           this.buffers[slot.toString()] = 0
         }
@@ -172,14 +172,15 @@ export class User extends Entity {
 
   // Whenever a new block gets submitted refresh the user's state for their coins
   async watchBlocks() {
-    this.newBlocks = this.plasmaCashContract.events
+    console.log(`[${this.ethAddress}] Watching for blocks...`)
+    this.newBlocks = this.plasmaEvents.events
       .SubmittedBlock({
         filter: {},
         fromBlock: await this.web3.eth.getBlockNumber()
       })
       .on('data', async (event: any, err: any) => {
         const blk = new BN(event.returnValues.blockNumber)
-        console.log(`Got new block: ${blk}`)
+        console.log(`[${this.ethAddress}] Got new block: ${blk}`)
 
         // Get user coins from the dappchain
         const coins = await this.getUserCoinsAsync()
@@ -250,7 +251,7 @@ export class User extends Entity {
   // Stop watching for exits once the event is mined
   async exitAsync(slot: BN): Promise<any> {
     // Once the exit is started, stop watching for exit events
-    this.plasmaCashContract.once(
+    this.plasmaEvents.once(
       'StartedExit',
       {
         filter: { slot: slot.toString() },
@@ -265,13 +266,15 @@ export class User extends Entity {
     )
 
     // Once the exit has been finalized, stop watching for challenge events
-    this.plasmaCashContract.once(
+    this.plasmaEvents.once(
       'FinalizedExit',
       {
         filter: { slot: slot.toString() },
         fromBlock: await this.web3.eth.getBlockNumber()
       },
-      () => this.stopWatching(slot)
+      () => { 
+        this.stopWatching(slot)
+      }
     )
 
     const { prevBlockNum, blockNum } = await this.findBlocks(slot)
@@ -283,16 +286,16 @@ export class User extends Entity {
   }
 
   // Get all deposits, filtered by the user's address.
-  async deposits(): Promise<any[]> {
+  async deposits(): Promise<IPlasmaCoin[]> {
     const _deposits = await this.getDepositEvents(this._startBlock || new BN(0), false)
     const coins = _deposits.map(d => this.getPlasmaCoinAsync(d.slot))
-    return await Promise.all(coins)
+    return Promise.all(coins)
   }
 
   async allDeposits(): Promise<any[]> {
     const _deposits = await this.getDepositEvents(this._startBlock || new BN(0), true)
     const coins = _deposits.map(d => this.getPlasmaCoinAsync(d.slot))
-    return await Promise.all(coins)
+    return Promise.all(coins)
   }
 
   disconnect() {
