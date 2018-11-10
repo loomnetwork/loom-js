@@ -42,6 +42,34 @@ export class User extends Entity {
     User._contractName = contractName
   }
 
+  static createMetamaskUser(
+    web3: Web3,
+    plasmaAddress: string,
+    dappchainEndpoint: string,
+    eventsEndpoint: string,
+    startBlock?: BN,
+    chainId?: string
+  ): User {
+    const provider = new ethers.providers.Web3Provider(web3.currentProvider)
+    const signer = provider.getSigner()
+    return this.createUser(signer, plasmaAddress, dappchainEndpoint, eventsEndpoint, undefined, startBlock, chainId)
+  }
+
+  static createOfflineUser(
+    privateKey: string,
+    endpoint: string,
+    plasmaAddress: string,
+    dappchainEndpoint: string,
+    eventsEndpoint: string,
+    dbPath?: string,
+    startBlock?: BN,
+    chainId?: string
+  ): User {
+    const provider = new ethers.providers.JsonRpcProvider(endpoint)
+    const wallet = new ethers.Wallet(privateKey, provider)
+    return this.createUser(wallet, plasmaAddress, dappchainEndpoint, eventsEndpoint, dbPath, startBlock, chainId)
+  }
+
   static createUser(
     wallet: ethers.Signer,
     plasmaAddress: string,
