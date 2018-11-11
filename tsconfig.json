@@ -58,6 +58,7 @@
   "include": [
     "src/index.ts",
     "src/types/*.d.ts",
-    "src/tests/*.ts"
+    "src/tests/*.ts",
+    "src/tests/e2e/plasma-cash/*.ts"
   ]
 }
