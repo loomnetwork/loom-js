@@ -3,7 +3,7 @@
 # To run this script locally set LOOM_BIN env var to point at the loom binary you wish to run the
 # tests with.
 
-set -euxo pipefail
+set -exo pipefail
 
 # These can be toggled via the options below, only useful when running the script locally.
 LOOM_INIT_ONLY=false
@@ -79,7 +79,8 @@ function init_hostile_dappchain {
   cd $PLASMA_CASH_DIR
   rm -rf $LOOM_DIR/contracts; true
   mkdir $LOOM_DIR/contracts
-  GOPATH=$DEFAULT_GOPATH:$PLASMA_CASH_DIR/loom_test
+  GOPATH=$GOPATH:$PLASMA_CASH_DIR/loom_test
+  cd $PLASMA_CASH_DIR/loom_test
   make deps
   make contracts
   cp contracts/hostileoperator.1.0.0 $LOOM_DIR/contracts/hostileoperator.1.0.0
@@ -114,22 +115,21 @@ if [ "${TRAVIS:-}" ]; then
     pkill -f "hostileoperator.1.0.0" || true
 fi
 
-# BUILD_TAG is usually only set by Jenkins, so when running locally just hardcode some value
-if [[ -z "$BUILD_TAG" ]]; then
-    BUILD_TAG=123
+# TRAVIS_JOB_ID is usually only set Travis, so when running locally just hardcode some value
+if [[ -z "$TRAVIS_JOB_ID" ]]; then
+    TRAVIS_JOB_ID=123
 fi
 
-# REPO_ROOT is set in jenkins.sh, if the script is executed directly just use cwd
+# REPO_ROOT set in travis, if the script is executed directly just use cwd
 if [[ -z "$REPO_ROOT" ]]; then
     REPO_ROOT=`pwd`
 fi
 
-LOOM_DIR=`pwd`/tmp/e2e/plasma-cash-$BUILD_TAG
+LOOM_DIR=`pwd`/tmp/e2e/plasma-cash-$TRAVIS_JOB_ID
 
 if [[ "$DEBUG_LOOM" == false ]]; then
     rm -rf  $LOOM_DIR; true
 fi
-
 mkdir -p $LOOM_DIR
 
  if [ "${TRAVIS:-}" ]; then
@@ -174,4 +174,4 @@ yarn e2e:plasma-cash:hostile
 
 if [[ $LOOM_DIR ]]; then 
   rm -rf $LOOM_DIR
-fi
+  fi
