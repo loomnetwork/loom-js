@@ -41,21 +41,21 @@ download_plasma_cash() {
 
 setup_honest_dappchain() {
   cd $LOOM_DIR
-  cp $PLASMA_CASH_DIR/loom_test/loom-test.yml loom.yaml
-  cp $PLASMA_CASH_DIR/loom_test/oracle.key .
-  cp $PLASMA_CASH_DIR/loom_test/eth.key .
+  cp $REPO_ROOT/e2e_support/plasma-cash/loom-test.yml loom.yaml
+  cp $REPO_ROOT/e2e_support/plasma-cash/oracle.key .
+  cp $REPO_ROOT/e2e_support/plasma-cash/eth.key .
   $LOOM_BIN init -f
-  cp $PLASMA_CASH_DIR/loom_test/honest.genesis.json genesis.json
+  cp $REPO_ROOT/e2e_support/plasma-cash/honest.genesis.json genesis.json
 }
 
 setup_hostile_dappchain() {
   cd $LOOM_DIR
-  cp $PLASMA_CASH_DIR/loom_test/loom-hostile-test.yml loom.yaml
-  cp $PLASMA_CASH_DIR/loom_test/oracle.key .
-  cp $PLASMA_CASH_DIR/loom_test/eth.key .
+  cp $REPO_ROOT/e2e_support/plasma-cash/loom-hostile-test.yml loom.yaml
+  cp $REPO_ROOT/e2e_support/plasma-cash/oracle.key .
+  cp $REPO_ROOT/e2e_support/plasma-cash/eth.key .
   $LOOM_BIN init -f
-  cp $PLASMA_CASH_DIR/loom_test/hostile.genesis.json genesis.json
-  cd $PLASMA_CASH_DIR/loom_test
+  cp $REPO_ROOT/e2e_support/plasma-cash/hostile.genesis.json genesis.json
+  cd $PLASMA_CASH_DIR
   GOPATH=$DEFAULT_GOPATH:$PLASMA_CASH_DIR/loom_test
   make deps
   make contracts
@@ -86,19 +86,17 @@ stop_chains() {
 }
 
 run_honest_test() {
-  cd $PLASMA_CASH_DIR/loom_js_test
+  cd $REPO_ROOT
   yarn install
   yarn build
-  yarn test
-  yarn tape:honest
+  yarn e2e:plasma-cash:honest
 }
 
 run_hostile_test() {
-  cd $PLASMA_CASH_DIR/loom_js_test
+  cd $REPO_ROOT
   yarn install
   yarn build
-  yarn test
-  yarn tape:hostile
+  yarn e2e:plasma-cash:hostile
 }
 
 cleanup() {
@@ -106,13 +104,13 @@ cleanup() {
 }
 
 function e2e_setup() {
-  if [ "${TRAVIS:-}" ]; then
+  # if [ "${TRAVIS:-}" ]; then
     rm -rf $LOOM_DIR; true
     mkdir -p $LOOM_DIR
 
     download_dappchain
     download_plasma_cash
-  fi
+  # fi
 }
 
 # Clean da'house
