@@ -27,7 +27,7 @@ async function getClientAndContract(
   addressMapper: Contracts.AddressMapper
   pubKey: Uint8Array
 }> {
-  const privKey = CryptoUtils.generatePrivateKey()
+  const privKey = CryptoUtils.B64ToUint8Array("D6XCGyCcDZ5TE22h66AlU+Bn6JqL4RnSl4a09RGU9LfM53JFG/T5GAnC0uiuIIiw9Dl0TwEAmdGb+WE0Bochkg==")
   const pubKey = CryptoUtils.publicKeyFromPrivateKey(privKey)
   const client = createClient()
   client.txMiddleware = createDefaultTxMiddleware(client, privKey)

@@ -36,8 +36,13 @@ export class Web3Signer implements IEthereumSigner {
    * @returns Promise that will be resolved with the signature bytes.
    */
   async signAsync(msg: string): Promise<Uint8Array> {
-    const flatSig = await this._wallet.signMessage(ethers.utils.arrayify(msg))
-    const sig = '0x01' + flatSig.slice(2) // prepend 0x01 mode for Ethereum Signed Message
-    return ethutil.toBuffer(sig)
+    let flatSig = await this._wallet.signMessage(ethers.utils.arrayify(msg))
+    const sig = ethers.utils.splitSignature(flatSig)
+    let v = sig.v!
+    if (v === 0 || v === 1 ) {
+        v += 27
+    }
+    flatSig = '0x01' + sig.r.slice(2) + sig.s.slice(2) + (v).toString(16)
+    return ethutil.toBuffer(flatSig)
   }
 }
