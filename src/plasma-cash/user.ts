@@ -19,11 +19,8 @@ import { IPlasmaCoin } from './ethereum-client'
 import { sleep, hexBN } from '../helpers'
 import { ethers, providers } from 'ethers'
 
-const ERC721 = require('./contracts/ERC721.json')
-
 const ERC721_ABI = ['function safeTransferFrom(address _from, address _to, uint256 _tokenId)']
-
-const ERC20 = require('./contracts/ERC20.json')
+const ERC20_ABI = ['function approve(address spender, uint256 value)', 'function allowance(address owner, address spender)']
 // Helper function to create a user instance.
 
 // User friendly wrapper for all Entity related functions, taking advantage of the database
@@ -156,7 +153,7 @@ export class User extends Entity {
   }
 
   async depositERC20Async(amount: BN, address: string): Promise<IPlasmaCoin> {
-    const token = new ethers.Contract(address, ERC20, this.ethers)
+    const token = new ethers.Contract(address, ERC20_ABI, this.ethers)
     // Get how much the user has approved
     const currentApproval = await token.allowance(this.ethAddress, this.plasmaCashContract.address)
 
