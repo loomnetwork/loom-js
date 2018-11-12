@@ -1,6 +1,6 @@
 import BN from 'bn.js'
 
-import { EthErc721Contract } from '../../..'
+import { EthErc721Contract } from './eth-erc721-contract'
 import { DEFAULT_GAS } from './config'
 
 export class EthCardsContract extends EthErc721Contract {

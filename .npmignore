@@ -12,6 +12,7 @@
 .travis.yml
 .travis_before_install.sh
 .travis_e2e_test.sh
+e2e_plasma_cash_test.sh
 e2e_tests.sh
 tsconfig.json
 es2017.tsconfig.json
