@@ -1,138 +1,177 @@
 #!/bin/bash
 
-# To run this script with a locally built loom binary set the LOOM_BIN env var to point to your loom
-# binary. If you plan on running the tests frequently you'll save a lot of time if you run the
-# steps in the setup_weave_blueprint in another directory, and then set LOOM_BLUEPRINT_DIR env var
-# to point to it, otherwise the contract will be recloned and rebuilt every time.
+# To run this script locally set LOOM_BIN env var to point at the loom binary you wish to run the
+# tests with.
 
-set -euxo pipefail
+set -exo pipefail
 
-# Prepare env
-DEFAULT_GOPATH=$GOPATH
-GANACHE_PORT=8545
-REPO_ROOT=`pwd`
-LOOM_DIR=`pwd`/tmp/e2e
+# These can be toggled via the options below, only useful when running the script locally.
+LOOM_INIT_ONLY=false
+DEBUG_LOOM=false
+
+# Scripts options:
+# -i / --init    - Reinitializes the DAppChain for a fresh test run.
+# --debug-node   - Doesn't reinitialize or start the DAppChain (only Ganache), useful when you want to
+#                  launch the DAppChain node manually via the debugger.
+while [[ "$#" > 0 ]]; do case $1 in
+  -i|--init) LOOM_INIT_ONLY=true; shift;;
+  --debug-node) DEBUG_LOOM=true; shift;;
+  *) echo "Unknown parameter: $1"; shift; shift;;
+esac; done
+
+echo "Only reinitializing DAppChain? $LOOM_INIT_ONLY"
+echo "Skipping launching of DAppChain node? $DEBUG_LOOM"
 
 
-# Check available platforms
-PLATFORM='unknown'
-unamestr=`uname`
-if [[ "$unamestr" == 'Linux' ]]; then
-  PLATFORM='linux'
-elif [[ "$unamestr" == 'Darwin' ]]; then
-  PLATFORM='osx'
-else
-  echo "Platform not supported on this script yet"
-  exit -1
-fi
 
-download_dappchain() {
-  cd $LOOM_DIR
-  wget https://private.delegatecall.com/loom/$PLATFORM/build-$BUILD_NUMBER/loom
-  chmod +x loom
-  LOOM_BIN=`pwd`/loom
+# Spins up a Ganache node & a DAppChain node
+function start_chains {
+    cd $PLASMA_CASH_DIR/server
+    npm run --silent migrate:dev
+    sleep 1
+    ganache_pid=`cat ganache.pid`
+    echo 'Launched ganache' $ganache_pid
+
+    if [[ "$DEBUG_LOOM" == false ]]; then
+        cd $LOOM_DIR
+        $LOOM_BIN run > loom.log 2>&1 &  
+        loom_pid=$!
+        echo "Launched Loom - Log(loom.log) Pid(${loom_pid})"
+    fi
+
+    # Wait for Ganache & Loom to spin up
+    sleep 10
 }
 
-download_plasma_cash() {
+# Stops the Ganache node & the DAppChain node
+function stop_chains {
+    echo "exiting ganache-pid(${ganache_pid})"
+    kill -9 "${ganache_pid}"    &> /dev/null
+    
+    if [[ "$DEBUG_LOOM" == false ]]; then
+        echo "exiting loom-pid(${loom_pid})"
+        kill -9 "${loom_pid}"   &> /dev/null
+        echo "killing ${LOOM_DIR}/contracts/hostileoperator.1.0.0"
+        pkill -f "${LOOM_DIR}/contracts/hostileoperator.1.0.0" || true
+    fi
+}
+
+function init_honest_dappchain {
+  cd $LOOM_DIR
+  rm -rf app.db
+  rm -rf chaindata
+  cp $REPO_ROOT/e2e_support/plasma-cash/loom-test.yml loom.yml
+  cp $REPO_ROOT/e2e_support/plasma-cash/eth.key $LOOM_DIR/eth.key
+  cp $REPO_ROOT/e2e_support/plasma-cash/test.key $LOOM_DIR/test.key
+  cp $REPO_ROOT/e2e_support/plasma-cash/oracle.key $LOOM_DIR/oracle.key
+  $LOOM_BIN init -f
+  cp $REPO_ROOT/e2e_support/plasma-cash/honest.genesis.json genesis.json
+  echo 'Loom DAppChain initialized in ' $LOOM_DIR
+}
+
+function init_hostile_dappchain {
+  cd $LOOM_DIR
+  rm -rf app.db
+  rm -rf chaindata
+  cp $REPO_ROOT/e2e_support/plasma-cash/loom-hostile-test.yml $LOOM_DIR/loom.yml
+  $LOOM_BIN init -f
+  echo 'Hostile Loom DAppChain initialized in ' $LOOM_DIR
+  cd $PLASMA_CASH_DIR
+  rm -rf $LOOM_DIR/contracts; true
+  mkdir $LOOM_DIR/contracts
+  GOPATH=$GOPATH:$PLASMA_CASH_DIR/loom_test
+  cd $PLASMA_CASH_DIR/loom_test
+  make deps
+  make contracts
+  cp contracts/hostileoperator.1.0.0 $LOOM_DIR/contracts/hostileoperator.1.0.0
+  cp $REPO_ROOT/e2e_support/plasma-cash/hostile.genesis.json $LOOM_DIR/genesis.json
+}
+
+function cleanup {
+    stop_chains
+}
+
+function download_dappchain {
+    cd $LOOM_DIR
+    if [[ "`uname`" == 'Darwin' ]]; then
+        wget https://private.delegatecall.com/loom/osx/build-$BUILD_NUMBER/loom
+    else 
+        wget https://private.delegatecall.com/loom/linux/build-$BUILD_NUMBER/loom
+    fi
+    chmod +x loom
+    export LOOM_BIN=`pwd`/loom
+}
+
+function download_plasma_cash {
   cd $LOOM_DIR
   git clone https://github.com/loomnetwork/plasma-cash
   PLASMA_CASH_DIR=`pwd`/plasma-cash
-}
-
-setup_honest_dappchain() {
-  cd $LOOM_DIR
-  cp $PLASMA_CASH_DIR/loom_test/loom-test.yml loom.yaml
-  cp $PLASMA_CASH_DIR/loom_test/oracle.key .
-  cp $PLASMA_CASH_DIR/loom_test/eth.key .
-  $LOOM_BIN init -f
-  cp $PLASMA_CASH_DIR/loom_test/honest.genesis.json genesis.json
-}
-
-setup_hostile_dappchain() {
-  cd $LOOM_DIR
-  cp $PLASMA_CASH_DIR/loom_test/loom-hostile-test.yml loom.yaml
-  cp $PLASMA_CASH_DIR/loom_test/oracle.key .
-  cp $PLASMA_CASH_DIR/loom_test/eth.key .
-  $LOOM_BIN init -f
-  cp $PLASMA_CASH_DIR/loom_test/hostile.genesis.json genesis.json
-  cd $PLASMA_CASH_DIR/loom_test
-  GOPATH=$DEFAULT_GOPATH:$PLASMA_CASH_DIR/loom_test
-  make deps
-  make contracts
-  mv contracts ../..
-}
-
-setup_plasma_cash() {
   cd $PLASMA_CASH_DIR/server
-  yarn install
-  yarn truffle deploy --network rpc
+  npm install
 }
-
-start_chains() {
-  $REPO_ROOT/node_modules/.bin/ganache-cli -p $GANACHE_PORT -a 1000 -i 15 --gasLimit 50000000 -e 10000000000000 -m gravity top burden flip student usage spell purchase hundred improve check genre >> ganache.log &
-  GANACHE_PID=$!
-
-  cd $LOOM_DIR
-  $LOOM_BIN reset
-  $LOOM_BIN run > loom.log 2>&1 &
-  LOOM_PID=$!
-  sleep 5
-}
-
-stop_chains() {
-  kill -9 $GANACHE_PID || true
-  kill -9 $LOOM_PID || true
-  killall hostileoperator.1.0.0 || true
-}
-
-run_honest_test() {
-  cd $PLASMA_CASH_DIR/loom_js_test
-  yarn install
-  yarn build
-  yarn test
-  yarn tape:honest
-}
-
-run_hostile_test() {
-  cd $PLASMA_CASH_DIR/loom_js_test
-  yarn install
-  yarn build
-  yarn test
-  yarn tape:hostile
-}
-
-cleanup() {
-  stop_chains
-}
-
-function e2e_setup() {
-  if [ "${TRAVIS:-}" ]; then
-    rm -rf $LOOM_DIR; true
-    mkdir -p $LOOM_DIR
-
-    download_dappchain
-    download_plasma_cash
-  fi
-}
-
-# Clean da'house
-e2e_setup
-
-setup_honest_dappchain
-trap cleanup EXIT
-start_chains
-setup_plasma_cash
-run_honest_test
-cleanup
-
-# Clean da'house
-e2e_setup
-
-setup_hostile_dappchain
-start_chains
-setup_plasma_cash
-run_hostile_test
 
 if [ "${TRAVIS:-}" ]; then
-  rm -rf $LOOM_DIR
+    # Kill off any plugins that weren't killed off by older builds
+    pkill -f "hostileoperator.1.0.0" || true
 fi
+
+# TRAVIS_JOB_ID is usually only set Travis, so when running locally just hardcode some value
+if [[ -z "$TRAVIS_JOB_ID" ]]; then
+    TRAVIS_JOB_ID=123
+fi
+
+# REPO_ROOT set in travis, if the script is executed directly just use cwd
+if [[ -z "$REPO_ROOT" ]]; then
+    REPO_ROOT=`pwd`
+fi
+
+LOOM_DIR=`pwd`/tmp/e2e/plasma-cash-$TRAVIS_JOB_ID
+
+if [[ "$DEBUG_LOOM" == false ]]; then
+    rm -rf  $LOOM_DIR; true
+fi
+mkdir -p $LOOM_DIR
+
+ if [ "${TRAVIS:-}" ]; then
+    download_dappchain
+    download_plasma_cash
+fi
+
+echo "REPO_ROOT=(${REPO_ROOT})"
+echo "GOPATH=(${GOPATH})"
+
+if [[ "$DEBUG_LOOM" == false ]]; then
+    init_honest_dappchain
+fi
+
+if [[ "$LOOM_INIT_ONLY" == true ]]; then
+    exit
+fi
+
+trap cleanup EXIT
+
+# Reset the DAppChain again for the JS tests
+init_honest_dappchain
+start_chains
+
+cd $LOOM_DIR
+mkdir -p db
+rm -rf db/*.json # remove all previously stored db related files
+
+yarn e2e:plasma-cash:honest
+
+stop_chains
+
+# Wait for Ganache & Loom to stop
+sleep 10
+
+init_hostile_dappchain
+start_chains
+
+cd $LOOM_DIR
+rm -rf db/*.json # remove all previously stored db related files
+yarn e2e:plasma-cash:hostile
+
+if [[ $LOOM_DIR ]]; then 
+  rm -rf $LOOM_DIR
+  fi
