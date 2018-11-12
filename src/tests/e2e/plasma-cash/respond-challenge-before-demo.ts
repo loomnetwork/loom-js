@@ -1,7 +1,7 @@
 import test from 'tape'
 import BN from 'bn.js'
 import Web3 from 'web3'
-import { PlasmaUser } from '../../../'
+import { PlasmaUser } from '../../..'
 
 import { increaseTime, getEthBalanceAtAddress } from './ganache-helpers'
 import { sleep, ADDRESSES, ACCOUNTS, setupContracts, pollForBlockChange } from './config'
