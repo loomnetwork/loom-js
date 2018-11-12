@@ -9,13 +9,13 @@ import {
   Contracts
 } from '../../index'
 import { createTestHttpClient } from '../helpers'
-import { Web3Signer } from '../../solidity-helpers'
-
-const Web3 = require('web3')
+import { EthersSigner } from '../../solidity-helpers'
+import { ethers } from 'ethers';
 
 // TODO: Need a factory to create connection properly likes plasma-cash test
-function getWeb3Connection() {
-  return new Web3('http://127.0.0.1:8545')
+function getEthersConnection() {
+  const provider = new ethers.providers.JsonRpcProvider('http://localhost:8545')
+  return provider.getSigner()
 }
 
 async function getClientAndContract(
@@ -25,7 +25,7 @@ async function getClientAndContract(
   addressMapper: Contracts.AddressMapper
   pubKey: Uint8Array
 }> {
-  const privKey = CryptoUtils.generatePrivateKey()
+  const privKey = CryptoUtils.B64ToUint8Array("D6XCGyCcDZ5TE22h66AlU+Bn6JqL4RnSl4a09RGU9LfM53JFG/T5GAnC0uiuIIiw9Dl0TwEAmdGb+WE0Bochkg==")
   const pubKey = CryptoUtils.publicKeyFromPrivateKey(privKey)
   const client = createClient()
   client.txMiddleware = createDefaultTxMiddleware(client, privKey)
@@ -45,10 +45,10 @@ async function testAddIdentity(t: test.Test, createClient: () => Client) {
   const from = new Address('eth', LocalAddress.fromHexString(ethAddress))
   const to = new Address(client.chainId, LocalAddress.fromPublicKey(pubKey))
 
-  const web3 = getWeb3Connection()
-  const web3Signer = new Web3Signer(web3, ethAddress)
+  const ethers = getEthersConnection()
+  const ethersSigner = new EthersSigner(ethers)
 
-  await addressMapper.addIdentityMappingAsync(from, to, web3Signer)
+  await addressMapper.addIdentityMappingAsync(from, to, ethersSigner)
 
   const result = await addressMapper.getMappingAsync(from)
 

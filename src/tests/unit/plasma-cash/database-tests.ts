@@ -8,8 +8,7 @@ test('Database', t => {
   let db: PlasmaDB | null = null
   let db2: PlasmaDB | null = null
   try {
-    const uid = `${Math.random() * 10e16}`
-    db = new PlasmaDB('0x', '0x', '0x', uid)
+    db = new PlasmaDB('test')
 
     const slot = new BN('9fe41685a061deda', 16)
     const blkNumber = new BN('7d0', 16) // 2000
@@ -23,7 +22,7 @@ test('Database', t => {
     t.ok(coinData[0].slot.eq(slot), 'slots should be equal')
 
     // Simulate disconnecting and reconnecting
-    db2 = new PlasmaDB('0x', '0x', '0x', uid)
+    db2 = new PlasmaDB('test')
 
     db2.receiveCoin(slot, blkNumber, true, tx)
     coinData = db2.getCoin(slot)
