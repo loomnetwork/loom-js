@@ -11,7 +11,7 @@ import {
 import { Address, LocalAddress } from '../address'
 import { DAppChainPlasmaClient } from './dappchain-client'
 import { PlasmaCashTx } from './plasma-cash-tx'
-import { Web3Signer } from '../solidity-helpers'
+import { EthersSigner } from '../solidity-helpers'
 import { Account } from 'web3/eth/accounts'
 import { PlasmaDB } from './db'
 import Tx from 'ethereumjs-tx'
@@ -132,7 +132,7 @@ export class Entity {
       newOwner,
       prevOwner: this.ethAddress
     })
-    await tx.signAsync(new Web3Signer(this._ethers))
+    await tx.signAsync(new EthersSigner(this._ethers))
     await this._dAppPlasmaClient.sendTxAsync(tx)
   }
 
@@ -195,7 +195,7 @@ export class Entity {
         denomination: 1,
         newOwner: this.ethAddress
       })
-      await exitTx.signAsync(new Web3Signer(this._ethers))
+      await exitTx.signAsync(new EthersSigner(this._ethers))
       return this._ethPlasmaClient.startExitAsync({
         slot,
         exitTx,
@@ -529,7 +529,7 @@ export class Entity {
         denomination: 1,
         newOwner: this.ethAddress
       })
-      await challengingTx.signAsync(new Web3Signer(this._ethers))
+      await challengingTx.signAsync(new EthersSigner(this._ethers))
       return this._ethPlasmaClient.challengeBeforeAsync({
         slot,
         challengingTx,
