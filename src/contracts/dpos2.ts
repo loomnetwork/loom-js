@@ -2,21 +2,21 @@ import BN from 'bn.js'
 import { Client } from '../client'
 import { Contract } from '../contract'
 import { Address } from '../address'
+import * as proto_loom_pb from "../proto/loom_pb";
 import {
-  // RegisterCandidateRequest,
-  // VoteRequest,
-  // ElectRequest,
   ListCandidateRequestV2,
   ListCandidateResponseV2,
   CandidateV2,
   ListValidatorsRequestV2,
   ListValidatorsResponseV2,
   Validator,
-  // UnregisterCandidateRequest,
-  // ListWitnessesRequest,
-  // ListWitnessesResponse,
-  // Witness
+  DelegationV2,
+  DelegateRequestV2,
+  UnbondRequestV2,
+  CheckDelegationRequestV2,
+  CheckDelegationResponseV2
 } from '../proto/dposv2_pb'
+import { unmarshalBigUIntPB, marshalBigUIntPB } from '../big-uint'
 
 export interface ICandidate {
   address: Address
@@ -26,6 +26,13 @@ export interface ICandidate {
 export interface IValidator {
   pubKey: Uint8Array
   power: number
+}
+
+export interface IDelegation {
+  validator: Address,
+  delegator: Address,
+  height: number,
+  amount: string
 }
 
 export interface IWitness {
@@ -101,6 +108,40 @@ export class DPOS2 extends Contract {
         power: validator.getPower()
       }
     }) as Array<IValidator>
+  }
+
+  async checkDelegation(validator: Address, delegator: Address): Promise<IDelegation | undefined> {
+    const checkDelegationReq = new CheckDelegationRequestV2()
+    checkDelegationReq.setValidatorAddress(validator.MarshalPB())
+    checkDelegationReq.setDelegatorAddress(delegator.MarshalPB())
+    const result = await this.staticCallAsync(
+      'CheckDelegation',
+      checkDelegationReq,
+      new CheckDelegationResponseV2()
+    )
+    
+    const delegation = result.getDelegation()
+    if (delegation === undefined) return undefined
+    return {
+      validator: delegation.getDelegator() === undefined ? undefined : Address.UmarshalPB(delegation.getValidator() as proto_loom_pb.Address),
+      delegator: delegation.getValidator() === undefined ? undefined : Address.UmarshalPB(delegation.getDelegator() as proto_loom_pb.Address),
+      height: delegation.getHeight(),
+      amount: delegation.getAmount() === undefined ? 0 : (delegation.getAmount() as proto_loom_pb.BigUInt).toString()
+    } as IDelegation
+  }
+
+  async delegateAsync(validator: Address, amount: number): Promise<void> {
+    const delegateRequest = new DelegateRequestV2()
+    delegateRequest.setValidatorAddress(validator.MarshalPB())
+    delegateRequest.setAmount(marshalBigUIntPB(new BN(amount)))
+    return this.callAsync<void>('Delegate', delegateRequest)
+  }
+
+  async unbondAsync(validator: Address, amount: number): Promise<void> {
+    const unbondRequest = new UnbondRequestV2()
+    unbondRequest.setValidatorAddress(validator.MarshalPB())
+    unbondRequest.setAmount(marshalBigUIntPB(new BN(amount)))
+    return this.callAsync<void>('Unbond', unbondRequest)
   }
 
   // async getWitnessesAsync(): Promise<Array<IWitness> | null> {
