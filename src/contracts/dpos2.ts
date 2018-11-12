@@ -2,7 +2,6 @@ import BN from 'bn.js'
 import { Client } from '../client'
 import { Contract } from '../contract'
 import { Address } from '../address'
-import * as proto_loom_pb from "../proto/loom_pb";
 import {
   ListCandidateRequestV2,
   ListCandidateResponseV2,
@@ -29,10 +28,10 @@ export interface IValidator {
 }
 
 export interface IDelegation {
-  validator: Address,
-  delegator: Address,
-  height: number,
-  amount: string
+  validator: Address
+  delegator: Address
+  height: BN
+  amount: BN
 }
 
 export interface IWitness {
@@ -55,30 +54,7 @@ export class DPOS2 extends Contract {
     super(params)
   }
 
-  // registerCandidateAsync(pubKey: Uint8Array): Promise<void> {
-  //   const registerCandidateReq = new RegisterCandidateRequest()
-  //   registerCandidateReq.setPubKey(pubKey)
-  //   return this.callAsync<void>('RegisterCandidate', registerCandidateReq)
-  // }
-
-  // unregisterCandidateAsync(): Promise<void> {
-  //   const unregisterCandidateReq = new UnregisterCandidateRequest()
-  //   return this.callAsync<void>('UnregisterCandidate', unregisterCandidateReq)
-  // }
-
-  // voteAsync(candidateAddress: Address, amount: number): Promise<void> {
-  //   const voteReq = new VoteRequest()
-  //   voteReq.setCandidateAddress(candidateAddress.MarshalPB())
-  //   voteReq.setAmount(amount)
-  //   return this.callAsync<void>('Vote', voteReq)
-  // }
-
-  // electAsync(): Promise<void> {
-  //   const electReq = new ElectRequest()
-  //   return this.callAsync<void>('Elect', electReq)
-  // }
-
-  async getCandidatesAsync(): Promise<Array<ICandidate> | null> {
+  async getCandidatesAsync(): Promise<Array<ICandidate>> {
     const listCandidatesReq = new ListCandidateRequestV2()
     const result = await this.staticCallAsync(
       'ListCandidates',
@@ -86,15 +62,13 @@ export class DPOS2 extends Contract {
       new ListCandidateResponseV2()
     )
 
-    return result.getCandidatesList().map((canditate: CandidateV2) => {
-      return {
-        address: Address.UmarshalPB(canditate.getAddress()!),
-        pubKey: canditate.getPubKey_asU8()!
-      }
-    }) as Array<ICandidate>
+    return result.getCandidatesList().map((candidate: CandidateV2) => ({
+      address: Address.UmarshalPB(candidate.getAddress()!),
+      pubKey: candidate.getPubKey_asU8()!
+    }))
   }
 
-  async getValidatorsAsync(): Promise<Array<IValidator> | null> {
+  async getValidatorsAsync(): Promise<Array<IValidator>> {
     const listValidatorReq = new ListValidatorsRequestV2()
     const result = await this.staticCallAsync(
       'ListValidators',
@@ -102,15 +76,13 @@ export class DPOS2 extends Contract {
       new ListValidatorsResponseV2()
     )
 
-    return result.getValidatorsList().map((validator: Validator) => {
-      return {
-        pubKey: validator.getPubKey_asU8()!,
-        power: validator.getPower()
-      }
-    }) as Array<IValidator>
+    return result.getValidatorsList().map((validator: Validator) => ({
+      pubKey: validator.getPubKey_asU8()!,
+      power: validator.getPower()
+    }))
   }
 
-  async checkDelegation(validator: Address, delegator: Address): Promise<IDelegation | undefined> {
+  async checkDelegationAsync(validator: Address, delegator: Address): Promise<IDelegation | null> {
     const checkDelegationReq = new CheckDelegationRequestV2()
     checkDelegationReq.setValidatorAddress(validator.MarshalPB())
     checkDelegationReq.setDelegatorAddress(delegator.MarshalPB())
@@ -119,45 +91,29 @@ export class DPOS2 extends Contract {
       checkDelegationReq,
       new CheckDelegationResponseV2()
     )
-    
+
     const delegation = result.getDelegation()
-    if (delegation === undefined) return undefined
-    return {
-      validator: delegation.getDelegator() === undefined ? undefined : Address.UmarshalPB(delegation.getValidator() as proto_loom_pb.Address),
-      delegator: delegation.getValidator() === undefined ? undefined : Address.UmarshalPB(delegation.getDelegator() as proto_loom_pb.Address),
-      height: delegation.getHeight(),
-      amount: delegation.getAmount() === undefined ? 0 : (delegation.getAmount() as proto_loom_pb.BigUInt).toString()
-    } as IDelegation
+    return delegation
+      ? {
+          validator: Address.UmarshalPB(delegation.getValidator()!),
+          delegator: Address.UmarshalPB(delegation.getDelegator()!),
+          height: new BN(delegation.getHeight()),
+          amount: delegation.getAmount() ? unmarshalBigUIntPB(delegation.getAmount()!) : new BN(0)
+        }
+      : null
   }
 
-  async delegateAsync(validator: Address, amount: number): Promise<void> {
+  delegateAsync(validator: Address, amount: BN | number | string): Promise<void> {
     const delegateRequest = new DelegateRequestV2()
     delegateRequest.setValidatorAddress(validator.MarshalPB())
     delegateRequest.setAmount(marshalBigUIntPB(new BN(amount)))
     return this.callAsync<void>('Delegate', delegateRequest)
   }
 
-  async unbondAsync(validator: Address, amount: number): Promise<void> {
+  unbondAsync(validator: Address, amount: BN | number | string): Promise<void> {
     const unbondRequest = new UnbondRequestV2()
     unbondRequest.setValidatorAddress(validator.MarshalPB())
     unbondRequest.setAmount(marshalBigUIntPB(new BN(amount)))
     return this.callAsync<void>('Unbond', unbondRequest)
   }
-
-  // async getWitnessesAsync(): Promise<Array<IWitness> | null> {
-  //   const listWitnessesReq = new ListWitnessesRequest()
-  //   const result = await this.staticCallAsync(
-  //     'ListWitnesses',
-  //     listWitnessesReq,
-  //     new ListWitnessesResponse()
-  //   )
-
-  //   return result.getWitnessesList().map((witness: Witness) => {
-  //     return {
-  //       pubKey: witness.getPubKey_asU8()!,
-  //       voteTotal: new BN(witness.getPowerTotal()),
-  //       powerTotal: new BN(witness.getPowerTotal())
-  //     }
-  //   }) as Array<IWitness>
-  // }
 }

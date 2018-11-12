@@ -31,7 +31,7 @@ message CandidateListV2 {
 message DelegationV2 {
     Address validator = 1;
     Address delegator = 2;
-    uint64 height = 3;
+    uint64 height = 3 [jstype = JS_STRING];
     BigUInt amount = 4;
 }
 
