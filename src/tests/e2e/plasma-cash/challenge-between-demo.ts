@@ -85,7 +85,7 @@ export async function runChallengeBetweenDemo(t: test.Test) {
   // Jump forward in time by 8 days
   await increaseTime(web3, 8 * 24 * 3600)
 
-  await bob.finalizeExitsAsync()
+  await bob.finalizeExitAsync(deposit1Slot)
 
   await bob.withdrawAsync(deposit1Slot)
 

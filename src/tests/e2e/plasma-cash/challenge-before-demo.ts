@@ -80,7 +80,7 @@ export async function runChallengeBeforeDemo(t: test.Test) {
 
   // 8 days pass without any response to the challenge
   await increaseTime(web3, 8 * 24 * 3600)
-  await dan.finalizeExitsAsync()
+  await dan.finalizeExitAsync(deposit1Slot)
 
   // Having successufly challenged Mallory's exit Dan should be able to exit the coin
   await dan.startExitAsync({
@@ -92,7 +92,7 @@ export async function runChallengeBeforeDemo(t: test.Test) {
   // Jump forward in time by 8 days
   await increaseTime(web3, 8 * 24 * 3600)
 
-  await dan.finalizeExitsAsync()
+  await dan.finalizeExitAsync(deposit1Slot)
 
   await dan.withdrawAsync(deposit1Slot)
 

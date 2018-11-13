@@ -71,7 +71,7 @@ export async function runRespondChallengeBeforeDemo(t: test.Test) {
   // Jump forward in time by 8 days
   await increaseTime(web3, 8 * 24 * 3600)
 
-  await dan.finalizeExitsAsync()
+  await dan.finalizeExitAsync(deposit1Slot)
   await dan.withdrawAsync(deposit1Slot)
 
   const danBalanceBefore = await getEthBalanceAtAddress(web3, dan.ethAddress)

@@ -244,7 +244,8 @@ export async function complexDemo(t: test.Test) {
 
   // Greg for some whatever reason decides to finalize all exits
   await increaseTime(web3, 8 * 24 * 3600)
-  await greg.finalizeExitsAsync()
+  await fred.finalizeExitsAsync([coin2, coin5])
+  await harry.finalizeExitsAsync([coin1, coin3, coin4])
 
   t.equal(
     (await fred.getPlasmaCoinAsync(coin2)).state,

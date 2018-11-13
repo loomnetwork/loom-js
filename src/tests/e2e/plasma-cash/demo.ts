@@ -131,7 +131,7 @@ export async function runDemo(t: test.Test) {
   // Jump forward in time by 8 days
   await increaseTime(web3, 8 * 24 * 3600)
   // Charlie's exit should be finalizable...
-  await charlie.finalizeExitsAsync()
+  await charlie.finalizeExitAsync(deposit3.slot)
   // // Charlie should now be able to withdraw the UTXO (plasma token) which contains ERC721 token #2
   // // into his wallet.
   await charlie.withdrawAsync(deposit3.slot)

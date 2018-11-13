@@ -224,15 +224,36 @@ export class Entity {
     })
   }
 
-  finalizeExitsAsync(): Promise<object> {
+  cancelExitsAsync(slots: BN[]): Promise<object> {
+    return this._ethPlasmaClient.cancelExitsAsync({
+      slots: slots,
+      from: this.ethAddress,
+      gas: this._defaultGas
+    })
+  }
+
+  async cancelExitAsync(slot: BN): Promise<any> {
+    return this._ethPlasmaClient.cancelExitAsync({
+      slot,
+      from: this.ethAddress,
+      gas: this._defaultGas
+    })
+  }
+
+  finalizeExitsAsync(slots: BN[]): Promise<object> {
     return this._ethPlasmaClient.finalizeExitsAsync({
+      slots: slots,
       from: this.ethAddress,
       gas: this._defaultGas
     })
   }
 
   async finalizeExitAsync(slot: BN): Promise<any> {
-    return await this.plasmaCashContract.finalizeExit([slot.toString()])
+    return this._ethPlasmaClient.finalizeExitAsync({
+      slot,
+      from: this.ethAddress,
+      gas: this._defaultGas
+    })
   }
 
   /**
