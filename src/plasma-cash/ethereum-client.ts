@@ -104,6 +104,22 @@ export interface IPlasmaExitParams extends ISendTxOptions {
   prevBlockNum?: BN
 }
 
+export interface IPlasmaFinalizeExitsParams extends ISendTxOptions {
+  slots: BN[]
+}
+
+export interface IPlasmaCancelExitsParams extends ISendTxOptions {
+  slots: BN[]
+}
+
+export interface IPlasmaFinalizeExitParams extends ISendTxOptions {
+  slot: BN
+}
+
+export interface IPlasmaCancelExitParams extends ISendTxOptions {
+  slot: BN
+}
+
 export interface IPlasmaWithdrawParams extends ISendTxOptions {
   slot: BN
 }
@@ -249,8 +265,37 @@ export class EthereumPlasmaClient {
    *
    * @returns Web3 tx receipt object.
    */
-  finalizeExitsAsync(params: ISendTxOptions): Promise<object> {
-    return this._plasmaContract.finalizeExits({ gasLimit: params.gas })
+  cancelExitAsync(params: IPlasmaCancelExitParams): Promise<object> {
+    const { slot, from, gas, gasPrice} = params
+    return this._plasmaContract.cancelExits(slot, { gasLimit: gas })
+  }
+
+  /**
+   *
+   * @returns Web3 tx receipt object.
+   */
+  cancelExitsAsync(params: IPlasmaCancelExitsParams): Promise<object> {
+    const { slots, from, gas, gasPrice} = params
+    return this._plasmaContract.cancelExits(slots, { gasLimit: gas })
+  }
+
+
+  /**
+   *
+   * @returns Web3 tx receipt object.
+   */
+  finalizeExitAsync(params: IPlasmaFinalizeExitParams): Promise<object> {
+    const { slot, from, gas, gasPrice} = params
+    return this._plasmaContract.finalizeExits(slot, { gasLimit: gas })
+  }
+
+  /**
+   *
+   * @returns Web3 tx receipt object.
+   */
+  finalizeExitsAsync(params: IPlasmaFinalizeExitsParams): Promise<object> {
+    const { slots, from, gas, gasPrice} = params
+    return this._plasmaContract.finalizeExits(slots, { gasLimit: gas })
   }
 
   /**
