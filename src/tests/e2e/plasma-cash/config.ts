@@ -32,6 +32,19 @@ export const ACCOUNTS = {
   harry: '0x6b9e9cc46d205668eff6eaa0c4ec6375d475e8ebd821bc79cc4239571560df15'
 }
 
+export const DAPPCHAIN_ACCOUNTS = {
+  alice: 'iDAg84PiCWf4kAYzSnKtlu1rU///XpLqJUuimPEoV1Jp+GtLJa+yXdM/nZOZLcbm9CDAvnYMa/SKQeRNi/ciHA==',
+  bob: '3eHnPMZ9J67MT90L5UbFbDm+WYtguxmtGaVeMsebP0h3oS6er8TwYNoFzk5bbXioeehI2Qg2FH0i25CFj6AALw==',
+  charlie: 'DmYcg2tQreOUrljct8fI1IMp/eWxcR02W1O6tLFCgmMhjtTPv8N50ebTTLw0rFm0FsCGgOMHZQb/ZHN33YImtQ==',
+  dan: '24cBLX65S7rutcByV3c7SWHySj7vtEmMxaS4djLsy7z+yxfUutefMTovCMn2s0OJSy9DgNEu1uJUTs2iEVW6lg==',
+  mallory: 'buCpQHL5EHiK9XeogXTykYOpBCLsqba2orCz4CzZ04oQ52tSpIUaHWSKxHUgsVsobOCkE+cWLQKqSv6hoX18SQ==',
+  eve: 'HwDk9DnZ3ALjSmH+K9JmYDZoaIFczVJL5rUfUAMhzL5cgZv8ipxXQsyhNG6FaqIrWKS6FahNsDxlFLlS3/PKGg==',
+  trudy: 'OCaglZBla+uurtHH6PRVL5M8C1L/4F0OO1kNn2O8T8Ry0MW5xk5D8tZHmog5Z1yZ95i8iUyFoeVArgJZbie0oQ==',
+  fred: '0TuAsWkzCj9l1vfcwz9PRVD59rMuBSE9i93ljb3GI73PLjIsZUOyEQv5Gv4sV+iu64QK0DTWA8D9gMCzf0Yo6w==',
+  greg: 'acyxTNkaEQRGtxgwgy0tvRZ7zvz3XlNZY7JghanFhciMbDMH92QjVWdCvoh384FT0D80RP3+ewq4rOm7QRzuOg==',
+  harry: 'r0mWIq9Dmgdfe++v9fquBd4fwNtNP/OoeNqtTpSN3g9+z0yK4T+QAWQsshjMCkCwTp8SYmRVDwaK5/FbDUys4Q=='
+}
+
 export function sleep(ms: any) {
   return new Promise(resolve => setTimeout(resolve, ms))
 }
@@ -68,6 +81,7 @@ interface Accounts {
 export async function setupAccounts(): Promise<Accounts> {
   const alice = await PlasmaUser.createOfflineUser(
     ACCOUNTS.alice,
+    DAPPCHAIN_ACCOUNTS.alice,
     web3Endpoint,
     ADDRESSES.root_chain,
     dappchainEndpoint,
@@ -77,6 +91,7 @@ export async function setupAccounts(): Promise<Accounts> {
 
   const bob = await PlasmaUser.createOfflineUser(
     ACCOUNTS.bob,
+    DAPPCHAIN_ACCOUNTS.bob,
     web3Endpoint,
     ADDRESSES.root_chain,
     dappchainEndpoint,
@@ -86,6 +101,7 @@ export async function setupAccounts(): Promise<Accounts> {
 
   const charlie = await PlasmaUser.createOfflineUser(
     ACCOUNTS.charlie,
+    DAPPCHAIN_ACCOUNTS.charlie,
     web3Endpoint,
     ADDRESSES.root_chain,
     dappchainEndpoint,
@@ -95,6 +111,7 @@ export async function setupAccounts(): Promise<Accounts> {
 
   const dan = await PlasmaUser.createOfflineUser(
     ACCOUNTS.dan,
+    DAPPCHAIN_ACCOUNTS.dan,
     web3Endpoint,
     ADDRESSES.root_chain,
     dappchainEndpoint,
@@ -104,6 +121,7 @@ export async function setupAccounts(): Promise<Accounts> {
 
   const eve = await PlasmaUser.createOfflineUser(
     ACCOUNTS.eve,
+    DAPPCHAIN_ACCOUNTS.eve,
     web3Endpoint,
     ADDRESSES.root_chain,
     dappchainEndpoint,
@@ -113,6 +131,7 @@ export async function setupAccounts(): Promise<Accounts> {
 
   const trudy = await PlasmaUser.createOfflineUser(
     ACCOUNTS.trudy,
+    DAPPCHAIN_ACCOUNTS.trudy,
     web3Endpoint,
     ADDRESSES.root_chain,
     dappchainEndpoint,
@@ -122,6 +141,7 @@ export async function setupAccounts(): Promise<Accounts> {
 
   const mallory = await PlasmaUser.createOfflineUser(
     ACCOUNTS.mallory,
+    DAPPCHAIN_ACCOUNTS.mallory,
     web3Endpoint,
     ADDRESSES.root_chain,
     dappchainEndpoint,
@@ -131,6 +151,7 @@ export async function setupAccounts(): Promise<Accounts> {
 
   const greg = await PlasmaUser.createOfflineUser(
     ACCOUNTS.greg,
+    DAPPCHAIN_ACCOUNTS.greg,
     web3Endpoint,
     ADDRESSES.root_chain,
     dappchainEndpoint,
@@ -140,6 +161,7 @@ export async function setupAccounts(): Promise<Accounts> {
 
   const fred = await PlasmaUser.createOfflineUser(
     ACCOUNTS.fred,
+    DAPPCHAIN_ACCOUNTS.fred,
     web3Endpoint,
     ADDRESSES.root_chain,
     dappchainEndpoint,
@@ -149,6 +171,7 @@ export async function setupAccounts(): Promise<Accounts> {
 
   const harry = await PlasmaUser.createOfflineUser(
     ACCOUNTS.harry,
+    DAPPCHAIN_ACCOUNTS.harry,
     web3Endpoint,
     ADDRESSES.root_chain,
     dappchainEndpoint,
