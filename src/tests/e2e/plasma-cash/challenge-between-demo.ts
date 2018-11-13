@@ -1,17 +1,15 @@
 import test from 'tape'
 import Web3 from 'web3'
 import BN from 'bn.js'
-import { PlasmaUser } from '../../..'
 
 import { increaseTime, getEthBalanceAtAddress } from './ganache-helpers'
 import {
   sleep,
   ADDRESSES,
-  ACCOUNTS,
   setupContracts,
   web3Endpoint,
-  dappchainEndpoint,
-  eventsEndpoint
+  setupAccounts,
+  disconnectAccounts
 } from './config'
 
 export async function runChallengeBetweenDemo(t: test.Test) {
@@ -19,32 +17,11 @@ export async function runChallengeBetweenDemo(t: test.Test) {
   const { cards } = setupContracts(web3)
   const cardsAddress = ADDRESSES.token_contract
 
-  const alice = await PlasmaUser.createOfflineUser(
-    ACCOUNTS.alice,
-    web3Endpoint,
-    ADDRESSES.root_chain,
-    dappchainEndpoint,
-    eventsEndpoint,
-    'alice_db'
-  )
+  const accounts = await setupAccounts()
+  const alice = accounts.alice
+  const bob = accounts.bob
+  const eve = accounts.eve
 
-  const bob = await PlasmaUser.createOfflineUser(
-    ACCOUNTS.bob,
-    web3Endpoint,
-    ADDRESSES.root_chain,
-    dappchainEndpoint,
-    eventsEndpoint,
-    'bob_db'
-  )
-
-  const eve = await PlasmaUser.createOfflineUser(
-    ACCOUNTS.eve,
-    web3Endpoint,
-    ADDRESSES.root_chain,
-    dappchainEndpoint,
-    eventsEndpoint,
-    'eve_db'
-  )
   const bobTokensStart = await cards.balanceOfAsync(bob.ethAddress)
 
   // Give Eve 5 tokens
@@ -105,9 +82,7 @@ export async function runChallengeBetweenDemo(t: test.Test) {
     'END: Bob has correct number of tokens'
   )
 
-  alice.disconnect()
-  bob.disconnect()
-  eve.disconnect()
+  disconnectAccounts(accounts)
 
   t.end()
 }
