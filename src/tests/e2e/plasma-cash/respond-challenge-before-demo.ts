@@ -1,18 +1,15 @@
 import test from 'tape'
 import BN from 'bn.js'
 import Web3 from 'web3'
-import { PlasmaUser } from '../../..'
 
 import { increaseTime, getEthBalanceAtAddress } from './ganache-helpers'
 import {
   sleep,
   ADDRESSES,
-  ACCOUNTS,
   setupContracts,
   web3Endpoint,
-  dappchainEndpoint,
-  eventsEndpoint,
-  setupAccounts
+  setupAccounts,
+  disconnectAccounts
 } from './config'
 
 export async function runRespondChallengeBeforeDemo(t: test.Test) {
@@ -70,8 +67,7 @@ export async function runRespondChallengeBeforeDemo(t: test.Test) {
   // 1 in this demo and 1 in a previous one.
   t.equal(danTokensEnd.toNumber(), 7, 'END: Dan has correct number of tokens')
 
-  dan.disconnect()
-  trudy.disconnect()
+  disconnectAccounts(accounts)
 
   t.end()
 }

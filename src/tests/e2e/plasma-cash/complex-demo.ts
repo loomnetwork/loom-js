@@ -1,17 +1,8 @@
 import test from 'tape'
 import Web3 from 'web3'
-import { PlasmaUser } from '../../..'
 
 import { increaseTime } from './ganache-helpers'
-import {
-  sleep,
-  ADDRESSES,
-  ACCOUNTS,
-  web3Endpoint,
-  dappchainEndpoint,
-  eventsEndpoint,
-  setupAccounts
-} from './config'
+import { sleep, web3Endpoint, setupAccounts, disconnectAccounts } from './config'
 
 import BN from 'bn.js'
 
@@ -279,9 +270,7 @@ export async function complexDemo(t: test.Test) {
   t.equal((await fred.getUserCoinsAsync()).length, 6, 'Withdraw oracle for fred OK')
   t.equal((await harry.getUserCoinsAsync()).length, 0, 'Withdraw oracle for harry OK')
 
-  harry.disconnect()
-  fred.disconnect()
-  greg.disconnect()
+  disconnectAccounts(accounts)
 
   t.end()
 }

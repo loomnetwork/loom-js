@@ -3,7 +3,14 @@ import Web3 from 'web3'
 import BN from 'bn.js'
 
 import { increaseTime, getEthBalanceAtAddress } from './ganache-helpers'
-import { sleep, ADDRESSES, setupContracts, web3Endpoint, setupAccounts } from './config'
+import {
+  sleep,
+  ADDRESSES,
+  setupContracts,
+  web3Endpoint,
+  setupAccounts,
+  disconnectAccounts
+} from './config'
 
 export async function runChallengeBetweenDemo(t: test.Test) {
   const web3 = new Web3(new Web3.providers.HttpProvider(web3Endpoint))
@@ -75,9 +82,7 @@ export async function runChallengeBetweenDemo(t: test.Test) {
     'END: Bob has correct number of tokens'
   )
 
-  alice.disconnect()
-  bob.disconnect()
-  eve.disconnect()
+  disconnectAccounts(accounts)
 
   t.end()
 }

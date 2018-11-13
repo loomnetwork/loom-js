@@ -1,10 +1,16 @@
 import test from 'tape'
 import BN from 'bn.js'
 import Web3 from 'web3'
-import { PlasmaUser } from '../../..'
 
 import { increaseTime, getEthBalanceAtAddress } from './ganache-helpers'
-import { sleep, ADDRESSES, setupContracts, web3Endpoint, setupAccounts } from './config'
+import {
+  sleep,
+  ADDRESSES,
+  setupContracts,
+  web3Endpoint,
+  setupAccounts,
+  disconnectAccounts
+} from './config'
 
 export async function runChallengeBeforeDemo(t: test.Test) {
   const web3 = new Web3(new Web3.providers.HttpProvider(web3Endpoint))
@@ -74,9 +80,7 @@ export async function runChallengeBeforeDemo(t: test.Test) {
   const danTokensEnd = await cards.balanceOfAsync(dan.ethAddress)
   t.equal(danTokensEnd.toNumber(), 6, 'END: Dan has correct number of tokens')
 
-  dan.disconnect()
-  mallory.disconnect()
-  trudy.disconnect()
+  disconnectAccounts(accounts)
 
   t.end()
 }

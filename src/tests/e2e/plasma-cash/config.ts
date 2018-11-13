@@ -33,13 +33,17 @@ export const ACCOUNTS = {
 }
 
 export const DAPPCHAIN_ACCOUNTS = {
-  alice: 'iDAg84PiCWf4kAYzSnKtlu1rU///XpLqJUuimPEoV1Jp+GtLJa+yXdM/nZOZLcbm9CDAvnYMa/SKQeRNi/ciHA==',
+  alice:
+    'iDAg84PiCWf4kAYzSnKtlu1rU///XpLqJUuimPEoV1Jp+GtLJa+yXdM/nZOZLcbm9CDAvnYMa/SKQeRNi/ciHA==',
   bob: '3eHnPMZ9J67MT90L5UbFbDm+WYtguxmtGaVeMsebP0h3oS6er8TwYNoFzk5bbXioeehI2Qg2FH0i25CFj6AALw==',
-  charlie: 'DmYcg2tQreOUrljct8fI1IMp/eWxcR02W1O6tLFCgmMhjtTPv8N50ebTTLw0rFm0FsCGgOMHZQb/ZHN33YImtQ==',
+  charlie:
+    'DmYcg2tQreOUrljct8fI1IMp/eWxcR02W1O6tLFCgmMhjtTPv8N50ebTTLw0rFm0FsCGgOMHZQb/ZHN33YImtQ==',
   dan: '24cBLX65S7rutcByV3c7SWHySj7vtEmMxaS4djLsy7z+yxfUutefMTovCMn2s0OJSy9DgNEu1uJUTs2iEVW6lg==',
-  mallory: 'buCpQHL5EHiK9XeogXTykYOpBCLsqba2orCz4CzZ04oQ52tSpIUaHWSKxHUgsVsobOCkE+cWLQKqSv6hoX18SQ==',
+  mallory:
+    'buCpQHL5EHiK9XeogXTykYOpBCLsqba2orCz4CzZ04oQ52tSpIUaHWSKxHUgsVsobOCkE+cWLQKqSv6hoX18SQ==',
   eve: 'HwDk9DnZ3ALjSmH+K9JmYDZoaIFczVJL5rUfUAMhzL5cgZv8ipxXQsyhNG6FaqIrWKS6FahNsDxlFLlS3/PKGg==',
-  trudy: 'OCaglZBla+uurtHH6PRVL5M8C1L/4F0OO1kNn2O8T8Ry0MW5xk5D8tZHmog5Z1yZ95i8iUyFoeVArgJZbie0oQ==',
+  trudy:
+    'OCaglZBla+uurtHH6PRVL5M8C1L/4F0OO1kNn2O8T8Ry0MW5xk5D8tZHmog5Z1yZ95i8iUyFoeVArgJZbie0oQ==',
   fred: '0TuAsWkzCj9l1vfcwz9PRVD59rMuBSE9i93ljb3GI73PLjIsZUOyEQv5Gv4sV+iu64QK0DTWA8D9gMCzf0Yo6w==',
   greg: 'acyxTNkaEQRGtxgwgy0tvRZ7zvz3XlNZY7JghanFhciMbDMH92QjVWdCvoh384FT0D80RP3+ewq4rOm7QRzuOg==',
   harry: 'r0mWIq9Dmgdfe++v9fquBd4fwNtNP/OoeNqtTpSN3g9+z0yK4T+QAWQsshjMCkCwTp8SYmRVDwaK5/FbDUys4Q=='
@@ -76,6 +80,19 @@ interface Accounts {
   greg: PlasmaUser
   fred: PlasmaUser
   harry: PlasmaUser
+}
+
+export function disconnectAccounts(accounts: Accounts) {
+  accounts.alice.disconnect()
+  accounts.bob.disconnect()
+  accounts.charlie.disconnect()
+  accounts.dan.disconnect()
+  accounts.eve.disconnect()
+  accounts.trudy.disconnect()
+  accounts.mallory.disconnect()
+  accounts.greg.disconnect()
+  accounts.fred.disconnect()
+  accounts.harry.disconnect()
 }
 
 export async function setupAccounts(): Promise<Accounts> {

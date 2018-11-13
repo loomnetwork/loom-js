@@ -1,7 +1,7 @@
 import test from 'tape'
 import Web3 from 'web3'
 import BN from 'bn.js'
-import { setupAccounts } from './config'
+import { setupAccounts, disconnectAccounts } from './config'
 
 import { increaseTime, getEthBalanceAtAddress } from './ganache-helpers'
 import { ADDRESSES, setupContracts, web3Endpoint } from './config'
@@ -74,8 +74,7 @@ export async function runChallengeAfterDemo(t: test.Test) {
   const danTokensEnd = await cards.balanceOfAsync(dan.ethAddress)
   t.equal(danTokensEnd.toNumber(), 1, 'END: Dan has correct number of tokens')
 
-  dan.disconnect()
-  mallory.disconnect()
+  disconnectAccounts(accounts)
 
   t.end()
 }

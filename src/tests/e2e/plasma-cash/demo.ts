@@ -1,7 +1,13 @@
 import test from 'tape'
 import Web3 from 'web3'
 import { increaseTime } from './ganache-helpers'
-import { ADDRESSES, setupContracts, web3Endpoint, setupAccounts } from './config'
+import {
+  ADDRESSES,
+  setupContracts,
+  web3Endpoint,
+  setupAccounts,
+  disconnectAccounts
+} from './config'
 import BN from 'bn.js'
 
 // Alice registers and has 5 coins, and she deposits 3 of them.
@@ -111,9 +117,7 @@ export async function runDemo(t: test.Test) {
   balance = await cards.balanceOfAsync(charlie.ethAddress)
   t.equal(balance.toNumber(), 1, 'charlie should have 1 token in cards contract')
 
-  alice.disconnect()
-  bob.disconnect()
-  charlie.disconnect()
+  disconnectAccounts(accounts)
 
   t.end()
 }
