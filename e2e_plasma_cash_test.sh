@@ -179,4 +179,4 @@ yarn e2e:plasma-cash:hostile
 
 if [[ $LOOM_DIR ]]; then 
   rm -rf $LOOM_DIR
-  fi
+fi

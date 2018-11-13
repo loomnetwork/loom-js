@@ -56,7 +56,7 @@ export class User extends Entity {
     const signer = provider.getSigner()
     return this.createUser(
       signer,
-      '0x',
+      null,
       plasmaAddress,
       dappchainEndpoint,
       eventsEndpoint,
@@ -93,7 +93,7 @@ export class User extends Entity {
 
   static async createUser(
     wallet: ethers.Signer,
-    dappchainPrivateKey: string,
+    dappchainPrivateKey: string | null,
     plasmaAddress: string,
     dappchainEndpoint: string,
     eventsEndpoint: string,
@@ -107,7 +107,7 @@ export class User extends Entity {
     const reader = createJSONRPCClient({ protocols: [{ url: dappchainEndpoint + '/query' }] })
     const dAppClient = new Client(chainId || 'default', writer, reader)
     let privKey
-    if (dappchainPrivateKey === '0x') {
+    if (dappchainPrivateKey === null) {
       privKey = CryptoUtils.generatePrivateKey()
     } else {
       privKey = CryptoUtils.B64ToUint8Array(dappchainPrivateKey)

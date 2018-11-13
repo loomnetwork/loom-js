@@ -27,10 +27,10 @@
             }
         },
         {
-			"vm": "plugin",
-			"format": "plugin",
-			"name": "addressmapper",
-			"location": "addressmapper:0.1.0"
+            "vm": "plugin",
+            "format": "plugin",
+            "name": "addressmapper",
+            "location": "addressmapper:0.1.0"
         },
         {
             "vm": "plugin",
@@ -39,8 +39,8 @@
             "location": "plasmacash:1.0.0",
             "init": {
                 "oracle": {
-                     "chain_id": "default",
-                     "local": "XL7GoIlPLetSJSwht53TanLM2lc="
+                    "chain_id": "default",
+                    "local": "XL7GoIlPLetSJSwht53TanLM2lc="
                 }
             }
         },

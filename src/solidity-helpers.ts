@@ -40,10 +40,10 @@ export class EthersSigner implements IEthereumSigner {
     let flatSig = await this._wallet.signMessage(ethers.utils.arrayify(msg))
     const sig = ethers.utils.splitSignature(flatSig)
     let v = sig.v!
-    if (v === 0 || v === 1 ) {
-        v += 27
+    if (v === 0 || v === 1) {
+      v += 27
     }
-    flatSig = '0x01' + sig.r.slice(2) + sig.s.slice(2) + (v).toString(16)
+    flatSig = '0x01' + sig.r.slice(2) + sig.s.slice(2) + v.toString(16)
     return ethutil.toBuffer(flatSig)
   }
 }
