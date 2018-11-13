@@ -45,6 +45,7 @@ export interface IPlasmaExitData {
   /** Plasma block number at which the exit's transaction was included. */
   exitBlock: BN
   state: PlasmaCoinState
+  timestamp: BN
 }
 
 export interface IPlasmaChallenge {
@@ -172,7 +173,8 @@ export class EthereumPlasmaClient {
       owner: exit[0],
       prevBlock: hexBN(exit[1]),
       exitBlock: hexBN(exit[2]),
-      state: parseInt(exit[3], 10)
+      state: parseInt(exit[3], 10),
+      timestamp: hexBN(exit[4])
     }
   }
 
