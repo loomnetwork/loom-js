@@ -105,6 +105,7 @@ function download_dappchain {
 function download_plasma_cash {
   cd $LOOM_DIR
   git clone https://github.com/loomnetwork/plasma-cash
+  git checkout ui-ux-upgrades
   PLASMA_CASH_DIR=`pwd`/plasma-cash
   cd $PLASMA_CASH_DIR/server
   npm install
@@ -174,4 +175,4 @@ yarn e2e:plasma-cash:hostile
 
 if [[ $LOOM_DIR ]]; then 
   rm -rf $LOOM_DIR
-  fi
+fi
