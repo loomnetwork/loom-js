@@ -267,7 +267,7 @@ export class EthereumPlasmaClient {
    */
   cancelExitAsync(params: IPlasmaCancelExitParams): Promise<object> {
     const { slot, from, gas, gasPrice } = params
-    return this._plasmaContract.cancelExits(slot, { gasLimit: gas })
+    return this._plasmaContract.cancelExit('0x' + slot.toString(16), { gasLimit: gas })
   }
 
   /**
@@ -276,7 +276,7 @@ export class EthereumPlasmaClient {
    */
   cancelExitsAsync(params: IPlasmaCancelExitsParams): Promise<object> {
     const { slots, from, gas, gasPrice } = params
-    return this._plasmaContract.cancelExits(slots, { gasLimit: gas })
+    return this._plasmaContract.cancelExits(slots.map(s => '0x' + s.toString(16)), { gasLimit: gas })
   }
 
   /**
@@ -285,7 +285,7 @@ export class EthereumPlasmaClient {
    */
   finalizeExitAsync(params: IPlasmaFinalizeExitParams): Promise<object> {
     const { slot, from, gas, gasPrice } = params
-    return this._plasmaContract.finalizeExits(slot, { gasLimit: gas })
+    return this._plasmaContract.finalizeExit('0x' + slot.toString(16), { gasLimit: gas })
   }
 
   /**
@@ -294,7 +294,7 @@ export class EthereumPlasmaClient {
    */
   finalizeExitsAsync(params: IPlasmaFinalizeExitsParams): Promise<object> {
     const { slots, from, gas, gasPrice } = params
-    return this._plasmaContract.finalizeExits(slots, { gasLimit: gas })
+    return this._plasmaContract.finalizeExits(slots.map(s => '0x' + s.toString(16)), { gasLimit: gas })
   }
 
   /**
