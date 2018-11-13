@@ -11,7 +11,8 @@ import {
   setupContracts,
   web3Endpoint,
   dappchainEndpoint,
-  eventsEndpoint
+  eventsEndpoint,
+  setupAccounts
 } from './config'
 
 export async function runRespondChallengeBeforeDemo(t: test.Test) {
@@ -19,30 +20,15 @@ export async function runRespondChallengeBeforeDemo(t: test.Test) {
   const { cards } = setupContracts(web3)
   const cardsAddress = ADDRESSES.token_contract
 
-  const dan = await PlasmaUser.createOfflineUser(
-    ACCOUNTS.dan,
-    web3Endpoint,
-    ADDRESSES.root_chain,
-    dappchainEndpoint,
-    eventsEndpoint,
-    'dan_db'
-  )
-
-  const trudy = await PlasmaUser.createOfflineUser(
-    ACCOUNTS.trudy,
-    web3Endpoint,
-    ADDRESSES.root_chain,
-    dappchainEndpoint,
-    eventsEndpoint,
-    'trudy_db'
-  )
+  const accounts = await setupAccounts()
+  const dan = accounts.dan
+  const trudy = accounts.trudy
 
   // Give Trudy 5 tokens
   await cards.registerAsync(trudy.ethAddress)
   let balance = await cards.balanceOfAsync(trudy.ethAddress)
   t.equal(balance.toNumber(), 5)
 
-  const startBlockNum = await web3.eth.getBlockNumber()
   // Trudy deposits a coin
   await trudy.depositERC721Async(new BN(21), cardsAddress)
 

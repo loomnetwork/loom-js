@@ -1,16 +1,7 @@
 import test from 'tape'
 import Web3 from 'web3'
-import { PlasmaUser } from '../../..'
-
 import { increaseTime } from './ganache-helpers'
-import {
-  ADDRESSES,
-  ACCOUNTS,
-  setupContracts,
-  web3Endpoint,
-  dappchainEndpoint,
-  eventsEndpoint
-} from './config'
+import { ADDRESSES, setupContracts, web3Endpoint, setupAccounts } from './config'
 import BN from 'bn.js'
 
 // Alice registers and has 5 coins, and she deposits 3 of them.
@@ -23,35 +14,12 @@ export async function runDemo(t: test.Test) {
   const { cards } = setupContracts(web3)
   const cardsAddress = ADDRESSES.token_contract
 
-  const alice = PlasmaUser.createOfflineUser(
-    ACCOUNTS.alice,
-    web3Endpoint,
-    ADDRESSES.root_chain,
-    dappchainEndpoint,
-    eventsEndpoint,
-    'alice_db'
-  )
-
-  const bob = PlasmaUser.createOfflineUser(
-    ACCOUNTS.bob,
-    web3Endpoint,
-    ADDRESSES.root_chain,
-    dappchainEndpoint,
-    eventsEndpoint,
-    'bob_db'
-  )
-
-  const charlie = PlasmaUser.createOfflineUser(
-    ACCOUNTS.charlie,
-    web3Endpoint,
-    ADDRESSES.root_chain,
-    dappchainEndpoint,
-    eventsEndpoint,
-    'charlie_db'
-  )
+  const accounts = await setupAccounts()
+  const alice = accounts.alice
+  const bob = accounts.bob
+  const charlie = accounts.charlie
 
   await cards.registerAsync(alice.ethAddress)
-
   let balance = await cards.balanceOfAsync(alice.ethAddress)
   t.equal(balance.toNumber(), 5)
 

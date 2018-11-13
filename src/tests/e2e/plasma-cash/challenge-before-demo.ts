@@ -4,47 +4,17 @@ import Web3 from 'web3'
 import { PlasmaUser } from '../../..'
 
 import { increaseTime, getEthBalanceAtAddress } from './ganache-helpers'
-import {
-  sleep,
-  ADDRESSES,
-  ACCOUNTS,
-  setupContracts,
-  web3Endpoint,
-  dappchainEndpoint,
-  eventsEndpoint
-} from './config'
+import { sleep, ADDRESSES, setupContracts, web3Endpoint, setupAccounts } from './config'
 
 export async function runChallengeBeforeDemo(t: test.Test) {
   const web3 = new Web3(new Web3.providers.HttpProvider(web3Endpoint))
   const { cards } = setupContracts(web3)
   const cardsAddress = ADDRESSES.token_contract
 
-  const dan = await PlasmaUser.createOfflineUser(
-    ACCOUNTS.dan,
-    web3Endpoint,
-    ADDRESSES.root_chain,
-    dappchainEndpoint,
-    eventsEndpoint,
-    'dan_db'
-  )
-
-  const mallory = await PlasmaUser.createOfflineUser(
-    ACCOUNTS.mallory,
-    web3Endpoint,
-    ADDRESSES.root_chain,
-    dappchainEndpoint,
-    eventsEndpoint,
-    'mallory_db'
-  )
-
-  const trudy = await PlasmaUser.createOfflineUser(
-    ACCOUNTS.trudy,
-    web3Endpoint,
-    ADDRESSES.root_chain,
-    dappchainEndpoint,
-    eventsEndpoint,
-    'trudy_db'
-  )
+  const accounts = await setupAccounts()
+  const dan = accounts.dan
+  const mallory = accounts.mallory
+  const trudy = accounts.trudy
 
   // Give Dan 5 tokens
   await cards.registerAsync(dan.ethAddress)

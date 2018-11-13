@@ -9,7 +9,8 @@ import {
   ACCOUNTS,
   web3Endpoint,
   dappchainEndpoint,
-  eventsEndpoint
+  eventsEndpoint,
+  setupAccounts
 } from './config'
 
 import BN from 'bn.js'
@@ -19,24 +20,9 @@ import BN from 'bn.js'
 // All interactions happen in ETH
 export async function complexDemo(t: test.Test) {
   const web3 = new Web3(new Web3.providers.HttpProvider(web3Endpoint))
-
-  const fred = await PlasmaUser.createOfflineUser(
-    ACCOUNTS.fred,
-    web3Endpoint,
-    ADDRESSES.root_chain,
-    dappchainEndpoint,
-    eventsEndpoint,
-    'fred_db'
-  )
-
-  const greg = await PlasmaUser.createOfflineUser(
-    ACCOUNTS.greg,
-    web3Endpoint,
-    ADDRESSES.root_chain,
-    dappchainEndpoint,
-    eventsEndpoint,
-    'greg_db'
-  )
+  const accounts = await setupAccounts()
+  const greg = accounts.greg
+  const fred = accounts.fred
 
   // Fred deposits 5000 Wei split across 3 coins
   // Greg deposits 1000 Wei split across 3 coins
@@ -99,14 +85,7 @@ export async function complexDemo(t: test.Test) {
   t.equal((await fred.getPlasmaCoinAsync(coin2)).state, 0, 'Fred succesfully challenged Greg')
 
   // Harry joins in the fun
-  const harry = PlasmaUser.createOfflineUser(
-    ACCOUNTS.harry,
-    web3Endpoint,
-    ADDRESSES.root_chain,
-    dappchainEndpoint,
-    eventsEndpoint,
-    'harry_db'
-  )
+  const harry = accounts.harry
   await harry.watchBlocks()
 
   // Previously, coin1 went from DEPOSITED -> EXITING and now is back to DEPOSITED. This should be reflected on the dappchain state as well. Build521 does not reset a coin to DEPOSITED after it is in EXITING and is challenged.

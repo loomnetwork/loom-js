@@ -10,7 +10,7 @@ import {
 } from '../../index'
 import { createTestHttpClient } from '../helpers'
 import { EthersSigner } from '../../solidity-helpers'
-import { ethers } from 'ethers';
+import { ethers } from 'ethers'
 
 // TODO: Need a factory to create connection properly likes plasma-cash test
 function getEthersConnection() {
@@ -25,7 +25,9 @@ async function getClientAndContract(
   addressMapper: Contracts.AddressMapper
   pubKey: Uint8Array
 }> {
-  const privKey = CryptoUtils.B64ToUint8Array("D6XCGyCcDZ5TE22h66AlU+Bn6JqL4RnSl4a09RGU9LfM53JFG/T5GAnC0uiuIIiw9Dl0TwEAmdGb+WE0Bochkg==")
+  const privKey = CryptoUtils.B64ToUint8Array(
+    'D6XCGyCcDZ5TE22h66AlU+Bn6JqL4RnSl4a09RGU9LfM53JFG/T5GAnC0uiuIIiw9Dl0TwEAmdGb+WE0Bochkg=='
+  )
   const pubKey = CryptoUtils.publicKeyFromPrivateKey(privKey)
   const client = createClient()
   client.txMiddleware = createDefaultTxMiddleware(client, privKey)

@@ -1,7 +1,6 @@
 import Web3 from 'web3'
 import { EthCardsContract } from './cards-contract'
-import { Entity } from '../../..'
-import BN from 'bn.js'
+import { PlasmaUser } from '../../..'
 
 export const DEFAULT_GAS = '3141592'
 export const CHILD_BLOCK_INTERVAL = 1000
@@ -51,4 +50,111 @@ export function setupContracts(web3: Web3): { cards: EthCardsContract } {
   const abi = require('./contracts/cards-abi.json')
   const cards = new EthCardsContract(new web3.eth.Contract(abi, ADDRESSES.token_contract))
   return { cards }
+}
+
+interface Accounts {
+  alice: PlasmaUser
+  bob: PlasmaUser
+  charlie: PlasmaUser
+  dan: PlasmaUser
+  eve: PlasmaUser
+  trudy: PlasmaUser
+  mallory: PlasmaUser
+  greg: PlasmaUser
+  fred: PlasmaUser
+  harry: PlasmaUser
+}
+
+export async function setupAccounts(): Promise<Accounts> {
+  const alice = await PlasmaUser.createOfflineUser(
+    ACCOUNTS.alice,
+    web3Endpoint,
+    ADDRESSES.root_chain,
+    dappchainEndpoint,
+    eventsEndpoint,
+    'alice_db'
+  )
+
+  const bob = await PlasmaUser.createOfflineUser(
+    ACCOUNTS.bob,
+    web3Endpoint,
+    ADDRESSES.root_chain,
+    dappchainEndpoint,
+    eventsEndpoint,
+    'bob_db'
+  )
+
+  const charlie = await PlasmaUser.createOfflineUser(
+    ACCOUNTS.charlie,
+    web3Endpoint,
+    ADDRESSES.root_chain,
+    dappchainEndpoint,
+    eventsEndpoint,
+    'charlie_db'
+  )
+
+  const dan = await PlasmaUser.createOfflineUser(
+    ACCOUNTS.dan,
+    web3Endpoint,
+    ADDRESSES.root_chain,
+    dappchainEndpoint,
+    eventsEndpoint,
+    'dan_db'
+  )
+
+  const eve = await PlasmaUser.createOfflineUser(
+    ACCOUNTS.eve,
+    web3Endpoint,
+    ADDRESSES.root_chain,
+    dappchainEndpoint,
+    eventsEndpoint,
+    'eve_db'
+  )
+
+  const trudy = await PlasmaUser.createOfflineUser(
+    ACCOUNTS.trudy,
+    web3Endpoint,
+    ADDRESSES.root_chain,
+    dappchainEndpoint,
+    eventsEndpoint,
+    'trudy_db'
+  )
+
+  const mallory = await PlasmaUser.createOfflineUser(
+    ACCOUNTS.mallory,
+    web3Endpoint,
+    ADDRESSES.root_chain,
+    dappchainEndpoint,
+    eventsEndpoint,
+    'mallory_db'
+  )
+
+  const greg = await PlasmaUser.createOfflineUser(
+    ACCOUNTS.greg,
+    web3Endpoint,
+    ADDRESSES.root_chain,
+    dappchainEndpoint,
+    eventsEndpoint,
+    'greg_db'
+  )
+
+  const fred = await PlasmaUser.createOfflineUser(
+    ACCOUNTS.fred,
+    web3Endpoint,
+    ADDRESSES.root_chain,
+    dappchainEndpoint,
+    eventsEndpoint,
+    'fred_db'
+  )
+
+  const harry = await PlasmaUser.createOfflineUser(
+    ACCOUNTS.harry,
+    web3Endpoint,
+    ADDRESSES.root_chain,
+    dappchainEndpoint,
+    eventsEndpoint,
+    'harry_db'
+  )
+
+  return { alice, bob, charlie, dan, eve, mallory, trudy, greg, fred, harry }
 }
