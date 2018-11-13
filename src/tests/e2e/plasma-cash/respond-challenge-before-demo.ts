@@ -1,17 +1,15 @@
 import test from 'tape'
 import BN from 'bn.js'
 import Web3 from 'web3'
-import { PlasmaUser } from '../../..'
 
 import { increaseTime, getEthBalanceAtAddress } from './ganache-helpers'
 import {
   sleep,
   ADDRESSES,
-  ACCOUNTS,
   setupContracts,
   web3Endpoint,
-  dappchainEndpoint,
-  eventsEndpoint
+  setupAccounts,
+  disconnectAccounts
 } from './config'
 
 export async function runRespondChallengeBeforeDemo(t: test.Test) {
@@ -19,30 +17,15 @@ export async function runRespondChallengeBeforeDemo(t: test.Test) {
   const { cards } = setupContracts(web3)
   const cardsAddress = ADDRESSES.token_contract
 
-  const dan = await PlasmaUser.createOfflineUser(
-    ACCOUNTS.dan,
-    web3Endpoint,
-    ADDRESSES.root_chain,
-    dappchainEndpoint,
-    eventsEndpoint,
-    'dan_db'
-  )
-
-  const trudy = await PlasmaUser.createOfflineUser(
-    ACCOUNTS.trudy,
-    web3Endpoint,
-    ADDRESSES.root_chain,
-    dappchainEndpoint,
-    eventsEndpoint,
-    'trudy_db'
-  )
+  const accounts = await setupAccounts()
+  const dan = accounts.dan
+  const trudy = accounts.trudy
 
   // Give Trudy 5 tokens
   await cards.registerAsync(trudy.ethAddress)
   let balance = await cards.balanceOfAsync(trudy.ethAddress)
   t.equal(balance.toNumber(), 5)
 
-  const startBlockNum = await web3.eth.getBlockNumber()
   // Trudy deposits a coin
   await trudy.depositERC721Async(new BN(21), cardsAddress)
 
@@ -84,8 +67,7 @@ export async function runRespondChallengeBeforeDemo(t: test.Test) {
   // 1 in this demo and 1 in a previous one.
   t.equal(danTokensEnd.toNumber(), 7, 'END: Dan has correct number of tokens')
 
-  dan.disconnect()
-  trudy.disconnect()
+  disconnectAccounts(accounts)
 
   t.end()
 }

@@ -1,15 +1,12 @@
 import test from 'tape'
 import Web3 from 'web3'
-import { PlasmaUser } from '../../..'
-
 import { increaseTime } from './ganache-helpers'
 import {
   ADDRESSES,
-  ACCOUNTS,
   setupContracts,
   web3Endpoint,
-  dappchainEndpoint,
-  eventsEndpoint
+  setupAccounts,
+  disconnectAccounts
 } from './config'
 import BN from 'bn.js'
 
@@ -23,35 +20,12 @@ export async function runDemo(t: test.Test) {
   const { cards } = setupContracts(web3)
   const cardsAddress = ADDRESSES.token_contract
 
-  const alice = PlasmaUser.createOfflineUser(
-    ACCOUNTS.alice,
-    web3Endpoint,
-    ADDRESSES.root_chain,
-    dappchainEndpoint,
-    eventsEndpoint,
-    'alice_db'
-  )
-
-  const bob = PlasmaUser.createOfflineUser(
-    ACCOUNTS.bob,
-    web3Endpoint,
-    ADDRESSES.root_chain,
-    dappchainEndpoint,
-    eventsEndpoint,
-    'bob_db'
-  )
-
-  const charlie = PlasmaUser.createOfflineUser(
-    ACCOUNTS.charlie,
-    web3Endpoint,
-    ADDRESSES.root_chain,
-    dappchainEndpoint,
-    eventsEndpoint,
-    'charlie_db'
-  )
+  const accounts = await setupAccounts()
+  const alice = accounts.alice
+  const bob = accounts.bob
+  const charlie = accounts.charlie
 
   await cards.registerAsync(alice.ethAddress)
-
   let balance = await cards.balanceOfAsync(alice.ethAddress)
   t.equal(balance.toNumber(), 5)
 
@@ -143,9 +117,7 @@ export async function runDemo(t: test.Test) {
   balance = await cards.balanceOfAsync(charlie.ethAddress)
   t.equal(balance.toNumber(), 1, 'charlie should have 1 token in cards contract')
 
-  alice.disconnect()
-  bob.disconnect()
-  charlie.disconnect()
+  disconnectAccounts(accounts)
 
   t.end()
 }

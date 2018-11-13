@@ -18,9 +18,14 @@ import {
 import { IPlasmaCoin } from './ethereum-client'
 import { sleep, hexBN } from '../helpers'
 import { ethers, providers } from 'ethers'
+import { AddressMapper } from '../contracts/address-mapper'
+import { EthersSigner } from '../solidity-helpers'
 
 const ERC721_ABI = ['function safeTransferFrom(address _from, address _to, uint256 _tokenId)']
-const ERC20_ABI = ['function approve(address spender, uint256 value)', 'function allowance(address owner, address spender)']
+const ERC20_ABI = [
+  'function approve(address spender, uint256 value)',
+  'function allowance(address owner, address spender)'
+]
 // Helper function to create a user instance.
 
 // User friendly wrapper for all Entity related functions, taking advantage of the database
@@ -39,18 +44,19 @@ export class User extends Entity {
     User._contractName = contractName
   }
 
-  static createMetamaskUser(
+  static async createMetamaskUser(
     web3: Web3,
     plasmaAddress: string,
     dappchainEndpoint: string,
     eventsEndpoint: string,
     startBlock?: BN,
     chainId?: string
-  ): User {
+  ): Promise<User> {
     const provider = new ethers.providers.Web3Provider(web3.currentProvider)
     const signer = provider.getSigner()
     return this.createUser(
       signer,
+      null,
       plasmaAddress,
       dappchainEndpoint,
       eventsEndpoint,
@@ -60,8 +66,9 @@ export class User extends Entity {
     )
   }
 
-  static createOfflineUser(
+  static async createOfflineUser(
     privateKey: string,
+    dappchainPrivateKey: string,
     endpoint: string,
     plasmaAddress: string,
     dappchainEndpoint: string,
@@ -69,11 +76,12 @@ export class User extends Entity {
     dbPath?: string,
     startBlock?: BN,
     chainId?: string
-  ): User {
+  ): Promise<User> {
     const provider = new ethers.providers.JsonRpcProvider(endpoint)
     const wallet = new ethers.Wallet(privateKey, provider)
     return this.createUser(
       wallet,
+      dappchainPrivateKey,
       plasmaAddress,
       dappchainEndpoint,
       eventsEndpoint,
@@ -83,28 +91,50 @@ export class User extends Entity {
     )
   }
 
-  static createUser(
+  static async createUser(
     wallet: ethers.Signer,
+    dappchainPrivateKey: string | null,
     plasmaAddress: string,
     dappchainEndpoint: string,
     eventsEndpoint: string,
     dbPath?: string,
     startBlock?: BN,
     chainId?: string
-  ): User {
+  ): Promise<User> {
     const database = new PlasmaDB(dbPath)
     const ethPlasmaClient = new EthereumPlasmaClient(wallet, plasmaAddress, eventsEndpoint)
     const writer = createJSONRPCClient({ protocols: [{ url: dappchainEndpoint + '/rpc' }] })
     const reader = createJSONRPCClient({ protocols: [{ url: dappchainEndpoint + '/query' }] })
     const dAppClient = new Client(chainId || 'default', writer, reader)
-    // TODO: Key should not be generated each time, user should provide their key, or it should be retrieved through some one way mapping
-    const privKey = CryptoUtils.generatePrivateKey()
+    let privKey
+    if (dappchainPrivateKey === null) {
+      privKey = CryptoUtils.generatePrivateKey()
+    } else {
+      privKey = CryptoUtils.B64ToUint8Array(dappchainPrivateKey)
+    }
     const pubKey = CryptoUtils.publicKeyFromPrivateKey(privKey)
     dAppClient.txMiddleware = [
       new NonceTxMiddleware(pubKey, dAppClient),
       new SignedTxMiddleware(privKey)
     ]
     const callerAddress = new Address(chainId || 'default', LocalAddress.fromPublicKey(pubKey))
+
+    const addressMapper = await AddressMapper.createAsync(
+      dAppClient,
+      new Address(dAppClient.chainId, LocalAddress.fromPublicKey(pubKey))
+    )
+    const ethAddress = new Address('eth', LocalAddress.fromHexString(await wallet.getAddress()))
+    try {
+      await addressMapper.getMappingAsync(ethAddress)
+    } catch (e) {
+      // Register our address if it's not found
+      await addressMapper.addIdentityMappingAsync(
+        ethAddress,
+        callerAddress,
+        new EthersSigner(wallet)
+      )
+    }
+
     const dAppPlasmaClient = new DAppChainPlasmaClient({
       dAppClient,
       callerAddress,

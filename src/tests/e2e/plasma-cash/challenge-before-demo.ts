@@ -1,17 +1,15 @@
 import test from 'tape'
 import BN from 'bn.js'
 import Web3 from 'web3'
-import { PlasmaUser } from '../../..'
 
 import { increaseTime, getEthBalanceAtAddress } from './ganache-helpers'
 import {
   sleep,
   ADDRESSES,
-  ACCOUNTS,
   setupContracts,
   web3Endpoint,
-  dappchainEndpoint,
-  eventsEndpoint
+  setupAccounts,
+  disconnectAccounts
 } from './config'
 
 export async function runChallengeBeforeDemo(t: test.Test) {
@@ -19,32 +17,10 @@ export async function runChallengeBeforeDemo(t: test.Test) {
   const { cards } = setupContracts(web3)
   const cardsAddress = ADDRESSES.token_contract
 
-  const dan = await PlasmaUser.createOfflineUser(
-    ACCOUNTS.dan,
-    web3Endpoint,
-    ADDRESSES.root_chain,
-    dappchainEndpoint,
-    eventsEndpoint,
-    'dan_db'
-  )
-
-  const mallory = await PlasmaUser.createOfflineUser(
-    ACCOUNTS.mallory,
-    web3Endpoint,
-    ADDRESSES.root_chain,
-    dappchainEndpoint,
-    eventsEndpoint,
-    'mallory_db'
-  )
-
-  const trudy = await PlasmaUser.createOfflineUser(
-    ACCOUNTS.trudy,
-    web3Endpoint,
-    ADDRESSES.root_chain,
-    dappchainEndpoint,
-    eventsEndpoint,
-    'trudy_db'
-  )
+  const accounts = await setupAccounts()
+  const dan = accounts.dan
+  const mallory = accounts.mallory
+  const trudy = accounts.trudy
 
   // Give Dan 5 tokens
   await cards.registerAsync(dan.ethAddress)
@@ -104,9 +80,7 @@ export async function runChallengeBeforeDemo(t: test.Test) {
   const danTokensEnd = await cards.balanceOfAsync(dan.ethAddress)
   t.equal(danTokensEnd.toNumber(), 6, 'END: Dan has correct number of tokens')
 
-  dan.disconnect()
-  mallory.disconnect()
-  trudy.disconnect()
+  disconnectAccounts(accounts)
 
   t.end()
 }
