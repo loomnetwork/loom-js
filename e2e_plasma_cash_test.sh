@@ -150,13 +150,15 @@ fi
 
 trap cleanup EXIT
 
+# Cleanup all database files
+cd $REPO_ROOT
+rm *_db
+
 # Reset the DAppChain again for the JS tests
 init_honest_dappchain
 start_chains
 
 cd $LOOM_DIR
-mkdir -p db
-rm -rf db/*.json # remove all previously stored db related files
 
 yarn e2e:plasma-cash:honest
 
@@ -168,8 +170,11 @@ sleep 10
 init_hostile_dappchain
 start_chains
 
+# Cleanup all database files
+cd $REPO_ROOT
+rm *_db
+
 cd $LOOM_DIR
-rm -rf db/*.json # remove all previously stored db related files
 yarn e2e:plasma-cash:hostile
 
 if [[ $LOOM_DIR ]]; then 
