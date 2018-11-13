@@ -20,7 +20,10 @@ import { sleep, hexBN } from '../helpers'
 import { ethers, providers } from 'ethers'
 
 const ERC721_ABI = ['function safeTransferFrom(address _from, address _to, uint256 _tokenId)']
-const ERC20_ABI = ['function approve(address spender, uint256 value)', 'function allowance(address owner, address spender)']
+const ERC20_ABI = [
+  'function approve(address spender, uint256 value)',
+  'function allowance(address owner, address spender)'
+]
 // Helper function to create a user instance.
 
 // User friendly wrapper for all Entity related functions, taking advantage of the database

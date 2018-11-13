@@ -266,7 +266,7 @@ export class EthereumPlasmaClient {
    * @returns Web3 tx receipt object.
    */
   cancelExitAsync(params: IPlasmaCancelExitParams): Promise<object> {
-    const { slot, from, gas, gasPrice} = params
+    const { slot, from, gas, gasPrice } = params
     return this._plasmaContract.cancelExits(slot, { gasLimit: gas })
   }
 
@@ -275,17 +275,16 @@ export class EthereumPlasmaClient {
    * @returns Web3 tx receipt object.
    */
   cancelExitsAsync(params: IPlasmaCancelExitsParams): Promise<object> {
-    const { slots, from, gas, gasPrice} = params
+    const { slots, from, gas, gasPrice } = params
     return this._plasmaContract.cancelExits(slots, { gasLimit: gas })
   }
-
 
   /**
    *
    * @returns Web3 tx receipt object.
    */
   finalizeExitAsync(params: IPlasmaFinalizeExitParams): Promise<object> {
-    const { slot, from, gas, gasPrice} = params
+    const { slot, from, gas, gasPrice } = params
     return this._plasmaContract.finalizeExits(slot, { gasLimit: gas })
   }
 
@@ -294,7 +293,7 @@ export class EthereumPlasmaClient {
    * @returns Web3 tx receipt object.
    */
   finalizeExitsAsync(params: IPlasmaFinalizeExitsParams): Promise<object> {
-    const { slots, from, gas, gasPrice} = params
+    const { slots, from, gas, gasPrice } = params
     return this._plasmaContract.finalizeExits(slots, { gasLimit: gas })
   }
 
