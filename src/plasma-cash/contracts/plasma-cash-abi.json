@@ -52,25 +52,6 @@
   },
   {
     "constant": true,
-    "inputs": [
-      {
-        "name": "",
-        "type": "uint256"
-      }
-    ],
-    "name": "exitSlots",
-    "outputs": [
-      {
-        "name": "",
-        "type": "uint64"
-      }
-    ],
-    "payable": false,
-    "stateMutability": "view",
-    "type": "function"
-  },
-  {
-    "constant": true,
     "inputs": [],
     "name": "currentBlock",
     "outputs": [
@@ -236,6 +217,23 @@
         "type": "uint64"
       },
       {
+        "indexed": true,
+        "name": "owner",
+        "type": "address"
+      }
+    ],
+    "name": "CoinReset",
+    "type": "event"
+  },
+  {
+    "anonymous": false,
+    "inputs": [
+      {
+        "indexed": true,
+        "name": "slot",
+        "type": "uint64"
+      },
+      {
         "indexed": false,
         "name": "owner",
         "type": "address"
@@ -338,8 +336,24 @@
     "type": "event"
   },
   {
+    "anonymous": false,
+    "inputs": [
+      {
+        "indexed": false,
+        "name": "status",
+        "type": "bool"
+      }
+    ],
+    "name": "Paused",
+    "type": "event"
+  },
+  {
     "constant": false,
     "inputs": [
+      {
+        "name": "blockNumber",
+        "type": "uint256"
+      },
       {
         "name": "root",
         "type": "bytes32"
@@ -405,8 +419,41 @@
   },
   {
     "constant": false,
-    "inputs": [],
+    "inputs": [
+      {
+        "name": "slots",
+        "type": "uint64[]"
+      }
+    ],
     "name": "finalizeExits",
+    "outputs": [],
+    "payable": false,
+    "stateMutability": "nonpayable",
+    "type": "function"
+  },
+  {
+    "constant": false,
+    "inputs": [
+      {
+        "name": "slot",
+        "type": "uint64"
+      }
+    ],
+    "name": "cancelExit",
+    "outputs": [],
+    "payable": false,
+    "stateMutability": "nonpayable",
+    "type": "function"
+  },
+  {
+    "constant": false,
+    "inputs": [
+      {
+        "name": "slots",
+        "type": "uint64[]"
+      }
+    ],
+    "name": "cancelExits",
     "outputs": [],
     "payable": false,
     "stateMutability": "nonpayable",
@@ -562,6 +609,24 @@
     "constant": false,
     "inputs": [],
     "name": "withdrawBonds",
+    "outputs": [],
+    "payable": false,
+    "stateMutability": "nonpayable",
+    "type": "function"
+  },
+  {
+    "constant": false,
+    "inputs": [],
+    "name": "pause",
+    "outputs": [],
+    "payable": false,
+    "stateMutability": "nonpayable",
+    "type": "function"
+  },
+  {
+    "constant": false,
+    "inputs": [],
+    "name": "unpause",
     "outputs": [],
     "payable": false,
     "stateMutability": "nonpayable",
@@ -791,6 +856,10 @@
       {
         "name": "",
         "type": "uint8"
+      },
+      {
+        "name": "",
+        "type": "uint256"
       }
     ],
     "payable": false,
