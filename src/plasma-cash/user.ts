@@ -46,6 +46,7 @@ export class User extends Entity {
 
   static async createMetamaskUser(
     web3: Web3,
+    dappchainPrivateKey: string | null,
     plasmaAddress: string,
     dappchainEndpoint: string,
     eventsEndpoint: string,
@@ -56,7 +57,7 @@ export class User extends Entity {
     const signer = provider.getSigner()
     return this.createUser(
       signer,
-      null,
+      dappchainPrivateKey,
       plasmaAddress,
       dappchainEndpoint,
       eventsEndpoint,
@@ -68,7 +69,7 @@ export class User extends Entity {
 
   static async createOfflineUser(
     privateKey: string,
-    dappchainPrivateKey: string,
+    dappchainPrivateKey: string | null,
     endpoint: string,
     plasmaAddress: string,
     dappchainEndpoint: string,
