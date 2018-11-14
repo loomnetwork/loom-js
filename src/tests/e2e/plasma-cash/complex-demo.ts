@@ -163,7 +163,6 @@ export async function complexDemo(t: test.Test) {
 
   currentBlock = await greg.getCurrentBlockAsync()
   greg.transferAndVerifyAsync(coin4, harry.ethAddress)
-  currentBlock = await greg.pollForBlockChange(currentBlock, 20, 2000)
   await fred.depositETHAsync(new BN(10000))
   await sleep(3000)
   t.equal((await fred.getUserCoinsAsync()).length, 7, 'Fred owns 7 coins')
