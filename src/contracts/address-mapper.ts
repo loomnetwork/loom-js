@@ -4,7 +4,9 @@ import { Address } from '../address'
 import {
   AddressMapperAddIdentityMappingRequest,
   AddressMapperGetMappingRequest,
-  AddressMapperGetMappingResponse
+  AddressMapperGetMappingResponse,
+  AddressMapperHasMappingRequest,
+  AddressMapperHasMappingResponse
 } from '../proto/address_mapper_pb'
 import { IEthereumSigner, soliditySha3 } from '../solidity-helpers'
 
@@ -48,6 +50,19 @@ export class AddressMapper extends Contract {
     mappingIdentityRequest.setSignature(sign)
 
     return this.callAsync<void>('AddIdentityMapping', mappingIdentityRequest)
+  }
+
+  async hasMappingAsync(from: Address): Promise<boolean> {
+    const hasMappingRequest = new AddressMapperHasMappingRequest()
+    hasMappingRequest.setFrom(from.MarshalPB())
+
+    const result = await this.staticCallAsync(
+      'GetMapping',
+      hasMappingRequest,
+      new AddressMapperHasMappingResponse()
+    )
+
+    return result.getHasMapping()
   }
 
   async getMappingAsync(from: Address): Promise<IAddressMapping> {

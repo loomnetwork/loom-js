@@ -124,9 +124,7 @@ export class User extends Entity {
       new Address(dAppClient.chainId, LocalAddress.fromPublicKey(pubKey))
     )
     const ethAddress = new Address('eth', LocalAddress.fromHexString(await wallet.getAddress()))
-    try {
-      await addressMapper.getMappingAsync(ethAddress)
-    } catch (e) {
+    if (!(await addressMapper.hasMappingAsync(ethAddress))) {
       // Register our address if it's not found
       await addressMapper.addIdentityMappingAsync(
         ethAddress,
