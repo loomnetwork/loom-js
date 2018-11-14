@@ -57,7 +57,7 @@ export class AddressMapper extends Contract {
     hasMappingRequest.setFrom(from.MarshalPB())
 
     const result = await this.staticCallAsync(
-      'GetMapping',
+      'HasMapping',
       hasMappingRequest,
       new AddressMapperHasMappingResponse()
     )
