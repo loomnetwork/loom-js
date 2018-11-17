@@ -265,7 +265,9 @@ export class User extends Entity {
           }
           if (exists) {
             await this.getPlasmaTxAsync(coin.slot, blk) // this will add the coin to state
-            // TODO: If a new block arrives and we have the coin already in state but are not watching for its exits, e.g. after restarting the client, we need to start watching again.
+            if (this._exitWatchers[coin.slot.toString()] === undefined) {
+              this.watchExit(coin.slot, new BN(await this.web3.eth.getBlockNumber()))
+            }
           } else {
             this.receiveAndWatchCoinAsync(coin.slot)
           }

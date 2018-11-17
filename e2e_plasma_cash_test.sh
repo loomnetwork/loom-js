@@ -152,7 +152,7 @@ trap cleanup EXIT
 
 # Cleanup all database files
 cd $REPO_ROOT
-rm -f *_db
+# rm -f *_db
 
 # Reset the DAppChain again for the JS tests
 init_honest_dappchain
@@ -172,7 +172,7 @@ start_chains
 
 # Cleanup all database files
 cd $REPO_ROOT
-rm -f *_db
+# rm -f *_db
 
 cd $LOOM_DIR
 yarn e2e:plasma-cash:hostile
