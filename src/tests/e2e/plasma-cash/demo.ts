@@ -34,7 +34,6 @@ export async function runDemo(t: test.Test) {
     await alice.depositERC721Async(new BN(COINS[i]), cardsAddress)
   }
 
-  console.log('GETTING DEPOSITS')
   // // Get deposit events for all
   const deposits = await alice.deposits()
   t.equal(deposits.length, ALICE_DEPOSITED_COINS, 'All deposit events accounted for')
