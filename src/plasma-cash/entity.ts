@@ -354,6 +354,7 @@ export class Entity {
       }
       // challenge with the first block after the challengingBlock
       if (blk.gt(new BN(challengingBlockNum))) {
+        console.log(`${this.prefix(slot)} Responding with ${blk}!`)
         await this.respondChallengeBeforeAsync({
           slot,
           challengingTxHash: txHash,

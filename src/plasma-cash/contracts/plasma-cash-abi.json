@@ -481,15 +481,7 @@
         "type": "uint64"
       },
       {
-        "name": "prevTxBytes",
-        "type": "bytes"
-      },
-      {
         "name": "txBytes",
-        "type": "bytes"
-      },
-      {
-        "name": "prevTxInclusionProof",
         "type": "bytes"
       },
       {
@@ -501,8 +493,8 @@
         "type": "bytes"
       },
       {
-        "name": "blocks",
-        "type": "uint256[2]"
+        "name": "blockNumber",
+        "type": "uint256"
       }
     ],
     "name": "challengeBefore",
