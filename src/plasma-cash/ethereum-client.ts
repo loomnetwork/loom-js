@@ -362,31 +362,19 @@ export class EthereumPlasmaClient {
       slot,
       challengingTx,
       challengingBlockNum,
-      prevTx,
-      prevBlockNum,
       from,
       gas,
       gasPrice
     } = params
-    const prevTxBytes = prevTx ? prevTx.rlpEncode() : '0x'
     const challengingTxBytes = challengingTx.rlpEncode()
     const bond = ethers.utils.parseEther('0.1')
 
-    let prevBlk
-    if (prevBlockNum !== undefined) {
-      prevBlk = '0x' + prevBlockNum.toString(16)
-    } else {
-      prevBlk = 0
-    }
-
     return this._plasmaContract.challengeBefore(
       '0x' + slot.toString(16),
-      prevTxBytes,
       challengingTxBytes,
-      prevTx ? prevTx.proof : '0x',
       challengingTx.proof,
       challengingTx.sig,
-      [prevBlk, '0x' + challengingBlockNum.toString(16)],
+      '0x' + challengingBlockNum.toString(16),
       { value: bond, gasLimit: gas }
     )
   }
