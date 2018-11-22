@@ -12,15 +12,12 @@ import { Address, LocalAddress } from '../address'
 import { DAppChainPlasmaClient } from './dappchain-client'
 import { PlasmaCashTx } from './plasma-cash-tx'
 import { EthersSigner } from '../solidity-helpers'
-import { Account } from 'web3/eth/accounts'
 import { PlasmaDB } from './db'
-import Tx from 'ethereumjs-tx'
 const Plasma = require('./contracts/plasma-cash-abi.json')
 const abiDecoder = require('abi-decoder') // NodeJS
 abiDecoder.addABI(Plasma)
 import { ethers } from 'ethers'
 import { hexBN } from '../helpers'
-import Contract from 'web3/eth/contract'
 
 export interface IProofs {
   inclusion: { [blockNumber: string]: string }
@@ -329,9 +326,7 @@ export class Entity {
         await this.challengeBetweenAsync({ slot: slot, challengingBlockNum: blk })
         break
       } else if (blk.lt(exit.prevBlock)) {
-        console.log(
-          `${this.prefix(slot)} Challenge Invalid History! with ${blk}`
-        )
+        console.log(`${this.prefix(slot)} Challenge Invalid History! with ${blk}`)
         await this.challengeBeforeAsync({
           slot: slot,
           challengingBlockNum: blk
@@ -533,10 +528,7 @@ export class Entity {
     })
   }
 
-  async challengeBeforeAsync(params: {
-    slot: BN
-    challengingBlockNum: BN
-  }): Promise<object> {
+  async challengeBeforeAsync(params: { slot: BN; challengingBlockNum: BN }): Promise<object> {
     const { slot, challengingBlockNum } = params
 
     // In case the sender is exiting a Deposit transaction, they should just create a signed
