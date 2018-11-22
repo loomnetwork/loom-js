@@ -329,13 +329,11 @@ export class Entity {
         await this.challengeBetweenAsync({ slot: slot, challengingBlockNum: blk })
         break
       } else if (blk.lt(exit.prevBlock)) {
-        const tx = await this.getPlasmaTxAsync(slot, blk)
         console.log(
-          `${this.prefix(slot)} Challenge Invalid History! with ${tx.prevBlockNum} and ${blk}`
+          `${this.prefix(slot)} Challenge Invalid History! with ${blk}`
         )
         await this.challengeBeforeAsync({
           slot: slot,
-          prevBlockNum: tx.prevBlockNum,
           challengingBlockNum: blk
         })
         break
@@ -356,6 +354,7 @@ export class Entity {
       }
       // challenge with the first block after the challengingBlock
       if (blk.gt(new BN(challengingBlockNum))) {
+        console.log(`${this.prefix(slot)} Responding with ${blk}!`)
         await this.respondChallengeBeforeAsync({
           slot,
           challengingTxHash: txHash,
@@ -536,10 +535,9 @@ export class Entity {
 
   async challengeBeforeAsync(params: {
     slot: BN
-    prevBlockNum: BN
     challengingBlockNum: BN
   }): Promise<object> {
-    const { slot, prevBlockNum, challengingBlockNum } = params
+    const { slot, challengingBlockNum } = params
 
     // In case the sender is exiting a Deposit transaction, they should just create a signed
     // transaction to themselves. There is no need for a merkle proof.
@@ -565,15 +563,10 @@ export class Entity {
     if (!challengingTx) {
       throw new Error(`${this.prefix(slot)} Invalid exit block: missing tx`)
     }
-    const prevTx = await this.getPlasmaTxAsync(slot, challengingBlockNum)
-    if (!prevTx) {
-      throw new Error(`${this.prefix(slot)} Invalid prev block: missing tx`)
-    }
+
     return this._ethPlasmaClient.challengeBeforeAsync({
       slot,
-      prevTx,
       challengingTx,
-      prevBlockNum,
       challengingBlockNum,
       from: this.ethAddress,
       gas: this._defaultGas
