@@ -1,0 +1,1286 @@
+syntax = "proto3";
+
+import "proto/gogo.proto";
+import "proto/loom.proto";
+
+message Account {
+    string user_id             = 1;
+    bool phone_number_verified = 2;
+    bool reward_redeemed       = 3;
+    bool is_kickstarter        = 4;
+    string image               = 5;
+    bool email_notification    = 6;
+    int64 elo_score            = 7;
+    int32 current_tier         = 8;
+    int32 game_membership_tier = 9;
+    bytes owner                = 10;
+}
+
+message Deck {
+    int64 id = 1;
+    string name = 2;
+    int64 hero_id = 3;
+    repeated DeckCard cards = 4;
+    int32 primary_skill = 5;
+    int32 secondary_skill = 6;
+}
+
+message Card {
+    int64 mouldId = 1 [json_name="id"];
+    CardKind.Enum kind = 2;
+    CardSetType.Enum set = 3;
+    string name = 4;
+    string description = 5;
+    string flavor_text = 6;
+    string picture = 7;
+    CreatureRank.Enum rank = 8;
+    CreatureType.Enum type = 9;
+    string frame = 11;
+    int32 attack = 12 [json_name="damage"];
+    int32 defense = 13 [json_name="health"];
+    int32 gooCost = 14 [json_name="cost"];
+    CardViewInfo card_view_info = 16;
+    repeated CardAbility abilities = 17;
+    UniqueAnimationType.Enum unique_animation     = 18;
+}
+
+message CardViewInfo {
+    Vector3Float position   = 1;
+    Vector3Float scale      = 2;
+}
+
+message Vector3Float {
+    float x = 1;
+    float y = 2;
+    float z = 3;
+}
+
+message Vector2Int {
+    int32 x = 1;
+    int32 y = 2;
+}
+
+message Rect {
+    Vector2Int position = 1;
+    Vector2Int size = 2;
+}
+
+message CardList {
+    repeated Card cards = 1;
+}
+
+message CardCollectionCard {
+    string card_name  = 1;
+    int64 amount      = 2;
+}
+
+message DeckCard {
+    string card_name  = 1;
+    int64 amount      = 2;
+}
+
+message CardLibrary {
+    repeated Card cards = 1;
+}
+
+message Hero {
+    int64 hero_id = 1;
+
+    string icon = 2;
+    string name = 3;
+    string short_description = 4;
+    string long_description = 5;
+    CardSetType.Enum element = 6;
+
+    int64 experience = 7;
+    int64 level = 8;
+    repeated Skill skills = 9;
+
+    int32 primary_skill = 10;
+    int32 secondary_skill = 11;
+}
+
+message ListHeroesRequest {
+    string user_id = 1;
+}
+
+message ListHeroesResponse {
+    repeated Hero heroes  = 1;
+}
+
+message AddHeroExperienceRequest {
+    string user_id = 1;
+    int64 hero_id = 2;
+    int64 experience = 3;
+}
+
+message AddHeroExperienceResponse {
+    int64 hero_id = 1;
+    int64 experience = 2;
+}
+
+message GetHeroRequest {
+    string user_id = 1;
+    int64 hero_id = 2;
+}
+
+message GetHeroResponse {
+    Hero hero = 1;
+}
+
+message GetHeroSkillsRequest {
+    string user_id = 1;
+    int64 hero_id = 2;
+}
+
+message GetHeroSkillsResponse {
+    int64 hero_id = 1;
+    repeated Skill skills = 2;
+}
+
+message Skill {
+    string title = 1;
+    OverlordSkillKind.Enum skill = 2;
+    string icon_path = 3;
+    string description = 4;
+    repeated OverlordAbilityTarget.Enum skill_targets = 5;
+    UnitSpecialStatus.Enum targetUnitSpecialStatus = 6;
+    repeated CardSetType.Enum element_targets = 7;
+    int32 value = 8;
+
+    int32 cooldown = 9;
+    int32 initial_cooldown = 10;
+
+    int32 attack = 11;
+    int32 count = 12;
+}
+
+message HeroList {
+    repeated Hero heroes = 1;
+}
+
+message CardCollectionList {
+    repeated CardCollectionCard cards = 1;
+}
+
+message DeckList {
+    repeated Deck decks = 1;
+}
+
+message AIType {
+    enum Enum {
+        UNDEFINED = 0;
+        BLITZ_AI = 1;
+        DEFENSE_AI = 2;
+        MIXED_AI = 3;
+        MIXED_BLITZ_AI = 4;
+        TIME_BLITZ_AI = 5;
+        MIXED_DEFENSE_AI = 6;
+    }
+}
+
+message AIDeck {
+    Deck deck = 1;
+    AIType.Enum type = 2;
+}
+
+message AIDeckList {
+    repeated AIDeck decks = 1;
+}
+
+// Request and Response
+
+message InitRequest {
+    repeated Deck default_decks                = 1;
+    repeated CardCollectionCard default_collection = 2;
+    repeated Card cards                        = 3;
+    repeated Hero heroes                       = 4;
+    repeated AIDeck ai_decks                   = 5;
+    string version                             = 6;
+    Address oracle                             = 7;
+}
+
+message UpdateOracle {
+    Address new_oracle = 1;
+    Address old_oracle = 2;
+}
+
+message UpdateInitRequest {
+    repeated Deck default_decks                = 1;
+    repeated CardCollectionCard default_collection = 2;
+    repeated Card cards                        = 3;
+    repeated Hero heroes                       = 4;
+    repeated AIDeck ai_decks                   = 5;
+    string version                             = 6;
+    Address oracle                             = 7;
+    string oldVersion                          = 8;
+}
+
+message GetInitRequest {
+    string version = 1;
+}
+
+message GetInitResponse {
+    repeated Deck default_decks                = 1;
+    repeated CardCollectionCard default_collection = 2;
+    repeated Card cards                        = 3;
+    repeated Hero heroes                       = 4;
+    repeated Hero default_heroes               = 5;
+    repeated AIDeck ai_decks                   = 6;
+    string version                             = 7;
+    Address oracle                             = 8;
+}
+
+message UpdateCardListRequest {
+    repeated Card cards = 1;
+    string version = 2;
+}
+
+message GetCardListRequest {
+    string version = 1;
+}
+
+message GetCardListResponse {
+    repeated Card cards = 1;
+}
+
+message UpsertAccountRequest {
+    string user_id             = 1;
+    bool phone_number_verified = 2;
+    bool reward_redeemed       = 3;
+    bool is_kickstarter        = 4;
+    string image               = 5;
+    bool email_notification    = 6;
+    int64 elo_score            = 7;
+    int32 current_tier         = 8;
+    int32 game_membership_tier = 9;
+    string version = 10;
+}
+
+message GetAccountRequest {
+    string user_id = 1;
+}
+
+message GetDeckRequest {
+    string user_id = 1;
+    int64 deck_id = 2;
+}
+
+message GetDeckResponse {
+    Deck deck = 2;
+}
+
+message CreateDeckRequest {
+    string user_id = 1;
+    Deck deck = 2;
+    string version = 4;
+}
+
+message CreateDeckResponse {
+    int64 deck_id = 1;
+}
+
+message DeleteDeckRequest {
+    string user_id = 1;
+    int64 deck_id = 2;
+}
+
+message EditDeckRequest {
+    string user_id = 1;
+    Deck deck      = 2;
+    string version = 4;
+}
+
+message DecksResponse {
+    string user_id = 1;
+    repeated Deck decks = 2;
+}
+
+message ListDecksRequest {
+    string user_id = 1;
+}
+
+message ListDecksResponse {
+    repeated Deck decks = 1;
+}
+
+message SetAIDecksRequest {
+    string version = 1;
+    repeated AIDeck decks = 2;
+}
+
+message GetAIDecksRequest {
+    string version = 1;
+}
+
+message GetAIDecksResponse {
+    repeated AIDeck decks = 1;
+}
+
+message ListCardLibraryRequest {
+    string version = 1;
+}
+
+message ListCardLibraryResponse {
+    repeated Card cards = 1;
+}
+
+message ListHeroLibraryRequest {
+    string version = 1;
+}
+
+message ListHeroLibraryResponse {
+    repeated Hero heroes  = 1;
+}
+
+message UpdateHeroLibraryRequest {
+    string version = 1;
+    repeated Hero heroes  = 2;
+}
+
+message UpdateHeroLibraryResponse {
+}
+
+message GetCollectionRequest {
+    string user_id = 1;
+}
+
+message GetCollectionResponse {
+    repeated CardCollectionCard cards = 1;
+}
+
+//////////// Match Making /////////////
+
+message PlayerState {
+    string id = 1;
+    PlayerActionType.Enum currentAction = 2;
+    OverlordInstance overlordInstance = 3;
+    repeated CardInstance cardsInHand = 4;
+    repeated CardInstance cardsInPlay = 5;
+    repeated CardInstance cardsInDeck = 6;
+    Deck deck  = 7;
+    int32 defense   = 8;
+    int32 currentGoo = 9;
+    int32 gooVials = 10;
+    bool hasDrawnCard = 11;
+    repeated CardInstance cardsInGraveyard = 12;
+    int32 initialCardsInHandCount = 13;
+    int32 maxCardsInPlay = 14;
+    int32 maxCardsInHand = 15;
+    int32 maxGooVials = 16;
+    int32 turnTime = 17;
+    bool matchAccepted = 18;
+}
+
+message Match {
+    int64 id = 1;
+    repeated string topics = 2;
+
+    // TODO: this data is not used by the client, but is still sent.
+    // Perhaps we can split Match into MatchMetadata and MatchInitialPlayerState
+    repeated PlayerState playerStates = 3;
+    enum Status {
+        Created      = 0;
+        Matching     = 1;
+        Started      = 2;
+        Playing      = 3;
+        PlayerLeft   = 4;
+        Ended        = 5;
+        Timedout     = 6;
+        Canceled     = 7;
+    }
+    Status status = 4;
+    string version = 5;
+    int64 randomSeed = 6;
+    Address customGameAddr = 7;
+    int64 createdAt = 8;
+}
+
+message MatchMakingInfoList {
+    repeated MatchMakingInfo infos = 1;
+}
+
+message MatchMakingInfo {
+    string userId = 1;
+    Deck deck = 2;
+}
+
+message PlayerActionType {
+    enum Enum {
+        None = 0;
+        EndTurn = 1;
+        Mulligan = 2;
+        DrawCard = 3;
+        CardPlay = 4;
+        CardAttack = 5;
+        CardAbilityUsed = 6;
+        OverlordSkillUsed = 7;
+        CoinToss = 8;
+        InitHands = 9;
+        LeaveMatch = 10;
+        RankBuff = 11;
+    }
+}
+
+message PlayerAction {
+    PlayerActionType.Enum actionType = 1; // not sure we really need this
+    string playerId = 2;
+    oneof action {
+        PlayerActionCardAttack cardAttack               = 3;
+        PlayerActionDrawCard drawCard                   = 4;
+        PlayerActionEndTurn endTurn                     = 5;
+        PlayerActionMulligan mulligan                   = 6;
+        PlayerActionCardPlay cardPlay                   = 7;
+        PlayerActionCardAbilityUsed cardAbilityUsed     = 8;
+        PlayerActionOverlordSkillUsed overlordSkillUsed = 9;
+        PlayerActionLeaveMatch leaveMatch               = 12;
+        PlayerActionRankBuff rankBuff                   = 13;
+    };
+    int64 createdAt = 15; // timestamp
+}
+
+message PlayerActionEvent {
+    PlayerAction playerAction = 1;
+    Match match = 2;
+    History block = 3;
+}
+
+message PlayerProfile {
+    string userId = 1;
+    int64 deckId  = 2;
+    string version = 3;
+    Address customGame = 5;
+    int64 updatedAt = 6;
+    repeated string tags = 7;
+    int64 randomSeed = 8;
+}
+
+message PlayerPool {
+    repeated PlayerProfile playerProfiles = 1;
+}
+
+message MatchCount {
+    int64 currentId = 1;
+}
+
+message RegisterPlayerPoolRequest {
+    string userId = 1;
+    int64 deckId  = 2;
+    string version = 3;
+    Address customGame = 4;
+    int64 randomSeed = 5;
+    repeated string tags = 6;
+}
+
+message RegisterPlayerPoolResponse {
+}
+
+// TODO: remove this
+message PlayerPoolRequest {}
+message PlayerPoolResponse {
+    PlayerPool pool = 1;
+}
+
+message FindMatchRequest {
+    string userId = 1;
+    repeated string tags = 2;
+}
+
+message FindMatchResponse {
+    Match match = 1;
+}
+
+message AcceptMatchRequest {
+    string userId = 1;
+    int64 matchId = 2;
+}
+
+message AcceptMatchResponse {
+    Match match = 1;
+    History block = 2;
+}
+
+message DebugFindMatchRequest {
+    string userId = 1;
+    int64 deckId  = 2;
+    string version = 3;
+    int64 randomSeed = 4;
+    Address customGame = 5;
+    Deck deck = 6;
+    repeated string tags = 7;
+}
+
+message CancelFindMatchRequest {
+    string userId = 1;
+    int64 matchId = 2;
+    repeated string tags = 3;
+}
+
+message CancelFindMatchResponse {
+}
+
+message GetMatchRequest {
+    int64 matchId = 1;
+}
+
+message GetMatchResponse {
+    Match match         = 1;
+}
+
+message SetMatchRequest {
+    Match match         = 1;
+}
+
+message GetGameStateRequest {
+    int64 matchId = 1;
+}
+
+message GetGameStateResponse {
+    GameState gameState = 1;
+}
+
+message SetGameStateRequest {
+    GameState gameState = 1;
+}
+
+message PlayerActionRequest {
+    int64 matchId = 1;
+    PlayerAction playerAction = 2;
+}
+
+message PlayerActionResponse {
+    GameState gameState = 1;
+    Match match = 2;
+}
+
+message BundlePlayerActionRequest {
+    int64 matchId = 1;
+    repeated PlayerAction playerActions = 2;
+}
+
+message BundlePlayerActionResponse {
+    GameState gameState = 1;
+    Match match = 2;
+    repeated HistoryData history = 3;
+}
+
+message EndMatchRequest {
+    int64 matchId   = 1;
+    string userId   = 2;
+    string winnerId = 3;
+}
+
+message EndMatchResponse {
+    GameState gameState = 1;
+}
+
+message CheckGameStatusRequest {
+    int64 matchId = 1;
+}
+
+message CheckGameStatusResponse {
+}
+
+// Game Modes
+
+message GameMode {
+    string ID = 1;
+    string name = 2;
+    string description = 3;
+    string version = 4;
+    GameModeType game_mode_type = 5;
+    Address address = 6;
+    Address Owner = 7;
+}
+
+message GameModeList {
+    repeated GameMode game_modes = 1;
+}
+
+enum GameModeType {
+    Community = 0;
+    Loom = 1;
+}
+
+message GameModeRequest {
+    string name = 1;
+    string description = 2;
+    string version = 3;
+    string address = 4;
+    GameModeType game_mode_type = 5;
+    string oracle = 6;
+}
+
+message UpdateGameModeRequest {
+    string ID = 1;
+    string name = 2;
+    string description = 3;
+    string version = 4;
+    string address = 5;
+    GameModeType game_mode_type = 6;
+    string oracle = 7;
+}
+
+message DeleteGameModeRequest {
+    string ID = 1;
+    string oracle = 2;
+}
+
+message GetGameModeRequest {
+    string ID = 1;
+}
+
+message ListGameModesRequest {
+}
+
+message GetCustomGameModeCustomUiRequest {
+    Address address = 1;
+}
+
+message GetCustomGameModeCustomUiResponse {
+    repeated CustomGameModeCustomUiElement uiElements = 1;
+}
+
+message CallCustomGameModeFunctionRequest {
+    Address address = 1;
+    bytes callData = 2;
+}
+
+message StaticCallCustomGameModeFunctionResponse {
+    bytes output = 1;
+}
+
+message CustomGameModeCustomUiLabel {
+    string text = 1;
+}
+
+message CustomGameModeCustomUiButton {
+    string title = 1;
+    bytes callData = 2;
+}
+
+message CustomGameModeCustomUiElement {
+    Rect rect = 1;
+    oneof uiElement {
+        CustomGameModeCustomUiLabel label = 2;
+        CustomGameModeCustomUiButton button = 3;
+    }
+}
+
+//////////////// GAME PLAY //////////////////
+
+// C# interfaces converted
+
+message UniqueAnimationType
+{
+    enum Enum {
+        None = 0;
+        ShammannArrival = 1;
+    }
+}
+
+message CardAbilityTarget {
+    enum Enum {
+        NONE = 0 [(gogoproto.enumvalue_customname) = "None"];
+        PLAYER = 1 [(gogoproto.enumvalue_customname) = "Player"];
+        PLAYER_CARD = 2 [(gogoproto.enumvalue_customname) = "PlayerCard"];
+        PLAYER_ALL_CARDS = 3 [(gogoproto.enumvalue_customname) = "PlayerAllCards"];
+        OPPONENT = 4 [(gogoproto.enumvalue_customname) = "Opponent"];
+        OPPONENT_CARD = 5 [(gogoproto.enumvalue_customname) = "OpponentCard"];
+        OPPONENT_ALL_CARDS = 6 [(gogoproto.enumvalue_customname) = "OpponentAllCards"];
+        ALL_CARDS = 7 [(gogoproto.enumvalue_customname) = "AllCards"];
+        ALL = 8 [(gogoproto.enumvalue_customname) = "All"];
+        ITSELF = 9 [(gogoproto.enumvalue_customname) = "Itself"];
+    }
+}
+
+message OverlordAbilityTarget {
+    enum Enum {
+        NONE = 0 [(gogoproto.enumvalue_customname) = "None"];
+        PLAYER = 1 [(gogoproto.enumvalue_customname) = "Player"];
+        PLAYER_CARD = 2 [(gogoproto.enumvalue_customname) = "PlayerCard"];
+        PLAYER_ALL_CARDS = 3 [(gogoproto.enumvalue_customname) = "PlayerAllCards"];
+        OPPONENT = 4 [(gogoproto.enumvalue_customname) = "Opponent"];
+        OPPONENT_CARD = 5 [(gogoproto.enumvalue_customname) = "OpponentCard"];
+        OPPONENT_ALL_CARDS = 6 [(gogoproto.enumvalue_customname) = "OpponentAllCards"];
+        ALL_CARDS = 7 [(gogoproto.enumvalue_customname) = "AllCards"];
+    }
+}
+
+message GameMechanicDescriptionType
+{
+    enum Enum {
+        UNDEFINED = 0 [(gogoproto.enumvalue_customname) = "Undefined"];
+        ATTACK = 1 [(gogoproto.enumvalue_customname) = "Attack"];
+        DEATH = 2 [(gogoproto.enumvalue_customname) = "Death"];
+        DELAYED = 3 [(gogoproto.enumvalue_customname) = "DelayedX"];
+        DESTROY = 4 [(gogoproto.enumvalue_customname) = "Destroy"];
+        DEVOUR = 5 [(gogoproto.enumvalue_customname) = "Devour"];
+        DISTRACT = 6 [(gogoproto.enumvalue_customname) = "Distract"];
+        END = 7 [(gogoproto.enumvalue_customname) = "End"];
+        ENTRY = 8 [(gogoproto.enumvalue_customname) = "Entry"];
+        FERAL = 9 [(gogoproto.enumvalue_customname) = "Feral"];
+        FLASH = 10 [(gogoproto.enumvalue_customname) = "Flash"];
+        FREEZE = 11 [(gogoproto.enumvalue_customname) = "Freeze"];
+        GUARD = 12 [(gogoproto.enumvalue_customname) = "Guard"];
+        HEAVY = 13 [(gogoproto.enumvalue_customname) = "Heavy"];
+        OVERFLOW = 14 [(gogoproto.enumvalue_customname) = "OverflowX"];
+        RAGE = 15 [(gogoproto.enumvalue_customname) = "RageX"];
+        REANIMATE = 16 [(gogoproto.enumvalue_customname) = "Reanimate"];
+        SHATTER = 17 [(gogoproto.enumvalue_customname) = "Shatter"];
+        SWING = 18 [(gogoproto.enumvalue_customname) = "SwingX"];
+        TURN = 19 [(gogoproto.enumvalue_customname) = "Turn"];
+        GOT_DAMAGE = 20 [(gogoproto.enumvalue_customname) = "GotDamage"];
+        AT_DEFENSE = 21 [(gogoproto.enumvalue_customname) = "AtDefense"];
+        IN_HAND = 22 [(gogoproto.enumvalue_customname) = "InHand"];
+        KILL_UNIT = 23 [(gogoproto.enumvalue_customname) = "KillUnit"];
+        PERMANENT = 24 [(gogoproto.enumvalue_customname) = "Permanent"];
+    }
+}
+
+message AttackRestriction {
+    enum Enum {
+        ANY = 0 [(gogoproto.enumvalue_customname) = "ANY"];
+        ONLY_DIFFERENT = 1 [(gogoproto.enumvalue_customname) = "OnlyNotAttackedByThisUnitInThisTurn"];
+    }
+}
+
+message CardAbilityBuffType {
+    enum Enum {
+        NONE = 0 [(gogoproto.enumvalue_customname) = "None"];
+        GUARD = 1 [(gogoproto.enumvalue_customname) = "Guard"];
+        DEFENCE = 2 [(gogoproto.enumvalue_customname) = "Defence"];
+        HEAVY = 3 [(gogoproto.enumvalue_customname) = "Heavy"];
+        WEAPON = 4 [(gogoproto.enumvalue_customname) = "Weapon"];
+        RUSH = 5 [(gogoproto.enumvalue_customname) = "Rush"];
+        ATTACK = 6 [(gogoproto.enumvalue_customname) = "Attack"];
+        FREEZE = 7 [(gogoproto.enumvalue_customname) = "Freeze"];
+        DAMAGE = 8 [(gogoproto.enumvalue_customname) = "Damage"];
+        HEAL_ALLY = 9 [(gogoproto.enumvalue_customname) = "HealAlly"];
+        DESTROY = 10 [(gogoproto.enumvalue_customname) = "Destroy"];
+        REANIMATE = 11 [(gogoproto.enumvalue_customname) = "Reanimate"];
+    }
+}
+
+message CardAbilityActivityType {
+    enum Enum {
+        UNDEFINED = 0 [(gogoproto.enumvalue_customname) = "Undefined"];
+        PASSIVE = 1 [(gogoproto.enumvalue_customname) = "Passive"];
+        ACTIVE = 2 [(gogoproto.enumvalue_customname) = "Active"];
+    }
+}
+
+message CardAbilityTrigger {
+    enum Enum {
+        UNDEFINED = 0 [(gogoproto.enumvalue_customname) = "Undefined"];
+        TURN = 1 [(gogoproto.enumvalue_customname) = "Turn"];
+        ENTRY = 2 [(gogoproto.enumvalue_customname) = "Entry"];
+        END = 3 [(gogoproto.enumvalue_customname) = "End"];
+        ATTACK = 4 [(gogoproto.enumvalue_customname) = "Attack"];
+        DEATH = 5 [(gogoproto.enumvalue_customname) = "Death"];
+        PERMANENT = 6 [(gogoproto.enumvalue_customname) = "Permanent"];
+        GOT_DAMAGE = 7 [(gogoproto.enumvalue_customname) = "GotDamage"];
+        AT_DEFENCE = 8 [(gogoproto.enumvalue_customname) = "AtDefence"];
+        IN_HAND = 9 [(gogoproto.enumvalue_customname) = "InHand"];
+        KILL_UNIT = 10 [(gogoproto.enumvalue_customname) = "KillUnit"];
+    }
+}
+
+message CardAbilityEffect {
+    enum Enum {
+        NONE = 0 [(gogoproto.enumvalue_customname) = "None"];
+        MASSIVE_WATER_WAVE = 1 [(gogoproto.enumvalue_customname) = "MassiveWaterWave"];
+        MASSIVE_FIRE = 2 [(gogoproto.enumvalue_customname) = "MassiveFire"];
+        MASSIVE_LIGHTNING = 3 [(gogoproto.enumvalue_customname) = "MassiveLightning"];
+        MASSIVE_TOXIC_ALL = 4 [(gogoproto.enumvalue_customname) = "MassiveToxicAll"];
+        TARGET_ROCK = 5 [(gogoproto.enumvalue_customname) = "TargetRock"];
+        TARGET_FIRE = 6 [(gogoproto.enumvalue_customname) = "TargetFire"];
+        TARGET_LIFE = 7 [(gogoproto.enumvalue_customname) = "TargetLife"];
+        TARGET_TOXIC = 8 [(gogoproto.enumvalue_customname) = "TargetToxic"];
+        TARGET_WATER = 9 [(gogoproto.enumvalue_customname) = "TargetWater"];
+        TARGET_ADJUSTMENTS_BOMB = 10 [(gogoproto.enumvalue_customname) = "TargetAdjustmentsBomb"];
+        STUN_FREEZES = 11 [(gogoproto.enumvalue_customname) = "StunFreezes"];
+        STUN_OR_DAMAGE_FREEZES = 12 [(gogoproto.enumvalue_customname) = "StunOrDamageFreezes"];
+        TARGET_ADJUSTMENTS_AIR = 13 [(gogoproto.enumvalue_customname) = "TargetAdjustmentsAir"];
+        HEAL_DIRECTLY = 14 [(gogoproto.enumvalue_customname) = "HealDirectly"];
+        HEAL = 15 [(gogoproto.enumvalue_customname) = "Heal"];
+    }
+}
+
+message CardAbilityType {
+    enum Enum {
+        UNDEFINED = 0 [(gogoproto.enumvalue_customname) = "Undefined"];
+        HEAL = 1 [(gogoproto.enumvalue_customname) = "Heal"];
+        MODIFICATOR_STATS = 2 [(gogoproto.enumvalue_customname) = "ModificatorStats"];
+        CHANGE_STAT = 3 [(gogoproto.enumvalue_customname) = "ChangeStat"];
+        STUN = 4 [(gogoproto.enumvalue_customname) = "Stun"];
+        STUN_OR_DAMAGE_ADJUSTMENTS = 5 [(gogoproto.enumvalue_customname) = "StunOrDamageAdjustments"];
+        SPURT = 6 [(gogoproto.enumvalue_customname) = "Spurt"];
+        ADD_GOO_VIAL = 7 [(gogoproto.enumvalue_customname) = "AddGooVial"];
+        ADD_GOO_CARRIER = 8 [(gogoproto.enumvalue_customname) = "AddGooCarrier"];
+        DOT = 9 [(gogoproto.enumvalue_customname) = "Dot"];
+        SUMMON = 10 [(gogoproto.enumvalue_customname) = "Summon"];
+        SPELL_ATTACK = 11 [(gogoproto.enumvalue_customname) = "SpellAttack"];
+        MASSIVE_DAMAGE = 12 [(gogoproto.enumvalue_customname) = "MassiveDamage"];
+        DAMAGE_TARGET_ADJUSTMENTS = 13 [(gogoproto.enumvalue_customname) = "DamageTargetAdjustments"];
+        DAMAGE_TARGET = 14 [(gogoproto.enumvalue_customname) = "DamageTarget"];
+        CARD_RETURN = 15 [(gogoproto.enumvalue_customname) = "CardReturn"];
+        WEAPON = 16 [(gogoproto.enumvalue_customname) = "Weapon"];
+        CHANGE_STAT_OF_CREATURES_BY_TYPE = 17 [(gogoproto.enumvalue_customname) = "ChangeStatOfCreaturesByType"];
+        ATTACK_NUMBER_OF_TIMES_PER_TURN = 18 [(gogoproto.enumvalue_customname) = "AttackNumberOfTimesPerTurn"];
+        DRAW_CARD = 19 [(gogoproto.enumvalue_customname) = "DrawCard"];
+        DEVOUR_ZOMBIES_AND_COMBINE_STATS = 20 [(gogoproto.enumvalue_customname) = "DevourZombiesAndCombineStats"];
+        DESTROY_UNIT_BY_TYPE = 21 [(gogoproto.enumvalue_customname) = "DestroyUnitByType"];
+        LOWER_COST_OF_CARD_IN_HAND = 22 [(gogoproto.enumvalue_customname) = "LowerCostOfCardInHand"];
+        OVERFLOW_GOO = 23 [(gogoproto.enumvalue_customname) = "OverflowGoo"];
+        LOSE_GOO = 24 [(gogoproto.enumvalue_customname) = "LoseGoo"];
+        DISABLE_NEXT_TURN_GOO = 25 [(gogoproto.enumvalue_customname) = "DisableNextTurnGoo"];
+        RAGE = 26 [(gogoproto.enumvalue_customname) = "Rage"];
+        FREEZE_UNITS = 27 [(gogoproto.enumvalue_customname) = "FreezeUnits"];
+        TAKE_DAMAGE_RANDOM_ENEMY = 28 [(gogoproto.enumvalue_customname) = "TakeDamageRandomEnemy"];
+        TAKE_CONTROL_ENEMY_UNIT = 29 [(gogoproto.enumvalue_customname) = "TakeControlEnemyUnit"];
+        GUARD = 30 [(gogoproto.enumvalue_customname) = "Guard"];
+        DESTROY_FROZEN_UNIT = 31 [(gogoproto.enumvalue_customname) = "DestroyFrozenUnit"];
+        USE_ALL_GOO_TO_INCREASE_STATS = 32 [(gogoproto.enumvalue_customname) = "UseAllGooToIncreaseStats"];
+        FIRST_UNIT_IN_PLAY = 33 [(gogoproto.enumvalue_customname) = "FirstUnitInPlay"];
+        ALLY_UNITS_OF_TYPE_IN_PLAY_GET_STATS = 34 [(gogoproto.enumvalue_customname) = "AllyUnitsOfTypeInPlayGetStats"];
+        DAMAGE_ENEMY_UNITS_AND_FREEZE_THEM = 35 [(gogoproto.enumvalue_customname) = "DamageEnemyUnitsAndFreezeThem"];
+        RETURN_UNITS_ON_BOARD_TO_OWNERS_DECKS = 36 [(gogoproto.enumvalue_customname) = "ReturnUnitsOnBoardToOwnersDecks"];
+        TAKE_UNIT_TYPE_TO_ADJACENT_ALLY_UNITS = 37 [(gogoproto.enumvalue_customname) = "TakeUnitTypeToAdjacentAllyUnits"];
+        ENEMY_THAT_ATTACKS_BECOME_FROZEN = 38 [(gogoproto.enumvalue_customname) = "EnemyThatAttacksBecomeFrozen"];
+        TAKE_UNIT_TYPE_TO_ALLY_UNIT = 39 [(gogoproto.enumvalue_customname) = "TakeUnitTypeToAllyUnit"];
+        REVIVE_DIED_UNITS_OF_TYPE_FROM_MATCH = 40 [(gogoproto.enumvalue_customname) = "ReviveDiedUnitsOfTypeFromMatch"];
+        CHANGE_STAT_UNTILL_END_OF_TURN = 41 [(gogoproto.enumvalue_customname) = "ChangeStatUntilEndOfTurn"];
+        ATTACK_OVERLORD = 42 [(gogoproto.enumvalue_customname) = "AttackOverlord"];
+        ADJACENT_UNITS_GET_HEAVY = 43 [(gogoproto.enumvalue_customname) = "AdjacentUnitsGetHeavy"];
+        FREEZE_NUMBER_OF_RANDOM_ALLY = 44 [(gogoproto.enumvalue_customname) = "FreezeNumberOfRandomAlly"];
+        ADD_CARD_BY_NAME_TO_HAND = 45 [(gogoproto.enumvalue_customname) = "AddCardByNameToHand"];
+        DEAL_DAMAGE_TO_THIS_AND_ADJACENT_UNITS = 46 [(gogoproto.enumvalue_customname) = "DealDamageToThisAndAdjacentUnits"];
+        SWING = 47 [(gogoproto.enumvalue_customname) = "Swing"];
+        TAKE_DEFENSE_IF_OVERLORD_HAS_LESS_DEFENSE_THAN = 48 [(gogoproto.enumvalue_customname) = "TakeDefenseIfOverlordHasLessDefenseThan"];
+        GAIN_NUMBER_OF_LIFE_FOR_EACH_DAMAGE_THIS_DEALS = 49 [(gogoproto.enumvalue_customname) = "GainNumberOfLifeForEachDamageThisDeals"];
+        ADDITIONAL_DAMAGE_TO_HEAVY_IN_ATTACK = 50 [(gogoproto.enumvalue_customname) = "AdditionalDamageToHeavyInAttack"];
+        UNIT_WEAPON = 51 [(gogoproto.enumvalue_customname) = "UnitWeapon"];
+        TAKE_DAMAGE_AT_END_OF_TURN_TO_THIS = 52 [(gogoproto.enumvalue_customname) = "TakeDamageAtEndOfTurnToThis"];
+        DELAYED_LOSE_HEAVY_GAIN_ATTACK = 53 [(gogoproto.enumvalue_customname) = "DelayedLoseHeavyGainAttack"];
+        DELAYED_GAIN_ATTACK = 54 [(gogoproto.enumvalue_customname) = "DelayedGainAttack"];
+        REANIMATE_UNIT = 55 [(gogoproto.enumvalue_customname) = "ReanimateUnit"];
+        PRIORITY_ATTACK = 56 [(gogoproto.enumvalue_customname) = "PriorityAttack"];
+        DESTROY_TARGET_UNIT_AFTER_ATTACK = 57 [(gogoproto.enumvalue_customname) = "DestroyTargetUnitAfterAttack"];
+        COSTS_LESS_IF_CARD_TYPE_IN_HAND = 58 [(gogoproto.enumvalue_customname) = "CostsLessIfCardTypeInHand"];
+        RETURN_UNITS_ON_BOARD_TO_OWNERS_HANDS = 59 [(gogoproto.enumvalue_customname) = "ReturnUnitsOnBoardToOwnersHands"];
+        REPLACE_UNITS_WITH_TYPE_ON_STRONGER_ONES = 60 [(gogoproto.enumvalue_customname) = "ReplaceUnitsWithTypeOnStrongerOnes"];
+        RESTORE_DEF_RANDOMLY_SPLIT = 61 [(gogoproto.enumvalue_customname) = "RestoreDefRandomlySplit"];
+        ADJACENT_UNITS_GET_GUARD = 62 [(gogoproto.enumvalue_customname) = "AdjacentUnitsGetGuard"];
+        SUMMON_UNIT_FROM_HAND = 63 [(gogoproto.enumvalue_customname) = "SummonUnitFromHand"];
+        DAMAGE_AND_DISTRACT_TARGET = 64 [(gogoproto.enumvalue_customname) = "DamageAndDistractTarget"];
+        DRAW_CARD_IF_DAMAGED_ZOMBIE_IN_PLAY = 65 [(gogoproto.enumvalue_customname) = "DrawCardIfDamagedZombieInPlay"];
+        TAKE_STAT_IF_OVERLORD_HAS_LESS_DEFENSE_THAN = 66 [(gogoproto.enumvalue_customname) = "TakeStatIfOverlordHasLessDefenseThan"];
+        DAMAGE_OVERLORD_ON_COUNT_ITEMS_PLAYED = 67 [(gogoproto.enumvalue_customname) = "DamageOverlordOnCountItemsPlayed"];
+        SHUFFLE_THIS_CARD_TO_DECK = 68 [(gogoproto.enumvalue_customname) = "ShuffleThisCardToDeck"];
+        TAKE_DEFENSE_TO_OVERLORD_WITH_DEFENSE = 69 [(gogoproto.enumvalue_customname) = "TakeDefenseToOverlordWithDefense"];
+        PUT_RANDOM_UNIT_FROM_DECK_ON_BOARD = 70 [(gogoproto.enumvalue_customname) = "PutRandomUnitFromDeckOnBoard"];
+        DISTRACT = 71 [(gogoproto.enumvalue_customname) = "Distract"];
+        DAMAGE_TARGET_FREEZE_IT_IF_SURVIVES = 72 [(gogoproto.enumvalue_customname) = "DamageTargetFreezeItIfSurvives"];
+        DESTROY_UNIT_BY_COST = 73 [(gogoproto.enumvalue_customname) = "DestroyUnitByCost"];
+        DAMAGE_ENEMY_OR_RESTORE_DEFENSE_ALLY = 74 [(gogoproto.enumvalue_customname) = "DamageEnemyOrRestoreDefenseAlly"];
+        TAKE_SWING_TO_UNITS = 75 [(gogoproto.enumvalue_customname) = "TakeSwingToUnits"];
+        DELAYED_PLACE_COPIES_IN_PLAY_DESTROY_UNIT = 76 [(gogoproto.enumvalue_customname) = "DelayedPlaceCopiesInPlayDestroyUnit"];
+        ADJACENT_UNITS_GET_STAT = 77 [(gogoproto.enumvalue_customname) = "AdjacentUnitsGetStat"];
+        EXTRA_GOO_IF_UNIT_IN_PLAY = 78 [(gogoproto.enumvalue_customname) = "ExtraGooIfUnitInPlay"];
+        DESTROY_UNITS = 79 [(gogoproto.enumvalue_customname) = "DestroyUnits"];
+        DEAL_DAMAGE_TO_UNIT_AND_SWING = 80 [(gogoproto.enumvalue_customname) = "DealDamageToUnitAndSwing"];
+        SET_ATTACK_AVAILABILITY = 81 [(gogoproto.enumvalue_customname) = "SetAttackAvailability"];
+        CHOOSABLE_ABILITIES = 82 [(gogoproto.enumvalue_customname) = "ChoosableAbilities"];
+        COSTS_LESS_IF_TYPE_CARD_IN_PLAY = 83 [(gogoproto.enumvalue_customname) = "CostsLessIfTypeCardInPlay"];
+    }
+}
+
+message CardAbilitySubTrigger
+{
+    enum Enum {
+        None = 0;
+        OnlyThisUnitInPlay = 1;
+        AllOtherAllyUnitsInPlay = 2;
+        AllAllyUnitsInPlay = 3;
+        RandomUnit = 4;
+        AllEnemyUnitsInPlay = 5;
+        AllAllyUnitsByFactionInPlay = 6;
+        ForEachFactionOfUnitInHand = 7;
+        IfHasUnitsWithFactionInPlay = 8;
+        AllyUnitsByFactionThatCost = 9;
+        YourOverlord = 10;
+    }
+}
+
+message CardKind {
+    enum Enum {
+        UNDEFINED = 0 [(gogoproto.enumvalue_customname) = "Undefined"];
+        CREATURE = 1 [(gogoproto.enumvalue_customname) = "Creature"];
+        SPELL    = 2 [(gogoproto.enumvalue_customname) = "Spell"];
+    }
+}
+
+message AffectObjectType {
+    enum Enum {
+        NONE = 0 [(gogoproto.enumvalue_customname) = "None"];
+        PLAYER = 1 [(gogoproto.enumvalue_customname) = "Player"];
+        CHARACTER = 2 [(gogoproto.enumvalue_customname) = "Character"];
+        CARD      = 3 [(gogoproto.enumvalue_customname) = "Card"];
+    }
+}
+
+message CreatureRank {
+    enum Enum {
+        UNDEFINED = 0 [(gogoproto.enumvalue_customname) = "Undefined"];
+        MINION = 1 [(gogoproto.enumvalue_customname) = "Minion"];
+        OFFICER = 2 [(gogoproto.enumvalue_customname) = "Officer"];
+        COMMANDER = 3 [(gogoproto.enumvalue_customname) = "Commander"];
+        GENERAL = 4 [(gogoproto.enumvalue_customname) = "General"];
+    }
+}
+
+message CreatureType {
+    enum Enum {
+        NONE = 0 [(gogoproto.enumvalue_customname) = "None"];
+        WALKER = 1 [(gogoproto.enumvalue_customname) = "Walker"];
+        FERAL = 2 [(gogoproto.enumvalue_customname) = "Feral"];
+        HEAVY = 3 [(gogoproto.enumvalue_customname) = "Heavy"];
+    }
+}
+
+message CardSetType {
+    enum Enum {
+        NONE = 0 [(gogoproto.enumvalue_customname) = "None"];
+        FIRE = 1 [(gogoproto.enumvalue_customname) = "Fire"];
+        WATER = 2 [(gogoproto.enumvalue_customname) = "Water"];
+        EARTH = 3 [(gogoproto.enumvalue_customname) = "Earth"];
+        AIR = 4 [(gogoproto.enumvalue_customname) = "Air"];
+        LIFE = 5 [(gogoproto.enumvalue_customname) = "Life"];
+        TOXIC = 6 [(gogoproto.enumvalue_customname) = "Toxic"];
+        ITEM = 7 [(gogoproto.enumvalue_customname) = "Item"];
+        OTHERS = 8 [(gogoproto.enumvalue_customname) = "Others"];
+    }
+}
+
+message GameState {
+    int64 id                            = 1;
+    bool isEnded                        = 2;
+    int32 currentPlayerIndex            = 3;
+    repeated PlayerState playerStates   = 4;
+    int64 currentActionIndex            = 5;
+    repeated PlayerAction playerActions = 6;
+    int64 randomSeed                    = 7;
+    string winner                       = 8;
+    string version                      = 9;
+    int64 createdAt                     = 10;
+}
+
+message CardChoosableAbility {
+    string description = 1;
+    CardAbility ability_data = 2;
+}
+
+message CardAbility {
+    CardAbilityType.Enum type = 1;
+    CardAbilityActivityType.Enum activityType = 2 [json_name="activity_type"];
+    CardAbilityTrigger.Enum trigger = 3 [json_name="call_type"];
+    repeated CardAbilityTarget.Enum targetTypes = 4 [json_name = "target_type"];
+    StatType.Enum stat = 5 [json_name="stat_type"];
+    CardSetType.Enum set = 6 [json_name="set_type"];
+    CardAbilityEffect.Enum effect = 7 [json_name="effect_type"];
+    AttackRestriction.Enum attackRestriction = 8 [json_name="attack_restriction"];
+    CreatureType.Enum targetCardType = 9 [json_name="card_type"];
+    UnitSpecialStatus.Enum targetUnitSpecialStatus = 10 [json_name="unit_status"];
+    CreatureType.Enum targetUnitType = 11 [json_name="unit_type"];
+    int32 value = 12;
+    int32 attack = 13 [json_name="damage"];
+    int32 defense = 14 [json_name="health"]; // FIXME: Health in client code
+    string name = 15;
+    int32 turns = 16;
+    int32 count = 17;
+    int32 delay = 18;
+    repeated VisualEffectInfo VisualEffectsToPlay = 19;
+    GameMechanicDescriptionType.Enum gameMechanicDescriptionType = 20 [json_name = "mechanic_description_type"];
+    CardSetType.Enum target_set = 21;
+    CardAbilitySubTrigger.Enum sub_trigger = 22;
+    repeated CardChoosableAbility choosable_abilities = 23;
+    int32 defense2 = 24 [json_name="defense"]; // FIXME: Defense in client code
+    int32 cost = 25;
+
+    message VisualEffectInfo {
+        enum VisualEffectType {
+            Undefined = 0;
+            Impact = 1;
+            Moving = 2;
+        }
+
+        VisualEffectType Type = 1;
+        string Path = 2;
+    }
+}
+
+message CardInstance {
+    Card prototype = 1;
+    int32 instanceId = 2;
+    Card instance = 3;
+    string owner = 4;
+}
+
+message DataIdOwner {
+    int32 dataId = 1;
+}
+
+// (interface IDeck)
+message CardDeck {
+    repeated Card cards = 1;
+}
+
+message InstanceIdOwner {
+    int32 instanceId = 1;
+}
+
+message OverlordInstance {
+    int32 instanceId = 1;
+    OverlordPrototype prototype = 2;
+    OverlordSkillInstance firstSkill = 3;
+    OverlordSkillInstance secondSkill = 4;
+    int32 defense = 5;
+    int32 goo = 6;
+    int32 maxGoo = 7;
+}
+
+message OverlordPrototype {
+    int32 heroId = 1;
+    string icon = 2;
+    string name = 3;
+    string shortDescription = 4;
+    string longDescription = 5;
+    int32 experience = 6;
+    int32 level = 7;
+    CardSetType.Enum element = 8;
+    repeated OverlordSkillPrototype skills = 9;
+}
+
+message OverlordSkillInstance {
+    OverlordSkillPrototype prototype = 1;
+    int32 cooldown = 2;
+}
+
+message OverlordSkillPrototype {
+    string title = 1;
+    string skill = 2;
+    string iconPath = 3;
+    string description = 4;
+    int32 cooldown = 5;
+    int32 initialCooldown = 6;
+    int32 parameter = 7;
+    int32 attack = 8;
+    OverlordSkillKind.Enum overlordSkillKind = 9;
+    repeated OverlordAbilityTarget.Enum skillTargetTypes = 10;
+    repeated CardSetType.Enum elementTargetTypes = 11;
+}
+
+message PlayerActionLeaveMatch {
+}
+
+message PlayerActionCardPlay {
+    CardInstance card = 1;
+    int32 position = 2;
+}
+
+message PlayerActionRankBuff {
+    CardInstance card = 1;
+    repeated Unit targets = 2;
+}
+
+message PlayerActionCardAttack {
+    CardInstance attacker = 1;
+    AffectObjectType.Enum affectObjectType = 2;
+    Unit target = 3;
+}
+
+message PlayerActionCardAbilityUsed {
+    CardInstance card = 1;
+    CardKind.Enum cardKind = 2;
+    repeated Unit targets = 3;
+    string AbilityType = 4;
+}
+
+message PlayerActionOverlordSkillUsed {
+    int64 SkillId = 1;
+    AffectObjectType.Enum affectObjectType = 2;
+    Unit target = 3;
+}
+
+message PlayerActionDrawCard {
+    CardInstance cardInstance = 2;
+}
+
+message PlayerActionEndTurn  {
+}
+
+message PlayerActionMulligan {
+    repeated CardInstance mulliganedCards = 1;
+}
+
+message PlayerActionOutcome {
+    string playerId = 1;
+    GameState gameState = 2;
+}
+
+message StartGameAction {
+    repeated PlayerState playerStates = 1;
+}
+
+message Unit {
+    int32 instanceId = 1;
+    AffectObjectType.Enum affectObjectType = 2;
+    Parameter Parameter = 3;
+}
+
+message Parameter {
+    int32 Attack  = 1;
+    int32 Defense = 2;
+    string CardName = 3;
+}
+
+message OverlordSkillKind {
+    enum Enum {
+        NONE = 0 [(gogoproto.enumvalue_customname) = "None"];
+
+        // AIR
+        PUSH = 1 [(gogoproto.enumvalue_customname) = "Push"];
+        DRAW = 2 [(gogoproto.enumvalue_customname) = "Draw"];
+        WIND_SHIELD = 3 [(gogoproto.enumvalue_customname) = "WindShield"];
+        LEVITATE = 4 [(gogoproto.enumvalue_customname) = "WindWall"];
+        RETREAT = 5 [(gogoproto.enumvalue_customname) = "Retreat"];
+
+        // EARTH
+        HARDEN = 6 [(gogoproto.enumvalue_customname) = "Harden"];
+        STONE_SKIN = 7 [(gogoproto.enumvalue_customname) = "StoneSkin"];
+        FORTIFY = 8 [(gogoproto.enumvalue_customname) = "Fortify"];
+        PHALANX = 9 [(gogoproto.enumvalue_customname) = "Phalanx"];
+        FORTRESS = 10 [(gogoproto.enumvalue_customname) = "Fortress"];
+
+        // FIRE
+        FIRE_BOLT = 11 [(gogoproto.enumvalue_customname) = "FireBolt"];
+        RABIES = 12 [(gogoproto.enumvalue_customname) = "Rabies"];
+        FIREBALL = 13 [(gogoproto.enumvalue_customname) = "Fireball"];
+        MASS_RABIES = 14 [(gogoproto.enumvalue_customname) = "MassRabies"];
+        METEOR_SHOWER = 15 [(gogoproto.enumvalue_customname) = "MeteorShower"];
+
+        // LIFE
+        HEALING_TOUCH = 16 [(gogoproto.enumvalue_customname) = "HealingTouch"];
+        MEND = 17 [(gogoproto.enumvalue_customname) = "Mend"];
+        RESSURECT = 18 [(gogoproto.enumvalue_customname) = "Ressurect"];
+        ENHANCE = 19 [(gogoproto.enumvalue_customname) = "Enhance"];
+        REANIMATE = 20 [(gogoproto.enumvalue_customname) = "Reanimate"];
+
+        // TOXIC
+        POISON_DART = 21 [(gogoproto.enumvalue_customname) = "PoisonDart"];
+        TOXIC_POWER = 22 [(gogoproto.enumvalue_customname) = "ToxicPower"];
+        BREAKOUT = 23 [(gogoproto.enumvalue_customname) = "Breakout"];
+        INFECT = 24 [(gogoproto.enumvalue_customname) = "Infect"];
+        EPIDEMIC = 25 [(gogoproto.enumvalue_customname) = "Epidemic"];
+
+        // WATER
+        FREEZE = 26 [(gogoproto.enumvalue_customname) = "Freeze"];
+        ICE_BOLT = 27 [(gogoproto.enumvalue_customname) = "IceBolt"];
+        ICE_WALL = 28 [(gogoproto.enumvalue_customname) = "IceWall"];
+        SHATTER = 29 [(gogoproto.enumvalue_customname) = "Shatter"];
+        BLIZZARD = 30 [(gogoproto.enumvalue_customname) = "Blizzard"];
+    }
+}
+
+enum OverlordSkillSelectionType {
+    Primary = 0;
+    Secondary = 1;
+}
+
+message StatType {
+    enum Enum {
+        UNDEFINED = 0 [(gogoproto.enumvalue_customname) = "Undefined"];
+        HEALTH = 1 [(gogoproto.enumvalue_customname) = "Defense"];
+        DAMAGE = 2 [(gogoproto.enumvalue_customname) = "Attack"];
+    }
+}
+
+message UnitSpecialStatus {
+    enum Enum {
+        NONE = 0 [(gogoproto.enumvalue_customname) = "None"];
+        FROZEN = 1 [(gogoproto.enumvalue_customname) = "Frozen"];
+    }
+}
+
+// Replay
+
+message GameReplay {
+    repeated PlayerAction actions = 5;
+    repeated HistoryData blocks   = 6;
+}
+
+message Player {
+    string id = 1;
+    Deck deck = 2; // TODO Change to card instance
+}
+
+message Zone {
+    enum type {
+        PLAY = 0;
+        DECK = 1;
+        HAND = 2;
+        GRAVEYARD = 3;
+        REMOVEFROMGAME = 4;
+        SETASIDE = 5;
+        SECRET = 6;
+    }
+}
+
+message History {
+    repeated HistoryData list = 1;
+}
+
+message HistoryData {
+    oneof data {
+        HistoryCreateGame createGame = 1;
+        HistoryFullInstance fullInstance = 2;
+        HistoryInstance showInstance = 3;
+        HistoryHide hideInstance = 4;
+        HistoryInstance changeInstance = 5;
+        HistoryEndGame endGame = 6;
+    }
+}
+
+message HistoryCreateGame {
+    int64 gameId = 1;
+    repeated Player players = 2;
+    int64 randomSeed = 3;
+    string version = 4;
+}
+
+message HistoryFullInstance {
+    int32 instanceId = 1;
+    int32 attack = 2;
+    int32 defense = 3;
+}
+
+message HistoryInstance {
+    int32 instanceId = 1;
+    int32 value = 2;
+    enum change {
+        Attack = 0;
+        Defense = 1;
+    }
+}
+
+message HistoryHide {
+    int32 instanceId = 1;
+    Zone zone = 2;
+}
+
+message HistoryEndGame {
+    int64 matchId   = 1;
+    string userId   = 2;
+    string winnerId = 3;
+}
