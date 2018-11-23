@@ -98,7 +98,7 @@ export class OfflineWeb3Signer implements IEthereumSigner {
 
   /**
    * @param web3 Web3 instance to use for signing.
-   * @param accountAddress Address of web3 account to sign with.
+   * @param account Web3 account to sign with.
    */
   constructor(web3: Web3, account: any) {
     this._web3 = web3
