@@ -276,7 +276,9 @@ export class EthereumPlasmaClient {
    */
   cancelExitsAsync(params: IPlasmaCancelExitsParams): Promise<object> {
     const { slots, from, gas, gasPrice } = params
-    return this._plasmaContract.cancelExits(slots.map(s => '0x' + s.toString(16)), { gasLimit: gas })
+    return this._plasmaContract.cancelExits(slots.map(s => '0x' + s.toString(16)), {
+      gasLimit: gas
+    })
   }
 
   /**
@@ -294,7 +296,9 @@ export class EthereumPlasmaClient {
    */
   finalizeExitsAsync(params: IPlasmaFinalizeExitsParams): Promise<object> {
     const { slots, from, gas, gasPrice } = params
-    return this._plasmaContract.finalizeExits(slots.map(s => '0x' + s.toString(16)), { gasLimit: gas })
+    return this._plasmaContract.finalizeExits(slots.map(s => '0x' + s.toString(16)), {
+      gasLimit: gas
+    })
   }
 
   /**
@@ -358,14 +362,7 @@ export class EthereumPlasmaClient {
    * @returns Web3 tx receipt object.
    */
   challengeBeforeAsync(params: IPlasmaChallengeBeforeParams): Promise<object> {
-    const {
-      slot,
-      challengingTx,
-      challengingBlockNum,
-      from,
-      gas,
-      gasPrice
-    } = params
+    const { slot, challengingTx, challengingBlockNum, from, gas, gasPrice } = params
     const challengingTxBytes = challengingTx.rlpEncode()
     const bond = ethers.utils.parseEther('0.1')
 
