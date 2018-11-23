@@ -1,7 +1,6 @@
 import ethutil from 'ethereumjs-util'
 import Web3 from 'web3'
 import { ethers } from 'ethers'
-import { Account } from 'web3/eth/accounts'
 
 const web3 = new Web3()
 
@@ -95,13 +94,13 @@ export class Web3Signer implements IEthereumSigner {
  */
 export class OfflineWeb3Signer implements IEthereumSigner {
   private _web3: Web3
-  private _account: Account
+  private _account: any
 
   /**
    * @param web3 Web3 instance to use for signing.
    * @param accountAddress Address of web3 account to sign with.
    */
-  constructor(web3: Web3, account: Account) {
+  constructor(web3: Web3, account: any) {
     this._web3 = web3
     this._account = account
   }
