@@ -140,13 +140,15 @@ export class User extends Entity {
       database,
       contractName: User._contractName
     })
+
+    const defaultAccount = await wallet.getAddress()
+
     return new User(
       wallet,
       {
         ethPlasmaClient,
         dAppPlasmaClient,
-        // @ts-ignore
-        defaultAccount: wallet.address,
+        defaultAccount,
         defaultGas: 3141592,
         childBlockInterval: 1000
       },
