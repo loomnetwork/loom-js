@@ -52,25 +52,6 @@
   },
   {
     "constant": true,
-    "inputs": [
-      {
-        "name": "",
-        "type": "uint256"
-      }
-    ],
-    "name": "exitSlots",
-    "outputs": [
-      {
-        "name": "",
-        "type": "uint64"
-      }
-    ],
-    "payable": false,
-    "stateMutability": "view",
-    "type": "function"
-  },
-  {
-    "constant": true,
     "inputs": [],
     "name": "currentBlock",
     "outputs": [
@@ -205,6 +186,11 @@
         "indexed": false,
         "name": "txHash",
         "type": "bytes32"
+      },
+      {
+        "indexed": false,
+        "name": "challengingBlockNumber",
+        "type": "uint256"
       }
     ],
     "name": "ChallengedExit",
@@ -220,6 +206,23 @@
       }
     ],
     "name": "RespondedExitChallenge",
+    "type": "event"
+  },
+  {
+    "anonymous": false,
+    "inputs": [
+      {
+        "indexed": true,
+        "name": "slot",
+        "type": "uint64"
+      },
+      {
+        "indexed": true,
+        "name": "owner",
+        "type": "address"
+      }
+    ],
+    "name": "CoinReset",
     "type": "event"
   },
   {
@@ -300,8 +303,13 @@
     "inputs": [
       {
         "indexed": true,
-        "name": "from",
+        "name": "owner",
         "type": "address"
+      },
+      {
+        "indexed": true,
+        "name": "slot",
+        "type": "uint64"
       },
       {
         "indexed": false,
@@ -328,8 +336,24 @@
     "type": "event"
   },
   {
+    "anonymous": false,
+    "inputs": [
+      {
+        "indexed": false,
+        "name": "status",
+        "type": "bool"
+      }
+    ],
+    "name": "Paused",
+    "type": "event"
+  },
+  {
     "constant": false,
     "inputs": [
+      {
+        "name": "blockNumber",
+        "type": "uint256"
+      },
       {
         "name": "root",
         "type": "bytes32"
@@ -395,8 +419,41 @@
   },
   {
     "constant": false,
-    "inputs": [],
+    "inputs": [
+      {
+        "name": "slots",
+        "type": "uint64[]"
+      }
+    ],
     "name": "finalizeExits",
+    "outputs": [],
+    "payable": false,
+    "stateMutability": "nonpayable",
+    "type": "function"
+  },
+  {
+    "constant": false,
+    "inputs": [
+      {
+        "name": "slot",
+        "type": "uint64"
+      }
+    ],
+    "name": "cancelExit",
+    "outputs": [],
+    "payable": false,
+    "stateMutability": "nonpayable",
+    "type": "function"
+  },
+  {
+    "constant": false,
+    "inputs": [
+      {
+        "name": "slots",
+        "type": "uint64[]"
+      }
+    ],
+    "name": "cancelExits",
     "outputs": [],
     "payable": false,
     "stateMutability": "nonpayable",
@@ -424,15 +481,7 @@
         "type": "uint64"
       },
       {
-        "name": "prevTxBytes",
-        "type": "bytes"
-      },
-      {
         "name": "txBytes",
-        "type": "bytes"
-      },
-      {
-        "name": "prevTxInclusionProof",
         "type": "bytes"
       },
       {
@@ -444,8 +493,8 @@
         "type": "bytes"
       },
       {
-        "name": "blocks",
-        "type": "uint256[2]"
+        "name": "blockNumber",
+        "type": "uint256"
       }
     ],
     "name": "challengeBefore",
@@ -559,6 +608,24 @@
   },
   {
     "constant": false,
+    "inputs": [],
+    "name": "pause",
+    "outputs": [],
+    "payable": false,
+    "stateMutability": "nonpayable",
+    "type": "function"
+  },
+  {
+    "constant": false,
+    "inputs": [],
+    "name": "unpause",
+    "outputs": [],
+    "payable": false,
+    "stateMutability": "nonpayable",
+    "type": "function"
+  },
+  {
+    "constant": false,
     "inputs": [
       {
         "name": "_from",
@@ -607,6 +674,42 @@
         "type": "bytes4"
       }
     ],
+    "payable": false,
+    "stateMutability": "nonpayable",
+    "type": "function"
+  },
+  {
+    "constant": false,
+    "inputs": [
+      {
+        "name": "amount",
+        "type": "uint256"
+      },
+      {
+        "name": "contractAddress",
+        "type": "address"
+      }
+    ],
+    "name": "depositERC20",
+    "outputs": [],
+    "payable": false,
+    "stateMutability": "nonpayable",
+    "type": "function"
+  },
+  {
+    "constant": false,
+    "inputs": [
+      {
+        "name": "uid",
+        "type": "uint256"
+      },
+      {
+        "name": "contractAddress",
+        "type": "address"
+      }
+    ],
+    "name": "depositERC721",
+    "outputs": [],
     "payable": false,
     "stateMutability": "nonpayable",
     "type": "function"
@@ -691,6 +794,41 @@
       {
         "name": "slot",
         "type": "uint64"
+      },
+      {
+        "name": "txHash",
+        "type": "bytes32"
+      }
+    ],
+    "name": "getChallenge",
+    "outputs": [
+      {
+        "name": "",
+        "type": "address"
+      },
+      {
+        "name": "",
+        "type": "address"
+      },
+      {
+        "name": "",
+        "type": "bytes32"
+      },
+      {
+        "name": "",
+        "type": "uint256"
+      }
+    ],
+    "payable": false,
+    "stateMutability": "view",
+    "type": "function"
+  },
+  {
+    "constant": true,
+    "inputs": [
+      {
+        "name": "slot",
+        "type": "uint64"
       }
     ],
     "name": "getExit",
@@ -710,6 +848,10 @@
       {
         "name": "",
         "type": "uint8"
+      },
+      {
+        "name": "",
+        "type": "uint256"
       }
     ],
     "payable": false,

@@ -282,6 +282,98 @@ export namespace PlasmaTxResponse {
   }
 }
 
+export class GetPlasmaTxRequest extends jspb.Message {
+  getSlot(): number;
+  setSlot(value: number): void;
+
+  hasBlockHeight(): boolean;
+  clearBlockHeight(): void;
+  getBlockHeight(): proto_loom_pb.BigUInt | undefined;
+  setBlockHeight(value?: proto_loom_pb.BigUInt): void;
+
+  serializeBinary(): Uint8Array;
+  toObject(includeInstance?: boolean): GetPlasmaTxRequest.AsObject;
+  static toObject(includeInstance: boolean, msg: GetPlasmaTxRequest): GetPlasmaTxRequest.AsObject;
+  static extensions: {[key: number]: jspb.ExtensionFieldInfo<jspb.Message>};
+  static extensionsBinary: {[key: number]: jspb.ExtensionFieldBinaryInfo<jspb.Message>};
+  static serializeBinaryToWriter(message: GetPlasmaTxRequest, writer: jspb.BinaryWriter): void;
+  static deserializeBinary(bytes: Uint8Array): GetPlasmaTxRequest;
+  static deserializeBinaryFromReader(message: GetPlasmaTxRequest, reader: jspb.BinaryReader): GetPlasmaTxRequest;
+}
+
+export namespace GetPlasmaTxRequest {
+  export type AsObject = {
+    slot: number,
+    blockHeight?: proto_loom_pb.BigUInt.AsObject,
+  }
+}
+
+export class GetPlasmaTxResponse extends jspb.Message {
+  hasPlasmaTx(): boolean;
+  clearPlasmaTx(): void;
+  getPlasmaTx(): PlasmaTx | undefined;
+  setPlasmaTx(value?: PlasmaTx): void;
+
+  serializeBinary(): Uint8Array;
+  toObject(includeInstance?: boolean): GetPlasmaTxResponse.AsObject;
+  static toObject(includeInstance: boolean, msg: GetPlasmaTxResponse): GetPlasmaTxResponse.AsObject;
+  static extensions: {[key: number]: jspb.ExtensionFieldInfo<jspb.Message>};
+  static extensionsBinary: {[key: number]: jspb.ExtensionFieldBinaryInfo<jspb.Message>};
+  static serializeBinaryToWriter(message: GetPlasmaTxResponse, writer: jspb.BinaryWriter): void;
+  static deserializeBinary(bytes: Uint8Array): GetPlasmaTxResponse;
+  static deserializeBinaryFromReader(message: GetPlasmaTxResponse, reader: jspb.BinaryReader): GetPlasmaTxResponse;
+}
+
+export namespace GetPlasmaTxResponse {
+  export type AsObject = {
+    plasmaTx?: PlasmaTx.AsObject,
+  }
+}
+
+export class GetUserSlotsRequest extends jspb.Message {
+  hasFrom(): boolean;
+  clearFrom(): void;
+  getFrom(): proto_loom_pb.Address | undefined;
+  setFrom(value?: proto_loom_pb.Address): void;
+
+  serializeBinary(): Uint8Array;
+  toObject(includeInstance?: boolean): GetUserSlotsRequest.AsObject;
+  static toObject(includeInstance: boolean, msg: GetUserSlotsRequest): GetUserSlotsRequest.AsObject;
+  static extensions: {[key: number]: jspb.ExtensionFieldInfo<jspb.Message>};
+  static extensionsBinary: {[key: number]: jspb.ExtensionFieldBinaryInfo<jspb.Message>};
+  static serializeBinaryToWriter(message: GetUserSlotsRequest, writer: jspb.BinaryWriter): void;
+  static deserializeBinary(bytes: Uint8Array): GetUserSlotsRequest;
+  static deserializeBinaryFromReader(message: GetUserSlotsRequest, reader: jspb.BinaryReader): GetUserSlotsRequest;
+}
+
+export namespace GetUserSlotsRequest {
+  export type AsObject = {
+    from?: proto_loom_pb.Address.AsObject,
+  }
+}
+
+export class GetUserSlotsResponse extends jspb.Message {
+  clearSlotsList(): void;
+  getSlotsList(): Array<number>;
+  setSlotsList(value: Array<number>): void;
+  addSlots(value: number, index?: number): number;
+
+  serializeBinary(): Uint8Array;
+  toObject(includeInstance?: boolean): GetUserSlotsResponse.AsObject;
+  static toObject(includeInstance: boolean, msg: GetUserSlotsResponse): GetUserSlotsResponse.AsObject;
+  static extensions: {[key: number]: jspb.ExtensionFieldInfo<jspb.Message>};
+  static extensionsBinary: {[key: number]: jspb.ExtensionFieldBinaryInfo<jspb.Message>};
+  static serializeBinaryToWriter(message: GetUserSlotsResponse, writer: jspb.BinaryWriter): void;
+  static deserializeBinary(bytes: Uint8Array): GetUserSlotsResponse;
+  static deserializeBinaryFromReader(message: GetUserSlotsResponse, reader: jspb.BinaryReader): GetUserSlotsResponse;
+}
+
+export namespace GetUserSlotsResponse {
+  export type AsObject = {
+    slotsList: Array<number>,
+  }
+}
+
 export class DepositRequest extends jspb.Message {
   getSlot(): number;
   setSlot(value: number): void;

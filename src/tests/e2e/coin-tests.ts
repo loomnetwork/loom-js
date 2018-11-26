@@ -26,11 +26,11 @@ async function getClientAndContract(
   acct2PubKey: Uint8Array
 }> {
   const acct1PrivKey = B64ToUint8Array(
-    'eYm0FWyQ+gqg9CcKbDn709nBOjnLdZa+BgeQ2nq2Ixtb3qAE7OiBPCPtJuP4C9gUXolFy1Py+GGX5IrehM+Zvg=='
+    'Hz9P3aHH62mO75A6uMVW3mn0U1KkZSq3t03jfOZfyZxjyJoJctNDY6awaVqOpjCGTjHZZxkc23Z3l39EjLOIFQ=='
   )
 
   const acct2PrivKey = B64ToUint8Array(
-    'v860Q/w6SAdLqpwhQTgTrK33ewyiFqnJa6wvt2rXugRRCAjYv5QxNwT4L92uQWeR15BrlHlcn85sxiQUNuBVXg=='
+    '3bpboaOX/8R2XPS6q6SmhGq+RBvs+3DDkWXayy58lIC+9k1Sj1K0BEQb82OcLZ8Ivkh9EL5/hWgXLKu3vNLc/g=='
   )
 
   const acct1PubKey = CryptoUtils.publicKeyFromPrivateKey(acct1PrivKey)

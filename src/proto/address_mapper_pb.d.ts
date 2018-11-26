@@ -82,34 +82,6 @@ export namespace AddressMapperAddIdentityMappingRequest {
   }
 }
 
-export class AddressMapperAddContractMappingRequest extends jspb.Message {
-  hasFrom(): boolean;
-  clearFrom(): void;
-  getFrom(): proto_loom_pb.Address | undefined;
-  setFrom(value?: proto_loom_pb.Address): void;
-
-  hasTo(): boolean;
-  clearTo(): void;
-  getTo(): proto_loom_pb.Address | undefined;
-  setTo(value?: proto_loom_pb.Address): void;
-
-  serializeBinary(): Uint8Array;
-  toObject(includeInstance?: boolean): AddressMapperAddContractMappingRequest.AsObject;
-  static toObject(includeInstance: boolean, msg: AddressMapperAddContractMappingRequest): AddressMapperAddContractMappingRequest.AsObject;
-  static extensions: {[key: number]: jspb.ExtensionFieldInfo<jspb.Message>};
-  static extensionsBinary: {[key: number]: jspb.ExtensionFieldBinaryInfo<jspb.Message>};
-  static serializeBinaryToWriter(message: AddressMapperAddContractMappingRequest, writer: jspb.BinaryWriter): void;
-  static deserializeBinary(bytes: Uint8Array): AddressMapperAddContractMappingRequest;
-  static deserializeBinaryFromReader(message: AddressMapperAddContractMappingRequest, reader: jspb.BinaryReader): AddressMapperAddContractMappingRequest;
-}
-
-export namespace AddressMapperAddContractMappingRequest {
-  export type AsObject = {
-    from?: proto_loom_pb.Address.AsObject,
-    to?: proto_loom_pb.Address.AsObject,
-  }
-}
-
 export class AddressMapperRemoveMappingRequest extends jspb.Message {
   serializeBinary(): Uint8Array;
   toObject(includeInstance?: boolean): AddressMapperRemoveMappingRequest.AsObject;
@@ -173,6 +145,48 @@ export namespace AddressMapperGetMappingResponse {
   export type AsObject = {
     from?: proto_loom_pb.Address.AsObject,
     to?: proto_loom_pb.Address.AsObject,
+  }
+}
+
+export class AddressMapperHasMappingRequest extends jspb.Message {
+  hasFrom(): boolean;
+  clearFrom(): void;
+  getFrom(): proto_loom_pb.Address | undefined;
+  setFrom(value?: proto_loom_pb.Address): void;
+
+  serializeBinary(): Uint8Array;
+  toObject(includeInstance?: boolean): AddressMapperHasMappingRequest.AsObject;
+  static toObject(includeInstance: boolean, msg: AddressMapperHasMappingRequest): AddressMapperHasMappingRequest.AsObject;
+  static extensions: {[key: number]: jspb.ExtensionFieldInfo<jspb.Message>};
+  static extensionsBinary: {[key: number]: jspb.ExtensionFieldBinaryInfo<jspb.Message>};
+  static serializeBinaryToWriter(message: AddressMapperHasMappingRequest, writer: jspb.BinaryWriter): void;
+  static deserializeBinary(bytes: Uint8Array): AddressMapperHasMappingRequest;
+  static deserializeBinaryFromReader(message: AddressMapperHasMappingRequest, reader: jspb.BinaryReader): AddressMapperHasMappingRequest;
+}
+
+export namespace AddressMapperHasMappingRequest {
+  export type AsObject = {
+    from?: proto_loom_pb.Address.AsObject,
+  }
+}
+
+export class AddressMapperHasMappingResponse extends jspb.Message {
+  getHasMapping(): boolean;
+  setHasMapping(value: boolean): void;
+
+  serializeBinary(): Uint8Array;
+  toObject(includeInstance?: boolean): AddressMapperHasMappingResponse.AsObject;
+  static toObject(includeInstance: boolean, msg: AddressMapperHasMappingResponse): AddressMapperHasMappingResponse.AsObject;
+  static extensions: {[key: number]: jspb.ExtensionFieldInfo<jspb.Message>};
+  static extensionsBinary: {[key: number]: jspb.ExtensionFieldBinaryInfo<jspb.Message>};
+  static serializeBinaryToWriter(message: AddressMapperHasMappingResponse, writer: jspb.BinaryWriter): void;
+  static deserializeBinary(bytes: Uint8Array): AddressMapperHasMappingResponse;
+  static deserializeBinaryFromReader(message: AddressMapperHasMappingResponse, reader: jspb.BinaryReader): AddressMapperHasMappingResponse;
+}
+
+export namespace AddressMapperHasMappingResponse {
+  export type AsObject = {
+    hasMapping: boolean,
   }
 }
 

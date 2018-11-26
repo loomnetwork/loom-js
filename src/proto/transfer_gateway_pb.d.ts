@@ -4,6 +4,60 @@
 import * as jspb from "google-protobuf";
 import * as proto_loom_pb from "../proto/loom_pb";
 
+export class TransferGatewayWithdrawalReceipt extends jspb.Message {
+  hasTokenOwner(): boolean;
+  clearTokenOwner(): void;
+  getTokenOwner(): proto_loom_pb.Address | undefined;
+  setTokenOwner(value?: proto_loom_pb.Address): void;
+
+  hasTokenContract(): boolean;
+  clearTokenContract(): void;
+  getTokenContract(): proto_loom_pb.Address | undefined;
+  setTokenContract(value?: proto_loom_pb.Address): void;
+
+  getTokenKind(): TransferGatewayTokenKind;
+  setTokenKind(value: TransferGatewayTokenKind): void;
+
+  hasTokenId(): boolean;
+  clearTokenId(): void;
+  getTokenId(): proto_loom_pb.BigUInt | undefined;
+  setTokenId(value?: proto_loom_pb.BigUInt): void;
+
+  hasTokenAmount(): boolean;
+  clearTokenAmount(): void;
+  getTokenAmount(): proto_loom_pb.BigUInt | undefined;
+  setTokenAmount(value?: proto_loom_pb.BigUInt): void;
+
+  getWithdrawalNonce(): number;
+  setWithdrawalNonce(value: number): void;
+
+  getOracleSignature(): Uint8Array | string;
+  getOracleSignature_asU8(): Uint8Array;
+  getOracleSignature_asB64(): string;
+  setOracleSignature(value: Uint8Array | string): void;
+
+  serializeBinary(): Uint8Array;
+  toObject(includeInstance?: boolean): TransferGatewayWithdrawalReceipt.AsObject;
+  static toObject(includeInstance: boolean, msg: TransferGatewayWithdrawalReceipt): TransferGatewayWithdrawalReceipt.AsObject;
+  static extensions: {[key: number]: jspb.ExtensionFieldInfo<jspb.Message>};
+  static extensionsBinary: {[key: number]: jspb.ExtensionFieldBinaryInfo<jspb.Message>};
+  static serializeBinaryToWriter(message: TransferGatewayWithdrawalReceipt, writer: jspb.BinaryWriter): void;
+  static deserializeBinary(bytes: Uint8Array): TransferGatewayWithdrawalReceipt;
+  static deserializeBinaryFromReader(message: TransferGatewayWithdrawalReceipt, reader: jspb.BinaryReader): TransferGatewayWithdrawalReceipt;
+}
+
+export namespace TransferGatewayWithdrawalReceipt {
+  export type AsObject = {
+    tokenOwner?: proto_loom_pb.Address.AsObject,
+    tokenContract?: proto_loom_pb.Address.AsObject,
+    tokenKind: TransferGatewayTokenKind,
+    tokenId?: proto_loom_pb.BigUInt.AsObject,
+    tokenAmount?: proto_loom_pb.BigUInt.AsObject,
+    withdrawalNonce: number,
+    oracleSignature: Uint8Array | string,
+  }
+}
+
 export class TransferGatewayContractMappingConfirmed extends jspb.Message {
   hasForeignContract(): boolean;
   clearForeignContract(): void;
@@ -46,10 +100,15 @@ export class TransferGatewayTokenWithdrawalSigned extends jspb.Message {
   getTokenKind(): TransferGatewayTokenKind;
   setTokenKind(value: TransferGatewayTokenKind): void;
 
-  hasValue(): boolean;
-  clearValue(): void;
-  getValue(): proto_loom_pb.BigUInt | undefined;
-  setValue(value?: proto_loom_pb.BigUInt): void;
+  hasTokenId(): boolean;
+  clearTokenId(): void;
+  getTokenId(): proto_loom_pb.BigUInt | undefined;
+  setTokenId(value?: proto_loom_pb.BigUInt): void;
+
+  hasTokenAmount(): boolean;
+  clearTokenAmount(): void;
+  getTokenAmount(): proto_loom_pb.BigUInt | undefined;
+  setTokenAmount(value?: proto_loom_pb.BigUInt): void;
 
   getSig(): Uint8Array | string;
   getSig_asU8(): Uint8Array;
@@ -71,17 +130,53 @@ export namespace TransferGatewayTokenWithdrawalSigned {
     tokenOwner?: proto_loom_pb.Address.AsObject,
     tokenContract?: proto_loom_pb.Address.AsObject,
     tokenKind: TransferGatewayTokenKind,
-    value?: proto_loom_pb.BigUInt.AsObject,
+    tokenId?: proto_loom_pb.BigUInt.AsObject,
+    tokenAmount?: proto_loom_pb.BigUInt.AsObject,
     sig: Uint8Array | string,
   }
 }
 
-export class TransferGatewayWithdrawalReceipt extends jspb.Message {
-  hasTokenOwner(): boolean;
-  clearTokenOwner(): void;
-  getTokenOwner(): proto_loom_pb.Address | undefined;
-  setTokenOwner(value?: proto_loom_pb.Address): void;
+export class TransferGatewayAddContractMappingRequest extends jspb.Message {
+  hasForeignContract(): boolean;
+  clearForeignContract(): void;
+  getForeignContract(): proto_loom_pb.Address | undefined;
+  setForeignContract(value?: proto_loom_pb.Address): void;
 
+  hasLocalContract(): boolean;
+  clearLocalContract(): void;
+  getLocalContract(): proto_loom_pb.Address | undefined;
+  setLocalContract(value?: proto_loom_pb.Address): void;
+
+  getForeignContractCreatorSig(): Uint8Array | string;
+  getForeignContractCreatorSig_asU8(): Uint8Array;
+  getForeignContractCreatorSig_asB64(): string;
+  setForeignContractCreatorSig(value: Uint8Array | string): void;
+
+  getForeignContractTxHash(): Uint8Array | string;
+  getForeignContractTxHash_asU8(): Uint8Array;
+  getForeignContractTxHash_asB64(): string;
+  setForeignContractTxHash(value: Uint8Array | string): void;
+
+  serializeBinary(): Uint8Array;
+  toObject(includeInstance?: boolean): TransferGatewayAddContractMappingRequest.AsObject;
+  static toObject(includeInstance: boolean, msg: TransferGatewayAddContractMappingRequest): TransferGatewayAddContractMappingRequest.AsObject;
+  static extensions: {[key: number]: jspb.ExtensionFieldInfo<jspb.Message>};
+  static extensionsBinary: {[key: number]: jspb.ExtensionFieldBinaryInfo<jspb.Message>};
+  static serializeBinaryToWriter(message: TransferGatewayAddContractMappingRequest, writer: jspb.BinaryWriter): void;
+  static deserializeBinary(bytes: Uint8Array): TransferGatewayAddContractMappingRequest;
+  static deserializeBinaryFromReader(message: TransferGatewayAddContractMappingRequest, reader: jspb.BinaryReader): TransferGatewayAddContractMappingRequest;
+}
+
+export namespace TransferGatewayAddContractMappingRequest {
+  export type AsObject = {
+    foreignContract?: proto_loom_pb.Address.AsObject,
+    localContract?: proto_loom_pb.Address.AsObject,
+    foreignContractCreatorSig: Uint8Array | string,
+    foreignContractTxHash: Uint8Array | string,
+  }
+}
+
+export class TransferGatewayWithdrawTokenRequest extends jspb.Message {
   hasTokenContract(): boolean;
   clearTokenContract(): void;
   getTokenContract(): proto_loom_pb.Address | undefined;
@@ -90,93 +185,38 @@ export class TransferGatewayWithdrawalReceipt extends jspb.Message {
   getTokenKind(): TransferGatewayTokenKind;
   setTokenKind(value: TransferGatewayTokenKind): void;
 
-  hasValue(): boolean;
-  clearValue(): void;
-  getValue(): proto_loom_pb.BigUInt | undefined;
-  setValue(value?: proto_loom_pb.BigUInt): void;
-
-  getWithdrawalNonce(): number;
-  setWithdrawalNonce(value: number): void;
-
-  getOracleSignature(): Uint8Array | string;
-  getOracleSignature_asU8(): Uint8Array;
-  getOracleSignature_asB64(): string;
-  setOracleSignature(value: Uint8Array | string): void;
-
-  serializeBinary(): Uint8Array;
-  toObject(includeInstance?: boolean): TransferGatewayWithdrawalReceipt.AsObject;
-  static toObject(includeInstance: boolean, msg: TransferGatewayWithdrawalReceipt): TransferGatewayWithdrawalReceipt.AsObject;
-  static extensions: {[key: number]: jspb.ExtensionFieldInfo<jspb.Message>};
-  static extensionsBinary: {[key: number]: jspb.ExtensionFieldBinaryInfo<jspb.Message>};
-  static serializeBinaryToWriter(message: TransferGatewayWithdrawalReceipt, writer: jspb.BinaryWriter): void;
-  static deserializeBinary(bytes: Uint8Array): TransferGatewayWithdrawalReceipt;
-  static deserializeBinaryFromReader(message: TransferGatewayWithdrawalReceipt, reader: jspb.BinaryReader): TransferGatewayWithdrawalReceipt;
-}
-
-export namespace TransferGatewayWithdrawalReceipt {
-  export type AsObject = {
-    tokenOwner?: proto_loom_pb.Address.AsObject,
-    tokenContract?: proto_loom_pb.Address.AsObject,
-    tokenKind: TransferGatewayTokenKind,
-    value?: proto_loom_pb.BigUInt.AsObject,
-    withdrawalNonce: number,
-    oracleSignature: Uint8Array | string,
-  }
-}
-
-export class TransferGatewayWithdrawERC721Request extends jspb.Message {
   hasTokenId(): boolean;
   clearTokenId(): void;
   getTokenId(): proto_loom_pb.BigUInt | undefined;
   setTokenId(value?: proto_loom_pb.BigUInt): void;
 
-  hasTokenContract(): boolean;
-  clearTokenContract(): void;
-  getTokenContract(): proto_loom_pb.Address | undefined;
-  setTokenContract(value?: proto_loom_pb.Address): void;
+  hasTokenAmount(): boolean;
+  clearTokenAmount(): void;
+  getTokenAmount(): proto_loom_pb.BigUInt | undefined;
+  setTokenAmount(value?: proto_loom_pb.BigUInt): void;
+
+  hasRecipient(): boolean;
+  clearRecipient(): void;
+  getRecipient(): proto_loom_pb.Address | undefined;
+  setRecipient(value?: proto_loom_pb.Address): void;
 
   serializeBinary(): Uint8Array;
-  toObject(includeInstance?: boolean): TransferGatewayWithdrawERC721Request.AsObject;
-  static toObject(includeInstance: boolean, msg: TransferGatewayWithdrawERC721Request): TransferGatewayWithdrawERC721Request.AsObject;
+  toObject(includeInstance?: boolean): TransferGatewayWithdrawTokenRequest.AsObject;
+  static toObject(includeInstance: boolean, msg: TransferGatewayWithdrawTokenRequest): TransferGatewayWithdrawTokenRequest.AsObject;
   static extensions: {[key: number]: jspb.ExtensionFieldInfo<jspb.Message>};
   static extensionsBinary: {[key: number]: jspb.ExtensionFieldBinaryInfo<jspb.Message>};
-  static serializeBinaryToWriter(message: TransferGatewayWithdrawERC721Request, writer: jspb.BinaryWriter): void;
-  static deserializeBinary(bytes: Uint8Array): TransferGatewayWithdrawERC721Request;
-  static deserializeBinaryFromReader(message: TransferGatewayWithdrawERC721Request, reader: jspb.BinaryReader): TransferGatewayWithdrawERC721Request;
+  static serializeBinaryToWriter(message: TransferGatewayWithdrawTokenRequest, writer: jspb.BinaryWriter): void;
+  static deserializeBinary(bytes: Uint8Array): TransferGatewayWithdrawTokenRequest;
+  static deserializeBinaryFromReader(message: TransferGatewayWithdrawTokenRequest, reader: jspb.BinaryReader): TransferGatewayWithdrawTokenRequest;
 }
 
-export namespace TransferGatewayWithdrawERC721Request {
+export namespace TransferGatewayWithdrawTokenRequest {
   export type AsObject = {
+    tokenContract?: proto_loom_pb.Address.AsObject,
+    tokenKind: TransferGatewayTokenKind,
     tokenId?: proto_loom_pb.BigUInt.AsObject,
-    tokenContract?: proto_loom_pb.Address.AsObject,
-  }
-}
-
-export class TransferGatewayWithdrawERC20Request extends jspb.Message {
-  hasAmount(): boolean;
-  clearAmount(): void;
-  getAmount(): proto_loom_pb.BigUInt | undefined;
-  setAmount(value?: proto_loom_pb.BigUInt): void;
-
-  hasTokenContract(): boolean;
-  clearTokenContract(): void;
-  getTokenContract(): proto_loom_pb.Address | undefined;
-  setTokenContract(value?: proto_loom_pb.Address): void;
-
-  serializeBinary(): Uint8Array;
-  toObject(includeInstance?: boolean): TransferGatewayWithdrawERC20Request.AsObject;
-  static toObject(includeInstance: boolean, msg: TransferGatewayWithdrawERC20Request): TransferGatewayWithdrawERC20Request.AsObject;
-  static extensions: {[key: number]: jspb.ExtensionFieldInfo<jspb.Message>};
-  static extensionsBinary: {[key: number]: jspb.ExtensionFieldBinaryInfo<jspb.Message>};
-  static serializeBinaryToWriter(message: TransferGatewayWithdrawERC20Request, writer: jspb.BinaryWriter): void;
-  static deserializeBinary(bytes: Uint8Array): TransferGatewayWithdrawERC20Request;
-  static deserializeBinaryFromReader(message: TransferGatewayWithdrawERC20Request, reader: jspb.BinaryReader): TransferGatewayWithdrawERC20Request;
-}
-
-export namespace TransferGatewayWithdrawERC20Request {
-  export type AsObject = {
-    amount?: proto_loom_pb.BigUInt.AsObject,
-    tokenContract?: proto_loom_pb.Address.AsObject,
+    tokenAmount?: proto_loom_pb.BigUInt.AsObject,
+    recipient?: proto_loom_pb.Address.AsObject,
   }
 }
 
@@ -190,6 +230,11 @@ export class TransferGatewayWithdrawETHRequest extends jspb.Message {
   clearMainnetGateway(): void;
   getMainnetGateway(): proto_loom_pb.Address | undefined;
   setMainnetGateway(value?: proto_loom_pb.Address): void;
+
+  hasRecipient(): boolean;
+  clearRecipient(): void;
+  getRecipient(): proto_loom_pb.Address | undefined;
+  setRecipient(value?: proto_loom_pb.Address): void;
 
   serializeBinary(): Uint8Array;
   toObject(includeInstance?: boolean): TransferGatewayWithdrawETHRequest.AsObject;
@@ -205,6 +250,7 @@ export namespace TransferGatewayWithdrawETHRequest {
   export type AsObject = {
     amount?: proto_loom_pb.BigUInt.AsObject,
     mainnetGateway?: proto_loom_pb.Address.AsObject,
+    recipient?: proto_loom_pb.Address.AsObject,
   }
 }
 
@@ -286,49 +332,10 @@ export namespace TransferGatewayConfirmWithdrawalReceiptRequest {
   }
 }
 
-export class TransferGatewayAddContractMappingRequest extends jspb.Message {
-  hasForeignContract(): boolean;
-  clearForeignContract(): void;
-  getForeignContract(): proto_loom_pb.Address | undefined;
-  setForeignContract(value?: proto_loom_pb.Address): void;
-
-  hasLocalContract(): boolean;
-  clearLocalContract(): void;
-  getLocalContract(): proto_loom_pb.Address | undefined;
-  setLocalContract(value?: proto_loom_pb.Address): void;
-
-  getForeignContractCreatorSig(): Uint8Array | string;
-  getForeignContractCreatorSig_asU8(): Uint8Array;
-  getForeignContractCreatorSig_asB64(): string;
-  setForeignContractCreatorSig(value: Uint8Array | string): void;
-
-  getForeignContractTxHash(): Uint8Array | string;
-  getForeignContractTxHash_asU8(): Uint8Array;
-  getForeignContractTxHash_asB64(): string;
-  setForeignContractTxHash(value: Uint8Array | string): void;
-
-  serializeBinary(): Uint8Array;
-  toObject(includeInstance?: boolean): TransferGatewayAddContractMappingRequest.AsObject;
-  static toObject(includeInstance: boolean, msg: TransferGatewayAddContractMappingRequest): TransferGatewayAddContractMappingRequest.AsObject;
-  static extensions: {[key: number]: jspb.ExtensionFieldInfo<jspb.Message>};
-  static extensionsBinary: {[key: number]: jspb.ExtensionFieldBinaryInfo<jspb.Message>};
-  static serializeBinaryToWriter(message: TransferGatewayAddContractMappingRequest, writer: jspb.BinaryWriter): void;
-  static deserializeBinary(bytes: Uint8Array): TransferGatewayAddContractMappingRequest;
-  static deserializeBinaryFromReader(message: TransferGatewayAddContractMappingRequest, reader: jspb.BinaryReader): TransferGatewayAddContractMappingRequest;
-}
-
-export namespace TransferGatewayAddContractMappingRequest {
-  export type AsObject = {
-    foreignContract?: proto_loom_pb.Address.AsObject,
-    localContract?: proto_loom_pb.Address.AsObject,
-    foreignContractCreatorSig: Uint8Array | string,
-    foreignContractTxHash: Uint8Array | string,
-  }
-}
-
 export enum TransferGatewayTokenKind {
   ETH = 0,
   ERC20 = 1,
   ERC721 = 2,
+  ERC721X = 3,
 }
 

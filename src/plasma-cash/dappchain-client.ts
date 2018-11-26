@@ -3,30 +3,50 @@ import BN from 'bn.js'
 import { Client } from '../client'
 import { Contract } from '../contract'
 import { Address, LocalAddress } from '../address'
-import { PlasmaCashTx, marshalPlasmaTxPB } from './plasma-cash-tx'
+import { PlasmaCashTx, marshalPlasmaTxPB, unmarshalPlasmaTxPB } from './plasma-cash-tx'
 import { PlasmaCashBlock, unmarshalPlasmaBlockPB } from './plasma-cash-block'
 import { unmarshalBigUIntPB, marshalBigUIntPB } from '../big-uint'
 import { IPlasmaDeposit } from './ethereum-client'
 import {
   GetCurrentBlockRequest,
   GetCurrentBlockResponse,
+  GetPlasmaTxRequest,
+  GetPlasmaTxResponse,
+  GetUserSlotsRequest,
+  GetUserSlotsResponse,
   GetBlockRequest,
   GetBlockResponse,
   DepositRequest,
   PlasmaTxRequest,
-  SubmitBlockToMainnetRequest
+  SubmitBlockToMainnetRequest,
+  PlasmaTx
 } from '../proto/plasma_cash_pb'
+import { PlasmaDB } from './db'
 
 export class DAppChainPlasmaClient {
   private _dAppClient: Client
   private _plasmaContract?: Contract
   private _callerAddress: Address
   private _plasmaContractName: string
+  private _database: PlasmaDB
 
-  constructor(params: { dAppClient: Client; callerAddress: Address; contractName?: string }) {
-    const { dAppClient, callerAddress, contractName = 'plasmacash' } = params
+  get contractName() {
+    return this._plasmaContractName
+  }
+  get database() {
+    return this._database
+  }
+
+  constructor(params: {
+    dAppClient: Client
+    callerAddress: Address
+    database: PlasmaDB
+    contractName?: string
+  }) {
+    const { dAppClient, callerAddress, database, contractName = 'plasmacash' } = params
     this._dAppClient = dAppClient
     this._callerAddress = callerAddress
+    this._database = database
     this._plasmaContractName = contractName
   }
 
@@ -79,6 +99,58 @@ export class DAppChainPlasmaClient {
       new GetBlockResponse()
     )
     return unmarshalPlasmaBlockPB(resp.getBlock()!)
+  }
+
+  /**
+   * Retrieves a merkle proof from the DAppChain regarding a coin at a block
+   *
+   * @param blockNum Height of the block to be retrieved.
+   * @param slot The coin id
+   * @return
+   */
+  async getPlasmaTxAsync(slot: BN, blockNum: BN): Promise<PlasmaCashTx> {
+    const contract = await this._resolvePlasmaContractAsync()
+    const req = new GetPlasmaTxRequest()
+    req.setBlockHeight(marshalBigUIntPB(blockNum))
+    req.setSlot(slot.toString(10) as any)
+    const resp = await contract.staticCallAsync<GetPlasmaTxResponse>(
+      'GetPlasmaTxRequest',
+      req,
+      new GetPlasmaTxResponse()
+    )
+    const rawTx: PlasmaTx = resp.getPlasmaTx()!
+
+    // If we're getting a non-existing transaction, we just return its slot and its non-inclusion proof
+    if (!rawTx.hasNewOwner()) {
+      return new PlasmaCashTx({
+        slot: slot,
+        prevBlockNum: new BN(0),
+        denomination: 1,
+        newOwner: '0x0000000000000000000000000000000000000000',
+        proof: rawTx.getProof_asU8()
+      })
+    }
+
+    return unmarshalPlasmaTxPB(resp.getPlasmaTx()!)
+  }
+
+  /**
+   * Retrieves a merkle proof from the DAppChain regarding a coin at a block
+   *
+   * @param blockNum Height of the block to be retrieved.
+   * @param slot The coin id
+   * @return
+   */
+  async getUserSlotsAsync(_ethAddress: Address): Promise<BN[]> {
+    const contract = await this._resolvePlasmaContractAsync()
+    const req = new GetUserSlotsRequest()
+    req.setFrom(_ethAddress.MarshalPB())
+    const resp: GetUserSlotsResponse = await contract.staticCallAsync<GetUserSlotsResponse>(
+      'GetUserSlotsRequest',
+      req,
+      new GetUserSlotsResponse()
+    )
+    return resp.getSlotsList().map(s => new BN(s))
   }
 
   /**

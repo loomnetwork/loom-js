@@ -41,6 +41,16 @@ export function generatePrivateKey(): Uint8Array {
 }
 
 /**
+ * Generates a private key for signing from a seed
+ * @param seed Uint8Array with the seed to be used
+ * @returns 64-byte private key.
+ */
+export function generatePrivateKeyFromSeed(seed: Uint8Array): Uint8Array {
+  const pair = nacl.sign.keyPair.fromSeed(seed)
+  return pair.secretKey
+}
+
+/**
  * Generates the public key that corresponds to the given private key.
  * @param privateKey 64-byte private key.
  * @returns 32-byte public key.

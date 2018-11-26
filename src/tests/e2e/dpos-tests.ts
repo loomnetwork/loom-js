@@ -19,7 +19,7 @@ async function getClientAndContract(
   pubKey: Uint8Array
 }> {
   const privKey = B64ToUint8Array(
-    'h/+I7gVOCtsyR5Asc9yS2xDIcYsci/r5LaWHkiyDDrGgtEDArc70E6yIyuCickJ/GYJHFRSup8V8prHk30Z3lw=='
+    'Hz9P3aHH62mO75A6uMVW3mn0U1KkZSq3t03jfOZfyZxjyJoJctNDY6awaVqOpjCGTjHZZxkc23Z3l39EjLOIFQ=='
   )
   const pubKey = CryptoUtils.publicKeyFromPrivateKey(privKey)
   const client = createClient()
@@ -53,7 +53,7 @@ async function voteRequest(t: test.Test, createClient: () => Client) {
   const { client, dpos, pubKey } = await getClientAndContract(createClient)
 
   const candidate = new Address(client.chainId, LocalAddress.fromPublicKey(pubKey))
-  await dpos.voteAsync(candidate, 10)
+  await dpos.voteAsync(candidate, 100)
 
   client.disconnect()
 }
@@ -87,7 +87,6 @@ async function listWitness(t: test.Test, createClient: () => Client) {
 test('DPOS', async t => {
   try {
     await registerCandidate(t, createTestHttpClient)
-    await waitForMillisecondsAsync(1000)
     await waitForMillisecondsAsync(1000)
     await voteRequest(t, createTestHttpClient)
     await waitForMillisecondsAsync(1000)

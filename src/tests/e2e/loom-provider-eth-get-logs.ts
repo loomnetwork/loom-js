@@ -1,7 +1,7 @@
 import test from 'tape'
 
 import { LocalAddress, CryptoUtils } from '../../index'
-import { createTestClient, waitForMillisecondsAsync } from '../helpers'
+import { createTestClient, execAndWaitForMillisecondsAsync } from '../helpers'
 import { LoomProvider } from '../../loom-provider'
 import { deployContract } from '../evm-helpers'
 
@@ -56,11 +56,13 @@ async function newTransactionToSetState(loomProvider: LoomProvider, fromAddr: st
   })
 
   // Transaction receipt in order to obtain the topic of the event NewValueSet
-  const ethGetTransactionReceiptResult = await loomProvider.sendAsync({
-    id: 2,
-    method: 'eth_getTransactionReceipt',
-    params: [ethSendTransactionResult.result]
-  })
+  const ethGetTransactionReceiptResult = await execAndWaitForMillisecondsAsync(
+    loomProvider.sendAsync({
+      id: 2,
+      method: 'eth_getTransactionReceipt',
+      params: [ethSendTransactionResult.result]
+    })
+  )
 
   return { ethGetTransactionReceiptResult, contractAddress }
 }
@@ -92,9 +94,6 @@ async function testGetLogsPendingState(
 async function testGetLogsLatest(t: test.Test, loomProvider: LoomProvider, fromAddr: string) {
   const newSetTransaction = await newTransactionToSetState(loomProvider, fromAddr)
 
-  // Await a little to block to be ready
-  await waitForMillisecondsAsync(1500)
-
   // Filtering to get logs
   let ethGetLogs = await loomProvider.sendAsync({
     id: 4,
@@ -114,8 +113,6 @@ async function testGetLogsLatest(t: test.Test, loomProvider: LoomProvider, fromA
 
 async function testGetLogsAny(t: test.Test, loomProvider: LoomProvider, fromAddr: string) {
   await newTransactionToSetState(loomProvider, fromAddr)
-
-  await waitForMillisecondsAsync(1500)
 
   // Filtering to get logs
   let ethGetLogs = await loomProvider.sendAsync({
@@ -141,9 +138,10 @@ async function testGetLogsAnyPending(t: test.Test, loomProvider: LoomProvider, f
 }
 
 test('LoomProvider.getEVMLogsAsync', async t => {
+  let client
   try {
     const privKey = CryptoUtils.generatePrivateKey()
-    const client = createTestClient()
+    client = createTestClient()
     const fromAddr = LocalAddress.fromPublicKey(
       CryptoUtils.publicKeyFromPrivateKey(privKey)
     ).toString()
@@ -155,10 +153,12 @@ test('LoomProvider.getEVMLogsAsync', async t => {
     await testGetLogsLatest(t, loomProvider, fromAddr)
     await testGetLogsAny(t, loomProvider, fromAddr)
     await testGetLogsAnyPending(t, loomProvider, fromAddr)
-
-    client.disconnect()
   } catch (err) {
     console.log(err)
+  }
+
+  if (client) {
+    client.disconnect()
   }
 
   t.end()

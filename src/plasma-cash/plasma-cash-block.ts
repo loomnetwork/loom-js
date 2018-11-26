@@ -22,14 +22,18 @@ export class PlasmaCashBlock {
    * Finds a tx referencing the given slot.
    * @param slot 64-bit uint identifier of a UTXO.
    */
-  findTxWithSlot(slot: BN): PlasmaCashTx | null {
-    let tx: PlasmaCashTx | null = null
+  findTxWithSlot(slot: BN): PlasmaCashTx {
     for (let i = 0; i < this._txs.length; i++) {
       if (this._txs[i].slot.cmp(slot) === 0) {
         return this._txs[i]
       }
     }
-    return null
+    return new PlasmaCashTx({
+      slot: new BN(0),
+      prevBlockNum: new BN(0),
+      denomination: new BN(0),
+      newOwner: '0x0'
+    })
   }
 }
 

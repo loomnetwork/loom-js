@@ -7,8 +7,7 @@ import {
   Client,
   IChainEventArgs,
   CryptoUtils,
-  createDefaultTxMiddleware,
-  ClientEvent
+  createDefaultTxMiddleware
 } from '../../index'
 import { MapEntry } from '../tests_pb'
 import {

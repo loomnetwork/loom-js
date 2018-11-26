@@ -14,9 +14,15 @@ module.exports = {
     library: 'loom'
   },
   node: {
+    fs: 'empty',
+    child_process: 'empty',
     crypto: true,
     util: true,
     stream: true,
+    path: 'empty',
+  },
+  externals: {
+    shelljs: 'commonjs shelljs',
   },
   module: {
     rules: [

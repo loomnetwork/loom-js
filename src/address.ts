@@ -1,4 +1,5 @@
 import ripemd160 from 'ripemd160'
+import { toChecksumAddress } from 'ethereumjs-util'
 
 import { bufferToProtobufBytes } from './crypto-utils'
 import * as pb from './proto/loom_pb'
@@ -20,6 +21,10 @@ export class LocalAddress {
         this.bytes.byteLength
       ).toString('hex')
     )
+  }
+
+  toChecksumString(): string {
+    return toChecksumAddress(this.toString())
   }
 
   equals(other: LocalAddress): boolean {

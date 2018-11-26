@@ -7,7 +7,7 @@ import {
   CryptoUtils,
   createDefaultTxMiddleware
 } from '../../index'
-import { createTestClient } from '../helpers'
+import { createTestWSClient } from '../helpers'
 
 /**
  * Requires the SimpleStore solidity contract deployed on a loomchain.
@@ -30,7 +30,10 @@ test('EVM Contract Calls', async t => {
   try {
     const privKey = CryptoUtils.generatePrivateKey()
     const pubKey = CryptoUtils.publicKeyFromPrivateKey(privKey)
-    const client = createTestClient()
+    const client = createTestWSClient()
+
+    client.on('error', err => t.error(err))
+
     client.txMiddleware = createDefaultTxMiddleware(client, privKey)
 
     const contractAddr = await client.getContractAddressAsync('SimpleStore')

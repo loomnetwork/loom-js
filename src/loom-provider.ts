@@ -1,5 +1,9 @@
 import debug from 'debug'
-import { Client, ClientEvent, IChainEventArgs } from './client'
+import BN from 'bn.js'
+import { ecsign, toBuffer } from 'ethereumjs-util'
+import retry from 'retry'
+
+import { Client, ClientEvent, IChainEventArgs, ITxMiddlewareHandler } from './client'
 import { createDefaultTxMiddleware } from './helpers'
 import {
   CallTx,
@@ -26,6 +30,8 @@ import {
   bufferToProtobufBytes,
   publicKeyFromPrivateKey
 } from './crypto-utils'
+import { soliditySha3 } from './solidity-helpers'
+import { marshalBigUIntPB } from './big-uint'
 
 export interface IEthReceipt {
   transactionHash: string
@@ -96,9 +102,22 @@ const numberToHexLC = (num: number): string => {
  */
 export class LoomProvider {
   private _client: Client
+  private _accountMiddlewares: Map<string, Array<ITxMiddlewareHandler>>
   protected notificationCallbacks: Array<Function>
   readonly accounts: Map<string, Uint8Array>
-  readonly accountsAddrList: Array<string>
+
+  /**
+   * The retry strategy that should be used to retry some web3 requests.
+   * Default is a binary exponential retry strategy with 5 retries.
+   * To understand how to tweak the retry strategy see
+   * https://github.com/tim-kos/node-retry#retrytimeoutsoptions
+   */
+  retryStrategy: retry.OperationOptions = {
+    retries: 3,
+    minTimeout: 1000, // 1s
+    maxTimeout: 30000, // 30s
+    randomize: true
+  }
 
   /**
    * Constructs the LoomProvider to bridges communication between Web3 and Loom DappChains
@@ -108,9 +127,9 @@ export class LoomProvider {
    */
   constructor(client: Client, privateKey: Uint8Array) {
     this._client = client
+    this._accountMiddlewares = new Map<string, Array<ITxMiddlewareHandler>>()
     this.notificationCallbacks = new Array()
     this.accounts = new Map<string, Uint8Array>()
-    this.accountsAddrList = new Array()
 
     this._client.addListener(ClientEvent.Contract, (msg: IChainEventArgs) =>
       this._onWebSocketMessage(msg)
@@ -123,7 +142,7 @@ export class LoomProvider {
   /**
    * Creates new accounts by passing the private key array
    *
-   * Accounts will be available on public properties accounts and accountsAddrList
+   * Accounts will be available on public properties accounts
    *
    * @param accountsPrivateKey Array of private keys to create new accounts
    */
@@ -131,8 +150,11 @@ export class LoomProvider {
     accountsPrivateKey.forEach(accountPrivateKey => {
       const publicKey = publicKeyFromPrivateKey(accountPrivateKey)
       const accountAddress = LocalAddress.fromPublicKey(publicKey).toString()
-      this.accountsAddrList.push(accountAddress)
       this.accounts.set(accountAddress, accountPrivateKey)
+      this._accountMiddlewares.set(
+        accountAddress,
+        createDefaultTxMiddleware(this._client, accountPrivateKey)
+      )
       log(`New account added ${accountAddress}`)
     })
   }
@@ -277,6 +299,9 @@ export class LoomProvider {
         case 'eth_sendTransaction':
           return this._ethSendTransaction
 
+        case 'eth_sign':
+          return this._ethSign
+
         case 'eth_subscribe':
           return this._ethSubscribe
 
@@ -307,10 +332,17 @@ export class LoomProvider {
   // PRIVATE FUNCTIONS EVM CALLS
 
   private _ethAccounts() {
-    if (this.accountsAddrList.length === 0) {
+    if (this.accounts.size === 0) {
       throw Error('No account available')
     }
-    return this.accountsAddrList
+
+    const accounts = new Array()
+
+    this.accounts.forEach((value: Uint8Array, key: string) => {
+      accounts.push(key)
+    })
+
+    return accounts
   }
 
   private async _ethBlockNumber() {
@@ -404,8 +436,35 @@ export class LoomProvider {
     return this._getTransaction(payload.params[0])
   }
 
-  private async _ethGetTransactionReceipt(payload: IEthRPCPayload) {
-    return this._getReceipt(payload.params[0])
+  private async _ethGetTransactionReceipt(payload: IEthRPCPayload): Promise<IEthReceipt> {
+    const txHash = payload.params[0]
+    const data = Buffer.from(txHash.slice(2), 'hex')
+    const op = retry.operation(this.retryStrategy)
+    const receipt = await new Promise<EvmTxReceipt | null>((resolve, reject) => {
+      op.attempt(currentAttempt => {
+        this._client
+          .getEvmTxReceiptAsync(bufferToProtobufBytes(data))
+          .then(receipt => {
+            if (receipt) {
+              resolve(receipt)
+            } else {
+              const err = new Error('Receipt cannot be empty')
+              error(err.message)
+              if (!op.retry(err)) {
+                reject(err)
+              }
+            }
+          })
+          .catch(err => {
+            if (!op.retry(err)) {
+              reject(err)
+            } else {
+              error(err.message)
+            }
+          })
+      })
+    })
+    return this._createReceiptResult(receipt!)
   }
 
   private async _ethNewBlockFilter() {
@@ -450,6 +509,22 @@ export class LoomProvider {
     return bytesToHexAddrLC(result)
   }
 
+  private async _ethSign(payload: IEthRPCPayload) {
+    const address = payload.params[0]
+    const privateKey = this.accounts.get(address)
+
+    if (!privateKey) {
+      throw Error('Account is not valid, private key not found')
+    }
+
+    const msg = payload.params[1]
+    const hash = soliditySha3('\x19Ethereum Signed Message:\n32', msg).slice(2)
+    const privateHash = soliditySha3(privateKey).slice(2)
+
+    const sig = ecsign(Buffer.from(hash, 'hex'), Buffer.from(privateHash, 'hex'))
+    return bytesToHexAddrLC(Buffer.concat([sig.r, sig.s, toBuffer(sig.v)]))
+  }
+
   private async _ethSubscribe(payload: IEthRPCPayload) {
     const method = payload.params[0]
     const filterObject = payload.params[1] || {}
@@ -471,8 +546,7 @@ export class LoomProvider {
   }
 
   private _netVersion() {
-    // Fixed network version 474747
-    return '474747'
+    return this._client.chainId
   }
 
   // PRIVATE FUNCTIONS IMPLEMENTATIONS
@@ -509,14 +583,21 @@ export class LoomProvider {
     return responseData.getTxHash_asU8()
   }
 
-  private _callAsync(payload: { to: string; from: string; data: string }): Promise<any> {
+  private _callAsync(payload: {
+    to: string
+    from: string
+    data: string
+    value: string
+  }): Promise<any> {
     const caller = new Address(this._client.chainId, LocalAddress.fromHexString(payload.from))
     const address = new Address(this._client.chainId, LocalAddress.fromHexString(payload.to))
-    const data = Buffer.from(payload.data.substring(2), 'hex')
+    const data = Buffer.from(payload.data.slice(2), 'hex')
+    const value = new BN((payload.value || '0x0').slice(2), 16)
 
     const callTx = new CallTx()
     callTx.setVmType(VMType.EVM)
     callTx.setInput(bufferToProtobufBytes(data))
+    callTx.setValue(marshalBigUIntPB(value))
 
     const msgTx = new MessageTx()
     msgTx.setFrom(caller.MarshalPB())
@@ -533,7 +614,7 @@ export class LoomProvider {
   private _callStaticAsync(payload: { to: string; from: string; data: string }): Promise<any> {
     const caller = new Address(this._client.chainId, LocalAddress.fromHexString(payload.from))
     const address = new Address(this._client.chainId, LocalAddress.fromHexString(payload.to))
-    const data = Buffer.from(payload.data.substring(2), 'hex')
+    const data = Buffer.from(payload.data.slice(2), 'hex')
     return this._client.queryAsync(address, data, VMType.EVM, caller)
   }
 
@@ -571,6 +652,11 @@ export class LoomProvider {
     const contractAddress = bytesToHexAddrLC(receipt.getContractAddress_asU8())
     const logs = receipt.getLogsList().map((logEvent: EventData, index: number) => {
       const logIndex = numberToHexLC(index)
+      let data = bytesToHexAddrLC(logEvent.getEncodedBody_asU8())
+
+      if (data === '0x') {
+        data = '0x0'
+      }
 
       return {
         logIndex,
@@ -580,7 +666,7 @@ export class LoomProvider {
         transactionHash: bytesToHexAddrLC(logEvent.getTxHash_asU8()),
         transactionIndex,
         type: 'mined',
-        data: bytesToHexAddrLC(logEvent.getEncodedBody_asU8()),
+        data,
         topics: logEvent.getTopicsList().map((topic: string) => topic.toLowerCase())
       }
     })
@@ -599,7 +685,7 @@ export class LoomProvider {
   }
 
   private async _getTransaction(txHash: string): Promise<IEthTransaction> {
-    const data = Buffer.from(txHash.substring(2), 'hex')
+    const data = Buffer.from(txHash.slice(2), 'hex')
     const transaction = await this._client.getEvmTxByHashAsync(bufferToProtobufBytes(data))
     if (!transaction) {
       throw Error('Transaction cannot be empty')
@@ -630,16 +716,6 @@ export class LoomProvider {
       gas,
       input
     } as IEthTransaction
-  }
-
-  private async _getReceipt(txHash: string): Promise<IEthReceipt> {
-    const data = Buffer.from(txHash.substring(2), 'hex')
-    const receipt = await this._client.getEvmTxReceiptAsync(bufferToProtobufBytes(data))
-    if (!receipt) {
-      throw Error('Receipt cannot be empty')
-    }
-
-    return this._createReceiptResult(receipt)
   }
 
   private _createLogResult(log: EthFilterLog): IEthFilterLog {
@@ -701,13 +777,7 @@ export class LoomProvider {
     fromPublicAddr: string,
     txTransaction: Transaction
   ): Promise<Uint8Array | void> {
-    const privateKey = this.accounts.get(fromPublicAddr)
-
-    if (!privateKey) {
-      throw Error(`Account not found for address ${fromPublicAddr}`)
-    }
-
-    const middleware = createDefaultTxMiddleware(this._client, privateKey)
+    const middleware = this._accountMiddlewares.get(fromPublicAddr)
     return this._client.commitTxAsync<Transaction>(txTransaction, { middleware })
   }
 
