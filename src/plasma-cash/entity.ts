@@ -399,7 +399,9 @@ export class Entity {
       const included = await this.checkInclusionAsync(tx, root, slot, proofs.inclusion[p])
       if (included) {
         // Skip deposit blocks
-        if (tx.prevBlockNum.eq(new BN(0))) { continue }
+        if (tx.prevBlockNum.eq(new BN(0))) {
+          continue
+        }
         if (tx.prevBlockNum.eq(earliestValidBlock)) {
           earliestValidBlock = blockNumber
         } else {
