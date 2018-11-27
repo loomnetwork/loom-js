@@ -12,7 +12,6 @@ import { Address, LocalAddress } from '../address'
 import { DAppChainPlasmaClient } from './dappchain-client'
 import { PlasmaCashTx } from './plasma-cash-tx'
 import { EthersSigner } from '../solidity-helpers'
-import { Account } from 'web3/eth/accounts'
 import { PlasmaDB } from './db'
 import Tx from 'ethereumjs-tx'
 const Plasma = require('./contracts/plasma-cash-abi.json')
@@ -20,7 +19,6 @@ const abiDecoder = require('abi-decoder') // NodeJS
 abiDecoder.addABI(Plasma)
 import { ethers } from 'ethers'
 import { hexBN } from '../helpers'
-import Contract from 'web3/eth/contract'
 
 export interface IProofs {
   inclusion: { [blockNumber: string]: string }
@@ -329,13 +327,9 @@ export class Entity {
         await this.challengeBetweenAsync({ slot: slot, challengingBlockNum: blk })
         break
       } else if (blk.lt(exit.prevBlock)) {
-        const tx = await this.getPlasmaTxAsync(slot, blk)
-        console.log(
-          `${this.prefix(slot)} Challenge Invalid History! with ${tx.prevBlockNum} and ${blk}`
-        )
+        console.log(`${this.prefix(slot)} Challenge Invalid History! with ${blk}`)
         await this.challengeBeforeAsync({
           slot: slot,
-          prevBlockNum: tx.prevBlockNum,
           challengingBlockNum: blk
         })
         break
@@ -356,6 +350,7 @@ export class Entity {
       }
       // challenge with the first block after the challengingBlock
       if (blk.gt(new BN(challengingBlockNum))) {
+        console.log(`${this.prefix(slot)} Responding with ${blk}!`)
         await this.respondChallengeBeforeAsync({
           slot,
           challengingTxHash: txHash,
@@ -395,13 +390,23 @@ export class Entity {
 
   async verifyCoinHistoryAsync(slot: BN, proofs: IProofs): Promise<boolean> {
     // Check inclusion proofs
+    const coin = await this.getPlasmaCoinAsync(slot)
+    let earliestValidBlock = coin.depositBlockNum
     for (let p in proofs.inclusion) {
       const blockNumber = new BN(p)
       const tx = proofs.transactions[p] // get the block number from the proof of inclusion and get the tx from that
       const root = await this.getBlockRootAsync(blockNumber)
       const included = await this.checkInclusionAsync(tx, root, slot, proofs.inclusion[p])
-      if (!included) {
-        return false
+      if (included) {
+        // Skip deposit blocks
+        if (tx.prevBlockNum.eq(new BN(0))) {
+          continue
+        }
+        if (tx.prevBlockNum.eq(earliestValidBlock)) {
+          earliestValidBlock = blockNumber
+        } else {
+          return false
+        }
       }
     }
 
@@ -534,12 +539,8 @@ export class Entity {
     })
   }
 
-  async challengeBeforeAsync(params: {
-    slot: BN
-    prevBlockNum: BN
-    challengingBlockNum: BN
-  }): Promise<object> {
-    const { slot, prevBlockNum, challengingBlockNum } = params
+  async challengeBeforeAsync(params: { slot: BN; challengingBlockNum: BN }): Promise<object> {
+    const { slot, challengingBlockNum } = params
 
     // In case the sender is exiting a Deposit transaction, they should just create a signed
     // transaction to themselves. There is no need for a merkle proof.
@@ -565,15 +566,10 @@ export class Entity {
     if (!challengingTx) {
       throw new Error(`${this.prefix(slot)} Invalid exit block: missing tx`)
     }
-    const prevTx = await this.getPlasmaTxAsync(slot, challengingBlockNum)
-    if (!prevTx) {
-      throw new Error(`${this.prefix(slot)} Invalid prev block: missing tx`)
-    }
+
     return this._ethPlasmaClient.challengeBeforeAsync({
       slot,
-      prevTx,
       challengingTx,
-      prevBlockNum,
       challengingBlockNum,
       from: this.ethAddress,
       gas: this._defaultGas

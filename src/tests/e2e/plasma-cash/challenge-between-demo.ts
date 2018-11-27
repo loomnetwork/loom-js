@@ -48,6 +48,7 @@ export async function runChallengeBetweenDemo(t: test.Test) {
 
   // Alice attempts to exit her double-spent coin
   // Low level call to exit the double spend
+  t.equal(await alice.receiveAndWatchCoinAsync(deposit1Slot), false, 'Alice accepted faux coin')
   await alice.startExitAsync({
     slot: deposit1Slot,
     prevBlockNum: coin.depositBlockNum,

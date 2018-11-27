@@ -276,7 +276,9 @@ export class EthereumPlasmaClient {
    */
   cancelExitsAsync(params: IPlasmaCancelExitsParams): Promise<object> {
     const { slots, from, gas, gasPrice } = params
-    return this._plasmaContract.cancelExits(slots.map(s => '0x' + s.toString(16)), { gasLimit: gas })
+    return this._plasmaContract.cancelExits(slots.map(s => '0x' + s.toString(16)), {
+      gasLimit: gas
+    })
   }
 
   /**
@@ -294,7 +296,9 @@ export class EthereumPlasmaClient {
    */
   finalizeExitsAsync(params: IPlasmaFinalizeExitsParams): Promise<object> {
     const { slots, from, gas, gasPrice } = params
-    return this._plasmaContract.finalizeExits(slots.map(s => '0x' + s.toString(16)), { gasLimit: gas })
+    return this._plasmaContract.finalizeExits(slots.map(s => '0x' + s.toString(16)), {
+      gasLimit: gas
+    })
   }
 
   /**
@@ -358,35 +362,16 @@ export class EthereumPlasmaClient {
    * @returns Web3 tx receipt object.
    */
   challengeBeforeAsync(params: IPlasmaChallengeBeforeParams): Promise<object> {
-    const {
-      slot,
-      challengingTx,
-      challengingBlockNum,
-      prevTx,
-      prevBlockNum,
-      from,
-      gas,
-      gasPrice
-    } = params
-    const prevTxBytes = prevTx ? prevTx.rlpEncode() : '0x'
+    const { slot, challengingTx, challengingBlockNum, from, gas, gasPrice } = params
     const challengingTxBytes = challengingTx.rlpEncode()
     const bond = ethers.utils.parseEther('0.1')
 
-    let prevBlk
-    if (prevBlockNum !== undefined) {
-      prevBlk = '0x' + prevBlockNum.toString(16)
-    } else {
-      prevBlk = 0
-    }
-
     return this._plasmaContract.challengeBefore(
       '0x' + slot.toString(16),
-      prevTxBytes,
       challengingTxBytes,
-      prevTx ? prevTx.proof : '0x',
       challengingTx.proof,
       challengingTx.sig,
-      [prevBlk, '0x' + challengingBlockNum.toString(16)],
+      '0x' + challengingBlockNum.toString(16),
       { value: bond, gasLimit: gas }
     )
   }

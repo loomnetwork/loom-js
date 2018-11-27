@@ -46,7 +46,6 @@ export async function runRespondChallengeBeforeDemo(t: test.Test) {
   // Trudy tries to challengeBefore Dan's exit
   await trudy.challengeBeforeAsync({
     slot: deposit1Slot,
-    prevBlockNum: new BN(0),
     challengingBlockNum: coin.depositBlockNum
   })
   await sleep(2000)
