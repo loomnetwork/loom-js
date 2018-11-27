@@ -1,7 +1,9 @@
 syntax = "proto3";
 
-import "proto/gogo.proto";
-import "proto/loom.proto";
+option csharp_namespace = "Loom.ZombieBattleground.Protobuf";
+
+import "github.com/gogo/protobuf/gogoproto/gogo.proto";
+import "github.com/loomnetwork/go-loom/types/types.proto";
 
 message Account {
     string user_id             = 1;
@@ -21,8 +23,8 @@ message Deck {
     string name = 2;
     int64 hero_id = 3;
     repeated DeckCard cards = 4;
-    int32 primary_skill = 5;
-    int32 secondary_skill = 6;
+    OverlordSkillKind.Enum primary_skill = 5;
+    OverlordSkillKind.Enum secondary_skill = 6;
 }
 
 message Card {
@@ -96,8 +98,8 @@ message Hero {
     int64 level = 8;
     repeated Skill skills = 9;
 
-    int32 primary_skill = 10;
-    int32 secondary_skill = 11;
+    OverlordSkillKind.Enum primary_skill = 10;
+    OverlordSkillKind.Enum secondary_skill = 11;
 }
 
 message ListHeroesRequest {
@@ -153,6 +155,10 @@ message Skill {
 
     int32 attack = 11;
     int32 count = 12;
+    
+    int64 id = 13;
+    bool unlocked = 14;
+    bool can_select_target = 15;
 }
 
 message HeroList {
@@ -369,7 +375,12 @@ message PlayerState {
     int32 maxCardsInHand = 15;
     int32 maxGooVials = 16;
     int32 turnTime = 17;
-    bool matchAccepted = 18;
+}
+
+message InitialPlayerState {
+    string id = 1;
+    bool matchAccepted = 2;
+    Deck deck  = 3;
 }
 
 message Match {
@@ -378,7 +389,7 @@ message Match {
 
     // TODO: this data is not used by the client, but is still sent.
     // Perhaps we can split Match into MatchMetadata and MatchInitialPlayerState
-    repeated PlayerState playerStates = 3;
+    repeated InitialPlayerState playerStates = 3;
     enum Status {
         Created      = 0;
         Matching     = 1;
@@ -1013,6 +1024,8 @@ message CardAbility {
             Undefined = 0;
             Impact = 1;
             Moving = 2;
+            Impact_Heavy = 3;
+            Impact_Feral = 4;
         }
 
         VisualEffectType Type = 1;
