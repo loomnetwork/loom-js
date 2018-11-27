@@ -1,9 +1,7 @@
 syntax = "proto3";
 
-option csharp_namespace = "Loom.ZombieBattleground.Protobuf";
-
-import "github.com/gogo/protobuf/gogoproto/gogo.proto";
-import "github.com/loomnetwork/go-loom/types/types.proto";
+import "proto/gogo.proto";
+import "proto/loom.proto";
 
 message Account {
     string user_id             = 1;
