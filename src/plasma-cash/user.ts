@@ -16,15 +16,15 @@ import {
   PlasmaDB
 } from '..'
 import { IPlasmaCoin } from './ethereum-client'
-import { sleep, hexBN } from '../helpers'
-import { ethers, providers } from 'ethers'
+import { sleep } from '../helpers'
+import { ethers, utils } from 'ethers'
 import { AddressMapper } from '../contracts/address-mapper'
 import { EthersSigner } from '../solidity-helpers'
 
-const ERC721_ABI = ['function safeTransferFrom(address _from, address _to, uint256 _tokenId)']
+const ERC721_ABI = ['function safeTransferFrom(address from, address to, uint256 tokenId) public']
 const ERC20_ABI = [
-  'function approve(address spender, uint256 value)',
-  'function allowance(address owner, address spender)'
+  'function approve(address spender, uint256 value) public returns (bool)',
+  'function allowance(address owner, address spender) public view returns (uint256)'
 ]
 // Helper function to create a user instance.
 
@@ -186,16 +186,18 @@ export class User extends Entity {
   async depositERC20Async(amount: BN, address: string): Promise<IPlasmaCoin> {
     const token = new ethers.Contract(address, ERC20_ABI, this.ethers)
     // Get how much the user has approved
-    const currentApproval = await token.allowance(this.ethAddress, this.plasmaCashContract.address)
+    const valueApproved = await token.allowance(this.ethAddress, this.plasmaCashContract.address)
+    const currentApproval = new BN(utils.bigNumberify(valueApproved).toString())
 
     // amount - approved
     if (amount.gt(currentApproval)) {
-      await token.approve(this.plasmaCashContract._address, amount.sub(currentApproval).toString())
+      await token.approve(this.plasmaCashContract.address, amount.sub(currentApproval).toString())
       console.log('Approved an extra', amount.sub(currentApproval))
     }
+
     let currentBlock = await this.getCurrentBlockAsync()
-    const tx = await this.plasmaCashContract.depositERC20(amount, address)
-    const coin = await this.getCoinFromTxAsync(tx.transactionHash)
+    const tx = await this.plasmaCashContract.depositERC20(amount.toString(), address)
+    const coin = await this.getCoinFromTxAsync(tx)
     currentBlock = await this.pollForBlockChange(currentBlock, 20, 2000)
     this.receiveAndWatchCoinAsync(coin.slot)
     return coin
@@ -231,7 +233,7 @@ export class User extends Entity {
 
   // Transfer a coin by specifying slot & new owner
   async transferAsync(slot: BN, newOwner: string): Promise<any> {
-    const { prevBlockNum, blockNum } = await this.findBlocks(slot)
+    const { blockNum } = await this.findBlocks(slot)
     await this.transferTokenAsync({
       slot,
       prevBlockNum: blockNum,
@@ -384,7 +386,8 @@ export class User extends Entity {
     }
 
     // Search for the latest transaction in the coin's history, O(N)
-    let blockNum, prevBlockNum
+    let blockNum
+    let prevBlockNum
     try {
       blockNum = coinData[0].blockNumber
       prevBlockNum = coinData[0].tx.prevBlockNum
