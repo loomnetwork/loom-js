@@ -7,6 +7,7 @@ enum TransferGatewayTokenKind {
     ERC20 = 1;
     ERC721 = 2;
     ERC721X = 3;
+    LOOMCOIN = 4;
 }
 
 message TransferGatewayWithdrawalReceipt {
@@ -87,6 +88,19 @@ message TransferGatewayWithdrawETHRequest {
     // Address of Mainnet Gateway contract
     Address mainnet_gateway = 2;
     // Ethereum address of the account that should receive the ETH.
+    // If this field is omitted the Gateway will attempt to obtain the recipient address from a
+    // previously created mapping between the sender's DAppChain address and their Ethereum address,
+    // if no such mapping exists the request will error out.
+    Address recipient = 3;
+}
+
+
+message TransferGatewayWithdrawLoomCoinRequest {
+    // Amount of Loomcoin to withdraw
+    BigUInt amount = 1;
+    // Address of Mainnet Loomcoin Gateway contract
+    Address mainnet_loomcoin_gateway = 2;
+    // Ethereum address of the account that should receive the Loomcoin.
     // If this field is omitted the Gateway will attempt to obtain the recipient address from a
     // previously created mapping between the sender's DAppChain address and their Ethereum address,
     // if no such mapping exists the request will error out.

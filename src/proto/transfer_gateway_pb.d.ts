@@ -254,6 +254,40 @@ export namespace TransferGatewayWithdrawETHRequest {
   }
 }
 
+export class TransferGatewayWithdrawLoomCoinRequest extends jspb.Message {
+  hasAmount(): boolean;
+  clearAmount(): void;
+  getAmount(): proto_loom_pb.BigUInt | undefined;
+  setAmount(value?: proto_loom_pb.BigUInt): void;
+
+  hasMainnetLoomcoinGateway(): boolean;
+  clearMainnetLoomcoinGateway(): void;
+  getMainnetLoomcoinGateway(): proto_loom_pb.Address | undefined;
+  setMainnetLoomcoinGateway(value?: proto_loom_pb.Address): void;
+
+  hasRecipient(): boolean;
+  clearRecipient(): void;
+  getRecipient(): proto_loom_pb.Address | undefined;
+  setRecipient(value?: proto_loom_pb.Address): void;
+
+  serializeBinary(): Uint8Array;
+  toObject(includeInstance?: boolean): TransferGatewayWithdrawLoomCoinRequest.AsObject;
+  static toObject(includeInstance: boolean, msg: TransferGatewayWithdrawLoomCoinRequest): TransferGatewayWithdrawLoomCoinRequest.AsObject;
+  static extensions: {[key: number]: jspb.ExtensionFieldInfo<jspb.Message>};
+  static extensionsBinary: {[key: number]: jspb.ExtensionFieldBinaryInfo<jspb.Message>};
+  static serializeBinaryToWriter(message: TransferGatewayWithdrawLoomCoinRequest, writer: jspb.BinaryWriter): void;
+  static deserializeBinary(bytes: Uint8Array): TransferGatewayWithdrawLoomCoinRequest;
+  static deserializeBinaryFromReader(message: TransferGatewayWithdrawLoomCoinRequest, reader: jspb.BinaryReader): TransferGatewayWithdrawLoomCoinRequest;
+}
+
+export namespace TransferGatewayWithdrawLoomCoinRequest {
+  export type AsObject = {
+    amount?: proto_loom_pb.BigUInt.AsObject,
+    mainnetLoomcoinGateway?: proto_loom_pb.Address.AsObject,
+    recipient?: proto_loom_pb.Address.AsObject,
+  }
+}
+
 export class TransferGatewayWithdrawalReceiptRequest extends jspb.Message {
   hasOwner(): boolean;
   clearOwner(): void;
@@ -337,5 +371,6 @@ export enum TransferGatewayTokenKind {
   ERC20 = 1,
   ERC721 = 2,
   ERC721X = 3,
+  LOOMCOIN = 4,
 }
 
