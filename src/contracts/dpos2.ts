@@ -13,7 +13,9 @@ import {
   DelegateRequestV2,
   UnbondRequestV2,
   CheckDelegationRequestV2,
-  CheckDelegationResponseV2
+  CheckDelegationResponseV2,
+  RegisterCandidateRequestV2,
+  UnregisterCandidateRequestV2
 } from '../proto/dposv2_pb'
 import { unmarshalBigUIntPB, marshalBigUIntPB } from '../big-uint'
 
@@ -53,6 +55,8 @@ export class DPOS2 extends Contract {
   constructor(params: { contractAddr: Address; callerAddr: Address; client: Client }) {
     super(params)
   }
+
+  // TODO: RegisterCandidate, Unregister candidate, ClaimDistribution, DelegationOverride
 
   async getCandidatesAsync(): Promise<Array<ICandidate>> {
     const listCandidatesReq = new ListCandidateRequestV2()
@@ -101,6 +105,21 @@ export class DPOS2 extends Contract {
           amount: delegation.getAmount() ? unmarshalBigUIntPB(delegation.getAmount()!) : new BN(0)
         }
       : null
+  }
+
+  registerCandidate(pubKey: string, fee: number, name: string, description: string, website: string) : Promise<void> {
+    const registerCandidateRequest = new RegisterCandidateRequestV2()
+    registerCandidateRequest.setPubKey(pubKey)
+    registerCandidateRequest.setFee(fee)
+    registerCandidateRequest.setName(name)
+    registerCandidateRequest.setDescription(description)
+    registerCandidateRequest.setWebsite(website)
+    return this.callAsync<void>('RegisterCandidate', registerCandidateRequest)
+  }
+
+  unregisterCandidate() : Promise<void> {
+    const unregisterCandidateRequest = new UnregisterCandidateRequestV2()
+    return this.callAsync<void>('UnregisterCandidate', unregisterCandidateRequest)
   }
 
   delegateAsync(validator: Address, amount: BN | number | string): Promise<void> {
