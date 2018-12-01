@@ -352,11 +352,12 @@ export class User extends Entity {
     )
 
     const { prevBlockNum, blockNum } = await this.findBlocks(slot)
-    await this.startExitAsync({
+    const tx = await this.startExitAsync({
       slot: slot,
       prevBlockNum: prevBlockNum,
       exitBlockNum: blockNum
     })
+    await tx.wait()
   }
 
   // Get all deposits, filtered by the user's address.
