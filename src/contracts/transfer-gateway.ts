@@ -5,6 +5,7 @@ import { Address } from '../address'
 import {
   TransferGatewayWithdrawTokenRequest,
   TransferGatewayWithdrawETHRequest,
+  TransferGatewayWithdrawLoomCoinRequest,
   TransferGatewayWithdrawalReceiptRequest,
   TransferGatewayWithdrawalReceiptResponse,
   TransferGatewayTokenKind,
@@ -66,8 +67,13 @@ export class TransferGateway extends Contract {
   static readonly tokenWithdrawalSignedEventTopic: String = 'event:TokenWithdrawalSigned'
   static readonly contractMappingConfirmedEventTopic: String = 'event:ContractMappingConfirmed'
 
-  static async createAsync(client: Client, callerAddr: Address): Promise<TransferGateway> {
-    const contractAddr = await client.getContractAddressAsync('gateway')
+  static async createAsync(
+    client: Client,
+    callerAddr: Address,
+    loom: boolean = false
+  ): Promise<TransferGateway> {
+    const contractName = loom ? 'loomcoin-gateway' : 'gateway'
+    const contractAddr = await client.getContractAddressAsync(contractName)
     if (!contractAddr) {
       throw Error('Failed to resolve contract address for TransferGateway')
     }
@@ -233,7 +239,7 @@ export class TransferGateway extends Contract {
   }
 
   /**
-   * Sends a request to the DAppChain Gateway to begin withdrawal ERC20 tokens from the current
+   * Sends a request to the DAppChain Gateway to begin withdrawal of ETH from the current
    * DAppChain account to an Ethereum account.
    * @param amount Amount to withdraw.
    * @param ethereumGateway Ethereum address of Ethereum Gateway.
@@ -252,6 +258,27 @@ export class TransferGateway extends Contract {
     }
 
     return this.callAsync<void>('WithdrawETH', req)
+  }
+  /**
+   * Sends a request to the DAppChain Gateway to begin withdrawal of LOOM from the current
+   * DAppChain account to an Ethereum account.
+   * @param amount Amount to withdraw.
+   * @param ethereumGateway Ethereum address of Ethereum Gateway.
+   * @param recipient Ethereum address of the account the token should be withdrawn to, if this is
+   *                  omitted the Gateway will attempt to use the Address Mapper to retrieve the
+   *                  address of the Ethereum account mapped to the current DAppChain account.
+   * @returns A promise that will be resolved when the DAppChain Gateway has accepted the withdrawal
+   *          request.
+   */
+  withdrawLoomCoinAsync(amount: BN, ethereumGateway: Address, recipient?: Address): Promise<void> {
+    const req = new TransferGatewayWithdrawLoomCoinRequest()
+    req.setAmount(marshalBigUIntPB(amount))
+    req.setMainnetLoomcoinGateway(ethereumGateway.MarshalPB())
+    if (recipient) {
+      req.setRecipient(recipient.MarshalPB())
+    }
+
+    return this.callAsync<void>('WithdrawLoomCoin', req)
   }
 
   /**
