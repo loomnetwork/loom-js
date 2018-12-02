@@ -260,10 +260,10 @@ export class TransferGatewayWithdrawLoomCoinRequest extends jspb.Message {
   getAmount(): proto_loom_pb.BigUInt | undefined;
   setAmount(value?: proto_loom_pb.BigUInt): void;
 
-  hasMainnetLoomcoinGateway(): boolean;
-  clearMainnetLoomcoinGateway(): void;
-  getMainnetLoomcoinGateway(): proto_loom_pb.Address | undefined;
-  setMainnetLoomcoinGateway(value?: proto_loom_pb.Address): void;
+  hasTokenContract(): boolean;
+  clearTokenContract(): void;
+  getTokenContract(): proto_loom_pb.Address | undefined;
+  setTokenContract(value?: proto_loom_pb.Address): void;
 
   hasRecipient(): boolean;
   clearRecipient(): void;
@@ -283,7 +283,7 @@ export class TransferGatewayWithdrawLoomCoinRequest extends jspb.Message {
 export namespace TransferGatewayWithdrawLoomCoinRequest {
   export type AsObject = {
     amount?: proto_loom_pb.BigUInt.AsObject,
-    mainnetLoomcoinGateway?: proto_loom_pb.Address.AsObject,
+    tokenContract?: proto_loom_pb.Address.AsObject,
     recipient?: proto_loom_pb.Address.AsObject,
   }
 }
