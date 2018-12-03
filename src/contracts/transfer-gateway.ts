@@ -66,10 +66,7 @@ export class TransferGateway extends Contract {
   static readonly tokenWithdrawalSignedEventTopic: String = 'event:TokenWithdrawalSigned'
   static readonly contractMappingConfirmedEventTopic: String = 'event:ContractMappingConfirmed'
 
-  static async createAsync(
-    client: Client,
-    callerAddr: Address
-  ): Promise<TransferGateway> {
+  static async createAsync(client: Client, callerAddr: Address): Promise<TransferGateway> {
     const contractAddr = await client.getContractAddressAsync('gateway')
     if (!contractAddr) {
       throw Error('Failed to resolve contract address for TransferGateway')

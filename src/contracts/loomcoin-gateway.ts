@@ -1,16 +1,12 @@
-import { TransferGateway } from "./transfer-gateway"
-import { Client } from "../client";
-import { Address } from "../address";
+import { TransferGateway } from './transfer-gateway'
+import { Client } from '../client'
+import { Address } from '../address'
 import { TransferGatewayWithdrawLoomCoinRequest } from '../proto/transfer_gateway_pb'
-import { marshalBigUIntPB } from '../big-uint';
+import { marshalBigUIntPB } from '../big-uint'
 import BN from 'bn.js'
 
 export class LoomCoinTransferGateway extends TransferGateway {
-
-  static async createAsync(
-    client: Client,
-    callerAddr: Address,
-  ): Promise<LoomCoinTransferGateway> {
+  static async createAsync(client: Client, callerAddr: Address): Promise<LoomCoinTransferGateway> {
     const contractAddr = await client.getContractAddressAsync('loomcoin-gateway')
     if (!contractAddr) {
       throw Error('Failed to resolve contract address for TransferGateway')
@@ -44,5 +40,4 @@ export class LoomCoinTransferGateway extends TransferGateway {
 
     return this.callAsync<void>('WithdrawLoomCoin', req)
   }
-
 }

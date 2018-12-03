@@ -100,7 +100,7 @@ message TransferGatewayWithdrawLoomCoinRequest {
     // Amount of Loomcoin to withdraw
     BigUInt amount = 1;
     // Address of Mainnet Loomcoin contract
-     Address token_contract = 2; 
+     Address token_contract = 2;
     // Ethereum address of the account that should receive the Loomcoin.
     // If this field is omitted the Gateway will attempt to obtain the recipient address from a
     // previously created mapping between the sender's DAppChain address and their Ethereum address,
