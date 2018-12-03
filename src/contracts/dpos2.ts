@@ -6,10 +6,11 @@ import {
   ListCandidateRequestV2,
   ListCandidateResponseV2,
   CandidateV2,
+  ClaimDistributionRequestV2,
   ListValidatorsRequestV2,
   ListValidatorsResponseV2,
   Validator,
-  DelegationV2,
+  DelegationOverrideRequestV2,
   DelegateRequestV2,
   UnbondRequestV2,
   CheckDelegationRequestV2,
@@ -20,8 +21,12 @@ import {
 import { unmarshalBigUIntPB, marshalBigUIntPB } from '../big-uint'
 
 export interface ICandidate {
-  address: Address
   pubKey: Uint8Array
+  address: Address
+  fee: number
+  name: string
+  description: string
+  website: string
 }
 
 export interface IValidator {
@@ -34,12 +39,6 @@ export interface IDelegation {
   delegator: Address
   height: BN
   amount: BN
-}
-
-export interface IWitness {
-  pubKey: Uint8Array
-  voteTotal: BN
-  powerTotal: BN
 }
 
 export class DPOS2 extends Contract {
@@ -56,8 +55,6 @@ export class DPOS2 extends Contract {
     super(params)
   }
 
-  // TODO: RegisterCandidate, Unregister candidate, ClaimDistribution, DelegationOverride
-
   async getCandidatesAsync(): Promise<Array<ICandidate>> {
     const listCandidatesReq = new ListCandidateRequestV2()
     const result = await this.staticCallAsync(
@@ -67,8 +64,12 @@ export class DPOS2 extends Contract {
     )
 
     return result.getCandidatesList().map((candidate: CandidateV2) => ({
+      pubKey: candidate.getPubKey_asU8()!,
       address: Address.UmarshalPB(candidate.getAddress()!),
-      pubKey: candidate.getPubKey_asU8()!
+      fee: candidate.getFee()!,
+      name: candidate.getName(),
+      description: candidate.getDescription(),
+      website: candidate.getWebsite()
     }))
   }
 
@@ -107,7 +108,19 @@ export class DPOS2 extends Contract {
       : null
   }
 
-  registerCandidate(pubKey: string, fee: number, name: string, description: string, website: string) : Promise<void> {
+  async claimDistributionAsync(withdrawalAddress: Address): Promise<void> {
+    const claimDistributionRequest = new ClaimDistributionRequestV2()
+    claimDistributionRequest.setWithdrawalAddress(withdrawalAddress.MarshalPB())
+    return this.callAsync<void>('ClaimDistribution', claimDistributionRequest)
+  }
+
+  async registerCandidateAsync(
+    pubKey: string,
+    fee: number,
+    name: string,
+    description: string,
+    website: string
+  ): Promise<void> {
     const registerCandidateRequest = new RegisterCandidateRequestV2()
     registerCandidateRequest.setPubKey(pubKey)
     registerCandidateRequest.setFee(fee)
@@ -117,19 +130,34 @@ export class DPOS2 extends Contract {
     return this.callAsync<void>('RegisterCandidate', registerCandidateRequest)
   }
 
-  unregisterCandidate() : Promise<void> {
+  async unregisterCandidateAsync(): Promise<void> {
     const unregisterCandidateRequest = new UnregisterCandidateRequestV2()
     return this.callAsync<void>('UnregisterCandidate', unregisterCandidateRequest)
   }
 
-  delegateAsync(validator: Address, amount: BN | number | string): Promise<void> {
+  async delegateAsync(validator: Address, amount: BN | number | string): Promise<void> {
     const delegateRequest = new DelegateRequestV2()
     delegateRequest.setValidatorAddress(validator.MarshalPB())
     delegateRequest.setAmount(marshalBigUIntPB(new BN(amount)))
     return this.callAsync<void>('Delegate', delegateRequest)
   }
 
-  unbondAsync(validator: Address, amount: BN | number | string): Promise<void> {
+  // Super-user only function
+  async delegationOverrideAsync(
+    validator: Address,
+    delegator: Address,
+    amount: BN | number | string,
+    locktime: number
+  ): Promise<void> {
+    const delegateOverrideRequest = new DelegationOverrideRequestV2()
+    delegateOverrideRequest.setValidatorAddress(validator.MarshalPB())
+    delegateOverrideRequest.setDelegatorAddress(delegator.MarshalPB())
+    delegateOverrideRequest.setAmount(marshalBigUIntPB(new BN(amount)))
+    delegateOverrideRequest.setLockTime(locktime)
+    return this.callAsync<void>('DelegationOverride', delegateOverrideRequest)
+  }
+
+  async unbondAsync(validator: Address, amount: BN | number | string): Promise<void> {
     const unbondRequest = new UnbondRequestV2()
     unbondRequest.setValidatorAddress(validator.MarshalPB())
     unbondRequest.setAmount(marshalBigUIntPB(new BN(amount)))
