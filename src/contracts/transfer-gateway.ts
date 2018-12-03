@@ -270,7 +270,11 @@ export class TransferGateway extends Contract {
    * @returns A promise that will be resolved when the DAppChain Gateway has accepted the withdrawal
    *          request.
    */
-  withdrawLoomCoinAsync(amount: BN, mainnetLoomcoinAddress: Address, recipient?: Address): Promise<void> {
+  withdrawLoomCoinAsync(
+    amount: BN,
+    mainnetLoomcoinAddress: Address,
+    recipient?: Address
+  ): Promise<void> {
     const req = new TransferGatewayWithdrawLoomCoinRequest()
     req.setAmount(marshalBigUIntPB(amount))
     req.setTokenContract(mainnetLoomcoinAddress.MarshalPB())
