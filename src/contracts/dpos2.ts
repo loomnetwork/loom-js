@@ -135,10 +135,10 @@ export class DPOS2 extends Contract {
     return this.callAsync<void>('UnregisterCandidate', unregisterCandidateRequest)
   }
 
-  async delegateAsync(validator: Address, amount: BN | number | string): Promise<void> {
+  async delegateAsync(validator: Address, amount: BN): Promise<void> {
     const delegateRequest = new DelegateRequestV2()
     delegateRequest.setValidatorAddress(validator.MarshalPB())
-    delegateRequest.setAmount(marshalBigUIntPB(new BN(amount)))
+    delegateRequest.setAmount(marshalBigUIntPB(amount))
     return this.callAsync<void>('Delegate', delegateRequest)
   }
 
