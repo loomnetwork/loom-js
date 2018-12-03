@@ -69,11 +69,9 @@ export class TransferGateway extends Contract {
 
   static async createAsync(
     client: Client,
-    callerAddr: Address,
-    loom: boolean = false
+    callerAddr: Address
   ): Promise<TransferGateway> {
-    const contractName = loom ? 'loomcoin-gateway' : 'gateway'
-    const contractAddr = await client.getContractAddressAsync(contractName)
+    const contractAddr = await client.getContractAddressAsync('gateway')
     if (!contractAddr) {
       throw Error('Failed to resolve contract address for TransferGateway')
     }
