@@ -23,7 +23,7 @@ import { unmarshalBigUIntPB, marshalBigUIntPB } from '../big-uint'
 export interface ICandidate {
   pubKey: Uint8Array
   address: Address
-  fee: number
+  fee: BN
   name: string
   description: string
   website: string
@@ -31,7 +31,7 @@ export interface ICandidate {
 
 export interface IValidator {
   pubKey: Uint8Array
-  power: number
+  power: BN
 }
 
 export interface IDelegation {
@@ -66,7 +66,7 @@ export class DPOS2 extends Contract {
     return result.getCandidatesList().map((candidate: CandidateV2) => ({
       pubKey: candidate.getPubKey_asU8()!,
       address: Address.UmarshalPB(candidate.getAddress()!),
-      fee: candidate.getFee()!,
+      fee: new BN(candidate.getFee()!),
       name: candidate.getName(),
       description: candidate.getDescription(),
       website: candidate.getWebsite()
@@ -83,7 +83,7 @@ export class DPOS2 extends Contract {
 
     return result.getValidatorsList().map((validator: Validator) => ({
       pubKey: validator.getPubKey_asU8()!,
-      power: validator.getPower()
+      power: new BN(validator.getPower())
     }))
   }
 
@@ -116,14 +116,14 @@ export class DPOS2 extends Contract {
 
   async registerCandidateAsync(
     pubKey: string,
-    fee: number,
+    fee: BN,
     name: string,
     description: string,
     website: string
   ): Promise<void> {
     const registerCandidateRequest = new RegisterCandidateRequestV2()
     registerCandidateRequest.setPubKey(pubKey)
-    registerCandidateRequest.setFee(fee)
+    registerCandidateRequest.setFee(fee.toString(10) as any)
     registerCandidateRequest.setName(name)
     registerCandidateRequest.setDescription(description)
     registerCandidateRequest.setWebsite(website)
@@ -147,13 +147,13 @@ export class DPOS2 extends Contract {
     validator: Address,
     delegator: Address,
     amount: BN | number | string,
-    locktime: number
+    locktime: BN
   ): Promise<void> {
     const delegateOverrideRequest = new DelegationOverrideRequestV2()
     delegateOverrideRequest.setValidatorAddress(validator.MarshalPB())
     delegateOverrideRequest.setDelegatorAddress(delegator.MarshalPB())
     delegateOverrideRequest.setAmount(marshalBigUIntPB(new BN(amount)))
-    delegateOverrideRequest.setLockTime(locktime)
+    delegateOverrideRequest.setLockTime(locktime.toString(10) as any)
     return this.callAsync<void>('DelegationOverride', delegateOverrideRequest)
   }
 

@@ -19,6 +19,9 @@ import { IWithdrawalReceipt } from '../contracts/transfer-gateway'
 import { sleep } from '../helpers'
 import { IValidator, ICandidate, IDelegation } from '../contracts/dpos2'
 
+import debug from 'debug'
+const log = debug('dpos-user')
+
 const coinMultiplier = new BN(10).pow(new BN(18))
 const ERC20Gateway = require('./contracts/ERC20Gateway.json')
 const ERC20 = require('./contracts/ERC20.json')
@@ -33,7 +36,7 @@ export class DPOSUser {
   private _dappchainLoom: Contracts.Coin
   private _dappchainDPOS: Contracts.DPOS2
 
-  static async createOfflineUser(
+  static async createOfflineUserAsync(
     endpoint: string,
     privateKey: string,
     dappchainEndpoint: string,
@@ -44,7 +47,7 @@ export class DPOSUser {
   ): Promise<DPOSUser> {
     const provider = new ethers.providers.JsonRpcProvider(endpoint)
     const wallet = new ethers.Wallet(privateKey, provider)
-    return DPOSUser.createUser(
+    return DPOSUser.createUserAsync(
       wallet,
       dappchainEndpoint,
       dappchainKey,
@@ -54,7 +57,7 @@ export class DPOSUser {
     )
   }
 
-  static async createMetamaskUser(
+  static async createMetamaskUserAsync(
     web3: Web3,
     dappchainEndpoint: string,
     dappchainKey: string,
@@ -64,7 +67,7 @@ export class DPOSUser {
   ): Promise<DPOSUser> {
     const provider = new ethers.providers.Web3Provider(web3.currentProvider)
     const wallet = provider.getSigner()
-    return DPOSUser.createUser(
+    return DPOSUser.createUserAsync(
       wallet,
       dappchainEndpoint,
       dappchainKey,
@@ -74,7 +77,7 @@ export class DPOSUser {
     )
   }
 
-  static async createUser(
+  static async createUserAsync(
     wallet: ethers.Signer,
     dappchainEndpoint: string,
     dappchainKey: string,
@@ -91,14 +94,14 @@ export class DPOSUser {
       protocols: [{ url: dappchainEndpoint + '/query' }]
     })
     const client = new Client(chainId, writer, reader)
-    console.log('Initialized', dappchainEndpoint)
+    log('Initialized', dappchainEndpoint)
     client.txMiddleware = [
       new NonceTxMiddleware(publicKey, client),
       new SignedTxMiddleware(privateKey)
     ]
 
     client.on('error', (msg: any) => {
-      console.error('PlasmaChain connection error', msg)
+      log('PlasmaChain connection error', msg)
     })
 
     const address = new Address(chainId, LocalAddress.fromPublicKey(publicKey))
@@ -106,7 +109,7 @@ export class DPOSUser {
     const dappchainLoom = await Coin.createAsync(client, address)
     const dappchainDPOS = await DPOS2.createAsync(client, address)
     const dappchainGateway = await LoomCoinTransferGateway.createAsync(client, address)
-    await this.mapAccounts(client, address, wallet)
+    await this.mapAccountsAsync(client, address, wallet)
     return new DPOSUser(
       wallet,
       client,
@@ -125,17 +128,17 @@ export class DPOSUser {
    * @param account The user's account object
    * @param wallet The User's ethers wallet
    */
-  static mapAccounts = async (client: Client, address: Address, wallet: ethers.Signer) => {
+  static async mapAccountsAsync(client: Client, address: Address, wallet: ethers.Signer) {
     const walletAddress = await wallet.getAddress()
     const ethereumAddress = Address.fromString(`eth:${walletAddress}`)
     const mapperContract = await AddressMapper.createAsync(client, address)
     if (await mapperContract.hasMappingAsync(address)) {
-      console.error(`${address.toString()} is already mapped`)
+      log(`${address.toString()} is already mapped`)
       return
     }
     const signer = new EthersSigner(wallet)
     await mapperContract.addIdentityMappingAsync(address, ethereumAddress, signer)
-    console.log(`Mapped ${address} to ${ethereumAddress}`)
+    log(`Mapped ${address} to ${ethereumAddress}`)
   }
 
   constructor(
@@ -158,32 +161,32 @@ export class DPOSUser {
     this._dappchainDPOS = dappchainDPOS
   }
 
-  listValidators = async (): Promise<IValidator[]> => {
+  async listValidatorsAsync(): Promise<IValidator[]> {
     return this._dappchainDPOS.getValidatorsAsync()
   }
 
-  listCandidates = async (): Promise<ICandidate[]> => {
+  async listCandidatesAsync(): Promise<ICandidate[]> {
     return this._dappchainDPOS.getCandidatesAsync()
   }
 
   /**
    * Deposits funds from mainnet to the gateway
    */
-  deposit = async (amount: BN): Promise<ethers.ContractTransaction> => {
+  async depositAsync(amount: BN): Promise<ethers.ContractTransaction> {
     let currentApproval = await this._ethereumLoom.allowance(
       await this._wallet.getAddress(),
       this._ethereumGateway.address
     )
     currentApproval = new BN(currentApproval._hex.split('0x')[1], 16) // ugly way to convert the BN
 
-    console.log('Current approval:', currentApproval)
+    log('Current approval:', currentApproval)
     if (amount.gt(currentApproval)) {
       let tx: ContractTransaction = await this._ethereumLoom.approve(
         this._ethereumGateway.address,
         amount.sub(currentApproval).toString()
       )
       await tx.wait()
-      console.log('Approved an extra', amount.sub(currentApproval))
+      log('Approved an extra', amount.sub(currentApproval))
     }
     return this._ethereumGateway.depositERC20(amount.toString(), this._ethereumLoom.address)
   }
@@ -191,20 +194,20 @@ export class DPOSUser {
   /**
    * Withdraw funds from the gateway to mainnet
    */
-  withdraw = async (amount: BN): Promise<ethers.ContractTransaction> => {
-    const sig = await this.depositCoinToDAppChainGateway(amount)
-    return this.withdrawCoinFromRinkebyGateway(amount, sig)
+  async withdrawAsync(amount: BN): Promise<ethers.ContractTransaction> {
+    const sig = await this.depositCoinToDAppChainGatewayAsync(amount)
+    return this.withdrawCoinFromRinkebyGatewayAsync(amount, sig)
   }
 
-  resumeWithdrawal = async () => {
-    const receipt = await this.getPendingWithdrawalReceipt()
+  async resumeWithdrawalAsync() {
+    const receipt = await this.getPendingWithdrawalReceiptAsync()
     if (receipt === null) {
-      console.log('No pending receipt')
+      log('No pending receipt')
       return
     }
     const signature = CryptoUtils.bytesToHexAddr(receipt.oracleSignature)
     const amount = receipt.tokenAmount!
-    return this.withdrawCoinFromRinkebyGateway(amount, signature)
+    return this.withdrawCoinFromRinkebyGatewayAsync(amount, signature)
   }
 
   /**
@@ -213,7 +216,7 @@ export class DPOSUser {
    * @param candidate The candidate's hex address
    * @param amount The amount delegated
    */
-  delegate = async (candidate: string, amount: BN): Promise<void> => {
+  async delegateAsync(candidate: string, amount: BN): Promise<void> {
     const address = this.prefixAddress(candidate)
     await this._dappchainLoom.approveAsync(this._dappchainDPOS.address, amount)
     return this._dappchainDPOS.delegateAsync(address, amount)
@@ -225,12 +228,12 @@ export class DPOSUser {
    * @param candidate The candidate's hex address
    * @param amount The amount to undelegate
    */
-  undelegate = async (candidate: string, amount: BN): Promise<void> => {
+  async undelegateAsync(candidate: string, amount: BN): Promise<void> {
     const address = this.prefixAddress(candidate)
     await this._dappchainDPOS.unbondAsync(address, amount)
   }
 
-  claimDelegations = async (withdrawalAddress?: string): Promise<void> => {
+  async claimDelegationsAsync(withdrawalAddress?: string): Promise<void> {
     const address = withdrawalAddress ? this.prefixAddress(withdrawalAddress) : this._address
     return this._dappchainDPOS.claimDistributionAsync(address)
   }
@@ -241,13 +244,13 @@ export class DPOSUser {
    * @param validator The validator's hex address
    * @param delegator The delegator's hex address
    */
-  checkDelegations = async (validator: string, delegator: string): Promise<IDelegation | null> => {
+  async checkDelegationsAsync(validator: string, delegator?: string): Promise<IDelegation | null> {
     const validatorAddress = this.prefixAddress(validator)
     const delegatorAddress = delegator ? this.prefixAddress(delegator) : this._address
     return this._dappchainDPOS.checkDelegationAsync(validatorAddress, delegatorAddress)
   }
 
-  getPendingWithdrawalReceipt = async (): Promise<IWithdrawalReceipt | null> => {
+  async getPendingWithdrawalReceiptAsync(): Promise<IWithdrawalReceipt | null> {
     return this._dappchainGateway.withdrawalReceiptAsync(this._address)
   }
 
@@ -255,7 +258,7 @@ export class DPOSUser {
    * Retrieves the  DAppChain LoomCoin balance of a user
    * @param address The address to check the balance of. If not provided, it will check the user's balance
    */
-  getDAppChainBalance = async (address: string | undefined): Promise<BN> => {
+  async getDAppChainBalanceAsync(address: string | undefined): Promise<BN> {
     // if no address is provided, return our balance
     if (address === undefined) {
       return this._dappchainLoom.getBalanceOfAsync(this._address)
@@ -267,7 +270,7 @@ export class DPOSUser {
     return balance
   }
 
-  disconnect = () => {
+  disconnect() {
     this._client.disconnect()
   }
 
@@ -276,8 +279,8 @@ export class DPOSUser {
    *
    * @param amount The amount that will be deposited to the DAppChain Gateway (and will be possible to withdraw from the mainnet)
    */
-  private depositCoinToDAppChainGateway = async (amount: BN) => {
-    let pendingReceipt = await this.getPendingWithdrawalReceipt()
+  private async depositCoinToDAppChainGatewayAsync(amount: BN) {
+    let pendingReceipt = await this.getPendingWithdrawalReceiptAsync()
     let signature
     if (pendingReceipt === null) {
       await this._dappchainLoom.approveAsync(this._dappchainGateway.address, amount)
@@ -289,11 +292,9 @@ export class DPOSUser {
         _ethereumLoomCoinAddress,
         ethereumAddress
       )
-      console.log(
-        `${amount.div(coinMultiplier).toString()} tokens deposited to DAppChain Gateway...`
-      )
+      log(`${amount.div(coinMultiplier).toString()} tokens deposited to DAppChain Gateway...`)
       while (pendingReceipt === null || pendingReceipt.oracleSignature.length === 0) {
-        pendingReceipt = await this.getPendingWithdrawalReceipt()
+        pendingReceipt = await this.getPendingWithdrawalReceiptAsync()
         await sleep(2000)
       }
     }
@@ -302,18 +303,17 @@ export class DPOSUser {
     return CryptoUtils.bytesToHexAddr(signature)
   }
 
-  private withdrawCoinFromRinkebyGateway = async (
+  private async withdrawCoinFromRinkebyGatewayAsync(
     amount: BN,
     sig: string
-  ): Promise<ethers.ContractTransaction> => {
+  ): Promise<ethers.ContractTransaction> {
     return this._ethereumGateway.withdrawERC20(amount.toString(), sig, this._ethereumLoom.address)
   }
 
   /**
    * Helper function to prefix an address with the chainId to get chainId:address format
    */
-  private prefixAddress = (address: string) => {
+  private prefixAddress(address: string) {
     return Address.fromString(`${this._client.chainId}:${address}`)
   }
-
 }

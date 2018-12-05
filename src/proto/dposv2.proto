@@ -4,7 +4,7 @@ import "proto/loom.proto";
 
 message Validator {
     bytes pub_key = 1;
-    int64 power = 2;
+    int64 power = 2 [jstype = JS_STRING];
 }
 
 message ParamsV2 {
@@ -16,7 +16,7 @@ message ParamsV2 {
 message StateV2 {
     ParamsV2 params = 1;
     repeated Validator validators = 2;
-    int64 last_election_time = 3;
+    int64 last_election_time = 3 [jstype = JS_STRING];
 }
 
 message ValidatorStatisticV2 {
@@ -36,7 +36,7 @@ message ValidatorStatisticListV2 {
 message CandidateV2 {
     Address address = 1;
     bytes pub_key = 2;
-    uint64 fee = 3;
+    uint64 fee = 3 [jstype = JS_STRING];
     string name = 4;
     string description = 5;
     string website = 6;
@@ -88,7 +88,7 @@ message DelegationOverrideRequestV2 {
     Address validator_address = 1;
     Address delegator_address = 2;
     BigUInt amount = 3;
-    uint64 lock_time = 4;
+    uint64 lock_time = 4 [jstype = JS_STRING];
 }
 
 message RedelegateRequestV2 {
@@ -120,7 +120,7 @@ message UnbondRequestV2 {
 
 message RegisterCandidateRequestV2 {
     bytes pub_key = 1;
-    uint64 fee = 2;
+    uint64 fee = 2 [jstype = JS_STRING];
     string name = 3;
     string description = 4;
     string website = 5;
