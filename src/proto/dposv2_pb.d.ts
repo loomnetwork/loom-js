@@ -4,6 +4,32 @@
 import * as jspb from "google-protobuf";
 import * as proto_loom_pb from "../proto/loom_pb";
 
+export class Validator extends jspb.Message {
+  getPubKey(): Uint8Array | string;
+  getPubKey_asU8(): Uint8Array;
+  getPubKey_asB64(): string;
+  setPubKey(value: Uint8Array | string): void;
+
+  getPower(): number;
+  setPower(value: number): void;
+
+  serializeBinary(): Uint8Array;
+  toObject(includeInstance?: boolean): Validator.AsObject;
+  static toObject(includeInstance: boolean, msg: Validator): Validator.AsObject;
+  static extensions: {[key: number]: jspb.ExtensionFieldInfo<jspb.Message>};
+  static extensionsBinary: {[key: number]: jspb.ExtensionFieldBinaryInfo<jspb.Message>};
+  static serializeBinaryToWriter(message: Validator, writer: jspb.BinaryWriter): void;
+  static deserializeBinary(bytes: Uint8Array): Validator;
+  static deserializeBinaryFromReader(message: Validator, reader: jspb.BinaryReader): Validator;
+}
+
+export namespace Validator {
+  export type AsObject = {
+    pubKey: Uint8Array | string,
+    power: number,
+  }
+}
+
 export class ParamsV2 extends jspb.Message {
   getValidatorCount(): number;
   setValidatorCount(value: number): void;
@@ -31,32 +57,6 @@ export namespace ParamsV2 {
     validatorCount: number,
     electionCycleLength: number,
     coinContractAddress?: proto_loom_pb.Address.AsObject,
-  }
-}
-
-export class Validator extends jspb.Message {
-  getPubKey(): Uint8Array | string;
-  getPubKey_asU8(): Uint8Array;
-  getPubKey_asB64(): string;
-  setPubKey(value: Uint8Array | string): void;
-
-  getPower(): number;
-  setPower(value: number): void;
-
-  serializeBinary(): Uint8Array;
-  toObject(includeInstance?: boolean): Validator.AsObject;
-  static toObject(includeInstance: boolean, msg: Validator): Validator.AsObject;
-  static extensions: {[key: number]: jspb.ExtensionFieldInfo<jspb.Message>};
-  static extensionsBinary: {[key: number]: jspb.ExtensionFieldBinaryInfo<jspb.Message>};
-  static serializeBinaryToWriter(message: Validator, writer: jspb.BinaryWriter): void;
-  static deserializeBinary(bytes: Uint8Array): Validator;
-  static deserializeBinaryFromReader(message: Validator, reader: jspb.BinaryReader): Validator;
-}
-
-export namespace Validator {
-  export type AsObject = {
-    pubKey: Uint8Array | string,
-    power: number,
   }
 }
 
@@ -109,10 +109,10 @@ export class ValidatorStatisticV2 extends jspb.Message {
   getBlockCount(): number;
   setBlockCount(value: number): void;
 
-  hasSlashTotal(): boolean;
-  clearSlashTotal(): void;
-  getSlashTotal(): proto_loom_pb.BigUInt | undefined;
-  setSlashTotal(value?: proto_loom_pb.BigUInt): void;
+  hasSlashPercentage(): boolean;
+  clearSlashPercentage(): void;
+  getSlashPercentage(): proto_loom_pb.BigUInt | undefined;
+  setSlashPercentage(value?: proto_loom_pb.BigUInt): void;
 
   hasDistributionTotal(): boolean;
   clearDistributionTotal(): void;
@@ -140,7 +140,7 @@ export namespace ValidatorStatisticV2 {
     pubKey: Uint8Array | string,
     upblockCount: number,
     blockCount: number,
-    slashTotal?: proto_loom_pb.BigUInt.AsObject,
+    slashPercentage?: proto_loom_pb.BigUInt.AsObject,
     distributionTotal?: proto_loom_pb.BigUInt.AsObject,
     delegationTotal?: proto_loom_pb.BigUInt.AsObject,
   }
@@ -245,16 +245,24 @@ export class DelegationV2 extends jspb.Message {
   getDelegator(): proto_loom_pb.Address | undefined;
   setDelegator(value?: proto_loom_pb.Address): void;
 
-  getHeight(): number;
-  setHeight(value: number): void;
-
   hasAmount(): boolean;
   clearAmount(): void;
   getAmount(): proto_loom_pb.BigUInt | undefined;
   setAmount(value?: proto_loom_pb.BigUInt): void;
 
+  hasUpdateAmount(): boolean;
+  clearUpdateAmount(): void;
+  getUpdateAmount(): proto_loom_pb.BigUInt | undefined;
+  setUpdateAmount(value?: proto_loom_pb.BigUInt): void;
+
+  getHeight(): number;
+  setHeight(value: number): void;
+
   getLockTime(): number;
   setLockTime(value: number): void;
+
+  getState(): DelegationV2.DelegationState;
+  setState(value: DelegationV2.DelegationState): void;
 
   serializeBinary(): Uint8Array;
   toObject(includeInstance?: boolean): DelegationV2.AsObject;
@@ -270,9 +278,17 @@ export namespace DelegationV2 {
   export type AsObject = {
     validator?: proto_loom_pb.Address.AsObject,
     delegator?: proto_loom_pb.Address.AsObject,
-    height: number,
     amount?: proto_loom_pb.BigUInt.AsObject,
+    updateAmount?: proto_loom_pb.BigUInt.AsObject,
+    height: number,
     lockTime: number,
+    state: DelegationV2.DelegationState,
+  }
+
+  export enum DelegationState {
+    BONDING = 0,
+    BONDED = 1,
+    UNBONDING = 2,
   }
 }
 
