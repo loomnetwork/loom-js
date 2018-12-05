@@ -4,6 +4,32 @@
 import * as jspb from "google-protobuf";
 import * as proto_loom_pb from "../proto/loom_pb";
 
+export class Validator extends jspb.Message {
+  getPubKey(): Uint8Array | string;
+  getPubKey_asU8(): Uint8Array;
+  getPubKey_asB64(): string;
+  setPubKey(value: Uint8Array | string): void;
+
+  getPower(): number;
+  setPower(value: number): void;
+
+  serializeBinary(): Uint8Array;
+  toObject(includeInstance?: boolean): Validator.AsObject;
+  static toObject(includeInstance: boolean, msg: Validator): Validator.AsObject;
+  static extensions: {[key: number]: jspb.ExtensionFieldInfo<jspb.Message>};
+  static extensionsBinary: {[key: number]: jspb.ExtensionFieldBinaryInfo<jspb.Message>};
+  static serializeBinaryToWriter(message: Validator, writer: jspb.BinaryWriter): void;
+  static deserializeBinary(bytes: Uint8Array): Validator;
+  static deserializeBinaryFromReader(message: Validator, reader: jspb.BinaryReader): Validator;
+}
+
+export namespace Validator {
+  export type AsObject = {
+    pubKey: Uint8Array | string,
+    power: number,
+  }
+}
+
 export class ParamsV2 extends jspb.Message {
   getValidatorCount(): number;
   setValidatorCount(value: number): void;
@@ -31,32 +57,6 @@ export namespace ParamsV2 {
     validatorCount: number,
     electionCycleLength: number,
     coinContractAddress?: proto_loom_pb.Address.AsObject,
-  }
-}
-
-export class Validator extends jspb.Message {
-  getPubKey(): Uint8Array | string;
-  getPubKey_asU8(): Uint8Array;
-  getPubKey_asB64(): string;
-  setPubKey(value: Uint8Array | string): void;
-
-  getPower(): number;
-  setPower(value: number): void;
-
-  serializeBinary(): Uint8Array;
-  toObject(includeInstance?: boolean): Validator.AsObject;
-  static toObject(includeInstance: boolean, msg: Validator): Validator.AsObject;
-  static extensions: {[key: number]: jspb.ExtensionFieldInfo<jspb.Message>};
-  static extensionsBinary: {[key: number]: jspb.ExtensionFieldBinaryInfo<jspb.Message>};
-  static serializeBinaryToWriter(message: Validator, writer: jspb.BinaryWriter): void;
-  static deserializeBinary(bytes: Uint8Array): Validator;
-  static deserializeBinaryFromReader(message: Validator, reader: jspb.BinaryReader): Validator;
-}
-
-export namespace Validator {
-  export type AsObject = {
-    pubKey: Uint8Array | string,
-    power: number,
   }
 }
 
@@ -92,6 +92,82 @@ export namespace StateV2 {
   }
 }
 
+export class ValidatorStatisticV2 extends jspb.Message {
+  hasAddress(): boolean;
+  clearAddress(): void;
+  getAddress(): proto_loom_pb.Address | undefined;
+  setAddress(value?: proto_loom_pb.Address): void;
+
+  getPubKey(): Uint8Array | string;
+  getPubKey_asU8(): Uint8Array;
+  getPubKey_asB64(): string;
+  setPubKey(value: Uint8Array | string): void;
+
+  getUpblockCount(): number;
+  setUpblockCount(value: number): void;
+
+  getBlockCount(): number;
+  setBlockCount(value: number): void;
+
+  hasSlashPercentage(): boolean;
+  clearSlashPercentage(): void;
+  getSlashPercentage(): proto_loom_pb.BigUInt | undefined;
+  setSlashPercentage(value?: proto_loom_pb.BigUInt): void;
+
+  hasDistributionTotal(): boolean;
+  clearDistributionTotal(): void;
+  getDistributionTotal(): proto_loom_pb.BigUInt | undefined;
+  setDistributionTotal(value?: proto_loom_pb.BigUInt): void;
+
+  hasDelegationTotal(): boolean;
+  clearDelegationTotal(): void;
+  getDelegationTotal(): proto_loom_pb.BigUInt | undefined;
+  setDelegationTotal(value?: proto_loom_pb.BigUInt): void;
+
+  serializeBinary(): Uint8Array;
+  toObject(includeInstance?: boolean): ValidatorStatisticV2.AsObject;
+  static toObject(includeInstance: boolean, msg: ValidatorStatisticV2): ValidatorStatisticV2.AsObject;
+  static extensions: {[key: number]: jspb.ExtensionFieldInfo<jspb.Message>};
+  static extensionsBinary: {[key: number]: jspb.ExtensionFieldBinaryInfo<jspb.Message>};
+  static serializeBinaryToWriter(message: ValidatorStatisticV2, writer: jspb.BinaryWriter): void;
+  static deserializeBinary(bytes: Uint8Array): ValidatorStatisticV2;
+  static deserializeBinaryFromReader(message: ValidatorStatisticV2, reader: jspb.BinaryReader): ValidatorStatisticV2;
+}
+
+export namespace ValidatorStatisticV2 {
+  export type AsObject = {
+    address?: proto_loom_pb.Address.AsObject,
+    pubKey: Uint8Array | string,
+    upblockCount: number,
+    blockCount: number,
+    slashPercentage?: proto_loom_pb.BigUInt.AsObject,
+    distributionTotal?: proto_loom_pb.BigUInt.AsObject,
+    delegationTotal?: proto_loom_pb.BigUInt.AsObject,
+  }
+}
+
+export class ValidatorStatisticListV2 extends jspb.Message {
+  clearStatisticsList(): void;
+  getStatisticsList(): Array<ValidatorStatisticV2>;
+  setStatisticsList(value: Array<ValidatorStatisticV2>): void;
+  addStatistics(value?: ValidatorStatisticV2, index?: number): ValidatorStatisticV2;
+
+  serializeBinary(): Uint8Array;
+  toObject(includeInstance?: boolean): ValidatorStatisticListV2.AsObject;
+  static toObject(includeInstance: boolean, msg: ValidatorStatisticListV2): ValidatorStatisticListV2.AsObject;
+  static extensions: {[key: number]: jspb.ExtensionFieldInfo<jspb.Message>};
+  static extensionsBinary: {[key: number]: jspb.ExtensionFieldBinaryInfo<jspb.Message>};
+  static serializeBinaryToWriter(message: ValidatorStatisticListV2, writer: jspb.BinaryWriter): void;
+  static deserializeBinary(bytes: Uint8Array): ValidatorStatisticListV2;
+  static deserializeBinaryFromReader(message: ValidatorStatisticListV2, reader: jspb.BinaryReader): ValidatorStatisticListV2;
+}
+
+export namespace ValidatorStatisticListV2 {
+  export type AsObject = {
+    statisticsList: Array<ValidatorStatisticV2.AsObject>,
+  }
+}
+
 export class CandidateV2 extends jspb.Message {
   hasAddress(): boolean;
   clearAddress(): void;
@@ -102,6 +178,18 @@ export class CandidateV2 extends jspb.Message {
   getPubKey_asU8(): Uint8Array;
   getPubKey_asB64(): string;
   setPubKey(value: Uint8Array | string): void;
+
+  getFee(): number;
+  setFee(value: number): void;
+
+  getName(): string;
+  setName(value: string): void;
+
+  getDescription(): string;
+  setDescription(value: string): void;
+
+  getWebsite(): string;
+  setWebsite(value: string): void;
 
   serializeBinary(): Uint8Array;
   toObject(includeInstance?: boolean): CandidateV2.AsObject;
@@ -117,6 +205,10 @@ export namespace CandidateV2 {
   export type AsObject = {
     address?: proto_loom_pb.Address.AsObject,
     pubKey: Uint8Array | string,
+    fee: number,
+    name: string,
+    description: string,
+    website: string,
   }
 }
 
@@ -153,13 +245,24 @@ export class DelegationV2 extends jspb.Message {
   getDelegator(): proto_loom_pb.Address | undefined;
   setDelegator(value?: proto_loom_pb.Address): void;
 
-  getHeight(): number;
-  setHeight(value: number): void;
-
   hasAmount(): boolean;
   clearAmount(): void;
   getAmount(): proto_loom_pb.BigUInt | undefined;
   setAmount(value?: proto_loom_pb.BigUInt): void;
+
+  hasUpdateAmount(): boolean;
+  clearUpdateAmount(): void;
+  getUpdateAmount(): proto_loom_pb.BigUInt | undefined;
+  setUpdateAmount(value?: proto_loom_pb.BigUInt): void;
+
+  getHeight(): number;
+  setHeight(value: number): void;
+
+  getLockTime(): number;
+  setLockTime(value: number): void;
+
+  getState(): DelegationV2.DelegationState;
+  setState(value: DelegationV2.DelegationState): void;
 
   serializeBinary(): Uint8Array;
   toObject(includeInstance?: boolean): DelegationV2.AsObject;
@@ -175,8 +278,17 @@ export namespace DelegationV2 {
   export type AsObject = {
     validator?: proto_loom_pb.Address.AsObject,
     delegator?: proto_loom_pb.Address.AsObject,
-    height: number,
     amount?: proto_loom_pb.BigUInt.AsObject,
+    updateAmount?: proto_loom_pb.BigUInt.AsObject,
+    height: number,
+    lockTime: number,
+    state: DelegationV2.DelegationState,
+  }
+
+  export enum DelegationState {
+    BONDING = 0,
+    BONDED = 1,
+    UNBONDING = 2,
   }
 }
 
@@ -199,6 +311,56 @@ export class DelegationListV2 extends jspb.Message {
 export namespace DelegationListV2 {
   export type AsObject = {
     delegationsList: Array<DelegationV2.AsObject>,
+  }
+}
+
+export class DistributionV2 extends jspb.Message {
+  hasAddress(): boolean;
+  clearAddress(): void;
+  getAddress(): proto_loom_pb.Address | undefined;
+  setAddress(value?: proto_loom_pb.Address): void;
+
+  hasAmount(): boolean;
+  clearAmount(): void;
+  getAmount(): proto_loom_pb.BigUInt | undefined;
+  setAmount(value?: proto_loom_pb.BigUInt): void;
+
+  serializeBinary(): Uint8Array;
+  toObject(includeInstance?: boolean): DistributionV2.AsObject;
+  static toObject(includeInstance: boolean, msg: DistributionV2): DistributionV2.AsObject;
+  static extensions: {[key: number]: jspb.ExtensionFieldInfo<jspb.Message>};
+  static extensionsBinary: {[key: number]: jspb.ExtensionFieldBinaryInfo<jspb.Message>};
+  static serializeBinaryToWriter(message: DistributionV2, writer: jspb.BinaryWriter): void;
+  static deserializeBinary(bytes: Uint8Array): DistributionV2;
+  static deserializeBinaryFromReader(message: DistributionV2, reader: jspb.BinaryReader): DistributionV2;
+}
+
+export namespace DistributionV2 {
+  export type AsObject = {
+    address?: proto_loom_pb.Address.AsObject,
+    amount?: proto_loom_pb.BigUInt.AsObject,
+  }
+}
+
+export class DistributionListV2 extends jspb.Message {
+  clearDistributionsList(): void;
+  getDistributionsList(): Array<DistributionV2>;
+  setDistributionsList(value: Array<DistributionV2>): void;
+  addDistributions(value?: DistributionV2, index?: number): DistributionV2;
+
+  serializeBinary(): Uint8Array;
+  toObject(includeInstance?: boolean): DistributionListV2.AsObject;
+  static toObject(includeInstance: boolean, msg: DistributionListV2): DistributionListV2.AsObject;
+  static extensions: {[key: number]: jspb.ExtensionFieldInfo<jspb.Message>};
+  static extensionsBinary: {[key: number]: jspb.ExtensionFieldBinaryInfo<jspb.Message>};
+  static serializeBinaryToWriter(message: DistributionListV2, writer: jspb.BinaryWriter): void;
+  static deserializeBinary(bytes: Uint8Array): DistributionListV2;
+  static deserializeBinaryFromReader(message: DistributionListV2, reader: jspb.BinaryReader): DistributionListV2;
+}
+
+export namespace DistributionListV2 {
+  export type AsObject = {
+    distributionsList: Array<DistributionV2.AsObject>,
   }
 }
 
@@ -255,6 +417,44 @@ export namespace DelegateRequestV2 {
   export type AsObject = {
     validatorAddress?: proto_loom_pb.Address.AsObject,
     amount?: proto_loom_pb.BigUInt.AsObject,
+  }
+}
+
+export class DelegationOverrideRequestV2 extends jspb.Message {
+  hasValidatorAddress(): boolean;
+  clearValidatorAddress(): void;
+  getValidatorAddress(): proto_loom_pb.Address | undefined;
+  setValidatorAddress(value?: proto_loom_pb.Address): void;
+
+  hasDelegatorAddress(): boolean;
+  clearDelegatorAddress(): void;
+  getDelegatorAddress(): proto_loom_pb.Address | undefined;
+  setDelegatorAddress(value?: proto_loom_pb.Address): void;
+
+  hasAmount(): boolean;
+  clearAmount(): void;
+  getAmount(): proto_loom_pb.BigUInt | undefined;
+  setAmount(value?: proto_loom_pb.BigUInt): void;
+
+  getLockTime(): number;
+  setLockTime(value: number): void;
+
+  serializeBinary(): Uint8Array;
+  toObject(includeInstance?: boolean): DelegationOverrideRequestV2.AsObject;
+  static toObject(includeInstance: boolean, msg: DelegationOverrideRequestV2): DelegationOverrideRequestV2.AsObject;
+  static extensions: {[key: number]: jspb.ExtensionFieldInfo<jspb.Message>};
+  static extensionsBinary: {[key: number]: jspb.ExtensionFieldBinaryInfo<jspb.Message>};
+  static serializeBinaryToWriter(message: DelegationOverrideRequestV2, writer: jspb.BinaryWriter): void;
+  static deserializeBinary(bytes: Uint8Array): DelegationOverrideRequestV2;
+  static deserializeBinaryFromReader(message: DelegationOverrideRequestV2, reader: jspb.BinaryReader): DelegationOverrideRequestV2;
+}
+
+export namespace DelegationOverrideRequestV2 {
+  export type AsObject = {
+    validatorAddress?: proto_loom_pb.Address.AsObject,
+    delegatorAddress?: proto_loom_pb.Address.AsObject,
+    amount?: proto_loom_pb.BigUInt.AsObject,
+    lockTime: number,
   }
 }
 
@@ -336,6 +536,50 @@ export namespace CheckDelegationResponseV2 {
   }
 }
 
+export class ClaimDistributionRequestV2 extends jspb.Message {
+  hasWithdrawalAddress(): boolean;
+  clearWithdrawalAddress(): void;
+  getWithdrawalAddress(): proto_loom_pb.Address | undefined;
+  setWithdrawalAddress(value?: proto_loom_pb.Address): void;
+
+  serializeBinary(): Uint8Array;
+  toObject(includeInstance?: boolean): ClaimDistributionRequestV2.AsObject;
+  static toObject(includeInstance: boolean, msg: ClaimDistributionRequestV2): ClaimDistributionRequestV2.AsObject;
+  static extensions: {[key: number]: jspb.ExtensionFieldInfo<jspb.Message>};
+  static extensionsBinary: {[key: number]: jspb.ExtensionFieldBinaryInfo<jspb.Message>};
+  static serializeBinaryToWriter(message: ClaimDistributionRequestV2, writer: jspb.BinaryWriter): void;
+  static deserializeBinary(bytes: Uint8Array): ClaimDistributionRequestV2;
+  static deserializeBinaryFromReader(message: ClaimDistributionRequestV2, reader: jspb.BinaryReader): ClaimDistributionRequestV2;
+}
+
+export namespace ClaimDistributionRequestV2 {
+  export type AsObject = {
+    withdrawalAddress?: proto_loom_pb.Address.AsObject,
+  }
+}
+
+export class ClaimDistributionResponseV2 extends jspb.Message {
+  hasAmount(): boolean;
+  clearAmount(): void;
+  getAmount(): proto_loom_pb.BigUInt | undefined;
+  setAmount(value?: proto_loom_pb.BigUInt): void;
+
+  serializeBinary(): Uint8Array;
+  toObject(includeInstance?: boolean): ClaimDistributionResponseV2.AsObject;
+  static toObject(includeInstance: boolean, msg: ClaimDistributionResponseV2): ClaimDistributionResponseV2.AsObject;
+  static extensions: {[key: number]: jspb.ExtensionFieldInfo<jspb.Message>};
+  static extensionsBinary: {[key: number]: jspb.ExtensionFieldBinaryInfo<jspb.Message>};
+  static serializeBinaryToWriter(message: ClaimDistributionResponseV2, writer: jspb.BinaryWriter): void;
+  static deserializeBinary(bytes: Uint8Array): ClaimDistributionResponseV2;
+  static deserializeBinaryFromReader(message: ClaimDistributionResponseV2, reader: jspb.BinaryReader): ClaimDistributionResponseV2;
+}
+
+export namespace ClaimDistributionResponseV2 {
+  export type AsObject = {
+    amount?: proto_loom_pb.BigUInt.AsObject,
+  }
+}
+
 export class UnbondRequestV2 extends jspb.Message {
   hasValidatorAddress(): boolean;
   clearValidatorAddress(): void;
@@ -370,6 +614,18 @@ export class RegisterCandidateRequestV2 extends jspb.Message {
   getPubKey_asB64(): string;
   setPubKey(value: Uint8Array | string): void;
 
+  getFee(): number;
+  setFee(value: number): void;
+
+  getName(): string;
+  setName(value: string): void;
+
+  getDescription(): string;
+  setDescription(value: string): void;
+
+  getWebsite(): string;
+  setWebsite(value: string): void;
+
   serializeBinary(): Uint8Array;
   toObject(includeInstance?: boolean): RegisterCandidateRequestV2.AsObject;
   static toObject(includeInstance: boolean, msg: RegisterCandidateRequestV2): RegisterCandidateRequestV2.AsObject;
@@ -383,6 +639,10 @@ export class RegisterCandidateRequestV2 extends jspb.Message {
 export namespace RegisterCandidateRequestV2 {
   export type AsObject = {
     pubKey: Uint8Array | string,
+    fee: number,
+    name: string,
+    description: string,
+    website: string,
   }
 }
 

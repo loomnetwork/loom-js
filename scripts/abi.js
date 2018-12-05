@@ -7,3 +7,9 @@ shell.cp(
   './src/plasma-cash/contracts/*.json',
   './dist/plasma-cash/contracts/'
 )
+
+shell.mkdir('-p', './dist/dpos/contracts')
+shell.cp(
+  './src/dpos/contracts/*.json',
+  './dist/dpos/contracts/'
+)
