@@ -182,6 +182,16 @@ test('LoomProvider + Eth Sign', async t => {
 test.only('LoomProvider + Web3 get past logs', async t => {
   const { contract, client } = await newContractAndClient()
   try {
+    contract.events.NewValueSet({}, (err: Error, event: any) => {
+      if (err) t.error(err)
+      else {
+        t.assert(
+          event.returnValues._value,
+          `Return value should be exist - ${event.returnValues._value}`
+        )
+      }
+    })
+
     const tx1 = await contract.methods.set(1).send()
     t.equal(tx1.status, '0x1', 'SimpleStore.set should return correct status for tx 1')
 
