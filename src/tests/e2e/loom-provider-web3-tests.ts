@@ -178,3 +178,34 @@ test('LoomProvider + Eth Sign', async t => {
 
   t.end()
 })
+
+test.only('LoomProvider + Web3 get past logs', async t => {
+  const { contract, client } = await newContractAndClient()
+  try {
+    const tx1 = await contract.methods.set(1).send()
+    t.equal(tx1.status, '0x1', 'SimpleStore.set should return correct status for tx 1')
+
+    await waitForMillisecondsAsync(1000)
+
+    const tx2 = await contract.methods.set(2).send()
+    t.equal(tx2.status, '0x1', 'SimpleStore.set should return correct status for tx 2')
+
+    await waitForMillisecondsAsync(1000)
+
+    const tx3 = await contract.methods.set(3).send()
+    t.equal(tx3.status, '0x1', 'SimpleStore.set should return correct status for tx 3')
+
+    await waitForMillisecondsAsync(5000)
+
+    const pastEvents = await contract.getPastEvents('NewValueSet', {})
+    t.equal(pastEvents.length, 3, 'Should have three events returned')
+  } catch (err) {
+    console.log(err)
+  }
+
+  if (client) {
+    client.disconnect()
+  }
+
+  t.end()
+})
