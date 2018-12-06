@@ -146,6 +146,10 @@ export class DPOSUser {
     this._dappchainMapper = dappchainMapper
   }
 
+  get addressMapper(): Contracts.AddressMapper {
+    return this._dappchainMapper
+  }
+
   /**
    * Maps the user's ETH address to their DAppChain address. This MUST be called before any interaction with the gateways.
    *
@@ -163,7 +167,6 @@ export class DPOSUser {
     await this._dappchainMapper.addIdentityMappingAsync(this._address, ethereumAddress, signer)
     log(`Mapped ${this._address} to ${ethereumAddress}`)
   }
-
 
   async listValidatorsAsync(): Promise<IValidator[]> {
     return this._dappchainDPOS.getValidatorsAsync()
