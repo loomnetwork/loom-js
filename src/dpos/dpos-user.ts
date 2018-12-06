@@ -35,6 +35,7 @@ export class DPOSUser {
   private _dappchainGateway: Contracts.LoomCoinTransferGateway
   private _dappchainLoom: Contracts.Coin
   private _dappchainDPOS: Contracts.DPOS2
+  private _dappchainMapper: Contracts.AddressMapper
 
   static async createOfflineUserAsync(
     endpoint: string,
@@ -109,7 +110,7 @@ export class DPOSUser {
     const dappchainLoom = await Coin.createAsync(client, address)
     const dappchainDPOS = await DPOS2.createAsync(client, address)
     const dappchainGateway = await LoomCoinTransferGateway.createAsync(client, address)
-    await this.mapAccountsAsync(client, address, wallet)
+    const dappchainMapper = await AddressMapper.createAsync(client, address)
     return new DPOSUser(
       wallet,
       client,
@@ -118,27 +119,9 @@ export class DPOSUser {
       loomAddress,
       dappchainGateway,
       dappchainLoom,
-      dappchainDPOS
+      dappchainDPOS,
+      dappchainMapper
     )
-  }
-
-  /**
-   * Maps the user's ETH address to their DAppChain address. This MUST be called before any interaction with the gateways.
-   *
-   * @param account The user's account object
-   * @param wallet The User's ethers wallet
-   */
-  static async mapAccountsAsync(client: Client, address: Address, wallet: ethers.Signer) {
-    const walletAddress = await wallet.getAddress()
-    const ethereumAddress = Address.fromString(`eth:${walletAddress}`)
-    const mapperContract = await AddressMapper.createAsync(client, address)
-    if (await mapperContract.hasMappingAsync(address)) {
-      log(`${address.toString()} is already mapped`)
-      return
-    }
-    const signer = new EthersSigner(wallet)
-    await mapperContract.addIdentityMappingAsync(address, ethereumAddress, signer)
-    log(`Mapped ${address} to ${ethereumAddress}`)
   }
 
   constructor(
@@ -149,7 +132,8 @@ export class DPOSUser {
     loomAddress: string,
     dappchainGateway: Contracts.LoomCoinTransferGateway,
     dappchainLoom: Contracts.Coin,
-    dappchainDPOS: Contracts.DPOS2
+    dappchainDPOS: Contracts.DPOS2,
+    dappchainMapper: Contracts.AddressMapper
   ) {
     this._wallet = wallet
     this._address = address
@@ -159,7 +143,27 @@ export class DPOSUser {
     this._dappchainGateway = dappchainGateway
     this._dappchainLoom = dappchainLoom
     this._dappchainDPOS = dappchainDPOS
+    this._dappchainMapper = dappchainMapper
   }
+
+  /**
+   * Maps the user's ETH address to their DAppChain address. This MUST be called before any interaction with the gateways.
+   *
+   * @param account The user's account object
+   * @param wallet The User's ethers wallet
+   */
+  async mapAccountsAsync() {
+    const walletAddress = await this._wallet.getAddress()
+    const ethereumAddress = Address.fromString(`eth:${walletAddress}`)
+    if (await this._dappchainMapper.hasMappingAsync(this._address)) {
+      log(`${this._address.toString()} is already mapped`)
+      return
+    }
+    const signer = new EthersSigner(this._wallet)
+    await this._dappchainMapper.addIdentityMappingAsync(this._address, ethereumAddress, signer)
+    log(`Mapped ${this._address} to ${ethereumAddress}`)
+  }
+
 
   async listValidatorsAsync(): Promise<IValidator[]> {
     return this._dappchainDPOS.getValidatorsAsync()
