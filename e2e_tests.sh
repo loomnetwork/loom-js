@@ -37,6 +37,7 @@ setup_weave_blueprint() {
   cd $LOOM_DIR
   git clone https://github.com/loomnetwork/weave-blueprint.git
   cd weave-blueprint
+  git checkout fix-go-plugin
   LOOM_BLUEPRINT_DIR=`pwd`
   make deps
   make
@@ -60,6 +61,8 @@ start_chains() {
   sleep 5
 
   $LOOM_BIN deploy -a public_key_acc_1 -k private_key_acc_1 -n SimpleStore -b ./SimpleStore.bin
+
+  sleep 5
 }
 
 stop_chains() {

@@ -90,7 +90,11 @@ async function testContracts(t: Test, contractB: any, contractA: any) {
     const value = 5
 
     let tx = await contractA.methods.doEmit(value, contractB.options.address).send()
-    t.equal(tx.status, true, `doEmit should return correct status for ${value}`)
+    t.equal(
+      tx.status === '0x1' ? true : tx.status,
+      true,
+      `doEmit should return correct status for ${value}`
+    )
 
     await waitForMillisecondsAsync(1000)
 
@@ -117,7 +121,7 @@ async function testContracts(t: Test, contractB: any, contractA: any) {
 
 async function deployContractGanache(web3Provider: any, contractData: string) {
   const web3 = new Web3(web3Provider)
-  const fromAddr = '0x90f8bf6a479f320ead074411a4b0e7944ea8c9c1'
+  const fromAddr = '0x90F8bf6A479f320ead074411a4B0e7944Ea8c9C1'
 
   const ethSendTransactionDeployResult = await web3.eth.sendTransaction({
     from: fromAddr,
@@ -138,7 +142,7 @@ async function deployContractGanache(web3Provider: any, contractData: string) {
 }
 
 async function testGanache(t: Test) {
-  const from = '0x90f8bf6a479f320ead074411a4b0e7944ea8c9c1'
+  const from = '0x90F8bf6A479f320ead074411a4B0e7944Ea8c9C1'
 
   const websocketProvider = new Web3.providers.WebsocketProvider('ws://127.0.0.1:8545')
   const web3 = new Web3(websocketProvider)
