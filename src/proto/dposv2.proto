@@ -136,7 +136,7 @@ message ListValidatorsRequestV2 {
 }
 
 message ListValidatorsResponseV2 {
-    repeated Validator validators = 1;
+    repeated ValidatorStatisticV2 statistics = 1;
 }
 
 message ListCandidateRequestV2 {
