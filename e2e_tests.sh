@@ -37,7 +37,6 @@ setup_weave_blueprint() {
   cd $LOOM_DIR
   git clone https://github.com/loomnetwork/weave-blueprint.git
   cd weave-blueprint
-  git checkout fix-go-plugin
   LOOM_BLUEPRINT_DIR=`pwd`
   make deps
   make
