@@ -20,6 +20,8 @@ import { sleep } from '../helpers'
 import { ethers, utils } from 'ethers'
 import { AddressMapper } from '../contracts/address-mapper'
 import { EthersSigner } from '../solidity-helpers'
+import { selectProtocol } from '../rpc-client-factory';
+import { JSONRPCProtocol } from '../internal/json-rpc-client';
 
 const ERC721_ABI = ['function safeTransferFrom(address from, address to, uint256 tokenId) public']
 const ERC20_ABI = [
@@ -104,8 +106,17 @@ export class User extends Entity {
   ): Promise<User> {
     const database = new PlasmaDB(dbPath)
     const ethPlasmaClient = new EthereumPlasmaClient(wallet, plasmaAddress, eventsEndpoint)
-    const writer = createJSONRPCClient({ protocols: [{ url: dappchainEndpoint + '/rpc' }] })
-    const reader = createJSONRPCClient({ protocols: [{ url: dappchainEndpoint + '/query' }] })
+
+    const protocol = selectProtocol(dappchainEndpoint)
+    const writerSuffix = protocol == JSONRPCProtocol.HTTP ? '/rpc' : '/websocket'
+    const readerSuffix = protocol == JSONRPCProtocol.HTTP ? '/query' : '/queryws'
+
+    const writer = createJSONRPCClient({
+      protocols: [{ url: dappchainEndpoint + writerSuffix }]
+    })
+    const reader = createJSONRPCClient({
+      protocols: [{ url: dappchainEndpoint + readerSuffix }]
+    })
     const dAppClient = new Client(chainId || 'default', writer, reader)
     let privKey
     if (dappchainPrivateKey === null) {
