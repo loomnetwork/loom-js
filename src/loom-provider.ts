@@ -21,7 +21,8 @@ import {
   EvmTxReceipt,
   EthBlockInfo,
   EthBlockHashList,
-  EthTxHashList
+  EthTxHashList,
+  EvmTxObject
 } from './proto/evm_pb'
 import { Address, LocalAddress } from './address'
 import {
@@ -633,8 +634,8 @@ export class LoomProvider {
     const timestamp = blockInfo.getTimestamp()
     const transactions = blockInfo.getTransactionsList_asU8().map((transaction: Uint8Array) => {
       if (isFull) {
-        return this._createReceiptResult(
-          EvmTxReceipt.deserializeBinary(bufferToProtobufBytes(transaction))
+        return this._createTransactionResult(
+          EvmTxObject.deserializeBinary(bufferToProtobufBytes(transaction))
         )
       } else {
         return bytesToHexAddrLC(transaction)
@@ -647,8 +648,40 @@ export class LoomProvider {
       parentHash,
       logsBloom,
       timestamp,
-      transactions
+      transactions,
+      gasLimit: '0x0',
+      gasUsed: '0x0',
+      size: '0x0',
+      number: '0x0'
     }
+  }
+
+  private _createTransactionResult(txObject: EvmTxObject): IEthTransaction {
+    const hash = bytesToHexAddrLC(txObject.getHash_asU8())
+    const nonce = numberToHexLC(txObject.getNonce())
+    const blockHash = bytesToHexAddrLC(txObject.getBlockHash_asU8())
+    const blockNumber = numberToHexLC(txObject.getBlockNumber())
+    const transactionIndex = numberToHexLC(txObject.getTransactionIndex())
+    const from = bytesToHexAddrLC(txObject.getFrom_asU8())
+    const to = bytesToHexAddrLC(txObject.getTo_asU8())
+    const value = `${txObject.getValue()}`
+    const gas = numberToHexLC(txObject.getGas())
+    const gasPrice = numberToHexLC(txObject.getGasPrice())
+    const input = bytesToHexAddrLC(txObject.getInput_asU8())
+
+    return {
+      hash,
+      nonce,
+      blockHash,
+      blockNumber,
+      transactionIndex,
+      from,
+      to,
+      value,
+      gas,
+      gasPrice,
+      input
+    } as IEthTransaction
   }
 
   private _createReceiptResult(receipt: EvmTxReceipt): IEthReceipt {
