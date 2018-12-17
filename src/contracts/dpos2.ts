@@ -16,7 +16,8 @@ import {
   CheckDelegationRequestV2,
   CheckDelegationResponseV2,
   RegisterCandidateRequestV2,
-  UnregisterCandidateRequestV2
+  UnregisterCandidateRequestV2,
+  ValidatorStatisticV2
 } from '../proto/dposv2_pb'
 import { unmarshalBigUIntPB, marshalBigUIntPB } from '../big-uint'
 
@@ -30,8 +31,13 @@ export interface ICandidate {
 }
 
 export interface IValidator {
+  address: Address
   pubKey: Uint8Array
-  power: BN
+  upblockCount: number
+  blockCount: number
+  slashPct: BN
+  distributionTotal: BN
+  delegationTotal: BN
 }
 
 export interface IDelegation {
@@ -81,11 +87,17 @@ export class DPOS2 extends Contract {
       new ListValidatorsResponseV2()
     )
 
-    return result.getValidatorsList().map((validator: Validator) => ({
+    return result.getStatisticsList().map((validator: ValidatorStatisticV2) => ({
+      address: Address.UmarshalPB(validator.getAddress()!),
       pubKey: validator.getPubKey_asU8()!,
-      power: new BN(validator.getPower())
+      upblockCount: validator.getUpblockCount(),
+      blockCount: validator.getBlockCount(),
+      slashPct: validator.getSlashPercentage() ? unmarshalBigUIntPB(validator.getSlashPercentage()!) : new BN(0),
+      distributionTotal: validator.getDistributionTotal() ? unmarshalBigUIntPB(validator.getDistributionTotal()!) : new BN(0),
+      delegationTotal: validator.getDelegationTotal() ? unmarshalBigUIntPB(validator.getDelegationTotal()!) : new BN(0)
     }))
   }
+
 
   async checkDelegationAsync(validator: Address, delegator: Address): Promise<IDelegation | null> {
     const checkDelegationReq = new CheckDelegationRequestV2()

@@ -66,7 +66,7 @@ export function createJSONRPCClient(opts: {
   throw new Error('Failed to create JSON-RPC client: invalid protocol configuration')
 }
 
-function selectProtocol(url: string): JSONRPCProtocol {
+export function selectProtocol(url: string): JSONRPCProtocol {
   if (url.startsWith('http://') || url.startsWith('https://')) {
     return JSONRPCProtocol.HTTP
   } else if (url.startsWith('ws://') || url.startsWith('wss://')) {
