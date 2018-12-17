@@ -146,6 +146,26 @@ export class DPOSUser {
     this._dappchainMapper = dappchainMapper
   }
 
+  get ethereumGateway(): ethers.Contract {
+    return this._ethereumGateway
+  }
+
+  get ethereumLoom(): ethers.Contract {
+    return this._ethereumLoom
+  }
+
+  get dappchainLoom(): Contracts.Coin {
+    return this._dappchainLoom
+  }
+
+  get dappchainGateway(): Contracts.LoomCoinTransferGateway {
+    return this._dappchainGateway
+  }
+
+  get dappchainDPOS(): Contracts.DPOS2 {
+    return this._dappchainDPOS
+  }
+
   get addressMapper(): Contracts.AddressMapper {
     return this._dappchainMapper
   }
