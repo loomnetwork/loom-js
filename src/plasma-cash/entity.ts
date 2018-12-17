@@ -181,7 +181,11 @@ export class Entity {
     })
   }
 
-  async startExitAsync(params: { slot: BN; prevBlockNum: BN; exitBlockNum: BN }): Promise<object> {
+  async startExitAsync(params: {
+    slot: BN
+    prevBlockNum: BN
+    exitBlockNum: BN
+  }): Promise<ethers.ContractTransaction> {
     const { slot, prevBlockNum, exitBlockNum } = params
 
     // In case the sender is exiting a Deposit transaction, they should just create a signed
@@ -247,11 +251,13 @@ export class Entity {
   }
 
   async finalizeExitAsync(slot: BN): Promise<any> {
-    return this._ethPlasmaClient.finalizeExitAsync({
+    const tx = await this._ethPlasmaClient.finalizeExitAsync({
       slot,
       from: this.ethAddress,
       gas: this._defaultGas
     })
+    await tx.wait()
+    return tx
   }
 
   /**
@@ -320,18 +326,21 @@ export class Entity {
       }
       if (blk.gt(exit.exitBlock)) {
         console.log(`${this.prefix(slot)} Challenge Spent Coin with ${blk}!`)
-        await this.challengeAfterAsync({ slot: slot, challengingBlockNum: blk })
+        const tx = await this.challengeAfterAsync({ slot: slot, challengingBlockNum: blk })
+        await tx.wait()
         break
       } else if (exit.prevBlock.lt(blk) && blk.lt(exit.exitBlock)) {
         console.log(`${this.prefix(slot)} Challenge Double Spend with ${blk}!`)
-        await this.challengeBetweenAsync({ slot: slot, challengingBlockNum: blk })
+        const tx = await this.challengeBetweenAsync({ slot: slot, challengingBlockNum: blk })
+        await tx.wait()
         break
       } else if (blk.lt(exit.prevBlock)) {
         console.log(`${this.prefix(slot)} Challenge Invalid History! with ${blk}`)
-        await this.challengeBeforeAsync({
+        const tx = await this.challengeBeforeAsync({
           slot: slot,
           challengingBlockNum: blk
         })
+        await tx.wait()
         break
       }
     }
@@ -351,11 +360,12 @@ export class Entity {
       // challenge with the first block after the challengingBlock
       if (blk.gt(new BN(challengingBlockNum))) {
         console.log(`${this.prefix(slot)} Responding with ${blk}!`)
-        await this.respondChallengeBeforeAsync({
+        const tx = await this.respondChallengeBeforeAsync({
           slot,
           challengingTxHash: txHash,
           respondingBlockNum: blk
         })
+        await tx.wait()
         break
       }
     }
@@ -494,11 +504,12 @@ export class Entity {
   }
 
   async withdrawAsync(slot: BN) {
-    await this._ethPlasmaClient.withdrawAsync({
+    const tx = await this._ethPlasmaClient.withdrawAsync({
       slot,
       from: this.ethAddress,
       gas: this._defaultGas
     })
+    await tx.wait()
     this.database.removeCoin(slot) // remove the coin from the state
   }
 
@@ -509,7 +520,10 @@ export class Entity {
     })
   }
 
-  async challengeAfterAsync(params: { slot: BN; challengingBlockNum: BN }): Promise<object> {
+  async challengeAfterAsync(params: {
+    slot: BN
+    challengingBlockNum: BN
+  }): Promise<ethers.ContractTransaction> {
     const { slot, challengingBlockNum } = params
     const challengingTx = await this.getPlasmaTxAsync(slot, challengingBlockNum)
     if (!challengingTx) {
@@ -524,7 +538,10 @@ export class Entity {
     })
   }
 
-  async challengeBetweenAsync(params: { slot: BN; challengingBlockNum: BN }): Promise<object> {
+  async challengeBetweenAsync(params: {
+    slot: BN
+    challengingBlockNum: BN
+  }): Promise<ethers.ContractTransaction> {
     const { slot, challengingBlockNum } = params
     const challengingTx = await this.getPlasmaTxAsync(slot, challengingBlockNum)
     if (!challengingTx) {
@@ -539,7 +556,10 @@ export class Entity {
     })
   }
 
-  async challengeBeforeAsync(params: { slot: BN; challengingBlockNum: BN }): Promise<object> {
+  async challengeBeforeAsync(params: {
+    slot: BN
+    challengingBlockNum: BN
+  }): Promise<ethers.ContractTransaction> {
     const { slot, challengingBlockNum } = params
 
     // In case the sender is exiting a Deposit transaction, they should just create a signed
@@ -580,7 +600,7 @@ export class Entity {
     slot: BN
     challengingTxHash: string
     respondingBlockNum: BN
-  }): Promise<object> {
+  }): Promise<ethers.ContractTransaction> {
     const { slot, challengingTxHash, respondingBlockNum } = params
     const respondingTx = await this.getPlasmaTxAsync(slot, respondingBlockNum)
     if (!respondingTx) {

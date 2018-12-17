@@ -233,7 +233,7 @@ export class TransferGateway extends Contract {
   }
 
   /**
-   * Sends a request to the DAppChain Gateway to begin withdrawal ERC20 tokens from the current
+   * Sends a request to the DAppChain Gateway to begin withdrawal of ETH from the current
    * DAppChain account to an Ethereum account.
    * @param amount Amount to withdraw.
    * @param ethereumGateway Ethereum address of Ethereum Gateway.

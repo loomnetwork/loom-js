@@ -79,6 +79,7 @@ function init_hostile_dappchain {
   cd $PLASMA_CASH_DIR
   rm -rf $LOOM_DIR/contracts; true
   mkdir $LOOM_DIR/contracts
+  export TMP_GOPATH=$GOPATH
   GOPATH=$GOPATH:$PLASMA_CASH_DIR/loom_test
   cd $PLASMA_CASH_DIR/loom_test
   make deps

@@ -4,7 +4,8 @@ export {
   IClientEventArgs,
   IChainEventArgs,
   IClientErrorEventArgs,
-  ITxMiddlewareHandler
+  ITxMiddlewareHandler,
+  isInvalidTxNonceError
 } from './client'
 export { Contract } from './contract'
 export { EvmContract } from './evm-contract'
@@ -43,6 +44,7 @@ export {
 } from './solidity-helpers'
 export { Entity, IEntityParams } from './plasma-cash/entity'
 export { User as PlasmaUser } from './plasma-cash/user'
+export { DPOSUser } from './dpos/dpos-user'
 export { SparseMerkleTree, ISparseMerkleTreeLevel } from './plasma-cash/sparse-merkle-tree'
 
 export { PlasmaDB, IDatabaseCoin } from './plasma-cash/db'
