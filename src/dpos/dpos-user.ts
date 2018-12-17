@@ -11,6 +11,7 @@ import {
   Contracts,
   EthersSigner
 } from '..'
+import { JSONRPCProtocol } from '../internal/json-rpc-client'
 
 import { ethers, ContractTransaction } from 'ethers'
 import Web3 from 'web3'
@@ -18,6 +19,7 @@ import { DPOS2, Coin, LoomCoinTransferGateway, AddressMapper } from '../contract
 import { IWithdrawalReceipt } from '../contracts/transfer-gateway'
 import { sleep } from '../helpers'
 import { IValidator, ICandidate, IDelegation } from '../contracts/dpos2'
+import { selectProtocol } from '../rpc-client-factory'
 
 import debug from 'debug'
 const log = debug('dpos-user')
@@ -88,12 +90,18 @@ export class DPOSUser {
   ): Promise<DPOSUser> {
     const privateKey = CryptoUtils.B64ToUint8Array(dappchainKey)
     const publicKey = CryptoUtils.publicKeyFromPrivateKey(privateKey)
+
+    const protocol = selectProtocol(dappchainEndpoint)
+    const writerSuffix = protocol == JSONRPCProtocol.HTTP ? '/rpc' : '/websocket'
+    const readerSuffix = protocol == JSONRPCProtocol.HTTP ? '/query' : '/queryws'
+
     const writer = createJSONRPCClient({
-      protocols: [{ url: dappchainEndpoint + '/rpc' }]
+      protocols: [{ url: dappchainEndpoint + writerSuffix }]
     })
     const reader = createJSONRPCClient({
-      protocols: [{ url: dappchainEndpoint + '/query' }]
+      protocols: [{ url: dappchainEndpoint + readerSuffix }]
     })
+
     const client = new Client(chainId, writer, reader)
     log('Initialized', dappchainEndpoint)
     client.txMiddleware = [
