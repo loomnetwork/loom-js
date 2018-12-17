@@ -695,10 +695,10 @@ export namespace ListValidatorsRequestV2 {
 }
 
 export class ListValidatorsResponseV2 extends jspb.Message {
-  clearValidatorsList(): void;
-  getValidatorsList(): Array<Validator>;
-  setValidatorsList(value: Array<Validator>): void;
-  addValidators(value?: Validator, index?: number): Validator;
+  clearStatisticsList(): void;
+  getStatisticsList(): Array<ValidatorStatisticV2>;
+  setStatisticsList(value: Array<ValidatorStatisticV2>): void;
+  addStatistics(value?: ValidatorStatisticV2, index?: number): ValidatorStatisticV2;
 
   serializeBinary(): Uint8Array;
   toObject(includeInstance?: boolean): ListValidatorsResponseV2.AsObject;
@@ -712,7 +712,7 @@ export class ListValidatorsResponseV2 extends jspb.Message {
 
 export namespace ListValidatorsResponseV2 {
   export type AsObject = {
-    validatorsList: Array<Validator.AsObject>,
+    statisticsList: Array<ValidatorStatisticV2.AsObject>,
   }
 }
 
