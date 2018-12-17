@@ -47,6 +47,10 @@ export enum ClientEvent {
    */
   Contract = 'contractEvent',
   /**
+   * Exclusively used by loom-provider
+   */
+  EVMEvent = 'evmEvent',
+  /**
    * Emitted when an error occurs that can't be relayed by other means.
    * Listener will receive IClientErrorEventArgs.
    */
@@ -83,7 +87,7 @@ export interface IClientErrorEventArgs extends IClientEventArgs {
 export interface IChainEventArgs extends IClientEventArgs {
   /** Identifier (currently only used by EVM events). */
   id: string
-  kind: ClientEvent.Contract
+  kind: ClientEvent.Contract | ClientEvent.EVMEvent
   /** Address of the contract that emitted the event. */
   contractAddress: Address
   /** Address of the caller that caused the event to be emitted. */
@@ -301,6 +305,17 @@ export class Client extends EventEmitter {
     if (result.deliver_tx.data) {
       return B64ToUint8Array(result.deliver_tx.data)
     }
+  }
+
+  /**
+   * addListenerForTopics
+   */
+  async addListenerForTopics() {
+    const emitContractEvent = (url: string, event: IJSONRPCEvent) => {
+      this._emitContractEvent(url, event, true)
+    }
+
+    this._readClient.on(RPCClientEvent.EVMMessage, emitContractEvent)
   }
 
   /**
@@ -614,7 +629,7 @@ export class Client extends EventEmitter {
     return Address.fromString(addrStr)
   }
 
-  private _emitContractEvent(url: string, event: IJSONRPCEvent): void {
+  private _emitContractEvent(url: string, event: IJSONRPCEvent, isEVM: boolean = false): void {
     const { error, result } = event
     if (error) {
       const eventArgs: IClientErrorEventArgs = { kind: ClientEvent.Error, url, error }
@@ -626,7 +641,7 @@ export class Client extends EventEmitter {
       // https://github.com/google/protobuf/issues/1591 so gotta do this manually
       const eventArgs: IChainEventArgs = {
         id: event.id,
-        kind: ClientEvent.Contract,
+        kind: isEVM ? ClientEvent.EVMEvent : ClientEvent.Contract,
         url,
         contractAddress: new Address(
           result.address.chain_id,
@@ -642,7 +657,9 @@ export class Client extends EventEmitter {
         transactionHash: result.tx_hash,
         transactionHashBytes: result.tx_hash ? B64ToUint8Array(result.tx_hash) : new Uint8Array([])
       }
-      this.emit(ClientEvent.Contract, eventArgs)
+
+      if (isEVM) this.emit(ClientEvent.EVMEvent, eventArgs)
+      else this.emit(ClientEvent.Contract, eventArgs)
     }
   }
 
