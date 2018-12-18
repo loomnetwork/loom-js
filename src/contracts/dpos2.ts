@@ -9,8 +9,6 @@ import {
   ClaimDistributionRequestV2,
   ListValidatorsRequestV2,
   ListValidatorsResponseV2,
-  Validator,
-  DelegationOverrideRequestV2,
   DelegateRequestV2,
   UnbondRequestV2,
   CheckDelegationRequestV2,
@@ -164,21 +162,6 @@ export class DPOS2 extends Contract {
     delegateRequest.setValidatorAddress(validator.MarshalPB())
     delegateRequest.setAmount(marshalBigUIntPB(amount))
     return this.callAsync<void>('Delegate', delegateRequest)
-  }
-
-  // Super-user only function
-  async delegationOverrideAsync(
-    validator: Address,
-    delegator: Address,
-    amount: BN | number | string,
-    locktime: BN
-  ): Promise<void> {
-    const delegateOverrideRequest = new DelegationOverrideRequestV2()
-    delegateOverrideRequest.setValidatorAddress(validator.MarshalPB())
-    delegateOverrideRequest.setDelegatorAddress(delegator.MarshalPB())
-    delegateOverrideRequest.setAmount(marshalBigUIntPB(new BN(amount)))
-    delegateOverrideRequest.setLockTime(locktime.toString(10) as any)
-    return this.callAsync<void>('DelegationOverride', delegateOverrideRequest)
   }
 
   async unbondAsync(validator: Address, amount: BN | number | string): Promise<void> {
