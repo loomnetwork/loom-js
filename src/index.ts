@@ -5,6 +5,7 @@ export {
   IChainEventArgs,
   IClientErrorEventArgs,
   ITxMiddlewareHandler,
+  IRetryOptions,
   isInvalidTxNonceError
 } from './client'
 export { Contract } from './contract'

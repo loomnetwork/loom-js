@@ -31,6 +31,7 @@ interface IBroadcastTxCommitResult {
 }
 
 const log = debug('client')
+const error = debug('client:error')
 
 /**
  * Middleware handlers are expected to transform the input data and return the result.
@@ -107,7 +108,10 @@ export interface IChainEventArgs extends IClientEventArgs {
   topics: Array<string>
 }
 
+export interface IRetryOptions extends retry.OperationOptions {}
+
 const INVALID_TX_NONCE_ERROR = 'Invalid tx nonce'
+const TX_ALREADY_EXIST_ERROR = 'Tx already exists in cache'
 
 export function isInvalidTxNonceError(err: any): boolean {
   return err instanceof Error && err.message === INVALID_TX_NONCE_ERROR
@@ -137,16 +141,18 @@ export class Client extends EventEmitter {
 
   /**
    * The retry strategy that should be used to resend a tx when it's rejected because of a bad nonce.
-   * Default is a binary exponential retry strategy with 5 retries.
+   * Default is a binary exponential retry strategy with 0 retries.
    * To understand how to tweak the retry strategy see
    * https://github.com/tim-kos/node-retry#retrytimeoutsoptions
    */
-  nonceRetryStrategy: retry.OperationOptions = {
-    retries: 5,
-    minTimeout: 500, // 0.5s
-    maxTimeout: 5000, // 5s
-    randomize: true
+  static defaultRetryStrategy: IRetryOptions = {
+    retries: 0,
+    minTimeout: 0, // 0.5s
+    maxTimeout: 0, // 5s
+    randomize: false
   }
+
+  nonceRetryStrategy: IRetryOptions
 
   get readUrl(): string {
     return this._readClient.url
@@ -163,7 +169,12 @@ export class Client extends EventEmitter {
    * @param readUrl Host & port of the DAppChain read/query interface, this should only be provided
    *                if it's not the same as `writeUrl`.
    */
-  constructor(chainId: string, writeUrl: string, readUrl?: string)
+  constructor(
+    chainId: string,
+    writeUrl: string,
+    readUrl?: string,
+    nonceRetryOptions?: IRetryOptions
+  )
   /**
    * Constructs a new client to read & write data from/to a Loom DAppChain.
    * @param chainId DAppChain identifier.
@@ -171,14 +182,22 @@ export class Client extends EventEmitter {
    * @param readClient RPC client to use to query the DAppChain and listen to DAppChain events, this
    *                   should only be provided if it's not the same as `writeClient`.
    */
-  constructor(chainId: string, writeClient: IJSONRPCClient, readClient?: IJSONRPCClient)
+  constructor(
+    chainId: string,
+    writeClient: IJSONRPCClient,
+    readClient?: IJSONRPCClient,
+    nonceRetryOptions?: IRetryOptions
+  )
   constructor(
     chainId: string,
     writeClient: IJSONRPCClient | string,
-    readClient?: IJSONRPCClient | string
+    readClient?: IJSONRPCClient | string,
+    nonceRetryOptions: IRetryOptions = Client.defaultRetryStrategy
   ) {
     super()
     this.chainId = chainId
+    this.nonceRetryStrategy = nonceRetryOptions
+
     // TODO: basic validation of the URIs to ensure they have all required components.
     this._writeClient =
       typeof writeClient === 'string' ? new WSRPCClient(writeClient) : writeClient
@@ -254,13 +273,18 @@ export class Client extends EventEmitter {
     const op = retry.operation(this.nonceRetryStrategy)
     return new Promise<Uint8Array | void>((resolve, reject) => {
       op.attempt(currentAttempt => {
+        log(`Current retry attempt ${currentAttempt}`)
         this._commitTxAsync<T>(tx, middleware)
           .then(resolve)
           .catch(err => {
+            error(err.data)
             if (err instanceof Error && err.message === INVALID_TX_NONCE_ERROR) {
               if (!op.retry(err)) {
                 reject(err)
               }
+            } else if (err.data.indexOf(TX_ALREADY_EXIST_ERROR) !== -1) {
+              op.stop()
+              reject(Error('Transaction already exists in cache'))
             } else {
               op.stop()
               reject(err)
@@ -282,6 +306,9 @@ export class Client extends EventEmitter {
       'broadcast_tx_commit',
       [Uint8ArrayToB64(txBytes)]
     )
+
+    log(`Result ${JSON.stringify(result, null, 2)}`)
+
     if (result) {
       if ((result.check_tx.code || 0) != 0) {
         if (!result.check_tx.log) {

@@ -3,7 +3,13 @@ import BN from 'bn.js'
 import { ecsign, toBuffer } from 'ethereumjs-util'
 import retry from 'retry'
 
-import { Client, ClientEvent, IChainEventArgs, ITxMiddlewareHandler } from './client'
+import {
+  Client,
+  ClientEvent,
+  IChainEventArgs,
+  ITxMiddlewareHandler,
+  IRetryOptions
+} from './client'
 import { createDefaultTxMiddleware } from './helpers'
 import {
   CallTx,
@@ -110,16 +116,18 @@ export class LoomProvider {
 
   /**
    * The retry strategy that should be used to retry some web3 requests.
-   * Default is a binary exponential retry strategy with 5 retries.
+   * Default is a binary exponential retry strategy with 0 retries.
    * To understand how to tweak the retry strategy see
    * https://github.com/tim-kos/node-retry#retrytimeoutsoptions
    */
-  retryStrategy: retry.OperationOptions = {
-    retries: 3,
-    minTimeout: 1000, // 1s
-    maxTimeout: 30000, // 30s
-    randomize: true
+  static defaultRetryStrategy: IRetryOptions = {
+    retries: 0,
+    minTimeout: 0, // 1s
+    maxTimeout: 0, // 30s
+    randomize: false
   }
+
+  retryStrategy: IRetryOptions
 
   /**
    * Constructs the LoomProvider to bridges communication between Web3 and Loom DappChains
@@ -127,8 +135,13 @@ export class LoomProvider {
    * @param client Client from LoomJS
    * @param privateKey Account private key
    */
-  constructor(client: Client, privateKey: Uint8Array) {
+  constructor(
+    client: Client,
+    privateKey: Uint8Array,
+    retryOptions: IRetryOptions = LoomProvider.defaultRetryStrategy
+  ) {
     this._client = client
+    this.retryStrategy = retryOptions
     this._accountMiddlewares = new Map<string, Array<ITxMiddlewareHandler>>()
     this.notificationCallbacks = new Array()
     this.accounts = new Map<string, Uint8Array>()
@@ -445,6 +458,7 @@ export class LoomProvider {
     const op = retry.operation(this.retryStrategy)
     const receipt = await new Promise<EvmTxReceipt | null>((resolve, reject) => {
       op.attempt(currentAttempt => {
+        log(`Current attempt ${currentAttempt}`)
         this._client
           .getEvmTxReceiptAsync(bufferToProtobufBytes(data))
           .then(receipt => {
