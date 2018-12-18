@@ -135,13 +135,9 @@ export class LoomProvider {
    * @param client Client from LoomJS
    * @param privateKey Account private key
    */
-  constructor(
-    client: Client,
-    privateKey: Uint8Array,
-    retryOptions: IRetryOptions = LoomProvider.defaultRetryStrategy
-  ) {
+  constructor(client: Client, privateKey: Uint8Array, retryOptions?: IRetryOptions) {
     this._client = client
-    this.retryStrategy = retryOptions
+    this.retryStrategy = retryOptions ? retryOptions : LoomProvider.defaultRetryStrategy
     this._accountMiddlewares = new Map<string, Array<ITxMiddlewareHandler>>()
     this.notificationCallbacks = new Array()
     this.accounts = new Map<string, Uint8Array>()

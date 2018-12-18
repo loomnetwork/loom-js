@@ -192,11 +192,11 @@ export class Client extends EventEmitter {
     chainId: string,
     writeClient: IJSONRPCClient | string,
     readClient?: IJSONRPCClient | string,
-    nonceRetryOptions: IRetryOptions = Client.defaultRetryStrategy
+    nonceRetryOptions?: IRetryOptions
   ) {
     super()
     this.chainId = chainId
-    this.nonceRetryStrategy = nonceRetryOptions
+    this.nonceRetryStrategy = nonceRetryOptions ? nonceRetryOptions : Client.defaultRetryStrategy
 
     // TODO: basic validation of the URIs to ensure they have all required components.
     this._writeClient =
@@ -277,12 +277,11 @@ export class Client extends EventEmitter {
         this._commitTxAsync<T>(tx, middleware)
           .then(resolve)
           .catch(err => {
-            error(err.data)
             if (err instanceof Error && err.message === INVALID_TX_NONCE_ERROR) {
               if (!op.retry(err)) {
                 reject(err)
               }
-            } else if (err.data.indexOf(TX_ALREADY_EXIST_ERROR) !== -1) {
+            } else if (err.data && err.data.indexOf(TX_ALREADY_EXIST_ERROR) !== -1) {
               op.stop()
               reject(Error('Transaction already exists in cache'))
             } else {
