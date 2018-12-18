@@ -103,6 +103,7 @@ const numberToHexLC = (num: number): string => {
  */
 export class LoomProvider {
   private _client: Client
+  private _subscribed: boolean = false
   private _accountMiddlewares: Map<string, Array<ITxMiddlewareHandler>>
   protected notificationCallbacks: Array<Function>
   readonly accounts: Map<string, Uint8Array>
@@ -132,7 +133,8 @@ export class LoomProvider {
     this.notificationCallbacks = new Array()
     this.accounts = new Map<string, Uint8Array>()
 
-    this._client.addListener(ClientEvent.Contract, (msg: IChainEventArgs) =>
+    // Only subscribe for event emitter do not call subevents
+    this._client.addListener(ClientEvent.EVMEvent, (msg: IChainEventArgs) =>
       this._onWebSocketMessage(msg)
     )
 
@@ -527,6 +529,11 @@ export class LoomProvider {
   }
 
   private async _ethSubscribe(payload: IEthRPCPayload) {
+    if (!this._subscribed) {
+      this._subscribed = true
+      this._client.addListenerForTopics()
+    }
+
     const method = payload.params[0]
     const filterObject = payload.params[1] || {}
 
@@ -779,7 +786,7 @@ export class LoomProvider {
   }
 
   private _onWebSocketMessage(msgEvent: IChainEventArgs) {
-    if (msgEvent.data && msgEvent.id !== '0') {
+    if (msgEvent.kind === ClientEvent.EVMEvent) {
       log(`Socket message arrived ${JSON.stringify(msgEvent)}`)
       this.notificationCallbacks.forEach((callback: Function) => {
         const JSONRPCResult = {
