@@ -21,6 +21,12 @@ import {
 } from '../proto/dposv2_pb'
 import { unmarshalBigUIntPB, marshalBigUIntPB } from '../big-uint'
 
+export enum DelegationState {
+  BONDING = 0,
+  BONDED = 1,
+  UNBONDING = 2
+}
+
 export interface ICandidate {
   pubKey: Uint8Array
   address: Address
@@ -45,6 +51,9 @@ export interface IDelegation {
   delegator: Address
   height: BN
   amount: BN
+  updateAmount: BN
+  lockTime: number
+  state: DelegationState
 }
 
 export class DPOS2 extends Contract {
@@ -114,8 +123,11 @@ export class DPOS2 extends Contract {
       ? {
           validator: Address.UmarshalPB(delegation.getValidator()!),
           delegator: Address.UmarshalPB(delegation.getDelegator()!),
+          amount: delegation.getAmount() ? unmarshalBigUIntPB(delegation.getAmount()!) : new BN(0),
+          updateAmount: delegation.getUpdateAmount() ? unmarshalBigUIntPB(delegation.getAmount()!) : new BN(0),
           height: new BN(delegation.getHeight()),
-          amount: delegation.getAmount() ? unmarshalBigUIntPB(delegation.getAmount()!) : new BN(0)
+          lockTime: delegation.getLockTime(),
+          state: delegation.getState()
         }
       : null
   }
