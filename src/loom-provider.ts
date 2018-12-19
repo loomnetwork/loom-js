@@ -110,7 +110,7 @@ export class LoomProvider {
 
   /**
    * The retry strategy that should be used to retry some web3 requests.
-   * Default is a binary exponential retry strategy with 0 retries.
+   * By default failed requested won't be resent.
    * To understand how to tweak the retry strategy see
    * https://github.com/tim-kos/node-retry#retrytimeoutsoptions
    */

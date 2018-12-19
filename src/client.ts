@@ -31,7 +31,6 @@ interface IBroadcastTxCommitResult {
 }
 
 const log = debug('client')
-const error = debug('client:error')
 
 /**
  * Middleware handlers are expected to transform the input data and return the result.
@@ -109,10 +108,14 @@ export interface IChainEventArgs extends IClientEventArgs {
 }
 
 const INVALID_TX_NONCE_ERROR = 'Invalid tx nonce'
-const TX_ALREADY_EXIST_ERROR = 'Tx already exists in cache'
+const TX_ALREADY_EXISTS_ERROR = 'Tx already exists in cache'
 
 export function isInvalidTxNonceError(err: any): boolean {
   return err instanceof Error && err.message === INVALID_TX_NONCE_ERROR
+}
+
+export function isTxAlreadyInCacheError(err: any): boolean {
+  return err instanceof Error && err.message === TX_ALREADY_EXISTS_ERROR
 }
 
 /**
@@ -139,7 +142,7 @@ export class Client extends EventEmitter {
 
   /**
    * The retry strategy that should be used to resend a tx when it's rejected because of a bad nonce.
-   * Default is a binary exponential retry strategy with 0 retries.
+   * By default a tx won't be resent if it's rejected because of a nonce mismatch.
    * To understand how to tweak the retry strategy see
    * https://github.com/tim-kos/node-retry#retrytimeoutsoptions
    */
@@ -265,9 +268,12 @@ export class Client extends EventEmitter {
               if (!op.retry(err)) {
                 reject(err)
               }
-            } else if (err.data && err.data.indexOf(TX_ALREADY_EXIST_ERROR) !== -1) {
+            } else if (
+              (err instanceof Error && err.message.indexOf(TX_ALREADY_EXISTS_ERROR) !== -1) || // HTTP
+              (err.data && err.data.indexOf(TX_ALREADY_EXISTS_ERROR) !== -1) // WS
+            ) {
               op.stop()
-              reject(Error('Transaction already exists in cache'))
+              reject(new Error(TX_ALREADY_EXISTS_ERROR))
             } else {
               op.stop()
               reject(err)

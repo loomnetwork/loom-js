@@ -5,7 +5,8 @@ export {
   IChainEventArgs,
   IClientErrorEventArgs,
   ITxMiddlewareHandler,
-  isInvalidTxNonceError
+  isInvalidTxNonceError,
+  isTxAlreadyInCacheError
 } from './client'
 export { Contract } from './contract'
 export { EvmContract } from './evm-contract'
