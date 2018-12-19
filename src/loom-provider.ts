@@ -110,12 +110,12 @@ export class LoomProvider {
 
   /**
    * The retry strategy that should be used to retry some web3 requests.
-   * Default is a binary exponential retry strategy with 5 retries.
+   * By default failed requested won't be resent.
    * To understand how to tweak the retry strategy see
    * https://github.com/tim-kos/node-retry#retrytimeoutsoptions
    */
   retryStrategy: retry.OperationOptions = {
-    retries: 3,
+    retries: 0,
     minTimeout: 1000, // 1s
     maxTimeout: 30000, // 30s
     randomize: true
@@ -445,6 +445,7 @@ export class LoomProvider {
     const op = retry.operation(this.retryStrategy)
     const receipt = await new Promise<EvmTxReceipt | null>((resolve, reject) => {
       op.attempt(currentAttempt => {
+        log(`Current attempt ${currentAttempt}`)
         this._client
           .getEvmTxReceiptAsync(bufferToProtobufBytes(data))
           .then(receipt => {

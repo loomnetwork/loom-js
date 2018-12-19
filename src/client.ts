@@ -108,9 +108,14 @@ export interface IChainEventArgs extends IClientEventArgs {
 }
 
 const INVALID_TX_NONCE_ERROR = 'Invalid tx nonce'
+const TX_ALREADY_EXISTS_ERROR = 'Tx already exists in cache'
 
 export function isInvalidTxNonceError(err: any): boolean {
   return err instanceof Error && err.message === INVALID_TX_NONCE_ERROR
+}
+
+export function isTxAlreadyInCacheError(err: any): boolean {
+  return err instanceof Error && err.message === TX_ALREADY_EXISTS_ERROR
 }
 
 /**
@@ -137,12 +142,12 @@ export class Client extends EventEmitter {
 
   /**
    * The retry strategy that should be used to resend a tx when it's rejected because of a bad nonce.
-   * Default is a binary exponential retry strategy with 5 retries.
+   * By default a tx won't be resent if it's rejected because of a nonce mismatch.
    * To understand how to tweak the retry strategy see
    * https://github.com/tim-kos/node-retry#retrytimeoutsoptions
    */
   nonceRetryStrategy: retry.OperationOptions = {
-    retries: 5,
+    retries: 0,
     minTimeout: 500, // 0.5s
     maxTimeout: 5000, // 5s
     randomize: true
@@ -179,6 +184,7 @@ export class Client extends EventEmitter {
   ) {
     super()
     this.chainId = chainId
+
     // TODO: basic validation of the URIs to ensure they have all required components.
     this._writeClient =
       typeof writeClient === 'string' ? new WSRPCClient(writeClient) : writeClient
@@ -254,6 +260,7 @@ export class Client extends EventEmitter {
     const op = retry.operation(this.nonceRetryStrategy)
     return new Promise<Uint8Array | void>((resolve, reject) => {
       op.attempt(currentAttempt => {
+        log(`Current retry attempt ${currentAttempt}`)
         this._commitTxAsync<T>(tx, middleware)
           .then(resolve)
           .catch(err => {
@@ -261,6 +268,12 @@ export class Client extends EventEmitter {
               if (!op.retry(err)) {
                 reject(err)
               }
+            } else if (
+              (err instanceof Error && err.message.indexOf(TX_ALREADY_EXISTS_ERROR) !== -1) || // HTTP
+              (err.data && err.data.indexOf(TX_ALREADY_EXISTS_ERROR) !== -1) // WS
+            ) {
+              op.stop()
+              reject(new Error(TX_ALREADY_EXISTS_ERROR))
             } else {
               op.stop()
               reject(err)
@@ -282,6 +295,9 @@ export class Client extends EventEmitter {
       'broadcast_tx_commit',
       [Uint8ArrayToB64(txBytes)]
     )
+
+    log(`Result ${JSON.stringify(result, null, 2)}`)
+
     if (result) {
       if ((result.check_tx.code || 0) != 0) {
         if (!result.check_tx.log) {

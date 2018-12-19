@@ -14,6 +14,7 @@ import './e2e/client-evm-tests'
 import './e2e/client-evm-event-tests'
 import './e2e/client-evm-event-tests-2'
 import './e2e/multiple-events-nd-tests'
+import './e2e/client-test-tx-cache'
 
 // Contracts
 import './e2e/coin-tests'
