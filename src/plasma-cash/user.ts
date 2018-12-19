@@ -5,7 +5,7 @@ import {
   IEntityParams,
   EthereumPlasmaClient,
   CryptoUtils,
-  SyncedNonceTxMiddleware,
+  NonceTxMiddleware,
   SignedTxMiddleware,
   Address,
   LocalAddress,
@@ -126,7 +126,7 @@ export class User extends Entity {
     }
     const pubKey = CryptoUtils.publicKeyFromPrivateKey(privKey)
     dAppClient.txMiddleware = [
-      new SyncedNonceTxMiddleware(pubKey, dAppClient),
+      new NonceTxMiddleware(pubKey, dAppClient),
       new SignedTxMiddleware(privKey)
     ]
     const callerAddress = new Address(chainId || 'default', LocalAddress.fromPublicKey(pubKey))

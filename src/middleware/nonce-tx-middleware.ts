@@ -24,6 +24,10 @@ export class NonceTxMiddleware implements ITxMiddlewareHandler {
     return this._nonceCount
   }
 
+  resetNonce() {
+    this._nonceCount = null
+  }
+
   async Handle(txData: Readonly<Uint8Array>): Promise<Uint8Array> {
     if (!this._nonceCount) {
       log('Nonce not found getting from loomchain')
