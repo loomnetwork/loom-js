@@ -305,7 +305,7 @@ export class Client extends EventEmitter {
         }
         if (
           result.check_tx.code === 1 &&
-          result.check_tx.log === 'sequence number does not match'
+          result.check_tx.log.indexOf('sequence number does not match') !== -1
         ) {
           throw new Error(INVALID_TX_NONCE_ERROR)
         }
