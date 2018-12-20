@@ -14,6 +14,11 @@ import './e2e/loom-provider-web3-middlewares-tests'
 import './e2e/client-evm-tests'
 import './e2e/client-evm-event-tests'
 import './e2e/client-evm-event-tests-2'
+<<<<<<< Updated upstream
+=======
+import './e2e/loom-provider-web3-pastevents'
+import './e2e/loom-provider-web3-subevents'
+>>>>>>> Stashed changes
 import './e2e/multiple-events-nd-tests'
 import './e2e/client-test-tx-cache'
 
