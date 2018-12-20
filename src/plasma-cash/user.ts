@@ -20,8 +20,8 @@ import { sleep } from '../helpers'
 import { ethers, utils } from 'ethers'
 import { AddressMapper } from '../contracts/address-mapper'
 import { EthersSigner } from '../solidity-helpers'
-import { selectProtocol } from '../rpc-client-factory';
-import { JSONRPCProtocol } from '../internal/json-rpc-client';
+import { selectProtocol } from '../rpc-client-factory'
+import { JSONRPCProtocol } from '../internal/json-rpc-client'
 
 const ERC721_ABI = ['function safeTransferFrom(address from, address to, uint256 tokenId) public']
 const ERC20_ABI = [

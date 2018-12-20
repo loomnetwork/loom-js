@@ -1,7 +1,6 @@
 import debug from 'debug'
 import { Message } from 'google-protobuf'
 import EventEmitter from 'events'
-import retry from 'retry'
 import { VMType } from './proto/loom_pb'
 import {
   EvmTxReceipt,
@@ -17,7 +16,7 @@ import { Address, LocalAddress } from './address'
 import { WSRPCClient, IJSONRPCEvent } from './internal/ws-rpc-client'
 import { RPCClientEvent, IJSONRPCClient } from './internal/json-rpc-client'
 
-interface ITxHandlerResult {
+export interface ITxHandlerResult {
   code?: number
   log?: string // error message if code != 0
   data?: string
@@ -30,14 +29,24 @@ interface IBroadcastTxCommitResult {
   height: string // int64
 }
 
+export interface ITxResults {
+  // Result of processing tx before it's included in a block (CheckTx)
+  validation: ITxHandlerResult
+  // Result of processing tx after it's included in a block (DeliverTx)
+  commit: ITxHandlerResult
+}
+
 const log = debug('client')
 
 /**
- * Middleware handlers are expected to transform the input data and return the result.
+ * Middleware handlers are expected to transform the tx data and check tx results.
  * Handlers should not modify the original input data in any way.
  */
 export interface ITxMiddlewareHandler {
+  // Transforms and returns tx data.
   Handle(txData: Readonly<Uint8Array>): Promise<Uint8Array>
+  // Checks the tx results and throws an error if needed.
+  HandleResults?(results: ITxResults): ITxResults
 }
 
 export enum ClientEvent {
@@ -107,12 +116,7 @@ export interface IChainEventArgs extends IClientEventArgs {
   topics: Array<string>
 }
 
-const INVALID_TX_NONCE_ERROR = 'Invalid tx nonce'
 const TX_ALREADY_EXISTS_ERROR = 'Tx already exists in cache'
-
-export function isInvalidTxNonceError(err: any): boolean {
-  return err instanceof Error && err.message === INVALID_TX_NONCE_ERROR
-}
 
 export function isTxAlreadyInCacheError(err: any): boolean {
   return err instanceof Error && err.message === TX_ALREADY_EXISTS_ERROR
@@ -139,19 +143,6 @@ export class Client extends EventEmitter {
 
   /** Middleware to apply to transactions before they are transmitted to the DAppChain. */
   txMiddleware: ITxMiddlewareHandler[] = []
-
-  /**
-   * The retry strategy that should be used to resend a tx when it's rejected because of a bad nonce.
-   * By default a tx won't be resent if it's rejected because of a nonce mismatch.
-   * To understand how to tweak the retry strategy see
-   * https://github.com/tim-kos/node-retry#retrytimeoutsoptions
-   */
-  nonceRetryStrategy: retry.OperationOptions = {
-    retries: 0,
-    minTimeout: 500, // 0.5s
-    maxTimeout: 5000, // 5s
-    randomize: true
-  }
 
   get readUrl(): string {
     return this._readClient.url
@@ -252,62 +243,44 @@ export class Client extends EventEmitter {
    *                        the `Client.txMiddleware` property.
    * @returns Result (if any) returned by the tx handler in the contract that processed the tx.
    */
-  commitTxAsync<T extends Message>(
+  async commitTxAsync<T extends Message>(
     tx: T,
     opts: { middleware?: ITxMiddlewareHandler[] } = {}
   ): Promise<Uint8Array | void> {
     const { middleware = this.txMiddleware } = opts
-    const op = retry.operation(this.nonceRetryStrategy)
-    return new Promise<Uint8Array | void>((resolve, reject) => {
-      op.attempt(currentAttempt => {
-        log(`Current retry attempt ${currentAttempt}`)
-        this._commitTxAsync<T>(tx, middleware)
-          .then(resolve)
-          .catch(err => {
-            if (err instanceof Error && err.message === INVALID_TX_NONCE_ERROR) {
-              if (!op.retry(err)) {
-                reject(err)
-              }
-            } else if (
-              (err instanceof Error && err.message.indexOf(TX_ALREADY_EXISTS_ERROR) !== -1) || // HTTP
-              (err.data && err.data.indexOf(TX_ALREADY_EXISTS_ERROR) !== -1) // WS
-            ) {
-              op.stop()
-              reject(new Error(TX_ALREADY_EXISTS_ERROR))
-            } else {
-              op.stop()
-              reject(err)
-            }
-          })
-      })
-    })
-  }
-
-  private async _commitTxAsync<T extends Message>(
-    tx: T,
-    middleware: ITxMiddlewareHandler[]
-  ): Promise<Uint8Array | void> {
     let txBytes = tx.serializeBinary()
     for (let i = 0; i < middleware.length; i++) {
       txBytes = await middleware[i].Handle(txBytes)
     }
-    const result = await this._writeClient.sendAsync<IBroadcastTxCommitResult>(
-      'broadcast_tx_commit',
-      [Uint8ArrayToB64(txBytes)]
-    )
+    let result: IBroadcastTxCommitResult
+    try {
+      result = await this._writeClient.sendAsync<IBroadcastTxCommitResult>('broadcast_tx_commit', [
+        Uint8ArrayToB64(txBytes)
+      ])
+    } catch (err) {
+      if (
+        (err instanceof Error && err.message.indexOf(TX_ALREADY_EXISTS_ERROR) !== -1) || // HTTP
+        (err.data && err.data.indexOf(TX_ALREADY_EXISTS_ERROR) !== -1) // WS
+      ) {
+        throw new Error(TX_ALREADY_EXISTS_ERROR)
+      }
+      throw err
+    }
 
     log(`Result ${JSON.stringify(result, null, 2)}`)
 
     if (result) {
+      let results = { validation: result.check_tx, commit: result.deliver_tx }
+      // Allow the middleware to detect specific error conditions, and throw more precise errors
+      for (let i = middleware.length - 1; i >= 0; i--) {
+        if (middleware[i].HandleResults) {
+          results = middleware[i].HandleResults!(results)
+        }
+      }
+      // Throw generic errors if the tx failed
       if ((result.check_tx.code || 0) != 0) {
         if (!result.check_tx.log) {
           throw new Error(`Failed to commit Tx: ${result.check_tx.code}`)
-        }
-        if (
-          result.check_tx.code === 1 &&
-          result.check_tx.log.indexOf('sequence number does not match') !== -1
-        ) {
-          throw new Error(INVALID_TX_NONCE_ERROR)
         }
         throw new Error(`Failed to commit Tx: ${result.check_tx.log}`)
       }
@@ -317,9 +290,9 @@ export class Client extends EventEmitter {
         }
         throw new Error(`Failed to commit Tx: ${result.deliver_tx.log}`)
       }
-    }
-    if (result.deliver_tx.data) {
-      return B64ToUint8Array(result.deliver_tx.data)
+      if (result.deliver_tx.data) {
+        return B64ToUint8Array(result.deliver_tx.data)
+      }
     }
   }
 
