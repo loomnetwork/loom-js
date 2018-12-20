@@ -173,7 +173,7 @@ async function testLoomProvider(t: Test) {
   client.disconnect()
 }
 
-test('Test Web3 + PastEvents', async t => {
+test('Test Web3 + Child contracts events', async t => {
   t.plan(6)
   await testGanache(t)
   await testLoomProvider(t)
