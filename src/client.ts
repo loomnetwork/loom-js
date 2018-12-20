@@ -265,7 +265,6 @@ export class Client extends EventEmitter {
         this._commitTxAsync<T>(tx, middleware)
           .then(resolve)
           .catch(err => {
-            this.resetNonceOnError()
             if (err instanceof Error && err.message === INVALID_TX_NONCE_ERROR) {
               if (!op.retry(err)) {
                 reject(err)
@@ -283,16 +282,6 @@ export class Client extends EventEmitter {
           })
       })
     })
-  }
-
-  private resetNonceOnError() {
-    const nonceTxMiddleware = this.txMiddleware.find(
-      (middleware: ITxMiddlewareHandler) => middleware instanceof NonceTxMiddleware
-    )
-
-    if (nonceTxMiddleware) {
-      ;(nonceTxMiddleware as NonceTxMiddleware).resetNonce()
-    }
   }
 
   private async _commitTxAsync<T extends Message>(

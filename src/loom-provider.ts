@@ -87,6 +87,11 @@ export interface IEthFilterLog {
   topics: Array<string>
 }
 
+export type SetupMiddlewareFunction = (
+  client: Client,
+  privateKey: Uint8Array
+) => ITxMiddlewareHandler[]
+
 const log = debug('loom-provider')
 const error = debug('loom-provider:error')
 
@@ -105,6 +110,7 @@ export class LoomProvider {
   private _client: Client
   private _subscribed: boolean = false
   private _accountMiddlewares: Map<string, Array<ITxMiddlewareHandler>>
+  private _setupMiddlewares: SetupMiddlewareFunction
   protected notificationCallbacks: Array<Function>
   readonly accounts: Map<string, Uint8Array>
 
@@ -127,8 +133,13 @@ export class LoomProvider {
    * @param client Client from LoomJS
    * @param privateKey Account private key
    */
-  constructor(client: Client, privateKey: Uint8Array) {
+  constructor(
+    client: Client,
+    privateKey: Uint8Array,
+    setupMiddlewaresFunction?: SetupMiddlewareFunction
+  ) {
     this._client = client
+    this._setupMiddlewares = setupMiddlewaresFunction!
     this._accountMiddlewares = new Map<string, Array<ITxMiddlewareHandler>>()
     this.notificationCallbacks = new Array()
     this.accounts = new Map<string, Uint8Array>()
@@ -137,6 +148,12 @@ export class LoomProvider {
     this._client.addListener(ClientEvent.EVMEvent, (msg: IChainEventArgs) =>
       this._onWebSocketMessage(msg)
     )
+
+    if (!this._setupMiddlewares) {
+      this._setupMiddlewares = (client: Client, privateKey: Uint8Array) => {
+        return createDefaultTxMiddleware(client, privateKey)
+      }
+    }
 
     this.addDefaultEvents()
     this.addAccounts([privateKey])
@@ -156,7 +173,7 @@ export class LoomProvider {
       this.accounts.set(accountAddress, accountPrivateKey)
       this._accountMiddlewares.set(
         accountAddress,
-        createDefaultTxMiddleware(this._client, accountPrivateKey)
+        this._setupMiddlewares(this._client, accountPrivateKey)
       )
       log(`New account added ${accountAddress}`)
     })
