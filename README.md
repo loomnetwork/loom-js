@@ -71,6 +71,26 @@ yarn proto
 
 The shell must be able to locate the `protoc` binary, which can be obtained from https://github.com/google/protobuf/releases
 
+### Custom Middlewares
+
+Install the loom-js beta version:
+`yarn add loom-js@beta`
+
+LoomProvider takes a custom function that lets you customize what middlewares it runs. For example, we have an experimental nonce caching middleware that has more advanced nonce tracking. You can add it as such:
+
+```
+const setupMiddlewareFn = function(
+         client, // Unused
+         privateKey
+       ) {
+         return [new CachedNonceTxMiddleware(publicKey, client), new SignedTxMiddleware(privateKey)]
+       }
+ 
+        const loomProviderObj = new LoomProvider(client, privateKey, setupMiddlewareFn)
+```
+
+More examples here: https://github.com/loomnetwork/loom-js/blob/master/src/tests/e2e/loom-provider-web3-middlewares-tests.ts
+
 ## License
 
 BSD 3-Clause, see `LICENSE` file for details.
