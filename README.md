@@ -79,14 +79,12 @@ Install the loom-js beta version:
 LoomProvider takes a custom function that lets you customize what middlewares it runs. For example, we have an experimental nonce caching middleware that has more advanced nonce tracking. You can add it as such:
 
 ```
-const setupMiddlewareFn = function(
-         client, // Unused
-         privateKey
-       ) {
-         return [new CachedNonceTxMiddleware(publicKey, client), new SignedTxMiddleware(privateKey)]
-       }
+const setupMiddlewareFn = function(client, privateKey) {
+  const publicKey = CryptoUtils.publicKeyFromPrivateKey(privateKey)
+  return [new CachedNonceTxMiddleware(publicKey, client), new SignedTxMiddleware(privateKey)]
+}
  
-        const loomProviderObj = new LoomProvider(client, privateKey, setupMiddlewareFn)
+const loomProviderObj = new LoomProvider(client, privateKey, setupMiddlewareFn)
 ```
 
 More examples here: https://github.com/loomnetwork/loom-js/blob/master/src/tests/e2e/loom-provider-web3-middlewares-tests.ts
