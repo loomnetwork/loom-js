@@ -6,7 +6,7 @@ import { createTestClient, waitForMillisecondsAsync } from '../helpers'
 import { LoomProvider } from '../../loom-provider'
 import { deployContract } from '../evm-helpers'
 import { SignedTxMiddleware } from '../../middleware'
-import { ITxMiddlewareHandler } from '../../client'
+import { ITxMiddlewareHandler, ITxResults } from '../../client'
 import { NonceTx } from '../../proto/loom_pb'
 
 // import Web3 from 'web3'
