@@ -21,7 +21,8 @@ import {
   EvmTxReceipt,
   EthBlockInfo,
   EthBlockHashList,
-  EthTxHashList
+  EthTxHashList,
+  EvmTxObject
 } from './proto/evm_pb'
 import { Address, LocalAddress } from './address'
 import {
@@ -86,6 +87,11 @@ export interface IEthFilterLog {
   topics: Array<string>
 }
 
+export type SetupMiddlewareFunction = (
+  client: Client,
+  privateKey: Uint8Array
+) => ITxMiddlewareHandler[]
+
 const log = debug('loom-provider')
 const error = debug('loom-provider:error')
 
@@ -102,18 +108,20 @@ const numberToHexLC = (num: number): string => {
  */
 export class LoomProvider {
   private _client: Client
+  private _subscribed: boolean = false
   private _accountMiddlewares: Map<string, Array<ITxMiddlewareHandler>>
+  private _setupMiddlewares: SetupMiddlewareFunction
   protected notificationCallbacks: Array<Function>
   readonly accounts: Map<string, Uint8Array>
 
   /**
    * The retry strategy that should be used to retry some web3 requests.
-   * Default is a binary exponential retry strategy with 5 retries.
+   * By default failed requested won't be resent.
    * To understand how to tweak the retry strategy see
    * https://github.com/tim-kos/node-retry#retrytimeoutsoptions
    */
   retryStrategy: retry.OperationOptions = {
-    retries: 3,
+    retries: 0,
     minTimeout: 1000, // 1s
     maxTimeout: 30000, // 30s
     randomize: true
@@ -125,15 +133,27 @@ export class LoomProvider {
    * @param client Client from LoomJS
    * @param privateKey Account private key
    */
-  constructor(client: Client, privateKey: Uint8Array) {
+  constructor(
+    client: Client,
+    privateKey: Uint8Array,
+    setupMiddlewaresFunction?: SetupMiddlewareFunction
+  ) {
     this._client = client
+    this._setupMiddlewares = setupMiddlewaresFunction!
     this._accountMiddlewares = new Map<string, Array<ITxMiddlewareHandler>>()
     this.notificationCallbacks = new Array()
     this.accounts = new Map<string, Uint8Array>()
 
-    this._client.addListener(ClientEvent.Contract, (msg: IChainEventArgs) =>
+    // Only subscribe for event emitter do not call subevents
+    this._client.addListener(ClientEvent.EVMEvent, (msg: IChainEventArgs) =>
       this._onWebSocketMessage(msg)
     )
+
+    if (!this._setupMiddlewares) {
+      this._setupMiddlewares = (client: Client, privateKey: Uint8Array) => {
+        return createDefaultTxMiddleware(client, privateKey)
+      }
+    }
 
     this.addDefaultEvents()
     this.addAccounts([privateKey])
@@ -153,7 +173,7 @@ export class LoomProvider {
       this.accounts.set(accountAddress, accountPrivateKey)
       this._accountMiddlewares.set(
         accountAddress,
-        createDefaultTxMiddleware(this._client, accountPrivateKey)
+        this._setupMiddlewares(this._client, accountPrivateKey)
       )
       log(`New account added ${accountAddress}`)
     })
@@ -442,6 +462,7 @@ export class LoomProvider {
     const op = retry.operation(this.retryStrategy)
     const receipt = await new Promise<EvmTxReceipt | null>((resolve, reject) => {
       op.attempt(currentAttempt => {
+        log(`Current attempt ${currentAttempt}`)
         this._client
           .getEvmTxReceiptAsync(bufferToProtobufBytes(data))
           .then(receipt => {
@@ -526,6 +547,11 @@ export class LoomProvider {
   }
 
   private async _ethSubscribe(payload: IEthRPCPayload) {
+    if (!this._subscribed) {
+      this._subscribed = true
+      this._client.addListenerForTopics()
+    }
+
     const method = payload.params[0]
     const filterObject = payload.params[1] || {}
 
@@ -626,8 +652,8 @@ export class LoomProvider {
     const timestamp = blockInfo.getTimestamp()
     const transactions = blockInfo.getTransactionsList_asU8().map((transaction: Uint8Array) => {
       if (isFull) {
-        return this._createReceiptResult(
-          EvmTxReceipt.deserializeBinary(bufferToProtobufBytes(transaction))
+        return this._createTransactionResult(
+          EvmTxObject.deserializeBinary(bufferToProtobufBytes(transaction))
         )
       } else {
         return bytesToHexAddrLC(transaction)
@@ -640,8 +666,40 @@ export class LoomProvider {
       parentHash,
       logsBloom,
       timestamp,
-      transactions
+      transactions,
+      gasLimit: '0x0',
+      gasUsed: '0x0',
+      size: '0x0',
+      number: '0x0'
     }
+  }
+
+  private _createTransactionResult(txObject: EvmTxObject): IEthTransaction {
+    const hash = bytesToHexAddrLC(txObject.getHash_asU8())
+    const nonce = numberToHexLC(txObject.getNonce())
+    const blockHash = bytesToHexAddrLC(txObject.getBlockHash_asU8())
+    const blockNumber = numberToHexLC(txObject.getBlockNumber())
+    const transactionIndex = numberToHexLC(txObject.getTransactionIndex())
+    const from = bytesToHexAddrLC(txObject.getFrom_asU8())
+    const to = bytesToHexAddrLC(txObject.getTo_asU8())
+    const value = `${txObject.getValue()}`
+    const gas = numberToHexLC(txObject.getGas())
+    const gasPrice = numberToHexLC(txObject.getGasPrice())
+    const input = bytesToHexAddrLC(txObject.getInput_asU8())
+
+    return {
+      hash,
+      nonce,
+      blockHash,
+      blockNumber,
+      transactionIndex,
+      from,
+      to,
+      value,
+      gas,
+      gasPrice,
+      input
+    } as IEthTransaction
   }
 
   private _createReceiptResult(receipt: EvmTxReceipt): IEthReceipt {
@@ -746,7 +804,7 @@ export class LoomProvider {
   }
 
   private _onWebSocketMessage(msgEvent: IChainEventArgs) {
-    if (msgEvent.data && msgEvent.id !== '0') {
+    if (msgEvent.kind === ClientEvent.EVMEvent) {
       log(`Socket message arrived ${JSON.stringify(msgEvent)}`)
       this.notificationCallbacks.forEach((callback: Function) => {
         const JSONRPCResult = {

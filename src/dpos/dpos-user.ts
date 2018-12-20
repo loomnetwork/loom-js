@@ -32,6 +32,7 @@ export class DPOSUser {
   private _wallet: ethers.Signer
   private _client: Client
   private _address: Address
+  private _ethAddress: string
   private _ethereumGateway: ethers.Contract
   private _ethereumLoom: ethers.Contract
   private _dappchainGateway: Contracts.LoomCoinTransferGateway
@@ -114,6 +115,7 @@ export class DPOSUser {
     })
 
     const address = new Address(chainId, LocalAddress.fromPublicKey(publicKey))
+    const ethAddress = await wallet.getAddress()
 
     const dappchainLoom = await Coin.createAsync(client, address)
     const dappchainDPOS = await DPOS2.createAsync(client, address)
@@ -123,6 +125,7 @@ export class DPOSUser {
       wallet,
       client,
       address,
+      ethAddress,
       gatewayAddress,
       loomAddress,
       dappchainGateway,
@@ -136,6 +139,7 @@ export class DPOSUser {
     wallet: ethers.Signer,
     client: Client,
     address: Address,
+    ethAddress: string,
     gatewayAddress: string,
     loomAddress: string,
     dappchainGateway: Contracts.LoomCoinTransferGateway,
@@ -145,6 +149,7 @@ export class DPOSUser {
   ) {
     this._wallet = wallet
     this._address = address
+    this._ethAddress = ethAddress
     this._client = client
     this._ethereumGateway = new ethers.Contract(gatewayAddress, ERC20Gateway, wallet)
     this._ethereumLoom = new ethers.Contract(loomAddress, ERC20, wallet)
@@ -176,6 +181,14 @@ export class DPOSUser {
 
   get addressMapper(): Contracts.AddressMapper {
     return this._dappchainMapper
+  }
+
+  get ethAddress(): string {
+    return this._ethAddress
+  }
+
+  get loomAddress(): Address {
+    return this._address
   }
 
   /**
