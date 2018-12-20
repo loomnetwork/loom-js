@@ -9,13 +9,14 @@ import './e2e/loom-provider-eth-filters-2'
 import './e2e/loom-provider-subscribe'
 import './e2e/loom-provider-web3-tests'
 import './e2e/loom-provider-web3-middlewares-tests'
+import './e2e/loom-provider-web3-child-events'
 
 // EVM
 import './e2e/client-evm-tests'
 import './e2e/client-evm-event-tests'
 import './e2e/client-evm-event-tests-2'
-import './e2e/multiple-events-nd-tests'
 import './e2e/client-test-tx-cache'
+import './e2e/multiple-events-nd-tests'
 
 // Contracts
 import './e2e/coin-tests'
