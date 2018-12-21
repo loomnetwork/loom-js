@@ -176,7 +176,9 @@ export class TxSyncBroadcaster implements ITxBroadcaster {
       op.attempt((currentAttempt: number) => {
         debugLog(`Querying for result of tx ${checkTxResult.hash} - attempt ${currentAttempt}`)
         client
-          .sendAsync<ITxQueryResult>('tx', { hash: checkTxResult.hash })
+          .sendAsync<ITxQueryResult>('tx', {
+            hash: Buffer.from(checkTxResult.hash, 'hex').toString('base64')
+          })
           .then(result => {
             resolve(result)
           })
