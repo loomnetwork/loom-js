@@ -151,7 +151,7 @@ export class TxCommitBroadcaster implements ITxBroadcaster {
 
 export class TxSyncBroadcaster implements ITxBroadcaster {
   resultPollingStrategy: retry.OperationOptions = {
-    retries: 3,
+    retries: 5,
     minTimeout: 1000, // 1s
     maxTimeout: 5000, // 5s
     randomize: true
@@ -181,8 +181,15 @@ export class TxSyncBroadcaster implements ITxBroadcaster {
             resolve(result)
           })
           .catch(err => {
-            debugLog(err.message)
-            if (!op.retry(err)) {
+            debugLog(err.message || err.data)
+            if (
+              (err instanceof Error && err.message.endsWith('not found')) || // HTTP
+              (err.data && err.data.endsWith('not found')) // WS
+            ) {
+              if (!op.retry(err)) {
+                reject(err)
+              }
+            } else {
               reject(err)
             }
           })
