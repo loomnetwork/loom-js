@@ -1,7 +1,11 @@
 import test from 'tape'
 
 import { LocalAddress, CryptoUtils } from '../../index'
-import { createTestClient, execAndWaitForMillisecondsAsync } from '../helpers'
+import {
+  createTestClient,
+  execAndWaitForMillisecondsAsync,
+  waitForMillisecondsAsync
+} from '../helpers'
 import { LoomProvider } from '../../loom-provider'
 import { deployContract } from '../evm-helpers'
 import { ecrecover, privateToPublic, fromRpcSig, toBuffer } from 'ethereumjs-util'
@@ -126,7 +130,7 @@ test('LoomProvider', async t => {
       loomProvider.sendAsync({
         id,
         method: 'eth_getBlockByNumber',
-        params: [`${CryptoUtils.hexToNumber(ethBlockNumber.result)}`]
+        params: ['1']
       })
     )
 
@@ -296,8 +300,40 @@ test('LoomProvider', async t => {
 
     t.equal(ethUninstallFilter.id, id, `Id for eth_subscribe should be equal ${id}`)
     t.equal(ethUninstallFilter.result, true, 'Uninstall filter should return true')
+
+    loomProvider.addCustomMethod('eth_balance', payload => {
+      t.equal(payload.params[0], fromAddr, 'Address should user address')
+      t.equal(payload.method, 'eth_balance', 'Method should be eth_balance')
+      return '0x1'
+    })
+
+    const ethBalanceResult = await execAndWaitForMillisecondsAsync(
+      loomProvider.sendAsync({
+        id,
+        method: 'eth_balance',
+        params: [fromAddr]
+      })
+    )
+
+    t.equal(ethBalanceResult.result, '0x1', 'Balance should be 0x1')
+
+    loomProvider.overwriteMethod('eth_estimateGas', payload => {
+      t.equal(payload.method, 'eth_estimateGas', 'Method should be eth_estimateGas')
+      return '0x123'
+    })
+
+    const ethEstimateGasResult = await execAndWaitForMillisecondsAsync(
+      loomProvider.sendAsync({
+        id,
+        method: 'eth_estimateGas',
+        params: [fromAddr]
+      })
+    )
+
+    t.equal(ethEstimateGasResult.result, '0x123', 'Estimate gas should be 0x123')
   } catch (err) {
     console.log(err)
+    t.error(err, 'Error found')
   }
 
   if (client) {
