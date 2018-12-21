@@ -263,7 +263,7 @@ export class Client extends EventEmitter {
   ) {
     super()
     this.chainId = chainId
-    this.txBroadcaster = new TxCommitBroadcaster()
+    this.txBroadcaster = new TxSyncBroadcaster()
 
     // TODO: basic validation of the URIs to ensure they have all required components.
     this._writeClient =
