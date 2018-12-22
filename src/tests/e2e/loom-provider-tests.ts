@@ -1,12 +1,13 @@
 import test from 'tape'
 
+import BN from 'bn.js'
 import { LocalAddress, CryptoUtils } from '../../index'
 import { createTestClient, execAndWaitForMillisecondsAsync } from '../helpers'
 import { LoomProvider } from '../../loom-provider'
 import { deployContract } from '../evm-helpers'
 import { ecrecover, privateToPublic, fromRpcSig, toBuffer } from 'ethereumjs-util'
 import { soliditySha3 } from '../../solidity-helpers'
-import { bytesToHexAddr } from '../../crypto-utils'
+import { bytesToHexAddr, utf8ToHex } from '../../crypto-utils'
 
 /**
  * Requires the SimpleStore solidity contract deployed on a loomchain.
@@ -75,7 +76,11 @@ test('LoomProvider', async t => {
 
     t.deepEqual(
       netVersionResult,
-      { id: 1, jsonrpc: '2.0', result: client.chainId },
+      {
+        id: 1,
+        jsonrpc: '2.0',
+        result: new BN(utf8ToHex(client.chainId))
+      },
       'net_version should match the chain id'
     )
 

@@ -29,7 +29,8 @@ import {
   bytesToHexAddr,
   numberToHex,
   bufferToProtobufBytes,
-  publicKeyFromPrivateKey
+  publicKeyFromPrivateKey,
+  utf8ToHex
 } from './crypto-utils'
 import { soliditySha3 } from './solidity-helpers'
 import { marshalBigUIntPB } from './big-uint'
@@ -572,7 +573,9 @@ export class LoomProvider {
   }
 
   private _netVersion() {
-    return this._client.chainId
+    // Truffle don't support utf-8 values here
+    // So the chainId is converted to hex value
+    return new BN(utf8ToHex(this._client.chainId))
   }
 
   // PRIVATE FUNCTIONS IMPLEMENTATIONS
