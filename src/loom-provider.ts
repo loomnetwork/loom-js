@@ -575,7 +575,7 @@ export class LoomProvider {
   private _netVersion() {
     // Truffle don't support utf-8 values here
     // So the chainId is converted to hex value
-    return new BN(utf8ToHex(this._client.chainId))
+    return new BN(utf8ToHex(this._client.chainId)).toString(10)
   }
 
   // PRIVATE FUNCTIONS IMPLEMENTATIONS

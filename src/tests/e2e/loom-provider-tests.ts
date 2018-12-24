@@ -79,7 +79,7 @@ test('LoomProvider', async t => {
       {
         id: 1,
         jsonrpc: '2.0',
-        result: new BN(utf8ToHex(client.chainId))
+        result: new BN(utf8ToHex(client.chainId)).toString(10)
       },
       'net_version should match the chain id'
     )
