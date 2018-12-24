@@ -99,10 +99,13 @@ export async function complexDemo(t: test.Test) {
   t.equal((await fred.getUserCoinsAsync()).length, 2, 'Fred owns 2 coins')
   t.deepEqual(slots, [coin2, coin5].sort(), 'Fred owns the correct coins')
 
+  await sleep(3000)
+
   try {
     // Let's try stealing some money
     await greg.transferAndVerifyAsync(coin4, harry.ethAddress)
   } catch (e) {
+    console.log(e.message)
     t.ok(
       e.message.includes(
         `Failed to commit Tx: [PlasmaCash] failed to process transfer: can't transfer coin ${coin4.toString(
@@ -117,6 +120,7 @@ export async function complexDemo(t: test.Test) {
     // Let's try stealing some money
     await greg.transferAndVerifyAsync(coin3, harry.ethAddress)
   } catch (e) {
+    console.log(e.message)
     t.ok(
       e.message.includes(
         `Failed to commit Tx: [PlasmaCash] failed to process transfer: can't transfer coin ${coin3.toString(
@@ -131,6 +135,7 @@ export async function complexDemo(t: test.Test) {
     // Let's try stealing some money
     await greg.transferAndVerifyAsync(coin1, harry.ethAddress)
   } catch (e) {
+    console.log(e.message)
     t.ok(
       e.message.includes(
         `Failed to commit Tx: [PlasmaCash] failed to process transfer: can't transfer coin ${coin1.toString(
