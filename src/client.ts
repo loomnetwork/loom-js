@@ -163,6 +163,7 @@ export class TxSyncBroadcaster implements ITxBroadcaster {
     ])
 
     const { code, log, data } = checkTxResult
+    // if the tx failed in CheckTx it won't make it into a block, and won't be indexed
     if (code !== 0) {
       return {
         check_tx: { code, log, data },
@@ -179,11 +180,12 @@ export class TxSyncBroadcaster implements ITxBroadcaster {
           .sendAsync<ITxQueryResult>('tx', {
             hash: Buffer.from(checkTxResult.hash, 'hex').toString('base64')
           })
-          .then(result => {
-            resolve(result)
-          })
+          .then(result => resolve(result))
           .catch(err => {
-            debugLog(err.message || err.data)
+            debugLog(
+              `Failed to retrieve result of tx ${checkTxResult.hash}: ${err.message || err.data}`
+            )
+            // keep trying to retrieve the result if the tx isn't found, until all retries are used up
             if (
               (err instanceof Error && err.message.endsWith('not found')) || // HTTP
               (err.data && err.data.endsWith('not found')) // WS
