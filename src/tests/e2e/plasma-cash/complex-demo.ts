@@ -99,7 +99,6 @@ export async function complexDemo(t: test.Test) {
   t.equal((await fred.getUserCoinsAsync()).length, 2, 'Fred owns 2 coins')
   t.deepEqual(slots, [coin2, coin5].sort(), 'Fred owns the correct coins')
 
-  await sleep(3000)
 
   try {
     // Let's try stealing some money
@@ -116,6 +115,8 @@ export async function complexDemo(t: test.Test) {
     )
   }
 
+  await sleep(1000)
+
   try {
     // Let's try stealing some money
     await greg.transferAndVerifyAsync(coin3, harry.ethAddress)
@@ -130,6 +131,8 @@ export async function complexDemo(t: test.Test) {
       'Tx2 should fail'
     )
   }
+
+  await sleep(1000)
 
   try {
     // Let's try stealing some money
