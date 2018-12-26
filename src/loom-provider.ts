@@ -216,6 +216,7 @@ export class LoomProvider {
     this._ethRPCMethods.set('eth_call', this._ethCall)
     this._ethRPCMethods.set('eth_estimateGas', this._ethEstimateGas)
     this._ethRPCMethods.set('eth_gasPrice', this._ethGasPrice)
+    this._ethRPCMethods.set('eth_getBalance', this._ethGetBalance)
     this._ethRPCMethods.set('eth_getBlockByHash', this._ethGetBlockByHash)
     this._ethRPCMethods.set('eth_getBlockByNumber', this._ethGetBlockByNumber)
     this._ethRPCMethods.set('eth_getCode', this._ethGetCode)
@@ -237,6 +238,14 @@ export class LoomProvider {
     this._ethRPCMethods.set('net_version', this._netVersion)
   }
 
+  /**
+   * Adds custom methods to the provider when a particular method isn't supported
+   *
+   * Throws if the added method already exists
+   *
+   * @param method name of the method to be added
+   * @param customMethodFn function that will implement the method
+   */
   addCustomMethod(method: string, customMethodFn: EthRPCMethod) {
     if (this._ethRPCMethods.has(method)) {
       throw Error('Method already exists')
@@ -245,6 +254,14 @@ export class LoomProvider {
     this._ethRPCMethods.set(method, customMethodFn)
   }
 
+  /**
+   * Overwrites existing method on the provider
+   *
+   * Throws if the overwritten method doesn't exists
+   *
+   * @param method name of the method to be overwritten
+   * @param customMethodFn function that will implement the method
+   */
   overwriteMethod(method: string, customMethodFn: EthRPCMethod) {
     if (!this._ethRPCMethods.has(method)) {
       throw Error('Method to overwrite do not exists')
@@ -364,12 +381,20 @@ export class LoomProvider {
   }
 
   private _ethEstimateGas() {
-    // Loom DAppChain doesn't estimate gas, because gas isn't necessary
+    // Loom DAppChain doesn't estimate gas
+    // This method can be overwritten if necessary
     return null // Returns null to afford with Web3 calls
   }
 
+  private _ethGetBalance() {
+    // Loom DAppChain doesn't have ETH balance by default
+    // This method can be overwritten if necessary
+    return '0x0' // Returns 0x0 to afford with Web3 calls
+  }
+
   private _ethGasPrice() {
-    // Loom DAppChain doesn't use gas price, because gas isn't necessary
+    // Loom DAppChain doesn't use gas price
+    // This method can be overwritten if necessary
     return null // Returns null to afford with Web3 calls
   }
 
