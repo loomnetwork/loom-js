@@ -29,8 +29,7 @@ import {
   bytesToHexAddr,
   numberToHex,
   bufferToProtobufBytes,
-  publicKeyFromPrivateKey,
-  utf8ToHex
+  publicKeyFromPrivateKey
 } from './crypto-utils'
 import { soliditySha3 } from './solidity-helpers'
 import { marshalBigUIntPB } from './big-uint'

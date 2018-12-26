@@ -7,7 +7,7 @@ import { LoomProvider } from '../../loom-provider'
 import { deployContract } from '../evm-helpers'
 import { ecrecover, privateToPublic, fromRpcSig, toBuffer } from 'ethereumjs-util'
 import { soliditySha3 } from '../../solidity-helpers'
-import { bytesToHexAddr, utf8ToHex } from '../../crypto-utils'
+import { bytesToHexAddr } from '../../crypto-utils'
 
 /**
  * Requires the SimpleStore solidity contract deployed on a loomchain.

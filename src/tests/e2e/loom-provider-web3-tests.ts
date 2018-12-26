@@ -8,7 +8,7 @@ import { LoomProvider } from '../../loom-provider'
 import { deployContract } from '../evm-helpers'
 import { ecrecover, privateToPublic, fromRpcSig } from 'ethereumjs-util'
 import { soliditySha3 } from '../../solidity-helpers'
-import { bytesToHexAddr, utf8ToHex } from '../../crypto-utils'
+import { bytesToHexAddr } from '../../crypto-utils'
 
 // import Web3 from 'web3'
 const Web3 = require('web3')
