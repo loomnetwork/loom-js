@@ -1,4 +1,5 @@
 import test from 'tape'
+import BN from 'bn.js'
 
 import { LocalAddress, CryptoUtils } from '../../index'
 import { createTestClient, waitForMillisecondsAsync } from '../helpers'
@@ -7,7 +8,7 @@ import { LoomProvider } from '../../loom-provider'
 import { deployContract } from '../evm-helpers'
 import { ecrecover, privateToPublic, fromRpcSig } from 'ethereumjs-util'
 import { soliditySha3 } from '../../solidity-helpers'
-import { bytesToHexAddr } from '../../crypto-utils'
+import { bytesToHexAddr, utf8ToHex } from '../../crypto-utils'
 
 // import Web3 from 'web3'
 const Web3 = require('web3')
@@ -168,6 +169,22 @@ test('LoomProvider + Eth Sign', async t => {
       bytesToHexAddr(privateToPublic(Buffer.from(privateHash, 'hex'))),
       'Should pubKey from ecrecover be valid'
     )
+  } catch (err) {
+    console.log(err)
+  }
+
+  if (client) {
+    client.disconnect()
+  }
+
+  t.end()
+})
+
+test('LoomProvider get version', async t => {
+  const { client, web3 } = await newContractAndClient()
+  try {
+    const result = await web3.eth.net.getId()
+    t.equal(new BN(utf8ToHex(client.chainId)).toString(10), `${result}`, 'Should version match')
   } catch (err) {
     console.log(err)
   }
