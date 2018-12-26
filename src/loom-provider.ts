@@ -112,6 +112,7 @@ export class LoomProvider {
   private _subscribed: boolean = false
   private _accountMiddlewares: Map<string, Array<ITxMiddlewareHandler>>
   private _setupMiddlewares: SetupMiddlewareFunction
+  private _netVersionFromChainId: number
   protected notificationCallbacks: Array<Function>
   readonly accounts: Map<string, Uint8Array>
 
@@ -140,6 +141,7 @@ export class LoomProvider {
     setupMiddlewaresFunction?: SetupMiddlewareFunction
   ) {
     this._client = client
+    this._netVersionFromChainId = this._chainIdToNetVersion()
     this._setupMiddlewares = setupMiddlewaresFunction!
     this._accountMiddlewares = new Map<string, Array<ITxMiddlewareHandler>>()
     this.notificationCallbacks = new Array()
@@ -572,10 +574,15 @@ export class LoomProvider {
     return this._client.evmUnsubscribeAsync(payload.params[0])
   }
 
+  private _chainIdToNetVersion() {
+    const chainIdHash = soliditySha3(this._client.chainId)
+      .slice(2)
+      .substr(0, 14)
+    return new BN(chainIdHash).toNumber()
+  }
+
   private _netVersion() {
-    // Truffle don't support utf-8 values here
-    // So the chainId is converted to hex value
-    return new BN(utf8ToHex(this._client.chainId)).toString(10)
+    return this._netVersionFromChainId
   }
 
   // PRIVATE FUNCTIONS IMPLEMENTATIONS

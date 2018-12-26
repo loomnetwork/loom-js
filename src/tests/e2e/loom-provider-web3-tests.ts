@@ -183,8 +183,13 @@ test('LoomProvider + Eth Sign', async t => {
 test('LoomProvider get version', async t => {
   const { client, web3 } = await newContractAndClient()
   try {
+    const chainIdHash = soliditySha3(client.chainId)
+      .slice(2)
+      .substr(0, 14)
+    const netVersionFromChainId = new BN(chainIdHash).toNumber()
+
     const result = await web3.eth.net.getId()
-    t.equal(new BN(utf8ToHex(client.chainId)).toString(10), `${result}`, 'Should version match')
+    t.equal(`${netVersionFromChainId}`, `${result}`, 'Should version match')
   } catch (err) {
     console.log(err)
   }

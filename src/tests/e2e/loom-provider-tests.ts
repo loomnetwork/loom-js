@@ -74,12 +74,17 @@ test('LoomProvider', async t => {
       })
     )
 
+    const chainIdHash = soliditySha3(client.chainId)
+      .slice(2)
+      .substr(0, 14)
+    const netVersionFromChainId = new BN(chainIdHash).toNumber()
+
     t.deepEqual(
       netVersionResult,
       {
         id: 1,
         jsonrpc: '2.0',
-        result: new BN(utf8ToHex(client.chainId)).toString(10)
+        result: netVersionFromChainId
       },
       'net_version should match the chain id'
     )
