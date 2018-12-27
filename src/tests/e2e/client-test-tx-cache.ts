@@ -237,14 +237,17 @@ test.only('Test CachedNonceTxMiddleware', async t => {
 
     let cacheErrCount = 0
     try {
+      // Should revert because the value is 100
       await callTransactionAsync(client, caller, address, functionSetErr)
     } catch (err) {
       cacheErrCount++
     }
 
     try {
+      // Should not fail
       await callTransactionAsync(client, caller, address, functionSetOk)
     } catch (err) {
+      console.error(err)
       cacheErrCount++
     }
 

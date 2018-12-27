@@ -4,7 +4,7 @@ import { ITxMiddlewareHandler, Client, ITxResults } from '../client'
 import { bytesToHex } from '../crypto-utils'
 import { INVALID_TX_NONCE_ERROR } from './nonce-tx-middleware'
 
-const log = debug('nonce-tx-middleware')
+const log = debug('cached-nonce-tx-middleware')
 
 /**
  * Wraps data in a NonceTx.
