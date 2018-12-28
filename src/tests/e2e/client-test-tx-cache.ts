@@ -218,8 +218,7 @@ test.only('Test CachedNonceTxMiddleware', async t => {
 
     // Middleware used for client
     client.txMiddleware = [
-      //new CachedNonceTxMiddleware(publicKey, client),
-      new NonceTxMiddleware(publicKey, client),
+      new CachedNonceTxMiddleware(publicKey, client),
       new SignedTxMiddleware(privateKey)
     ]
 
