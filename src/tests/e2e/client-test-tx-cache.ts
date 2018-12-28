@@ -207,7 +207,7 @@ test('Client tx already in cache error (HTTP)', async t => {
   t.end()
 })
 
-test.only('Test CachedNonceTxMiddleware', async t => {
+test('Test CachedNonceTxMiddleware', async t => {
   const address = await deploySimpleStoreContract()
 
   let client = createTestHttpClient()
