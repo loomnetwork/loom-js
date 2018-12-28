@@ -4,6 +4,7 @@ import { LocalAddress, CryptoUtils } from '../../index'
 import { createTestClient, execAndWaitForMillisecondsAsync } from '../helpers'
 import { LoomProvider } from '../../loom-provider'
 import { deployContract } from '../evm-helpers'
+import { numberToHex } from '../../crypto-utils'
 
 /**
  * Requires the SimpleStore solidity contract deployed on a loomchain.
@@ -112,26 +113,32 @@ async function testGetLogsLatest(t: test.Test, loomProvider: LoomProvider, fromA
 }
 
 async function testGetLogsAny(t: test.Test, loomProvider: LoomProvider, fromAddr: string) {
+  const curBlock = await (loomProvider as any)._client.getBlockHeightAsync()
+  console.log(`current block: ${curBlock}`)
+  const fromBlock = numberToHex(parseInt(curBlock, 10) + 1)
   await newTransactionToSetState(loomProvider, fromAddr)
 
   // Filtering to get logs
   let ethGetLogs = await loomProvider.sendAsync({
     id: 5,
     method: 'eth_getLogs',
-    params: []
+    params: [{ fromBlock }]
   })
 
   t.equal(ethGetLogs.result.length, 1, 'Should return one log for anything filter')
 }
 
 async function testGetLogsAnyPending(t: test.Test, loomProvider: LoomProvider, fromAddr: string) {
+  const curBlock = await (loomProvider as any)._client.getBlockHeightAsync()
+  console.log(`current block: ${curBlock}`)
+  const fromBlock = numberToHex(parseInt(curBlock, 10) + 1)
   await newTransactionToSetState(loomProvider, fromAddr)
 
   // Filtering to get logs
   let ethGetLogs = await loomProvider.sendAsync({
     id: 6,
     method: 'eth_getLogs',
-    params: [{ toBlock: 'pending' }]
+    params: [{ fromBlock, toBlock: 'pending' }]
   })
 
   t.equal(ethGetLogs.result.length, 1, 'Should return one log for anything pending filter')

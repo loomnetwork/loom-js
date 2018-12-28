@@ -4,7 +4,7 @@ import { ITxMiddlewareHandler, Client, ITxResults } from '../client'
 import { bytesToHex } from '../crypto-utils'
 import { INVALID_TX_NONCE_ERROR } from './nonce-tx-middleware'
 
-const log = debug('nonce-tx-middleware')
+const log = debug('cached-nonce-tx-middleware')
 
 /**
  * Wraps data in a NonceTx.
@@ -34,29 +34,37 @@ export class CachedNonceTxMiddleware implements ITxMiddlewareHandler {
       }
     }
 
-    this._lastNonce++
-    log(`Next nonce ${this._lastNonce}`)
+    log(`Next nonce ${this._lastNonce + 1}`)
 
     const tx = new NonceTx()
     tx.setInner(txData as Uint8Array)
-    tx.setSequence(this._lastNonce)
+    tx.setSequence(this._lastNonce + 1)
     return tx.serializeBinary()
   }
 
   HandleResults(results: ITxResults): ITxResults {
     const { validation, commit } = results
-    const isCheckTxNonceInvalid =
-      validation &&
-      validation.code === 1 &&
-      (validation.log && validation.log.indexOf('sequence number does not match') !== -1)
-    const isDeliverTxNonceInvalid =
-      commit &&
-      commit.code === 1 &&
-      (commit.log && commit.log.indexOf('sequence number does not match') !== -1)
-
-    if (isCheckTxNonceInvalid || isDeliverTxNonceInvalid) {
+    const isInvalidTx = validation && validation.code !== 0
+    const isFailedTx = commit && commit.code !== 0
+    if (isInvalidTx || isFailedTx) {
+      // Nonce has to be reset regardless of the cause of the tx failure.
       this._lastNonce = null
-      throw new Error(INVALID_TX_NONCE_ERROR)
+      // Throw a specific error for a nonce mismatch
+      const isCheckTxNonceInvalid =
+        validation &&
+        validation.code === 1 &&
+        (validation.log && validation.log.indexOf('sequence number does not match') !== -1)
+      const isDeliverTxNonceInvalid =
+        commit &&
+        commit.code === 1 &&
+        (commit.log && commit.log.indexOf('sequence number does not match') !== -1)
+
+      if (isCheckTxNonceInvalid || isDeliverTxNonceInvalid) {
+        throw new Error(INVALID_TX_NONCE_ERROR)
+      }
+    } else if (this._lastNonce !== null) {
+      // Only increment the nonce if the tx is valid
+      this._lastNonce++
     }
     return results
   }
