@@ -63,6 +63,7 @@ export class CachedNonceTxMiddleware implements ITxMiddlewareHandler {
         throw new Error(INVALID_TX_NONCE_ERROR)
       }
     } else if (this._lastNonce !== null) {
+      // Only increment the nonce if the tx is valid
       this._lastNonce++
     }
     return results
