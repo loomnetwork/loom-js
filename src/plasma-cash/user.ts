@@ -175,7 +175,7 @@ export class User extends Entity {
     })
     const coin = await this.getCoinFromTxAsync(tx)
     currentBlock = await this.pollForBlockChange(currentBlock, 20, 2000)
-    this.receiveAndWatchCoinAsync(coin.slot)
+    await this.receiveAndWatchCoinAsync(coin.slot)
     return coin
   }
 
@@ -190,7 +190,7 @@ export class User extends Entity {
     )
     const coin = await this.getCoinFromTxAsync(tx)
     currentBlock = await this.pollForBlockChange(currentBlock, 20, 2000)
-    this.receiveAndWatchCoinAsync(coin.slot)
+    await this.receiveAndWatchCoinAsync(coin.slot)
     return coin
   }
 
@@ -210,7 +210,7 @@ export class User extends Entity {
     const tx = await this.plasmaCashContract.depositERC20(amount.toString(), address)
     const coin = await this.getCoinFromTxAsync(tx)
     currentBlock = await this.pollForBlockChange(currentBlock, 20, 2000)
-    this.receiveAndWatchCoinAsync(coin.slot)
+    await this.receiveAndWatchCoinAsync(coin.slot)
     return coin
   }
 
@@ -282,7 +282,7 @@ export class User extends Entity {
             await this.getPlasmaTxAsync(coin.slot, blk) // this will add the coin to state
             // TODO: If a new block arrives and we have the coin already in state but are not watching for its exits, e.g. after restarting the client, we need to start watching again.
           } else {
-            this.receiveAndWatchCoinAsync(coin.slot)
+            await this.receiveAndWatchCoinAsync(coin.slot)
           }
         }
       })
