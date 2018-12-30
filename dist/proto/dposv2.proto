@@ -1,0 +1,147 @@
+syntax = "proto3";
+
+import "proto/loom.proto";
+
+message Validator {
+    bytes pub_key = 1;
+    int64 power = 2 [jstype = JS_STRING];
+}
+
+message ParamsV2 {
+    uint64 validator_count = 1;
+    int64 election_cycle_length = 2;
+    Address coin_contract_address = 3;
+}
+
+message StateV2 {
+    ParamsV2 params = 1;
+    repeated Validator validators = 2;
+    int64 last_election_time = 3 [jstype = JS_STRING];
+}
+
+message ValidatorStatisticV2 {
+    Address address = 1;
+    bytes pub_key = 2;
+    uint64 upblock_count = 3;
+    uint64 block_count = 4;
+    BigUInt slash_percentage = 5;
+    BigUInt distribution_total = 6;
+    BigUInt delegation_total = 7;
+}
+
+message ValidatorStatisticListV2 {
+    repeated ValidatorStatisticV2 statistics = 1;
+}
+
+message CandidateV2 {
+    Address address = 1;
+    bytes pub_key = 2;
+    uint64 fee = 3 [jstype = JS_STRING];
+    string name = 4;
+    string description = 5;
+    string website = 6;
+}
+
+message CandidateListV2 {
+    repeated CandidateV2 candidates = 1;
+}
+
+message DelegationV2 {
+    Address validator = 1;
+    Address delegator = 2;
+    BigUInt amount = 3; 
+    BigUInt update_amount = 4;
+    uint64 height = 5 [jstype = JS_STRING];
+    uint64 lock_time = 6 [jstype = JS_STRING];
+    enum DelegationState {
+        BONDING = 0;
+        BONDED = 1;
+        UNBONDING = 2;
+    }
+    DelegationState state = 7;
+}
+
+message DelegationListV2 {
+    repeated DelegationV2 delegations = 1;
+}
+
+message DistributionV2 {
+    Address address = 1;
+    BigUInt amount = 2;
+}
+
+message DistributionListV2 {
+    repeated DistributionV2 distributions = 1;
+}
+
+message DPOSInitRequestV2 {
+    ParamsV2 params = 1;
+    repeated Validator validators = 2;
+}
+
+message DelegateRequestV2 {
+    Address validator_address = 1;
+    BigUInt amount = 2;
+}
+
+message DelegationOverrideRequestV2 {
+    Address validator_address = 1;
+    Address delegator_address = 2;
+    BigUInt amount = 3;
+    uint64 lock_time = 4 [jstype = JS_STRING];
+}
+
+message RedelegateRequestV2 {
+    Address validator_address = 1;
+    BigUInt amount = 2;
+}
+
+message CheckDelegationRequestV2 {
+    Address validator_address = 1;
+    Address delegator_address = 2;
+}
+
+message CheckDelegationResponseV2 {
+	DelegationV2 delegation = 1;
+}
+
+message ClaimDistributionRequestV2 {
+    Address withdrawal_address = 1;
+}
+
+message ClaimDistributionResponseV2 {
+	BigUInt amount = 1;
+}
+
+message UnbondRequestV2 {
+    Address validator_address = 1;
+    BigUInt amount = 2;
+}
+
+message RegisterCandidateRequestV2 {
+    bytes pub_key = 1;
+    uint64 fee = 2 [jstype = JS_STRING];
+    string name = 3;
+    string description = 4;
+    string website = 5;
+}
+
+message UnregisterCandidateRequestV2 {
+}
+
+message ElectDelegationRequestV2 {
+}
+
+message ListValidatorsRequestV2 {
+}
+
+message ListValidatorsResponseV2 {
+    repeated ValidatorStatisticV2 statistics = 1;
+}
+
+message ListCandidateRequestV2 {
+}
+
+message ListCandidateResponseV2 {
+    repeated CandidateV2 candidates = 1;
+}

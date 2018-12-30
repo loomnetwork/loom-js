@@ -170,4 +170,10 @@ export class DPOS2 extends Contract {
     unbondRequest.setAmount(marshalBigUIntPB(new BN(amount)))
     return this.callAsync<void>('Unbond', unbondRequest)
   }
+
+// Test spam Elections:
+  async electAsync(): Promise<void> {
+    const unbondRequest = new UnbondRequestV2()
+    return this.callAsync<void>('Elect', unbondRequest)
+  }
 }

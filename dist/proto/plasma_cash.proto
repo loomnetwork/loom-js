@@ -1,0 +1,82 @@
+syntax = "proto3";
+
+import "proto/loom.proto";
+
+message PlasmaBlock {
+    BigUInt uid = 1; // Plasma block height/number
+    repeated PlasmaTx transactions = 2; // Transactions included in the block
+    bytes signature = 3; // TODO: remove?
+    bytes merkle_hash = 4; // Block's merkle root from its included transactions
+    bytes hash = 5; // TODO: remove?
+    bytes proof = 6; // TODO: remove?
+}
+
+message PlasmaTx {
+    uint64 slot = 1 [jstype = JS_STRING]; // The slot of the UTXO - Currently uint64, subject to change.
+    BigUInt previous_block = 2; // BigUInt //Each time a transaction is created, it MUST refer to a previous block which also included that transaction. A transaction is considered a “deposit transaction”, if it’s the first UTXO after a user deposits their coin in the Plasma Chain. This transaction mints coins from nowhere in the Plasma Chain and as a result its previous block is 0.
+    BigUInt denomination = 3; // BigUInt // How many coins are included in that UTXO. Currently this is always 1 since we’re using ERC721 tokens which are unique, however in future iterations this can be any number.
+    Address new_owner = 4; //  The new owner of the transaction.
+    bytes signature = 5; // Signature on the transaction's hash
+    bytes hash = 6;   // The hash of the RLP encoded unsigned transaction’s bytes. If the transaction is a deposit transaction (its prevblock is 0), its hash is the hash of its uid
+    bytes merkle_hash = 7; // The hash of the RLP encoded signed transaction’s bytes
+    Address sender = 8; // TODO: seems redundant, remove?
+    bytes proof = 9; // Proof after its inserted into the block
+}
+
+message GetCurrentBlockRequest {
+}
+
+message GetCurrentBlockResponse {
+    BigUInt block_height = 1;
+}
+
+message GetBlockRequest {
+    BigUInt block_height = 1;
+}
+
+message GetBlockResponse {
+    PlasmaBlock block = 1;
+}
+
+// This only originates from the validator
+message SubmitBlockToMainnetRequest {
+}
+
+message SubmitBlockToMainnetResponse {
+    bytes merkle_hash = 1; // Merkle root of Plasma block to be submitted to mainnet
+}
+
+message PlasmaTxRequest {
+    PlasmaTx plasmatx = 1;
+}
+
+message PlasmaTxResponse {
+}
+
+message GetPlasmaTxRequest {
+    uint64 slot = 1 [jstype = JS_STRING]; // The slot of the UTXO - Currently uint64, subject to change.
+    BigUInt block_height = 2;
+}
+
+message GetPlasmaTxResponse {
+    PlasmaTx plasma_tx= 1;
+}
+
+message GetUserSlotsRequest {
+    Address from = 1;
+}
+
+message GetUserSlotsResponse {
+    repeated uint64 slots = 1 [jstype = JS_STRING];
+}
+
+message DepositRequest {
+    uint64 slot = 1 [jstype = JS_STRING]; // The slot of the UTXO - Currently uint64, subject to change.
+    BigUInt deposit_block = 2;
+    // For ERC20 this is the number of coins deposited, for ERC721 this is a token ID.
+    BigUInt denomination = 3;
+    // Entity that made the deposit
+    Address from = 4;
+    // Contract from which the coins originated (i.e. the currency of the coins)
+    Address contract = 5;
+}
