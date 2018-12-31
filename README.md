@@ -19,6 +19,14 @@ yarn add loom-js
 <script src="https://cdn.jsdelivr.net/npm/loom-js@1.15.0/dist/loom.umd.js"></script>
 ```
 
+## Debugging
+
+`loom-js` uses the [`debug`](https://github.com/visionmedia/debug) package for logging.
+- To inspect the logs when running in the browser set `localStorage.debug = '*'`
+- To inspect the logs when running in NodeJS set the `DEBUG` env var to `*`
+
+See docs for `debug` package if you wish to filter the log messages.
+
 ## Development
 
 ```shell
@@ -83,7 +91,7 @@ const setupMiddlewareFn = function(client, privateKey) {
   const publicKey = CryptoUtils.publicKeyFromPrivateKey(privateKey)
   return [new CachedNonceTxMiddleware(publicKey, client), new SignedTxMiddleware(privateKey)]
 }
- 
+
 const loomProviderObj = new LoomProvider(client, privateKey, setupMiddlewareFn)
 ```
 
