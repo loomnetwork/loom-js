@@ -1,4 +1,5 @@
 import test from 'tape'
+import BN from 'bn.js'
 
 import { LocalAddress, CryptoUtils } from '../../index'
 import { createTestClient, waitForMillisecondsAsync } from '../helpers'
@@ -168,6 +169,27 @@ test('LoomProvider + Eth Sign', async t => {
       bytesToHexAddr(privateToPublic(Buffer.from(privateHash, 'hex'))),
       'Should pubKey from ecrecover be valid'
     )
+  } catch (err) {
+    console.log(err)
+  }
+
+  if (client) {
+    client.disconnect()
+  }
+
+  t.end()
+})
+
+test('LoomProvider get version', async t => {
+  const { client, web3 } = await newContractAndClient()
+  try {
+    const chainIdHash = soliditySha3(client.chainId)
+      .slice(2)
+      .slice(0, 13)
+    const netVersionFromChainId = new BN(chainIdHash).toNumber()
+
+    const result = await web3.eth.net.getId()
+    t.equal(`${netVersionFromChainId}`, `${result}`, 'Should version match')
   } catch (err) {
     console.log(err)
   }

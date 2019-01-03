@@ -113,6 +113,7 @@ export class LoomProvider {
   private _subscribed: boolean = false
   private _accountMiddlewares: Map<string, Array<ITxMiddlewareHandler>>
   private _setupMiddlewares: SetupMiddlewareFunction
+  private _netVersionFromChainId: number
   private _ethRPCMethods: Map<string, EthRPCMethod>
   protected notificationCallbacks: Array<Function>
   readonly accounts: Map<string, Uint8Array>
@@ -142,6 +143,7 @@ export class LoomProvider {
     setupMiddlewaresFunction?: SetupMiddlewareFunction
   ) {
     this._client = client
+    this._netVersionFromChainId = this._chainIdToNetVersion()
     this._setupMiddlewares = setupMiddlewaresFunction!
     this._accountMiddlewares = new Map<string, Array<ITxMiddlewareHandler>>()
     this._ethRPCMethods = new Map<string, EthRPCMethod>()
@@ -583,8 +585,17 @@ export class LoomProvider {
     return this._client.evmUnsubscribeAsync(payload.params[0])
   }
 
+  private _chainIdToNetVersion() {
+    // Avoids the error "Number can only safely store up to 53 bits" on Web3
+    // Ensures the value less than 9007199254740991 (Number.MAX_SAFE_INTEGER)
+    const chainIdHash = soliditySha3(this._client.chainId)
+      .slice(2) // Removes 0x
+      .slice(0, 13) // Produces safe Number less than 9007199254740991
+    return new BN(chainIdHash).toNumber()
+  }
+
   private _netVersion() {
-    return this._client.chainId
+    return this._netVersionFromChainId
   }
 
   // PRIVATE FUNCTIONS IMPLEMENTATIONS

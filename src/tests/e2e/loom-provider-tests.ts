@@ -1,5 +1,6 @@
 import test from 'tape'
 
+import BN from 'bn.js'
 import { LocalAddress, CryptoUtils } from '../../index'
 import {
   createTestClient,
@@ -77,9 +78,18 @@ test('LoomProvider', async t => {
       })
     )
 
+    const chainIdHash = soliditySha3(client.chainId)
+      .slice(2)
+      .slice(0, 13)
+    const netVersionFromChainId = new BN(chainIdHash).toNumber()
+
     t.deepEqual(
       netVersionResult,
-      { id: 1, jsonrpc: '2.0', result: client.chainId },
+      {
+        id: 1,
+        jsonrpc: '2.0',
+        result: netVersionFromChainId
+      },
       'net_version should match the chain id'
     )
 
