@@ -574,9 +574,11 @@ export class LoomProvider {
   }
 
   private _chainIdToNetVersion() {
+    // Avoids the error "Number can only safely store up to 53 bits" on Web3
+    // Ensures the value less than 9007199254740991 (Number.MAX_SAFE_INTEGER)
     const chainIdHash = soliditySha3(this._client.chainId)
-      .slice(2)
-      .substr(0, 14)
+      .slice(2) // Removes 0x
+      .slice(0, 13) // Produces safe Number less than 9007199254740991
     return new BN(chainIdHash).toNumber()
   }
 
