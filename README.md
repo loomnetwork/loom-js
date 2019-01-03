@@ -86,7 +86,7 @@ Install the loom-js beta version:
 
 LoomProvider takes a custom function that lets you customize what middlewares it runs. For example, we have an experimental nonce caching middleware that has more advanced nonce tracking. You can add it as such:
 
-```
+```js
 const setupMiddlewareFn = function(client, privateKey) {
   const publicKey = CryptoUtils.publicKeyFromPrivateKey(privateKey)
   return [new CachedNonceTxMiddleware(publicKey, client), new SignedTxMiddleware(privateKey)]
@@ -96,6 +96,37 @@ const loomProviderObj = new LoomProvider(client, privateKey, setupMiddlewareFn)
 ```
 
 More examples here: https://github.com/loomnetwork/loom-js/blob/master/src/tests/e2e/loom-provider-web3-middlewares-tests.ts
+
+### Custom Loom provider methods
+
+Install the loom-js beta version:
+`yarn add loom-js@beta`
+
+Sometimes the project requires few functions that aren't provided directly from LoomProvider in this case is possible to add a custom Eth RPC method. You can add it as such:
+
+```js
+const loomProviderObj = new LoomProvider(client, privateKey)
+loomProviderObj.addCustomMethod('eth_balance', payload => {
+  return '0x1'
+})
+```
+
+The first param should be the Ethereum RPC call method to add on LoomProvider and the second parameter a callback function with the result
+
+### Overwrite Loom provider methods
+
+Install the loom-js beta version:
+`yarn add loom-js@beta`
+
+If the project requires to overwrite a RPC function that already exists on LoomProvider. You can add it as such:
+
+```js
+loomProvider.overwriteMethod('eth_estimateGas', payload => {
+  return '0x123'
+})
+```
+
+The first param should be the Ethereum RPC call method to overwrite on LoomProvider and the second parameter a callback function with the result
 
 ## License
 
