@@ -92,6 +92,8 @@ export type SetupMiddlewareFunction = (
   privateKey: Uint8Array
 ) => ITxMiddlewareHandler[]
 
+export type EthRPCMethod = (payload: IEthRPCPayload) => any
+
 const log = debug('loom-provider')
 const error = debug('loom-provider:error')
 
@@ -112,6 +114,7 @@ export class LoomProvider {
   private _accountMiddlewares: Map<string, Array<ITxMiddlewareHandler>>
   private _setupMiddlewares: SetupMiddlewareFunction
   private _netVersionFromChainId: number
+  private _ethRPCMethods: Map<string, EthRPCMethod>
   protected notificationCallbacks: Array<Function>
   readonly accounts: Map<string, Uint8Array>
 
@@ -143,6 +146,7 @@ export class LoomProvider {
     this._netVersionFromChainId = this._chainIdToNetVersion()
     this._setupMiddlewares = setupMiddlewaresFunction!
     this._accountMiddlewares = new Map<string, Array<ITxMiddlewareHandler>>()
+    this._ethRPCMethods = new Map<string, EthRPCMethod>()
     this.notificationCallbacks = new Array()
     this.accounts = new Map<string, Uint8Array>()
 
@@ -157,6 +161,7 @@ export class LoomProvider {
       }
     }
 
+    this.addDefaultMethods()
     this.addDefaultEvents()
     this.addAccounts([privateKey])
   }
@@ -205,6 +210,66 @@ export class LoomProvider {
       // reset all requests and callbacks
       this.reset()
     })
+  }
+
+  addDefaultMethods() {
+    this._ethRPCMethods.set('eth_accounts', this._ethAccounts)
+    this._ethRPCMethods.set('eth_blockNumber', this._ethBlockNumber)
+    this._ethRPCMethods.set('eth_call', this._ethCall)
+    this._ethRPCMethods.set('eth_estimateGas', this._ethEstimateGas)
+    this._ethRPCMethods.set('eth_gasPrice', this._ethGasPrice)
+    this._ethRPCMethods.set('eth_getBalance', this._ethGetBalance)
+    this._ethRPCMethods.set('eth_getBlockByHash', this._ethGetBlockByHash)
+    this._ethRPCMethods.set('eth_getBlockByNumber', this._ethGetBlockByNumber)
+    this._ethRPCMethods.set('eth_getCode', this._ethGetCode)
+    this._ethRPCMethods.set('eth_getFilterChanges', this._ethGetFilterChanges)
+    this._ethRPCMethods.set('eth_getLogs', this._ethGetLogs)
+    this._ethRPCMethods.set('eth_getTransactionByHash', this._ethGetTransactionByHash)
+    this._ethRPCMethods.set('eth_getTransactionReceipt', this._ethGetTransactionReceipt)
+    this._ethRPCMethods.set('eth_newBlockFilter', this._ethNewBlockFilter)
+    this._ethRPCMethods.set('eth_newFilter', this._ethNewFilter)
+    this._ethRPCMethods.set(
+      'eth_newPendingTransactionFilter',
+      this._ethNewPendingTransactionFilter
+    )
+    this._ethRPCMethods.set('eth_sendTransaction', this._ethSendTransaction)
+    this._ethRPCMethods.set('eth_sign', this._ethSign)
+    this._ethRPCMethods.set('eth_subscribe', this._ethSubscribe)
+    this._ethRPCMethods.set('eth_uninstallFilter', this._ethUninstallFilter)
+    this._ethRPCMethods.set('eth_unsubscribe', this._ethUnsubscribe)
+    this._ethRPCMethods.set('net_version', this._netVersion)
+  }
+
+  /**
+   * Adds custom methods to the provider when a particular method isn't supported
+   *
+   * Throws if the added method already exists
+   *
+   * @param method name of the method to be added
+   * @param customMethodFn function that will implement the method
+   */
+  addCustomMethod(method: string, customMethodFn: EthRPCMethod) {
+    if (this._ethRPCMethods.has(method)) {
+      throw Error('Method already exists')
+    }
+
+    this._ethRPCMethods.set(method, customMethodFn)
+  }
+
+  /**
+   * Overwrites existing method on the provider
+   *
+   * Throws if the overwritten method doesn't exists
+   *
+   * @param method name of the method to be overwritten
+   * @param customMethodFn function that will implement the method
+   */
+  overwriteMethod(method: string, customMethodFn: EthRPCMethod) {
+    if (!this._ethRPCMethods.has(method)) {
+      throw Error('Method to overwrite do not exists')
+    }
+
+    this._ethRPCMethods.set(method, customMethodFn)
   }
 
   removeListener(type: string, callback: (...args: any[]) => void) {
@@ -271,78 +336,17 @@ export class LoomProvider {
       payload = payload[0]
     }
 
-    const functionToExecute = (method: string) => {
-      switch (method) {
-        case 'eth_accounts':
-          return this._ethAccounts
-
-        case 'eth_blockNumber':
-          return this._ethBlockNumber
-
-        case 'eth_call':
-          return this._ethCall
-
-        case 'eth_estimateGas':
-          return this._ethEstimateGas
-
-        case 'eth_gasPrice':
-          return this._ethGasPrice
-
-        case 'eth_getBlockByHash':
-          return this._ethGetBlockByHash
-
-        case 'eth_getBlockByNumber':
-          return this._ethGetBlockByNumber
-
-        case 'eth_getCode':
-          return this._ethGetCode
-
-        case 'eth_getFilterChanges':
-          return this._ethGetFilterChanges
-
-        case 'eth_getLogs':
-          return this._ethGetLogs
-
-        case 'eth_getTransactionByHash':
-          return this._ethGetTransactionByHash
-
-        case 'eth_getTransactionReceipt':
-          return this._ethGetTransactionReceipt
-
-        case 'eth_newBlockFilter':
-          return this._ethNewBlockFilter
-
-        case 'eth_newFilter':
-          return this._ethNewFilter
-
-        case 'eth_newPendingTransactionFilter':
-          return this._ethNewPendingTransactionFilter
-
-        case 'eth_sendTransaction':
-          return this._ethSendTransaction
-
-        case 'eth_sign':
-          return this._ethSign
-
-        case 'eth_subscribe':
-          return this._ethSubscribe
-
-        case 'eth_uninstallFilter':
-          return this._ethUninstallFilter
-
-        case 'eth_unsubscribe':
-          return this._ethUnsubscribe
-
-        case 'net_version':
-          return this._netVersion
-
-        default:
-          throw Error(`Method "${payload.method}" not supported on this provider`)
+    const prepareMethodToCall = (method: string) => {
+      const methodToCall = this._ethRPCMethods.get(method)
+      if (!methodToCall) {
+        throw Error(`Method "${payload.method}" not supported on this provider`)
       }
+      return methodToCall
     }
 
     try {
-      const f = functionToExecute(payload.method).bind(this)
+      // @ts-ignore
+      const f = prepareMethodToCall(payload.method).bind(this)
       const result = await f(payload)
       callback(null, this._okResponse(payload.id, result, isArray))
     } catch (err) {
@@ -379,12 +383,20 @@ export class LoomProvider {
   }
 
   private _ethEstimateGas() {
-    // Loom DAppChain doesn't estimate gas, because gas isn't necessary
+    // Loom DAppChain doesn't estimate gas
+    // This method can be overwritten if necessary
     return null // Returns null to afford with Web3 calls
   }
 
+  private _ethGetBalance() {
+    // Loom DAppChain doesn't have ETH balance by default
+    // This method can be overwritten if necessary
+    return '0x0' // Returns 0x0 to afford with Web3 calls
+  }
+
   private _ethGasPrice() {
-    // Loom DAppChain doesn't use gas price, because gas isn't necessary
+    // Loom DAppChain doesn't use gas price
+    // This method can be overwritten if necessary
     return null // Returns null to afford with Web3 calls
   }
 
