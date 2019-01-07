@@ -690,7 +690,7 @@ export class Client extends EventEmitter {
    * @return The nonce.
    */
   async getNonceAsync(key: string): Promise<number> {
-    return parseInt(await this._readClient.sendAsync<string>('nonce', { key }), 10)
+    return parseInt(await this._writeClient.sendAsync<string>('nonce', { key }), 10)
   }
 
   /**
