@@ -17,6 +17,7 @@ import { Uint8ArrayToB64, B64ToUint8Array, bufferToProtobufBytes } from './crypt
 import { Address, LocalAddress } from './address'
 import { WSRPCClient, IJSONRPCEvent } from './internal/ws-rpc-client'
 import { RPCClientEvent, IJSONRPCClient } from './internal/json-rpc-client'
+import { sleep } from './helpers'
 
 export interface ITxHandlerResult {
   code?: number
@@ -152,7 +153,7 @@ export class TxCommitBroadcaster implements ITxBroadcaster {
 export class TxSyncBroadcaster implements ITxBroadcaster {
   resultPollingStrategy: retry.OperationOptions = {
     retries: 5,
-    minTimeout: 1000, // 1s
+    minTimeout: 3000, // 3s
     maxTimeout: 5000, // 5s
     randomize: true
   }
@@ -171,6 +172,8 @@ export class TxSyncBroadcaster implements ITxBroadcaster {
         hash: checkTxResult.hash
       }
     }
+
+    await sleep(this.resultPollingStrategy.minTimeout)
 
     const op = retry.operation(this.resultPollingStrategy)
     const result = await new Promise<ITxQueryResult>((resolve, reject) => {
