@@ -29,7 +29,8 @@ import {
   bytesToHexAddr,
   numberToHex,
   bufferToProtobufBytes,
-  publicKeyFromPrivateKey
+  publicKeyFromPrivateKey,
+  hexToNumber
 } from './crypto-utils'
 import { soliditySha3 } from './solidity-helpers'
 import { marshalBigUIntPB } from './big-uint'
@@ -373,7 +374,7 @@ export class LoomProvider {
 
   private async _ethBlockNumber() {
     const blockNumber = await this._client.getBlockHeightAsync()
-    return numberToHex(blockNumber)
+    return blockNumber
   }
 
   private async _ethCall(payload: IEthRPCPayload) {
@@ -414,10 +415,10 @@ export class LoomProvider {
   }
 
   private async _ethGetBlockByNumber(payload: IEthRPCPayload): Promise<IEthBlock | null> {
-    const blockNumberToSearch = payload.params[0]
+    const blockNumberToSearch =
+      payload.params[0] === 'latest' ? payload.params[0] : hexToNumber(payload.params[0])
     const isFull = payload.params[1] || true
-
-    const result = await this._client.getEvmBlockByNumberAsync(blockNumberToSearch, isFull)
+    const result = await this._client.getEvmBlockByNumberAsync(`${blockNumberToSearch}`, isFull)
 
     if (!result) {
       return null

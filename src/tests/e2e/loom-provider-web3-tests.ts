@@ -200,3 +200,20 @@ test('LoomProvider get version', async t => {
 
   t.end()
 })
+
+test('LoomProvider getBlockByNumber', async t => {
+  const { client, web3 } = await newContractAndClient()
+  try {
+    const blockNumber = await web3.eth.getBlockNumber()
+    const blockInfo = await web3.eth.getBlock(blockNumber, false)
+    t.equal(parseInt(blockInfo.blockNumber, 16), blockNumber, 'Block number should be equal')
+  } catch (err) {
+    console.log(err)
+  }
+
+  if (client) {
+    client.disconnect()
+  }
+
+  t.end()
+})
