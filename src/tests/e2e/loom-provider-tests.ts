@@ -131,16 +131,13 @@ test('LoomProvider', async t => {
     )
 
     t.equal(ethBlockNumber.id, id, `Id for eth_blockNumber should be equal ${id}`)
-    t.assert(
-      /0x.+/.test(ethBlockNumber.result),
-      'Number identification should be returned on ethBlockNumber'
-    )
+    t.assert(ethBlockNumber.result, 'Number identification should be returned on ethBlockNumber')
 
     const ethNewBlockByNumberResult = await execAndWaitForMillisecondsAsync(
       loomProvider.sendAsync({
         id,
         method: 'eth_getBlockByNumber',
-        params: ['1']
+        params: ['0x1']
       })
     )
 

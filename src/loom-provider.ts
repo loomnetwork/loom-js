@@ -415,7 +415,8 @@ export class LoomProvider {
   }
 
   private async _ethGetBlockByNumber(payload: IEthRPCPayload): Promise<IEthBlock | null> {
-    const blockNumberToSearch = hexToNumber(payload.params[0])
+    const blockNumberToSearch =
+      payload.params[0] === 'latest' ? payload.params[0] : hexToNumber(payload.params[0])
     const isFull = payload.params[1] || true
     const result = await this._client.getEvmBlockByNumberAsync(`${blockNumberToSearch}`, isFull)
 
