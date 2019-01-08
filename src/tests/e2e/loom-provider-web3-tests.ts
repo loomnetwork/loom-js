@@ -218,13 +218,45 @@ test('LoomProvider getBlockByNumber', async t => {
   t.end()
 })
 
-test.only('LoomProvider getBlockHash', async t => {
+test('LoomProvider getBlockHash', async t => {
   const { client, web3 } = await newContractAndClient()
   try {
     const blockNumber = await web3.eth.getBlockNumber()
     const blockInfo = await web3.eth.getBlock(blockNumber, false)
     const blockInfoByHash = await web3.eth.getBlock(blockInfo.transactionHash, false)
     t.assert(blockInfoByHash, 'Should return block info by hash')
+  } catch (err) {
+    console.log(err)
+  }
+
+  if (client) {
+    client.disconnect()
+  }
+
+  t.end()
+})
+
+test('LoomProvider getGasPrice', async t => {
+  const { client, web3 } = await newContractAndClient()
+  try {
+    const gasPrice = await web3.eth.getGasPrice()
+    t.equal(gasPrice, null, "Gas price isn't used on Loomchain")
+  } catch (err) {
+    console.log(err)
+  }
+
+  if (client) {
+    client.disconnect()
+  }
+
+  t.end()
+})
+
+test('LoomProvider getBalance', async t => {
+  const { client, web3, from } = await newContractAndClient()
+  try {
+    const balance = await web3.eth.getBalance(from)
+    t.equal(balance, '0', 'Default balance is 0')
   } catch (err) {
     console.log(err)
   }
