@@ -87,7 +87,7 @@ const newContractAndClient = async () => {
   return { contract, client, web3, from, privKey }
 }
 
-test('LoomProvider + Web3 not matching topic', async t => {
+test('LoomProvider + Web3 + Event with not matching topic', async t => {
   t.plan(2)
   const { contract, client } = await newContractAndClient()
 
@@ -118,7 +118,7 @@ test('LoomProvider + Web3 not matching topic', async t => {
   }
 })
 
-test('LoomProvider + Web3 multiple topics', async t => {
+test('LoomProvider + Web3 + Multiple event topics', async t => {
   t.plan(3)
   const { contract, client } = await newContractAndClient()
   try {
@@ -149,7 +149,7 @@ test('LoomProvider + Web3 multiple topics', async t => {
   t.end()
 })
 
-test('LoomProvider + Eth Sign', async t => {
+test('LoomProvider + Web3 + Eth Sign', async t => {
   const { client, web3, from, privKey } = await newContractAndClient()
   try {
     const msg = '0xff'
@@ -180,7 +180,7 @@ test('LoomProvider + Eth Sign', async t => {
   t.end()
 })
 
-test('LoomProvider get version', async t => {
+test('LoomProvider + Web3 + Get version', async t => {
   const { client, web3 } = await newContractAndClient()
   try {
     const chainIdHash = soliditySha3(client.chainId)
@@ -201,7 +201,7 @@ test('LoomProvider get version', async t => {
   t.end()
 })
 
-test('LoomProvider getBlockByNumber', async t => {
+test('LoomProvider + Web3 + getBlockByNumber', async t => {
   const { client, web3 } = await newContractAndClient()
   try {
     const blockNumber = await web3.eth.getBlockNumber()
@@ -218,7 +218,7 @@ test('LoomProvider getBlockByNumber', async t => {
   t.end()
 })
 
-test('LoomProvider getBlockHash', async t => {
+test('LoomProvider + Web3 + getBlockHash', async t => {
   const { client, web3 } = await newContractAndClient()
   try {
     const blockNumber = await web3.eth.getBlockNumber()
@@ -236,7 +236,7 @@ test('LoomProvider getBlockHash', async t => {
   t.end()
 })
 
-test('LoomProvider getGasPrice', async t => {
+test('LoomProvider + Web3 + getGasPrice', async t => {
   const { client, web3 } = await newContractAndClient()
   try {
     const gasPrice = await web3.eth.getGasPrice()
@@ -252,7 +252,7 @@ test('LoomProvider getGasPrice', async t => {
   t.end()
 })
 
-test('LoomProvider getBalance', async t => {
+test('LoomProvider + Web3 + getBalance', async t => {
   const { client, web3, from } = await newContractAndClient()
   try {
     const balance = await web3.eth.getBalance(from)
