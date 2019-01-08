@@ -840,7 +840,7 @@ export class LoomProvider {
               logIndex: '0x0',
               transactionIndex: '0x0',
               blockHash: '0x0',
-              blockNumber: '0x0',
+              blockNumber: numberToHexLC(+msgEvent.blockHeight),
               address: msgEvent.contractAddress.local.toString(),
               type: 'mined',
               data: bytesToHexAddrLC(msgEvent.data),
