@@ -28,7 +28,7 @@ fi
 
 download_dappchain() {
   cd $LOOM_DIR
-  wget https://private.delegatecall.com/loom/$PLATFORM/build-$BUILD_NUMBER/loom
+  wget https://private.delegatecall.com/loom/$PLATFORM/$BUILD_ID/loom
   chmod +x loom
   LOOM_BIN=`pwd`/loom
 }
@@ -65,8 +65,14 @@ start_chains() {
 }
 
 stop_chains() {
-  kill -9 $GANACHE_PID
-  kill -9 $LOOM_PID
+  if [[ -n "$GANACHE_PID" ]]; then
+    kill -9 $GANACHE_PID
+    GANACHE_PID=""
+  fi
+  if [[ -n "$LOOM_PID" ]]; then
+    kill -9 $LOOM_PID
+    LOOM_PID=""
+  fi
   pkill -f "${LOOM_DIR}/contracts/blueprint.0.0.1" || true
 }
 
@@ -94,6 +100,9 @@ trap cleanup EXIT
 
 start_chains
 run_tests
+cleanup
+
+sleep 1
 
 if [ "${TRAVIS:-}" ]; then
   rm -rf $LOOM_DIR

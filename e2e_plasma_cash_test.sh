@@ -95,9 +95,9 @@ function cleanup {
 function download_dappchain {
     cd $LOOM_DIR
     if [[ "`uname`" == 'Darwin' ]]; then
-        wget https://private.delegatecall.com/loom/osx/build-$BUILD_NUMBER/loom
-    else 
-        wget https://private.delegatecall.com/loom/linux/build-$BUILD_NUMBER/loom
+        wget https://private.delegatecall.com/loom/osx/$BUILD_ID/loom
+    else
+        wget https://private.delegatecall.com/loom/linux/$BUILD_ID/loom
     fi
     chmod +x loom
     export LOOM_BIN=`pwd`/loom

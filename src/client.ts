@@ -1,6 +1,8 @@
 import debug from 'debug'
 import { Message } from 'google-protobuf'
 import EventEmitter from 'events'
+import retry from 'retry'
+
 import { VMType } from './proto/loom_pb'
 import {
   EvmTxReceipt,
@@ -15,6 +17,7 @@ import { Uint8ArrayToB64, B64ToUint8Array, bufferToProtobufBytes } from './crypt
 import { Address, LocalAddress } from './address'
 import { WSRPCClient, IJSONRPCEvent } from './internal/ws-rpc-client'
 import { RPCClientEvent, IJSONRPCClient } from './internal/json-rpc-client'
+import { sleep } from './helpers'
 
 export interface ITxHandlerResult {
   code?: number
@@ -26,7 +29,20 @@ interface IBroadcastTxCommitResult {
   check_tx: ITxHandlerResult
   deliver_tx: ITxHandlerResult
   hash: string
-  height: string // int64
+  height?: string // int64
+}
+
+// Result of querying for a tx
+interface ITxQueryResult {
+  hash: string
+  height: string
+  index: string
+  tx_result: ITxHandlerResult
+  tx: string
+}
+
+export interface ITxBroadcastResult extends ITxHandlerResult {
+  hash: string
 }
 
 export interface ITxResults {
@@ -36,7 +52,7 @@ export interface ITxResults {
   commit: ITxHandlerResult
 }
 
-const log = debug('client')
+const debugLog = debug('client')
 
 /**
  * Middleware handlers are expected to transform the tx data and check tx results.
@@ -122,6 +138,80 @@ export function isTxAlreadyInCacheError(err: any): boolean {
   return err instanceof Error && err.message === TX_ALREADY_EXISTS_ERROR
 }
 
+export interface ITxBroadcaster {
+  broadcast(client: IJSONRPCClient, txBytes: Uint8Array): Promise<IBroadcastTxCommitResult>
+}
+
+export class TxCommitBroadcaster implements ITxBroadcaster {
+  broadcast(client: IJSONRPCClient, txBytes: Uint8Array): Promise<IBroadcastTxCommitResult> {
+    return client.sendAsync<IBroadcastTxCommitResult>('broadcast_tx_commit', [
+      Uint8ArrayToB64(txBytes)
+    ])
+  }
+}
+
+export class TxSyncBroadcaster implements ITxBroadcaster {
+  resultPollingStrategy: retry.OperationOptions = {
+    retries: 5,
+    minTimeout: 3000, // 3s
+    maxTimeout: 5000, // 5s
+    randomize: true
+  }
+
+  async broadcast(client: IJSONRPCClient, txBytes: Uint8Array): Promise<IBroadcastTxCommitResult> {
+    const checkTxResult = await client.sendAsync<ITxBroadcastResult>('broadcast_tx_sync', [
+      Uint8ArrayToB64(txBytes)
+    ])
+
+    const { code, log, data } = checkTxResult
+    // if the tx failed in CheckTx it won't make it into a block, and won't be indexed
+    if (code !== 0) {
+      return {
+        check_tx: { code, log, data },
+        deliver_tx: {},
+        hash: checkTxResult.hash
+      }
+    }
+
+    await sleep(this.resultPollingStrategy.minTimeout)
+
+    const op = retry.operation(this.resultPollingStrategy)
+    const result = await new Promise<ITxQueryResult>((resolve, reject) => {
+      op.attempt((currentAttempt: number) => {
+        debugLog(`Querying for result of tx ${checkTxResult.hash} - attempt ${currentAttempt}`)
+        client
+          .sendAsync<ITxQueryResult>('tx', {
+            hash: Buffer.from(checkTxResult.hash, 'hex').toString('base64')
+          })
+          .then(result => resolve(result))
+          .catch(err => {
+            debugLog(
+              `Failed to retrieve result of tx ${checkTxResult.hash}: ${err.message || err.data}`
+            )
+            // keep trying to retrieve the result if the tx isn't found, until all retries are used up
+            if (
+              (err instanceof Error && err.message.endsWith('not found')) || // HTTP
+              (err.data && err.data.endsWith('not found')) // WS
+            ) {
+              if (!op.retry(err)) {
+                reject(err)
+              }
+            } else {
+              reject(err)
+            }
+          })
+      })
+    })
+
+    return {
+      check_tx: { code, log, data },
+      deliver_tx: result.tx_result,
+      hash: result.hash,
+      height: result.height
+    }
+  }
+}
+
 /**
  * Writes to & reads from a Loom DAppChain.
  *
@@ -140,6 +230,9 @@ export class Client extends EventEmitter {
 
   private _writeClient: IJSONRPCClient
   private _readClient!: IJSONRPCClient
+
+  /** Broadcaster to use to send txs & receive results. */
+  txBroadcaster: ITxBroadcaster
 
   /** Middleware to apply to transactions before they are transmitted to the DAppChain. */
   txMiddleware: ITxMiddlewareHandler[] = []
@@ -175,6 +268,7 @@ export class Client extends EventEmitter {
   ) {
     super()
     this.chainId = chainId
+    this.txBroadcaster = new TxSyncBroadcaster()
 
     // TODO: basic validation of the URIs to ensure they have all required components.
     this._writeClient =
@@ -254,9 +348,7 @@ export class Client extends EventEmitter {
     }
     let result: IBroadcastTxCommitResult
     try {
-      result = await this._writeClient.sendAsync<IBroadcastTxCommitResult>('broadcast_tx_commit', [
-        Uint8ArrayToB64(txBytes)
-      ])
+      result = await this.txBroadcaster.broadcast(this._writeClient, txBytes)
     } catch (err) {
       if (
         (err instanceof Error && err.message.indexOf(TX_ALREADY_EXISTS_ERROR) !== -1) || // HTTP
@@ -267,7 +359,7 @@ export class Client extends EventEmitter {
       throw err
     }
 
-    log(`Result ${JSON.stringify(result, null, 2)}`)
+    debugLog(`Result ${JSON.stringify(result, null, 2)}`)
 
     if (result) {
       let results = { validation: result.check_tx, commit: result.deliver_tx }
@@ -388,7 +480,7 @@ export class Client extends EventEmitter {
    */
   async getEvmLogsAsync(filterObject: Object): Promise<Uint8Array | null> {
     const filter = JSON.stringify(filterObject)
-    log(`Send filter ${filter} to getlogs`)
+    debugLog(`Send filter ${filter} to getlogs`)
     const result = await this._readClient.sendAsync<string>('getevmlogs', {
       filter
     })
@@ -411,7 +503,7 @@ export class Client extends EventEmitter {
    */
   async newEvmFilterAsync(filterObject: Object): Promise<string | null> {
     const filter = JSON.stringify(filterObject)
-    log(`Send filter ${filter} to newfilter`)
+    debugLog(`Send filter ${filter} to newfilter`)
     const result = await this._readClient.sendAsync<string>('newevmfilter', {
       filter
     })
@@ -433,7 +525,7 @@ export class Client extends EventEmitter {
   async getEvmFilterChangesAsync(
     id: string
   ): Promise<EthBlockHashList | EthFilterLogList | EthTxHashList | null> {
-    log(`Get filter changes for ${JSON.stringify({ id }, null, 2)}`)
+    debugLog(`Get filter changes for ${JSON.stringify({ id }, null, 2)}`)
     const result = await this._readClient.sendAsync<Uint8Array>('getevmfilterchanges', {
       id
     })
@@ -601,7 +693,7 @@ export class Client extends EventEmitter {
    * @return The nonce.
    */
   async getNonceAsync(key: string): Promise<number> {
-    return parseInt(await this._readClient.sendAsync<string>('nonce', { key }), 10)
+    return parseInt(await this._writeClient.sendAsync<string>('nonce', { key }), 10)
   }
 
   /**
@@ -624,7 +716,7 @@ export class Client extends EventEmitter {
       const eventArgs: IClientErrorEventArgs = { kind: ClientEvent.Error, url, error }
       this.emit(ClientEvent.Error, eventArgs)
     } else if (result) {
-      log('Event', event.id, result)
+      debugLog('Event', event.id, result)
 
       // Ugh, no built-in JSON->Protobuf marshaller apparently
       // https://github.com/google/protobuf/issues/1591 so gotta do this manually

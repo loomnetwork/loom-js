@@ -9,6 +9,7 @@ import './e2e/loom-provider-eth-filters-2'
 import './e2e/loom-provider-subscribe'
 import './e2e/loom-provider-web3-tests'
 import './e2e/loom-provider-web3-middlewares-tests'
+import './e2e/loom-provider-web3-child-events'
 
 // EVM
 import './e2e/client-evm-tests'
