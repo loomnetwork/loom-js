@@ -304,7 +304,7 @@ test.only('LoomProvider + Web3 + Dispatch event twice same contract and function
     const eventSum = eventValues.reduce((acc, currValue) => acc + currValue)
 
     // Assert 4
-    t.equal(eventSum, 3, `Sum of two events should be ${eventSum}`)
+    t.equal(eventSum, 3, `Sum of two events should be 3`)
   } catch (err) {
     console.log(err)
   }
