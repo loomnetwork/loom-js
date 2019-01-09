@@ -281,19 +281,6 @@ test.only('LoomProvider + Web3 + Dispatch event twice same contract and function
       }
     })
 
-    contract.events.NewValueSet({}, (err: Error, event: any) => {
-      if (err) t.error(err)
-      else {
-        // Assert 2
-        t.assert(
-          +event.returnValues._value >= 1,
-          `Value should be returned ${event.returnValues._value}`
-        )
-
-        eventValues.push(+event.returnValues._value)
-      }
-    })
-
     const receipt = await contract.methods.setTwiceEvent(newValue).send()
 
     // Assert 3
