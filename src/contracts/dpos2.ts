@@ -58,7 +58,7 @@ export interface IValidator {
 
 export interface IDelegation {
   validator: Address
-  updateValidator: Address
+  updateValidator?: Address
   delegator: Address
   height: BN
   amount: BN
@@ -115,14 +115,21 @@ export class DPOS2 extends Contract {
       pubKey: validator.getPubKey_asU8()!,
       upblockCount: validator.getUpblockCount(),
       blockCount: validator.getBlockCount(),
-      whitelistAmount: validator.getWhitelistAmount() ? unmarshalBigUIntPB(validator.getWhitelistAmount()!) : new BN(0),
+      whitelistAmount: validator.getWhitelistAmount()
+        ? unmarshalBigUIntPB(validator.getWhitelistAmount()!)
+        : new BN(0),
       whitelistLockTime: new BN(validator.getWhitelistLocktime()!),
-      slashPct: validator.getSlashPercentage() ? unmarshalBigUIntPB(validator.getSlashPercentage()!) : new BN(0),
-      distributionTotal: validator.getDistributionTotal() ? unmarshalBigUIntPB(validator.getDistributionTotal()!) : new BN(0),
-      delegationTotal: validator.getDelegationTotal() ? unmarshalBigUIntPB(validator.getDelegationTotal()!) : new BN(0)
+      slashPct: validator.getSlashPercentage()
+        ? unmarshalBigUIntPB(validator.getSlashPercentage()!)
+        : new BN(0),
+      distributionTotal: validator.getDistributionTotal()
+        ? unmarshalBigUIntPB(validator.getDistributionTotal()!)
+        : new BN(0),
+      delegationTotal: validator.getDelegationTotal()
+        ? unmarshalBigUIntPB(validator.getDelegationTotal()!)
+        : new BN(0)
     }))
   }
-
 
   async checkDelegationAsync(validator: Address, delegator: Address): Promise<IDelegation | null> {
     const checkDelegationReq = new CheckDelegationRequestV2()
@@ -138,10 +145,14 @@ export class DPOS2 extends Contract {
     return delegation
       ? {
           validator: Address.UmarshalPB(delegation.getValidator()!),
-          updateValidator: Address.UmarshalPB(delegation.getUpdateValidator()!),
+          updateValidator: delegation.getUpdateValidator()
+            ? Address.UmarshalPB(delegation.getUpdateValidator()!)
+            : undefined,
           delegator: Address.UmarshalPB(delegation.getDelegator()!),
           amount: delegation.getAmount() ? unmarshalBigUIntPB(delegation.getAmount()!) : new BN(0),
-          updateAmount: delegation.getUpdateAmount() ? unmarshalBigUIntPB(delegation.getAmount()!) : new BN(0),
+          updateAmount: delegation.getUpdateAmount()
+            ? unmarshalBigUIntPB(delegation.getAmount()!)
+            : new BN(0),
           height: new BN(delegation.getHeight()),
           lockTime: delegation.getLockTime(),
           lockTimeTier: delegation.getLocktimeTier(),
