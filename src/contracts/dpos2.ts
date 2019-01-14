@@ -161,7 +161,8 @@ export class DPOS2 extends Contract {
     fee: BN,
     name: string,
     description: string,
-    website: string
+    website: string,
+    tier: LockTimeTier
   ): Promise<void> {
     const registerCandidateRequest = new RegisterCandidateRequestV2()
     registerCandidateRequest.setPubKey(pubKey)
@@ -169,6 +170,7 @@ export class DPOS2 extends Contract {
     registerCandidateRequest.setName(name)
     registerCandidateRequest.setDescription(description)
     registerCandidateRequest.setWebsite(website)
+    registerCandidateRequest.setLocktimeTier(tier)
     return this.callAsync<void>('RegisterCandidate', registerCandidateRequest)
   }
 
@@ -177,10 +179,11 @@ export class DPOS2 extends Contract {
     return this.callAsync<void>('UnregisterCandidate', unregisterCandidateRequest)
   }
 
-  async delegateAsync(validator: Address, amount: BN): Promise<void> {
+  async delegateAsync(validator: Address, amount: BN, tier: LockTimeTier): Promise<void> {
     const delegateRequest = new DelegateRequestV2()
     delegateRequest.setValidatorAddress(validator.MarshalPB())
     delegateRequest.setAmount(marshalBigUIntPB(amount))
+    delegateRequest.setLocktimeTier(tier)
     return this.callAsync<void>('Delegate', delegateRequest)
   }
 
