@@ -18,7 +18,7 @@ import Web3 from 'web3'
 import { DPOS2, Coin, LoomCoinTransferGateway, AddressMapper } from '../contracts'
 import { IWithdrawalReceipt } from '../contracts/transfer-gateway'
 import { sleep } from '../helpers'
-import { IValidator, ICandidate, IDelegation } from '../contracts/dpos2'
+import { IValidator, ICandidate, IDelegation, LockTimeTier } from '../contracts/dpos2'
 import { selectProtocol } from '../rpc-client-factory'
 
 import debug from 'debug'
@@ -264,10 +264,10 @@ export class DPOSUser {
    * @param candidate The candidate's hex address
    * @param amount The amount delegated
    */
-  async delegateAsync(candidate: string, amount: BN): Promise<void> {
+  async delegateAsync(candidate: string, amount: BN, tier: LockTimeTier): Promise<void> {
     const address = this.prefixAddress(candidate)
     await this._dappchainLoom.approveAsync(this._dappchainDPOS.address, amount)
-    return this._dappchainDPOS.delegateAsync(address, amount)
+    return this._dappchainDPOS.delegateAsync(address, amount, tier)
   }
 
   /**
