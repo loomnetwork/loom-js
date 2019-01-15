@@ -82,7 +82,15 @@ export class Address {
     return this.chainId === other.chainId && this.local.equals(other.local)
   }
 
+  /**
+   * @deprecated Use the function UnmarshalPB instead
+   */
   static UmarshalPB(pb: pb.Address): Address {
+    console.warn('Function UmarshalPB is deprecated and should be replaced by UnmarshalPB')
+    return Address.UnmarshalPB(pb)
+  }
+
+  static UnmarshalPB(pb: pb.Address): Address {
     return new Address(pb.getChainId(), new LocalAddress(pb.getLocal_asU8()))
   }
 
