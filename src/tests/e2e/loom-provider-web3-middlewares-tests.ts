@@ -54,7 +54,7 @@ class SuperSimpleMiddlware implements ITxMiddlewareHandler {
   }
 }
 
-test('LoomProvider + Web3 middleware', async t => {
+test('LoomProvider + Web3 + Middleware', async t => {
   t.plan(2)
 
   const privKey = CryptoUtils.generatePrivateKey()
