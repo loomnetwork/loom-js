@@ -109,8 +109,8 @@ export class TransferGateway extends Contract {
         }
 
         this.emit(TransferGateway.EVENT_TOKEN_WITHDRAWAL, {
-          tokenOwner: Address.UmarshalPB(eventData.getTokenOwner()!),
-          tokenContract: Address.UmarshalPB(eventData.getTokenContract()!),
+          tokenOwner: Address.UnmarshalPB(eventData.getTokenOwner()!),
+          tokenContract: Address.UnmarshalPB(eventData.getTokenContract()!),
           tokenKind,
           tokenId,
           tokenAmount,
@@ -123,8 +123,8 @@ export class TransferGateway extends Contract {
         )
 
         this.emit(TransferGateway.EVENT_CONTRACT_MAPPING_CONFIRMED, {
-          foreignContract: Address.UmarshalPB(contractMappingConfirmed.getForeignContract()!),
-          localContract: Address.UmarshalPB(contractMappingConfirmed.getLocalContract()!)
+          foreignContract: Address.UnmarshalPB(contractMappingConfirmed.getForeignContract()!),
+          localContract: Address.UnmarshalPB(contractMappingConfirmed.getLocalContract()!)
         } as IContractMappingConfirmedEventArgs)
       }
     })
@@ -295,8 +295,8 @@ export class TransferGateway extends Contract {
           break
       }
       return {
-        tokenOwner: Address.UmarshalPB(receipt.getTokenOwner()!),
-        tokenContract: Address.UmarshalPB(receipt.getTokenContract()!),
+        tokenOwner: Address.UnmarshalPB(receipt.getTokenOwner()!),
+        tokenContract: Address.UnmarshalPB(receipt.getTokenContract()!),
         tokenKind,
         tokenId,
         tokenAmount,
