@@ -92,7 +92,7 @@ export class DPOS2 extends Contract {
 
     return result.getCandidatesList().map((candidate: CandidateV2) => ({
       pubKey: candidate.getPubKey_asU8()!,
-      address: Address.UmarshalPB(candidate.getAddress()!),
+      address: Address.UnmarshalPB(candidate.getAddress()!),
       fee: new BN(candidate.getFee()!),
       newFee: new BN(candidate.getNewfee()!),
       feeDelayCounter: new BN(candidate.getFeedelaycounter()!),
@@ -111,7 +111,7 @@ export class DPOS2 extends Contract {
     )
 
     return result.getStatisticsList().map((validator: ValidatorStatisticV2) => ({
-      address: Address.UmarshalPB(validator.getAddress()!),
+      address: Address.UnmarshalPB(validator.getAddress()!),
       pubKey: validator.getPubKey_asU8()!,
       upblockCount: validator.getUpblockCount(),
       blockCount: validator.getBlockCount(),
@@ -144,11 +144,11 @@ export class DPOS2 extends Contract {
     const delegation = result.getDelegation()
     return delegation
       ? {
-          validator: Address.UmarshalPB(delegation.getValidator()!),
+          validator: Address.UnmarshalPB(delegation.getValidator()!),
           updateValidator: delegation.getUpdateValidator()
-            ? Address.UmarshalPB(delegation.getUpdateValidator()!)
+            ? Address.UnmarshalPB(delegation.getUpdateValidator()!)
             : undefined,
-          delegator: Address.UmarshalPB(delegation.getDelegator()!),
+          delegator: Address.UnmarshalPB(delegation.getDelegator()!),
           amount: delegation.getAmount() ? unmarshalBigUIntPB(delegation.getAmount()!) : new BN(0),
           updateAmount: delegation.getUpdateAmount()
             ? unmarshalBigUIntPB(delegation.getAmount()!)
