@@ -302,6 +302,10 @@ export class DPOSUser {
     return this._dappchainGateway.withdrawalReceiptAsync(this._address)
   }
 
+  async checkRewardsAsync(): Promise<BN> {
+    return this._dappchainDPOS.checkDistribution()
+  }
+
   /**
    * Retrieves the  DAppChain LoomCoin balance of a user
    * @param address The address to check the balance of. If not provided, it will check the user's balance

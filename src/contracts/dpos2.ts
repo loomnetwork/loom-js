@@ -7,6 +7,7 @@ import {
   ListCandidateResponseV2,
   CandidateV2,
   ClaimDistributionRequestV2,
+  CheckDistributionRequest,
   ListValidatorsRequestV2,
   ListValidatorsResponseV2,
   DelegateRequestV2,
@@ -15,7 +16,8 @@ import {
   CheckDelegationResponseV2,
   RegisterCandidateRequestV2,
   UnregisterCandidateRequestV2,
-  ValidatorStatisticV2
+  ValidatorStatisticV2,
+  CheckDistributionResponse
 } from '../proto/dposv2_pb'
 import { unmarshalBigUIntPB, marshalBigUIntPB } from '../big-uint'
 
@@ -129,6 +131,16 @@ export class DPOS2 extends Contract {
         ? unmarshalBigUIntPB(validator.getDelegationTotal()!)
         : new BN(0)
     }))
+  }
+
+  async checkDistribution(): Promise<BN> {
+    const checkDistributionReq = new CheckDistributionResponse()
+    const result = await this.staticCallAsync(
+      'CheckDistribution',
+      checkDistributionReq,
+      new CheckDistributionResponse()
+    )
+    return result.getAmount() ? unmarshalBigUIntPB(result.getAmount()!) : new BN(0)
   }
 
   async checkDelegationAsync(validator: Address, delegator: Address): Promise<IDelegation | null> {
