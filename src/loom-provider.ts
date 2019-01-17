@@ -405,7 +405,7 @@ export class LoomProvider {
     const blockHash = payload.params[0]
     const isFull = payload.params[1] || true
 
-    const result = await this._client.getEvmBlockByHashAsync(blockHash, isFull)
+    const result = await this._client.evm.getEvmBlockByHashAsync(blockHash, isFull)
 
     if (!result) {
       return null
@@ -418,7 +418,10 @@ export class LoomProvider {
     const blockNumberToSearch =
       payload.params[0] === 'latest' ? payload.params[0] : hexToNumber(payload.params[0])
     const isFull = payload.params[1] || true
-    const result = await this._client.getEvmBlockByNumberAsync(`${blockNumberToSearch}`, isFull)
+    const result = await this._client.evm.getEvmBlockByNumberAsync(
+      `${blockNumberToSearch}`,
+      isFull
+    )
 
     if (!result) {
       return null
@@ -432,7 +435,7 @@ export class LoomProvider {
       this._client.chainId,
       LocalAddress.fromHexString(payload.params[0])
     )
-    const result = await this._client.getEvmCodeAsync(address)
+    const result = await this._client.evm.getEvmCodeAsync(address)
 
     if (!result) {
       throw Error('No code returned on eth_getCode')
@@ -442,7 +445,7 @@ export class LoomProvider {
   }
 
   private async _ethGetFilterChanges(payload: IEthRPCPayload) {
-    const result = await this._client.getEvmFilterChangesAsync(payload.params[0])
+    const result = await this._client.evm.getEvmFilterChangesAsync(payload.params[0])
 
     if (!result) {
       return []
@@ -478,7 +481,7 @@ export class LoomProvider {
     const receipt = await new Promise<EvmTxReceipt | null>((resolve, reject) => {
       op.attempt(currentAttempt => {
         log(`Current attempt ${currentAttempt}`)
-        this._client
+        this._client.evm
           .getEvmTxReceiptAsync(bufferToProtobufBytes(data))
           .then(receipt => {
             if (receipt) {
@@ -504,7 +507,7 @@ export class LoomProvider {
   }
 
   private async _ethNewBlockFilter() {
-    const result = await this._client.newBlockEvmFilterAsync()
+    const result = await this._client.evm.newBlockEvmFilterAsync()
 
     if (!result) {
       throw Error('New block filter unexpected result')
@@ -514,7 +517,7 @@ export class LoomProvider {
   }
 
   private async _ethNewFilter(payload: IEthRPCPayload) {
-    const result = await this._client.newEvmFilterAsync(payload.params[0])
+    const result = await this._client.evm.newEvmFilterAsync(payload.params[0])
 
     if (!result) {
       throw Error('Cannot create new filter on eth_newFilter')
@@ -524,7 +527,7 @@ export class LoomProvider {
   }
 
   private async _ethNewPendingTransactionFilter() {
-    const result = await this._client.newPendingTransactionEvmFilterAsync()
+    const result = await this._client.evm.newEvmPendingTransactionEvmFilterAsync()
 
     if (!result) {
       throw Error('New pending transaction filter unexpected result')
@@ -570,7 +573,7 @@ export class LoomProvider {
     const method = payload.params[0]
     const filterObject = payload.params[1] || {}
 
-    const result = await this._client.evmSubscribeAsync(method, filterObject)
+    const result = await this._client.evm.evmSubscribeAsync(method, filterObject)
     if (!result) {
       throw Error('Subscribe filter failed')
     }
@@ -579,11 +582,11 @@ export class LoomProvider {
   }
 
   private _ethUninstallFilter(payload: IEthRPCPayload) {
-    return this._client.uninstallEvmFilterAsync(payload.params[0])
+    return this._client.evm.uninstallEvmFilterAsync(payload.params[0])
   }
 
   private _ethUnsubscribe(payload: IEthRPCPayload) {
-    return this._client.evmUnsubscribeAsync(payload.params[0])
+    return this._client.evm.evmUnsubscribeAsync(payload.params[0])
   }
 
   private _chainIdToNetVersion() {
@@ -768,7 +771,7 @@ export class LoomProvider {
 
   private async _getTransaction(txHash: string): Promise<IEthTransaction> {
     const data = Buffer.from(txHash.slice(2), 'hex')
-    const transaction = await this._client.getEvmTxByHashAsync(bufferToProtobufBytes(data))
+    const transaction = await this._client.evm.getEvmTxByHashAsync(bufferToProtobufBytes(data))
     if (!transaction) {
       throw Error('Transaction cannot be empty')
     }
@@ -815,7 +818,7 @@ export class LoomProvider {
   }
 
   private async _getLogs(filterObject: Object): Promise<Array<IEthFilterLog>> {
-    const logsListAsyncResult = await this._client.getEvmLogsAsync(filterObject)
+    const logsListAsyncResult = await this._client.evm.getEvmLogsAsync(filterObject)
 
     if (!logsListAsyncResult) {
       return []

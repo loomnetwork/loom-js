@@ -21,7 +21,7 @@ test('Client EVM test (newBlockEvmFilterAsync)', async t => {
     ]
 
     // calls newblockevmfilter
-    const filterId = await execAndWaitForMillisecondsAsync(client.newBlockEvmFilterAsync())
+    const filterId = await execAndWaitForMillisecondsAsync(client.evm.newBlockEvmFilterAsync())
 
     if (!filterId) {
       t.fail('Filter Id cannot be null')
@@ -29,7 +29,7 @@ test('Client EVM test (newBlockEvmFilterAsync)', async t => {
 
     // calls getevmfilterchanges
     const hash = await execAndWaitForMillisecondsAsync(
-      client.getEvmFilterChangesAsync(filterId as string)
+      client.evm.getEvmFilterChangesAsync(filterId as string)
     )
 
     if (!hash) {
@@ -40,7 +40,7 @@ test('Client EVM test (newBlockEvmFilterAsync)', async t => {
 
     // calls getevmblockbyhash
     const block: EthBlockInfo = (await execAndWaitForMillisecondsAsync(
-      client.getEvmBlockByHashAsync(bytesToHexAddr(blockList[0] as Uint8Array))
+      client.evm.getEvmBlockByHashAsync(bytesToHexAddr(blockList[0] as Uint8Array))
     )) as EthBlockInfo
 
     if (!block) {
@@ -76,7 +76,7 @@ test('Client EVM test (newPendingTransactionEvmFilterAsync)', async t => {
 
     // calls newblockevmfilter
     const filterId = await execAndWaitForMillisecondsAsync(
-      client.newPendingTransactionEvmFilterAsync()
+      client.evm.newEvmPendingTransactionEvmFilterAsync()
     )
 
     if (!filterId) {
@@ -84,7 +84,7 @@ test('Client EVM test (newPendingTransactionEvmFilterAsync)', async t => {
     }
 
     // calls getevmfilterchanges
-    const hash = await client.getEvmFilterChangesAsync(filterId as string)
+    const hash = await client.evm.getEvmFilterChangesAsync(filterId as string)
 
     if (!hash) {
       t.fail('Transaction cannot be null')
