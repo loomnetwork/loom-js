@@ -27,6 +27,7 @@ const Web3 = require('web3')
  *   }
  *
  *   event NewValueSet(uint indexed _value);
+ *   event NewValueSetAgain(uint indexed _value);
  *
  *   function set(uint _value) public {
  *     value = _value;
@@ -37,6 +38,12 @@ const Web3 = require('web3')
  *     value = _value;
  *     emit NewValueSet(_value);
  *     emit NewValueSet(_value + 1);
+ *   }
+ *
+ *   function setTwiceEvent2(uint _value) public {
+ *     value = _value;
+ *     emit NewValueSet(_value);
+ *     emit NewValueSetAgain(_value);
  *   }
  *
  *   function get() public view returns (uint) {
@@ -57,7 +64,7 @@ const newContractAndClient = async () => {
   client.on('error', console.log)
 
   const contractData =
-    '608060405234801561001057600080fd5b50600a6000819055506101b6806100286000396000f300608060405260043610610057576000357c0100000000000000000000000000000000000000000000000000000000900463ffffffff168063076a66cc1461005c57806360fe47b1146100895780636d4ce63c146100b6575b600080fd5b34801561006857600080fd5b50610087600480360381019080803590602001909291905050506100e1565b005b34801561009557600080fd5b506100b460048036038101908080359060200190929190505050610148565b005b3480156100c257600080fd5b506100cb610181565b6040518082815260200191505060405180910390f35b80600081905550807fb922f092a64f1a076de6f21e4d7c6400b6e55791cc935e7bb8e7e90f7652f15b60405160405180910390a2600181017fb922f092a64f1a076de6f21e4d7c6400b6e55791cc935e7bb8e7e90f7652f15b60405160405180910390a250565b806000819055506000547fb922f092a64f1a076de6f21e4d7c6400b6e55791cc935e7bb8e7e90f7652f15b60405160405180910390a250565b600080549050905600a165627a7a72305820dc62f81ecfe4f7410f8580dbb11d9d0af6ac80172a722d579e5a6a5344d742060029'
+    '608060405234801561001057600080fd5b50600a600081905550610252806100286000396000f300608060405260043610610062576000357c0100000000000000000000000000000000000000000000000000000000900463ffffffff168063076a66cc1461006757806360fe47b1146100945780636d4ce63c146100c1578063bd6c8f7e146100ec575b600080fd5b34801561007357600080fd5b5061009260048036038101908080359060200190929190505050610119565b005b3480156100a057600080fd5b506100bf60048036038101908080359060200190929190505050610180565b005b3480156100cd57600080fd5b506100d66101b9565b6040518082815260200191505060405180910390f35b3480156100f857600080fd5b50610117600480360381019080803590602001909291905050506101c2565b005b80600081905550807fb922f092a64f1a076de6f21e4d7c6400b6e55791cc935e7bb8e7e90f7652f15b60405160405180910390a2600181017fb922f092a64f1a076de6f21e4d7c6400b6e55791cc935e7bb8e7e90f7652f15b60405160405180910390a250565b806000819055506000547fb922f092a64f1a076de6f21e4d7c6400b6e55791cc935e7bb8e7e90f7652f15b60405160405180910390a250565b60008054905090565b80600081905550807fb922f092a64f1a076de6f21e4d7c6400b6e55791cc935e7bb8e7e90f7652f15b60405160405180910390a2807fc151b22f26f815d64ae384647d49bc5655149c4b273318d8c3846086dae3835e60405160405180910390a2505600a165627a7a72305820a3a8ef0c6359500fe8c7b5fdc5b7e94c9cd31b38de83955ddff22304320b97340029'
 
   const ABI = [
     {
@@ -103,6 +110,20 @@ const newContractAndClient = async () => {
       type: 'function'
     },
     {
+      constant: false,
+      inputs: [
+        {
+          name: '_value',
+          type: 'uint256'
+        }
+      ],
+      name: 'setTwiceEvent2',
+      outputs: [],
+      payable: false,
+      stateMutability: 'nonpayable',
+      type: 'function'
+    },
+    {
       inputs: [],
       payable: false,
       stateMutability: 'nonpayable',
@@ -119,6 +140,18 @@ const newContractAndClient = async () => {
       ],
       name: 'NewValueSet',
       type: 'event'
+    },
+    {
+      anonymous: false,
+      inputs: [
+        {
+          indexed: true,
+          name: '_value',
+          type: 'uint256'
+        }
+      ],
+      name: 'NewValueSetAgain',
+      type: 'event'
     }
   ]
 
@@ -129,7 +162,7 @@ const newContractAndClient = async () => {
   return { contract, client, web3, from, privKey }
 }
 
-test('LoomProvider + Web3 not matching topic', async t => {
+test('LoomProvider + Web3 + Event with not matching topic', async t => {
   t.plan(2)
   const { contract, client } = await newContractAndClient()
 
@@ -160,7 +193,7 @@ test('LoomProvider + Web3 not matching topic', async t => {
   }
 })
 
-test('LoomProvider + Web3 multiple topics', async t => {
+test('LoomProvider + Web3 + Multiple event topics', async t => {
   t.plan(3)
   const { contract, client } = await newContractAndClient()
   try {
@@ -191,7 +224,7 @@ test('LoomProvider + Web3 multiple topics', async t => {
   t.end()
 })
 
-test('LoomProvider + Eth Sign', async t => {
+test('LoomProvider + Web3 + Eth Sign', async t => {
   const { client, web3, from, privKey } = await newContractAndClient()
   try {
     const msg = '0xff'
@@ -222,7 +255,7 @@ test('LoomProvider + Eth Sign', async t => {
   t.end()
 })
 
-test('LoomProvider get version', async t => {
+test('LoomProvider + Web3 + Get version', async t => {
   const { client, web3 } = await newContractAndClient()
   try {
     const chainIdHash = soliditySha3(client.chainId)
@@ -243,7 +276,7 @@ test('LoomProvider get version', async t => {
   t.end()
 })
 
-test('LoomProvider getBlockByNumber', async t => {
+test('LoomProvider + Web3 + getBlockByNumber', async t => {
   const { client, web3 } = await newContractAndClient()
   try {
     const blockNumber = await web3.eth.getBlockNumber()
@@ -260,7 +293,7 @@ test('LoomProvider getBlockByNumber', async t => {
   t.end()
 })
 
-test.only('LoomProvider + Web3 + Dispatch event twice same contract and function', async t => {
+test('LoomProvider + Web3 + Dispatch event twice same contract and function', async t => {
   // We're planning to execute 4 asserts
   t.plan(4)
 
@@ -292,6 +325,113 @@ test.only('LoomProvider + Web3 + Dispatch event twice same contract and function
 
     // Assert 4
     t.equal(eventSum, 3, `Sum of two events should be 3`)
+  } catch (err) {
+    console.log(err)
+  }
+
+  if (client) {
+    client.disconnect()
+  }
+
+  t.end()
+})
+
+test('LoomProvider + Web3 + Dispatch two events on same function call', async t => {
+  // We're planning to execute 4 asserts
+  t.plan(4)
+
+  const { contract, client } = await newContractAndClient()
+  try {
+    const newValue = 1
+    const eventValues = new Array<number>()
+
+    contract.events.NewValueSet({}, (err: Error, event: any) => {
+      if (err) t.error(err)
+      else {
+        // Assert 1
+        t.assert(
+          +event.returnValues._value >= 1,
+          `Value should be returned ${event.returnValues._value}`
+        )
+
+        eventValues.push(+event.returnValues._value)
+      }
+    })
+
+    contract.events.NewValueSetAgain({}, (err: Error, event: any) => {
+      if (err) t.error(err)
+      else {
+        // Assert 1
+        t.assert(
+          +event.returnValues._value >= 1,
+          `Value should be returned ${event.returnValues._value}`
+        )
+
+        eventValues.push(+event.returnValues._value)
+      }
+    })
+
+    const receipt = await contract.methods.setTwiceEvent(newValue).send()
+
+    // Assert 3
+    t.equal(receipt.status, '0x1', 'SimpleStore.set should return correct status')
+
+    await waitForMillisecondsAsync(2000)
+
+    const eventSum = eventValues.reduce((acc, currValue) => acc + currValue)
+
+    // Assert 4
+    t.equal(eventSum, 3, `Sum of two events should be 3`)
+  } catch (err) {
+    console.log(err)
+  }
+
+  if (client) {
+    client.disconnect()
+  }
+
+  t.end()
+})
+
+test('LoomProvider + Web3 + getBlockHash', async t => {
+  const { client, web3 } = await newContractAndClient()
+  try {
+    const blockNumber = await web3.eth.getBlockNumber()
+    const blockInfo = await web3.eth.getBlock(blockNumber, false)
+    const blockInfoByHash = await web3.eth.getBlock(blockInfo.transactionHash, false)
+    t.assert(blockInfoByHash, 'Should return block info by hash')
+  } catch (err) {
+    console.log(err)
+  }
+
+  if (client) {
+    client.disconnect()
+  }
+
+  t.end()
+})
+
+test('LoomProvider + Web3 + getGasPrice', async t => {
+  const { client, web3 } = await newContractAndClient()
+  try {
+    const gasPrice = await web3.eth.getGasPrice()
+    t.equal(gasPrice, null, "Gas price isn't used on Loomchain")
+  } catch (err) {
+    console.log(err)
+  }
+
+  if (client) {
+    client.disconnect()
+  }
+
+  t.end()
+})
+
+test('LoomProvider + Web3 + getBalance', async t => {
+  const { client, web3, from } = await newContractAndClient()
+  try {
+    const balance = await web3.eth.getBalance(from)
+    t.equal(balance, '0', 'Default balance is 0')
   } catch (err) {
     console.log(err)
   }

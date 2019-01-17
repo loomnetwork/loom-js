@@ -22,13 +22,23 @@ import { unmarshalBigUIntPB, marshalBigUIntPB } from '../big-uint'
 export enum DelegationState {
   BONDING = 0,
   BONDED = 1,
-  UNBONDING = 2
+  UNBONDING = 2,
+  REDELEGATING = 3
+}
+
+export enum LockTimeTier {
+  Tier0 = 0,
+  Tier1 = 1,
+  Tier2 = 2,
+  Tier3 = 3
 }
 
 export interface ICandidate {
   pubKey: Uint8Array
   address: Address
   fee: BN
+  newFee: BN
+  feeDelayCounter: BN
   name: string
   description: string
   website: string
@@ -42,15 +52,19 @@ export interface IValidator {
   slashPct: BN
   distributionTotal: BN
   delegationTotal: BN
+  whitelistAmount: BN
+  whitelistLockTime: BN
 }
 
 export interface IDelegation {
   validator: Address
+  updateValidator?: Address
   delegator: Address
   height: BN
   amount: BN
   updateAmount: BN
   lockTime: number
+  lockTimeTier: number
   state: DelegationState
 }
 
@@ -80,6 +94,8 @@ export class DPOS2 extends Contract {
       pubKey: candidate.getPubKey_asU8()!,
       address: Address.UmarshalPB(candidate.getAddress()!),
       fee: new BN(candidate.getFee()!),
+      newFee: new BN(candidate.getNewfee()!),
+      feeDelayCounter: new BN(candidate.getFeedelaycounter()!),
       name: candidate.getName(),
       description: candidate.getDescription(),
       website: candidate.getWebsite()
@@ -99,12 +115,21 @@ export class DPOS2 extends Contract {
       pubKey: validator.getPubKey_asU8()!,
       upblockCount: validator.getUpblockCount(),
       blockCount: validator.getBlockCount(),
-      slashPct: validator.getSlashPercentage() ? unmarshalBigUIntPB(validator.getSlashPercentage()!) : new BN(0),
-      distributionTotal: validator.getDistributionTotal() ? unmarshalBigUIntPB(validator.getDistributionTotal()!) : new BN(0),
-      delegationTotal: validator.getDelegationTotal() ? unmarshalBigUIntPB(validator.getDelegationTotal()!) : new BN(0)
+      whitelistAmount: validator.getWhitelistAmount()
+        ? unmarshalBigUIntPB(validator.getWhitelistAmount()!)
+        : new BN(0),
+      whitelistLockTime: new BN(validator.getWhitelistLocktime()!),
+      slashPct: validator.getSlashPercentage()
+        ? unmarshalBigUIntPB(validator.getSlashPercentage()!)
+        : new BN(0),
+      distributionTotal: validator.getDistributionTotal()
+        ? unmarshalBigUIntPB(validator.getDistributionTotal()!)
+        : new BN(0),
+      delegationTotal: validator.getDelegationTotal()
+        ? unmarshalBigUIntPB(validator.getDelegationTotal()!)
+        : new BN(0)
     }))
   }
-
 
   async checkDelegationAsync(validator: Address, delegator: Address): Promise<IDelegation | null> {
     const checkDelegationReq = new CheckDelegationRequestV2()
@@ -120,11 +145,17 @@ export class DPOS2 extends Contract {
     return delegation
       ? {
           validator: Address.UmarshalPB(delegation.getValidator()!),
+          updateValidator: delegation.getUpdateValidator()
+            ? Address.UmarshalPB(delegation.getUpdateValidator()!)
+            : undefined,
           delegator: Address.UmarshalPB(delegation.getDelegator()!),
           amount: delegation.getAmount() ? unmarshalBigUIntPB(delegation.getAmount()!) : new BN(0),
-          updateAmount: delegation.getUpdateAmount() ? unmarshalBigUIntPB(delegation.getAmount()!) : new BN(0),
+          updateAmount: delegation.getUpdateAmount()
+            ? unmarshalBigUIntPB(delegation.getAmount()!)
+            : new BN(0),
           height: new BN(delegation.getHeight()),
           lockTime: delegation.getLockTime(),
+          lockTimeTier: delegation.getLocktimeTier(),
           state: delegation.getState()
         }
       : null
@@ -141,7 +172,8 @@ export class DPOS2 extends Contract {
     fee: BN,
     name: string,
     description: string,
-    website: string
+    website: string,
+    tier: LockTimeTier
   ): Promise<void> {
     const registerCandidateRequest = new RegisterCandidateRequestV2()
     registerCandidateRequest.setPubKey(pubKey)
@@ -149,6 +181,7 @@ export class DPOS2 extends Contract {
     registerCandidateRequest.setName(name)
     registerCandidateRequest.setDescription(description)
     registerCandidateRequest.setWebsite(website)
+    registerCandidateRequest.setLocktimeTier(tier)
     return this.callAsync<void>('RegisterCandidate', registerCandidateRequest)
   }
 
@@ -157,10 +190,11 @@ export class DPOS2 extends Contract {
     return this.callAsync<void>('UnregisterCandidate', unregisterCandidateRequest)
   }
 
-  async delegateAsync(validator: Address, amount: BN): Promise<void> {
+  async delegateAsync(validator: Address, amount: BN, tier: LockTimeTier): Promise<void> {
     const delegateRequest = new DelegateRequestV2()
     delegateRequest.setValidatorAddress(validator.MarshalPB())
     delegateRequest.setAmount(marshalBigUIntPB(amount))
+    delegateRequest.setLocktimeTier(tier)
     return this.callAsync<void>('Delegate', delegateRequest)
   }
 
