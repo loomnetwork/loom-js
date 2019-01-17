@@ -237,7 +237,7 @@ export class Client extends EventEmitter {
 
   private _writeClient: IJSONRPCClient
   private _readClient!: IJSONRPCClient
-  private _evmClient: EvmQueries
+  private _evmQueries: EvmQueries
 
   /** Broadcaster to use to send txs & receive results. */
   txBroadcaster: ITxBroadcaster
@@ -254,7 +254,7 @@ export class Client extends EventEmitter {
   }
 
   get evm(): EvmQueries {
-    return this._evmClient
+    return this._evmQueries
   }
 
   /**
@@ -310,7 +310,7 @@ export class Client extends EventEmitter {
       )
     }
 
-    this._evmClient = new EvmQueries(this._readClient)
+    this._evmQueries = new EvmQueries(this._readClient)
 
     const emitContractEvent = (url: string, event: IJSONRPCEvent) =>
       this._emitContractEvent(url, event)
