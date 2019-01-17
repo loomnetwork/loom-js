@@ -25,6 +25,7 @@ import { selectProtocol } from '../rpc-client-factory'
 import { JSONRPCProtocol } from '../internal/json-rpc-client'
 
 const debugLog = debug('plasma-cash:user')
+const errorLog = debug('plasma-cash:user:error')
 
 const ERC721_ABI = ['function safeTransferFrom(address from, address to, uint256 tokenId) public']
 const ERC20_ABI = [
@@ -242,7 +243,7 @@ export class User extends Entity {
           throw new Error(`${this.prefix(slot)} Tx was censored for ${buffer} blocks.`)
         }
       })
-      .on('error', (err: any) => debugLog(err))
+      .on('error', (err: any) => errorLog(err))
   }
 
   // Transfer a coin by specifying slot & new owner
@@ -289,7 +290,7 @@ export class User extends Entity {
           }
         }
       })
-      .on('error', (err: any) => debugLog(err))
+      .on('error', (err: any) => errorLog(err))
   }
 
   stopWatchingBlocks() {
