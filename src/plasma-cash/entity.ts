@@ -1,3 +1,4 @@
+import debug from 'debug'
 import BN from 'bn.js'
 import Web3 from 'web3'
 
@@ -13,12 +14,16 @@ import { DAppChainPlasmaClient } from './dappchain-client'
 import { PlasmaCashTx } from './plasma-cash-tx'
 import { EthersSigner } from '../solidity-helpers'
 import { PlasmaDB } from './db'
-import Tx from 'ethereumjs-tx'
+
 const Plasma = require('./contracts/plasma-cash-abi.json')
 const abiDecoder = require('abi-decoder') // NodeJS
 abiDecoder.addABI(Plasma)
+
 import { ethers } from 'ethers'
 import { hexBN } from '../helpers'
+
+const debugLog = debug('plasma-cash:entity')
+const errorLog = debug('plasma-cash:entity:error')
 
 export interface IProofs {
   inclusion: { [blockNumber: string]: string }
@@ -264,7 +269,7 @@ export class Entity {
    * @return Web3 subscription object that can be passed to stopWatching().
    */
   watchExit(slot: BN, fromBlock: BN): IWeb3EventSub {
-    console.log(`${this.prefix(slot)} Started watching exits`)
+    debugLog(`${this.prefix(slot)} Started watching exits`)
     if (this._exitWatchers[slot.toString()] !== undefined) {
       // replace old filter for that coin
       this._exitWatchers[slot.toString()].unsubscribe()
@@ -277,7 +282,7 @@ export class Entity {
       .on('data', (event: any, err: any) => {
         this.challengeExitAsync(slot, event.returnValues.owner)
       })
-      .on('error', (err: any) => console.log(err))
+      .on('error', (err: any) => errorLog(err))
     return this._exitWatchers[slot.toString()]
   }
 
@@ -285,7 +290,7 @@ export class Entity {
    * @return Web3 subscription object that can be passed to stopWatching().
    */
   watchChallenge(slot: BN, fromBlock: BN): IWeb3EventSub {
-    console.log(`${this.prefix(slot)} Started watching challenges`)
+    debugLog(`${this.prefix(slot)} Started watching challenges`)
     if (this._challengeWatchers[slot.toString()] !== undefined) {
       // replace old filter for that coin
       this._challengeWatchers[slot.toString()].unsubscribe()
@@ -302,7 +307,7 @@ export class Entity {
           event.returnValues.challengingBlockNumber
         )
       })
-      .on('error', (err: any) => console.log(err))
+      .on('error', (err: any) => errorLog(err))
     return this._challengeWatchers[slot.toString()]
   }
 
@@ -310,10 +315,10 @@ export class Entity {
     const exit = await this.getExitAsync(slot)
     if (exit.exitBlock.eq(new BN(0))) return
     if (owner === this.ethAddress) {
-      console.log(`${this.prefix(slot)} Valid exit!`)
+      debugLog(`${this.prefix(slot)} Valid exit!`)
       return
     } else {
-      console.log(`${this.prefix(slot)} Challenging exit!`)
+      debugLog(`${this.prefix(slot)} Challenging exit!`)
     }
 
     const coin = await this.getPlasmaCoinAsync(slot)
@@ -325,17 +330,17 @@ export class Entity {
         continue
       }
       if (blk.gt(exit.exitBlock)) {
-        console.log(`${this.prefix(slot)} Challenge Spent Coin with ${blk}!`)
+        debugLog(`${this.prefix(slot)} Challenge Spent Coin with ${blk}!`)
         const tx = await this.challengeAfterAsync({ slot: slot, challengingBlockNum: blk })
         await tx.wait()
         break
       } else if (exit.prevBlock.lt(blk) && blk.lt(exit.exitBlock)) {
-        console.log(`${this.prefix(slot)} Challenge Double Spend with ${blk}!`)
+        debugLog(`${this.prefix(slot)} Challenge Double Spend with ${blk}!`)
         const tx = await this.challengeBetweenAsync({ slot: slot, challengingBlockNum: blk })
         await tx.wait()
         break
       } else if (blk.lt(exit.prevBlock)) {
-        console.log(`${this.prefix(slot)} Challenge Invalid History! with ${blk}`)
+        debugLog(`${this.prefix(slot)} Challenge Invalid History! with ${blk}`)
         const tx = await this.challengeBeforeAsync({
           slot: slot,
           challengingBlockNum: blk
@@ -359,7 +364,7 @@ export class Entity {
       }
       // challenge with the first block after the challengingBlock
       if (blk.gt(new BN(challengingBlockNum))) {
-        console.log(`${this.prefix(slot)} Responding with ${blk}!`)
+        debugLog(`${this.prefix(slot)} Responding with ${blk}!`)
         const tx = await this.respondChallengeBeforeAsync({
           slot,
           challengingTxHash: txHash,
@@ -492,12 +497,12 @@ export class Entity {
 
   stopWatching(slot: BN) {
     if (this._exitWatchers[slot.toString()]) {
-      console.log(`${this.prefix(slot)} Stopped watching exits`)
+      debugLog(`${this.prefix(slot)} Stopped watching exits`)
       this._exitWatchers[slot.toString()].unsubscribe()
       delete this._exitWatchers[slot.toString()]
     }
     if (this._challengeWatchers[slot.toString()]) {
-      console.log(`${this.prefix(slot)} Stopped watching challenges`)
+      debugLog(`${this.prefix(slot)} Stopped watching challenges`)
       this._challengeWatchers[slot.toString()].unsubscribe()
       delete this._challengeWatchers[slot.toString()]
     }

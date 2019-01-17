@@ -1,3 +1,4 @@
+import debug from 'debug'
 import BN from 'bn.js'
 import Web3 from 'web3'
 import {
@@ -22,6 +23,8 @@ import { AddressMapper } from '../contracts/address-mapper'
 import { EthersSigner } from '../solidity-helpers'
 import { selectProtocol } from '../rpc-client-factory'
 import { JSONRPCProtocol } from '../internal/json-rpc-client'
+
+const debugLog = debug('plasma-cash:user')
 
 const ERC721_ABI = ['function safeTransferFrom(address from, address to, uint256 tokenId) public']
 const ERC20_ABI = [
@@ -203,7 +206,7 @@ export class User extends Entity {
     // amount - approved
     if (amount.gt(currentApproval)) {
       await token.approve(this.plasmaCashContract.address, amount.sub(currentApproval).toString())
-      console.log('Approved an extra', amount.sub(currentApproval))
+      debugLog('Approved an extra', amount.sub(currentApproval))
     }
 
     let currentBlock = await this.getCurrentBlockAsync()
@@ -224,7 +227,7 @@ export class User extends Entity {
       })
       .on('data', (event: any, err: any) => {
         if (this.verifyInclusionAsync(slot, new BN(event.returnValues.blockNumber))) {
-          console.log(
+          debugLog(
             `${this.prefix(slot)} Tx included & verified in block ${
               event.returnValues.blockNumber
             }`
@@ -239,7 +242,7 @@ export class User extends Entity {
           throw new Error(`${this.prefix(slot)} Tx was censored for ${buffer} blocks.`)
         }
       })
-      .on('error', (err: any) => console.log(err))
+      .on('error', (err: any) => debugLog(err))
   }
 
   // Transfer a coin by specifying slot & new owner
@@ -256,7 +259,7 @@ export class User extends Entity {
 
   // Whenever a new block gets submitted refresh the user's state for their coins
   async watchBlocks() {
-    console.log(`[${this.ethAddress}] Watching for blocks...`)
+    debugLog(`[${this.ethAddress}] Watching for blocks...`)
     this.newBlocks = this.plasmaEvents.events
       .SubmittedBlock({
         filter: {},
@@ -264,7 +267,7 @@ export class User extends Entity {
       })
       .on('data', async (event: any, err: any) => {
         const blk = new BN(event.returnValues.blockNumber)
-        console.log(`[${this.ethAddress}] Got new block: ${blk}`)
+        debugLog(`[${this.ethAddress}] Got new block: ${blk}`)
 
         // Get user coins from the dappchain
         const coins = await this.getUserCoinsAsync()
@@ -286,7 +289,7 @@ export class User extends Entity {
           }
         }
       })
-      .on('error', (err: any) => console.log(err))
+      .on('error', (err: any) => debugLog(err))
   }
 
   stopWatchingBlocks() {
@@ -308,10 +311,10 @@ export class User extends Entity {
         await this.challengeExitAsync(slot, exit.owner)
       }
       this.watchExit(slot, new BN(await this.web3.eth.getBlockNumber()))
-      console.log(`${this.prefix(slot)} Verified history, started watching.`)
+      debugLog(`${this.prefix(slot)} Verified history, started watching.`)
     } else {
       this.database.removeCoin(slot)
-      console.log(`${this.prefix(slot)} Invalid history, rejecting...`)
+      debugLog(`${this.prefix(slot)} Invalid history, rejecting...`)
     }
     return valid
   }
