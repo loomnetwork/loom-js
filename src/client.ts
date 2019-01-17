@@ -6,10 +6,20 @@ import retry from 'retry'
 import { VMType } from './proto/loom_pb'
 import { EvmQueries } from './evm-queries'
 import { Uint8ArrayToB64, B64ToUint8Array } from './crypto-utils'
+import {
+  EvmTxReceipt,
+  EvmTxObject,
+  EthBlockInfo,
+  EthFilterEnvelope,
+  EthBlockHashList,
+  EthFilterLogList,
+  EthTxHashList
+} from './proto/evm_pb'
 import { Address, LocalAddress } from './address'
 import { WSRPCClient, IJSONRPCEvent } from './internal/ws-rpc-client'
 import { RPCClientEvent, IJSONRPCClient } from './internal/json-rpc-client'
 import { sleep } from './helpers'
+import { deprecate } from 'util'
 
 export interface ITxHandlerResult {
   code?: number
@@ -203,6 +213,11 @@ export class TxSyncBroadcaster implements ITxBroadcaster {
     }
   }
 }
+
+const deprecatedEvmWarn = () =>
+  console.warn(
+    'Deprecated: use evm property in order to call evm functions, i.e: client.evm.getEvmTxByHashAsync'
+  )
 
 /**
  * Writes to & reads from a Loom DAppChain.
@@ -418,6 +433,203 @@ export class Client extends EventEmitter {
     if (result) {
       return B64ToUint8Array(result)
     }
+  }
+
+  /**
+   * Queries the receipt corresponding to a transaction hash
+   *
+   * @deprecated Use use `evm` property in order to call evm functions, i.e: client.evm.getEvmTxByHashAsync'
+   *
+   * @param txHash Transaction hash returned by call transaction.
+   * @return EvmTxReceipt The corresponding transaction receipt.
+   */
+  async getEvmTxReceiptAsync(txHash: Uint8Array): Promise<EvmTxReceipt | null> {
+    deprecatedEvmWarn()
+    return this.evm.getEvmTxReceiptAsync(txHash)
+  }
+
+  /**
+   * Returns the information about a transaction requested by transaction hash
+   *
+   * @deprecated Use use `evm` property in order to call evm functions, i.e: client.evm.getEvmTxByHashAsync'
+   *
+   * @param txHash Transaction hash returned by call transaction.
+   * @return EvmTxObject The corresponding transaction object data.
+   */
+  async getEvmTxByHashAsync(txHash: Uint8Array): Promise<EvmTxObject | null> {
+    deprecatedEvmWarn()
+    return this.evm.getEvmTxByHashAsync(txHash)
+  }
+
+  /**
+   * Queries the code corresponding to a contract
+   *
+   * @deprecated Use use `evm` property in order to call evm functions, i.e: client.evm.getEvmTxByHashAsync'
+   *
+   * @param contractAddress Contract address returned by deploy.
+   * @return Uint8Array The corresponding contract code
+   */
+  async getEvmCodeAsync(contractAddress: Address): Promise<Uint8Array | null> {
+    deprecatedEvmWarn()
+    return this.evm.getEvmCodeAsync(contractAddress)
+  }
+
+  /**
+   * Queries logs with filter terms
+   *
+   * @deprecated Use use `evm` property in order to call evm functions, i.e: client.evm.getEvmTxByHashAsync'
+   *
+   * @param filter Filter terms
+   * @return Uint8Array The corresponding result of the filter
+   */
+  async getEvmLogsAsync(filterObject: Object): Promise<Uint8Array | null> {
+    deprecatedEvmWarn()
+    return this.evm.getEvmLogsAsync(filterObject)
+  }
+
+  /**
+   * Creates a new filter based on filter terms, to notify when the state changes
+   *
+   * The function getEVMNewFilterAsync works in the similar way of the RPC call eth_newFilter, for more
+   *
+   * Also for understand how filters works check https://github.com/ethereum/wiki/wiki/JSON-RPC#eth_newfilter
+   *
+   * @deprecated Use use `evm` property in order to call evm functions, i.e: client.evm.getEvmTxByHashAsync'
+   *
+   * @param filter Filter terms
+   * @return Uint8Array The corresponding result of the filter
+   */
+  async newEvmFilterAsync(filterObject: Object): Promise<string | null> {
+    deprecatedEvmWarn()
+    return this.evm.newEvmFilterAsync(filterObject)
+  }
+
+  /**
+   * Polling method for a filter, which returns an array of logs which occurred since last poll
+   *
+   * The ID used was requested from getEVMNewFilterChanges or getEVMNewBlockFilter
+   *
+   * @deprecated Use use `evm` property in order to call evm functions, i.e: client.evm.getEvmTxByHashAsync'
+   *
+   * @param id Id of filter previously created
+   * @return Uint8Array The corresponding result of the request for given id
+   */
+  async getEvmFilterChangesAsync(
+    id: string
+  ): Promise<EthBlockHashList | EthFilterLogList | EthTxHashList | null> {
+    deprecatedEvmWarn()
+    return this.evm.getEvmFilterChangesAsync(id)
+  }
+
+  /**
+   * Creates a filter in the node, to notify when a new block arrives
+   *
+   * In order to check if the state has changed, call getEVMFilterChangesAsync
+   *
+   * @deprecated Use use `evm` property in order to call evm functions, i.e: client.evm.getEvmTxByHashAsync'
+   *
+   * @return String Filter ID in hex format to be used later with getEVMFilterChangesAsync
+   */
+  async newBlockEvmFilterAsync(): Promise<string | null> {
+    deprecatedEvmWarn()
+    return this.evm.newBlockEvmFilterAsync()
+  }
+
+  /**
+   * Creates a filter in the node, to notify when new pending transactions arrive.
+   *
+   * In order to check if the state has changed, call getEVMFilterChangesAsync
+   *
+   * @deprecated Use use `evm` property in order to call evm functions, i.e: client.evm.getEvmTxByHashAsync'
+   *
+   * @return String Filter ID in hex format to be used later with getEVMFilterChangesAsync
+   */
+  async newPendingTransactionEvmFilterAsync(): Promise<string | null> {
+    deprecatedEvmWarn()
+    return this.evm.newEvmPendingTransactionEvmFilterAsync()
+  }
+
+  /**
+   * Uninstall/delete previously created filters
+   *
+   * The ID used was requested from getEVMNewFilterChanges or getEVMNewBlockFilter
+   *
+   * @deprecated Use use `evm` property in order to call evm functions, i.e: client.evm.getEvmTxByHashAsync'
+   *
+   * @param id Id of filter previously created
+   * @return boolean If true the filter is removed with success
+   */
+  uninstallEvmFilterAsync(id: string): Promise<boolean | null> {
+    deprecatedEvmWarn()
+    return this.evm.uninstallEvmFilterAsync(id)
+  }
+
+  /**
+   * Returns information about a block by block number.
+   *
+   * @deprecated Use use `evm` property in order to call evm functions, i.e: client.evm.getEvmTxByHashAsync'
+   *
+   * @param num Integer of a block number
+   * @param full If true it returns the full transaction objects, if false only the hashes of the transactions
+   */
+  async getEvmBlockByNumberAsync(num: string, full: boolean = true): Promise<EthBlockInfo | null> {
+    deprecatedEvmWarn()
+    return this.evm.getEvmBlockByNumberAsync(num, full)
+  }
+
+  /**
+   * Returns the information about a transaction requested by transaction hash.
+   *
+   * @deprecated Use use `evm` property in order to call evm functions, i.e: client.evm.getEvmTxByHashAsync'
+   *
+   * @param hash String with the hash of the transaction
+   * @param full If true it returns the full transaction objects, if false only the hashes of the transactions
+   */
+  async getEvmBlockByHashAsync(
+    hashHexStr: string,
+    full: boolean = true
+  ): Promise<EthBlockInfo | null> {
+    deprecatedEvmWarn()
+    return this.evm.getEvmBlockByHashAsync(hashHexStr)
+  }
+
+  /**
+   * It works by subscribing to particular events. The node will return a subscription id.
+   * For each event that matches the subscription a notification with relevant data is send
+   * together with the subscription id.
+   *
+   * Possible methods:
+   *  * "NewHeads": Fires a notification each time a new header is appended to the chain
+   *  * "Logs": Returns logs that are included in new imported blocks and match the given filter criteria
+   *
+   * Example of a "filter" (JSON String) with method "logs":
+   *  {
+   *    "address": "0xa520fe7702b96808f7bbc0d4a233ed1468216cfd",
+   *    "topics": ["0x238a0cb8bb633d06981248b822e7bd33c2a35a6089241d099fa519e361cab902"]
+   *  }
+   *
+   * @deprecated Use use `evm` property in order to call evm functions, i.e: client.evm.getEvmTxByHashAsync'
+   *
+   * @param method Method selected to the filter, can be "newHeads" or "logs"
+   * @param filter JSON string of the filter
+   */
+  evmSubscribeAsync(method: string, filterObject: Object): Promise<string> {
+    deprecatedEvmWarn()
+    return this.evm.evmSubscribeAsync(method, filterObject)
+  }
+
+  /**
+   * Subscriptions are cancelled method and the subscription id as first parameter.
+   * It returns a bool indicating if the subscription was cancelled successful.
+   *
+   * @deprecated Use use `evm` property in order to call evm functions, i.e: client.evm.getEvmTxByHashAsync'
+   *
+   * @param id Id of subscription previously created
+   * @return boolean If true the subscription is removed with success
+   */
+  evmUnsubscribeAsync(id: string): Promise<boolean> {
+    deprecatedEvmWarn()
+    return this.evm.evmUnsubscribeAsync(id)
   }
 
   /**
