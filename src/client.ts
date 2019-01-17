@@ -10,7 +10,6 @@ import {
   EvmTxReceipt,
   EvmTxObject,
   EthBlockInfo,
-  EthFilterEnvelope,
   EthBlockHashList,
   EthFilterLogList,
   EthTxHashList
@@ -19,7 +18,6 @@ import { Address, LocalAddress } from './address'
 import { WSRPCClient, IJSONRPCEvent } from './internal/ws-rpc-client'
 import { RPCClientEvent, IJSONRPCClient } from './internal/json-rpc-client'
 import { sleep } from './helpers'
-import { deprecate } from 'util'
 
 export interface ITxHandlerResult {
   code?: number
