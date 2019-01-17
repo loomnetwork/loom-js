@@ -174,7 +174,7 @@ export class EvmQueries {
    *
    * @return String Filter ID in hex format to be used later with getEVMFilterChangesAsync
    */
-  async newEvmPendingTransactionEvmFilterAsync(): Promise<string | null> {
+  async newPendingTransactionEvmFilterAsync(): Promise<string | null> {
     const result = await this._readClient.sendAsync<string>('newpendingtransactionevmfilter', {})
     if (result) {
       return result.toString()

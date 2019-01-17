@@ -76,7 +76,7 @@ test('Client EVM test (newPendingTransactionEvmFilterAsync)', async t => {
 
     // calls newblockevmfilter
     const filterId = await execAndWaitForMillisecondsAsync(
-      client.evm.newEvmPendingTransactionEvmFilterAsync()
+      client.evm.newPendingTransactionEvmFilterAsync()
     )
 
     if (!filterId) {

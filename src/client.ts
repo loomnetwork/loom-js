@@ -546,7 +546,7 @@ export class Client extends EventEmitter {
    */
   async newPendingTransactionEvmFilterAsync(): Promise<string | null> {
     deprecatedEvmWarn()
-    return this.evm.newEvmPendingTransactionEvmFilterAsync()
+    return this.evm.newPendingTransactionEvmFilterAsync()
   }
 
   /**

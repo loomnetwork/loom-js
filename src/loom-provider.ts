@@ -527,7 +527,7 @@ export class LoomProvider {
   }
 
   private async _ethNewPendingTransactionFilter() {
-    const result = await this._client.evm.newEvmPendingTransactionEvmFilterAsync()
+    const result = await this._client.evm.newPendingTransactionEvmFilterAsync()
 
     if (!result) {
       throw Error('New pending transaction filter unexpected result')
