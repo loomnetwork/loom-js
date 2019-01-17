@@ -201,3 +201,10 @@ message SetSlashingPercentagesRequestV2 {
     BigUInt crash_slashing_percentage = 1;
     BigUInt byzantine_slashing_percentage = 2;
 }
+
+message CheckDistributionRequest {
+}
+
+message CheckDistributionResponse {
+    BigUInt amount = 1;
+}

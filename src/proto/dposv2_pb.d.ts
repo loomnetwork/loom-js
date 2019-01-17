@@ -1010,3 +1010,41 @@ export namespace SetSlashingPercentagesRequestV2 {
   }
 }
 
+export class CheckDistributionRequest extends jspb.Message {
+  serializeBinary(): Uint8Array;
+  toObject(includeInstance?: boolean): CheckDistributionRequest.AsObject;
+  static toObject(includeInstance: boolean, msg: CheckDistributionRequest): CheckDistributionRequest.AsObject;
+  static extensions: {[key: number]: jspb.ExtensionFieldInfo<jspb.Message>};
+  static extensionsBinary: {[key: number]: jspb.ExtensionFieldBinaryInfo<jspb.Message>};
+  static serializeBinaryToWriter(message: CheckDistributionRequest, writer: jspb.BinaryWriter): void;
+  static deserializeBinary(bytes: Uint8Array): CheckDistributionRequest;
+  static deserializeBinaryFromReader(message: CheckDistributionRequest, reader: jspb.BinaryReader): CheckDistributionRequest;
+}
+
+export namespace CheckDistributionRequest {
+  export type AsObject = {
+  }
+}
+
+export class CheckDistributionResponse extends jspb.Message {
+  hasAmount(): boolean;
+  clearAmount(): void;
+  getAmount(): proto_loom_pb.BigUInt | undefined;
+  setAmount(value?: proto_loom_pb.BigUInt): void;
+
+  serializeBinary(): Uint8Array;
+  toObject(includeInstance?: boolean): CheckDistributionResponse.AsObject;
+  static toObject(includeInstance: boolean, msg: CheckDistributionResponse): CheckDistributionResponse.AsObject;
+  static extensions: {[key: number]: jspb.ExtensionFieldInfo<jspb.Message>};
+  static extensionsBinary: {[key: number]: jspb.ExtensionFieldBinaryInfo<jspb.Message>};
+  static serializeBinaryToWriter(message: CheckDistributionResponse, writer: jspb.BinaryWriter): void;
+  static deserializeBinary(bytes: Uint8Array): CheckDistributionResponse;
+  static deserializeBinaryFromReader(message: CheckDistributionResponse, reader: jspb.BinaryReader): CheckDistributionResponse;
+}
+
+export namespace CheckDistributionResponse {
+  export type AsObject = {
+    amount?: proto_loom_pb.BigUInt.AsObject,
+  }
+}
+
