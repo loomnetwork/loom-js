@@ -15,7 +15,8 @@ const protoFiles = [
   'address_mapper.proto',
   'coin.proto',
   'dpos.proto',
-  'dposv2.proto'
+  'dposv2.proto',
+  'karma.proto'
 ]
 
 // copy the proto so end users can import it from node_modules in their own proto files

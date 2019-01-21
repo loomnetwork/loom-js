@@ -1,0 +1,85 @@
+syntax = "proto3";
+
+import "proto/loom.proto";
+
+package karma;
+
+enum KarmaSourceTarget {
+    CALL = 0;
+    DEPLOY = 1;
+}
+
+message KarmaInitRequest {
+    Address Oracle = 1;
+    repeated KarmaSourceReward sources = 2;
+    repeated KarmaAddressSource users = 3;
+    KarmaUpkeepParams upkeep = 4;
+}
+
+message KarmaSources {
+    repeated KarmaSourceReward sources = 1;
+}
+
+message KarmaNewOracle {
+    Address new_oracle = 1;
+}
+
+message KarmaUserTarget {
+    Address user = 1;
+    KarmaSourceTarget target = 2;
+}
+
+message KarmaUserAmount {
+    Address user = 1;
+    BigUInt amount = 2;
+}
+
+message KarmaSourceReward {
+    string name = 1;
+    int64 reward = 2 [jstype = JS_STRING];
+    KarmaSourceTarget target = 3;
+}
+
+message KarmaSource {
+    string name = 1;
+    BigUInt count = 2;
+}
+
+message KarmaUpkeepParams {
+    int64 cost = 1 [jstype = JS_STRING];
+    int64 period = 3 [jstype = JS_STRING];
+}
+
+
+message KarmaAddressSource {
+    Address user = 1;
+    repeated KarmaSource sources = 2;
+}
+
+message KarmaState {
+    repeated KarmaSource source_states = 1;
+    BigUInt deploy_karma_total = 2;
+    BigUInt call_karma_total = 3;
+    int64 last_update_time = 4 [jstype = JS_STRING];
+}
+
+message KarmaStateUser {
+    repeated KarmaSource source_states = 1;
+    Address user = 2;
+}
+
+message KarmaStateKeyUser {
+    repeated string state_keys = 1;
+    Address user = 2;
+}
+
+message KarmaTotal{
+    BigUInt count = 1;
+}
+
+message ContractRecord{
+    Address owner = 1;
+    Address address = 2;
+    int64   creation_block = 3 [jstype = JS_STRING];
+    int64   nonce = 4 [jstype = JS_STRING];
+}
