@@ -32,6 +32,9 @@ message EventData {
     bytes encoded_body = 6;
     bytes original_request = 7;
     bytes tx_hash = 8;
+    uint64 transaction_index = 9;
+    bytes block_hash = 10;
+    int64 block_time = 11;
 }
 
 message TxReceiptList {
@@ -101,4 +104,5 @@ message EthFilterLog {
     bytes address = 7;
     bytes data = 8;
     repeated bytes topics = 9;
+    int64 block_time = 10;
 }
