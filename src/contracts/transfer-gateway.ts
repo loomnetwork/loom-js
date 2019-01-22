@@ -10,7 +10,9 @@ import {
   TransferGatewayTokenKind,
   TransferGatewayAddContractMappingRequest,
   TransferGatewayTokenWithdrawalSigned,
-  TransferGatewayContractMappingConfirmed
+  TransferGatewayContractMappingConfirmed,
+  TransferGatewayReclaimContractTokensRequest,
+  TransferGatewayReclaimDepositorTokensRequest
 } from '../proto/transfer_gateway_pb'
 import { marshalBigUIntPB, unmarshalBigUIntPB } from '../big-uint'
 import { B64ToUint8Array } from '../crypto-utils'
@@ -306,5 +308,25 @@ export class TransferGateway extends Contract {
       }
     }
     return null
+  }
+
+  /**
+   * @param tokenContract token contract to reclaim the tokens
+   */
+  async reclaimContractTokensAsync(tokenContract: Address): Promise<void> {
+    const tgReclaimContractTokensReq = new TransferGatewayReclaimContractTokensRequest()
+    tgReclaimContractTokensReq.setTokenContract(tokenContract.MarshalPB())
+    return this.callAsync<void>('ReclaimContractTokens', tgReclaimContractTokensReq)
+  }
+
+  /**
+   * @param depositors depositors addresses to reclaim token
+   */
+  async reclaimDepositorTokensAsync(depositors: Array<Address>): Promise<void> {
+    const tgReclaimDepositorTokens = new TransferGatewayReclaimDepositorTokensRequest()
+    tgReclaimDepositorTokens.setDepositorsList(
+      depositors.map((address: Address) => address.MarshalPB())
+    )
+    return this.callAsync<void>('ReclaimDepositorTokens', tgReclaimDepositorTokens)
   }
 }
