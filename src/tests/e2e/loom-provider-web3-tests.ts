@@ -290,7 +290,7 @@ test('LoomProvider + Web3 + getTransactionReceipt', async t => {
   t.end()
 })
 
-test('LoomProvider + Web3 + Logs', async t => {
+test.only('LoomProvider + Web3 + Logs', async t => {
   const { contract, client } = await newContractAndClient()
   try {
     const newValue = 1
@@ -299,6 +299,7 @@ test('LoomProvider + Web3 + Logs', async t => {
     t.equal(tx.status, '0x1', 'SimpleStore.set should return correct status')
 
     const events = await contract.getPastEvents('NewValueSet')
+    console.log('events', events)
     t.assert(events.length > 0, 'Should have more than 0 events')
 
     await waitForMillisecondsAsync(1000)
