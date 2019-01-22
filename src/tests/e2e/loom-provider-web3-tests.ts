@@ -274,6 +274,7 @@ test('LoomProvider + Web3 + getTransactionReceipt', async t => {
     const newValue = 1
 
     const tx = await contract.methods.set(newValue).send()
+    console.log('tx', tx)
     t.assert(tx.events.NewValueSet.blockTime > 0, 'blockTime should be greater than 0')
     t.assert(tx.events.NewValueSet.blockHash > 0, 'blockHash should be greater than 0')
     t.equal(tx.status, '0x1', 'SimpleStore.set should return correct status')
