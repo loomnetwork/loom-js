@@ -290,7 +290,7 @@ test('LoomProvider + Web3 + getTransactionReceipt', async t => {
   t.end()
 })
 
-test.only('LoomProvider + Web3 + Logs', async t => {
+test('LoomProvider + Web3 + Logs', async t => {
   const { contract, client } = await newContractAndClient()
   try {
     const newValue = 1
