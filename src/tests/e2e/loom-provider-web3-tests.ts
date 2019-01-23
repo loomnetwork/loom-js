@@ -305,6 +305,7 @@ test('LoomProvider + Web3 + Logs', async t => {
     })
     console.log('events', events)
     t.assert(events.length > 0, 'Should have more than 0 events')
+    t.assert(events[0].blockTime > 0, 'blockTime should be greater than 0')
 
     await waitForMillisecondsAsync(1000)
   } catch (err) {
