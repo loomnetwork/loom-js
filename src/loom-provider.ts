@@ -743,11 +743,11 @@ export class LoomProvider {
       return {
         logIndex,
         address: contractAddress,
-        blockHash: bytesToHexAddrLC(logEvent.getBlockHash_asU8()),
+        blockHash,
         blockNumber,
         blockTime: logEvent.getBlockTime(),
         transactionHash: bytesToHexAddrLC(logEvent.getTxHash_asU8()),
-        transactionIndex: numberToHexLC(logEvent.getTransactionIndex()),
+        transactionIndex,
         type: 'mined',
         data,
         topics: logEvent.getTopicsList().map((topic: string) => topic.toLowerCase())
