@@ -209,11 +209,11 @@ export class DPOSUser {
     log(`Mapped ${this._address} to ${ethereumAddress}`)
   }
 
-  async listValidatorsAsync(): Promise<IValidator[]> {
+  listValidatorsAsync(): Promise<IValidator[]> {
     return this._dappchainDPOS.getValidatorsAsync()
   }
 
-  async listCandidatesAsync(): Promise<ICandidate[]> {
+  listCandidatesAsync(): Promise<ICandidate[]> {
     return this._dappchainDPOS.getCandidatesAsync()
   }
 
@@ -281,7 +281,7 @@ export class DPOSUser {
     await this._dappchainDPOS.unbondAsync(address, amount)
   }
 
-  async claimDelegationsAsync(withdrawalAddress?: string): Promise<void> {
+  claimDelegationsAsync(withdrawalAddress?: string): Promise<void> {
     const address = withdrawalAddress ? this.prefixAddress(withdrawalAddress) : this._address
     return this._dappchainDPOS.claimDistributionAsync(address)
   }
@@ -292,7 +292,7 @@ export class DPOSUser {
    * @param validator The validator's hex address
    * @param delegator The delegator's hex address
    */
-  async checkDelegationsAsync(validator: string, delegator?: string): Promise<IDelegation | null> {
+  checkDelegationsAsync(validator: string, delegator?: string): Promise<IDelegation | null> {
     const validatorAddress = this.prefixAddress(validator)
     const delegatorAddress = delegator ? this.prefixAddress(delegator) : this._address
     return this._dappchainDPOS.checkDelegationAsync(validatorAddress, delegatorAddress)
@@ -302,7 +302,7 @@ export class DPOSUser {
     return this._dappchainGateway.withdrawalReceiptAsync(this._address)
   }
 
-  async checkRewardsAsync(): Promise<BN> {
+  checkRewardsAsync(): Promise<BN> {
     return this._dappchainDPOS.checkDistributionAsync()
   }
 
