@@ -273,6 +273,14 @@ export class LoomProvider {
     this._ethRPCMethods.set(method, customMethodFn)
   }
 
+  /**
+   * Return the numerical representation of the ChainId
+   * More details at: https://github.com/loomnetwork/loom-js/issues/110
+   */
+  get netVersion(): Number {
+    return this._netVersionFromChainId
+  }
+
   removeListener(type: string, callback: (...args: any[]) => void) {
     switch (type) {
       case 'data':
