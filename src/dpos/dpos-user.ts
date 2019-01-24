@@ -303,7 +303,7 @@ export class DPOSUser {
   }
 
   async checkRewardsAsync(): Promise<BN> {
-    return this._dappchainDPOS.checkDistribution()
+    return this._dappchainDPOS.checkDistributionAsync()
   }
 
   /**
