@@ -1010,3 +1010,53 @@ export namespace SetSlashingPercentagesRequestV2 {
   }
 }
 
+export class TotalDelegationRequest extends jspb.Message {
+  hasDelegatorAddress(): boolean;
+  clearDelegatorAddress(): void;
+  getDelegatorAddress(): proto_loom_pb.Address | undefined;
+  setDelegatorAddress(value?: proto_loom_pb.Address): void;
+
+  serializeBinary(): Uint8Array;
+  toObject(includeInstance?: boolean): TotalDelegationRequest.AsObject;
+  static toObject(includeInstance: boolean, msg: TotalDelegationRequest): TotalDelegationRequest.AsObject;
+  static extensions: {[key: number]: jspb.ExtensionFieldInfo<jspb.Message>};
+  static extensionsBinary: {[key: number]: jspb.ExtensionFieldBinaryInfo<jspb.Message>};
+  static serializeBinaryToWriter(message: TotalDelegationRequest, writer: jspb.BinaryWriter): void;
+  static deserializeBinary(bytes: Uint8Array): TotalDelegationRequest;
+  static deserializeBinaryFromReader(message: TotalDelegationRequest, reader: jspb.BinaryReader): TotalDelegationRequest;
+}
+
+export namespace TotalDelegationRequest {
+  export type AsObject = {
+    delegatorAddress?: proto_loom_pb.Address.AsObject,
+  }
+}
+
+export class TotalDelegationResponse extends jspb.Message {
+  hasAmount(): boolean;
+  clearAmount(): void;
+  getAmount(): proto_loom_pb.BigUInt | undefined;
+  setAmount(value?: proto_loom_pb.BigUInt): void;
+
+  hasWeightedAmount(): boolean;
+  clearWeightedAmount(): void;
+  getWeightedAmount(): proto_loom_pb.BigUInt | undefined;
+  setWeightedAmount(value?: proto_loom_pb.BigUInt): void;
+
+  serializeBinary(): Uint8Array;
+  toObject(includeInstance?: boolean): TotalDelegationResponse.AsObject;
+  static toObject(includeInstance: boolean, msg: TotalDelegationResponse): TotalDelegationResponse.AsObject;
+  static extensions: {[key: number]: jspb.ExtensionFieldInfo<jspb.Message>};
+  static extensionsBinary: {[key: number]: jspb.ExtensionFieldBinaryInfo<jspb.Message>};
+  static serializeBinaryToWriter(message: TotalDelegationResponse, writer: jspb.BinaryWriter): void;
+  static deserializeBinary(bytes: Uint8Array): TotalDelegationResponse;
+  static deserializeBinaryFromReader(message: TotalDelegationResponse, reader: jspb.BinaryReader): TotalDelegationResponse;
+}
+
+export namespace TotalDelegationResponse {
+  export type AsObject = {
+    amount?: proto_loom_pb.BigUInt.AsObject,
+    weightedAmount?: proto_loom_pb.BigUInt.AsObject,
+  }
+}
+

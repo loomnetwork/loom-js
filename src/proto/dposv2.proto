@@ -201,3 +201,12 @@ message SetSlashingPercentagesRequestV2 {
     BigUInt crash_slashing_percentage = 1;
     BigUInt byzantine_slashing_percentage = 2;
 }
+
+message TotalDelegationRequest {
+    Address delegator_address = 1;
+}
+
+message TotalDelegationResponse {
+    BigUInt amount = 1;
+    BigUInt weighted_amount = 2;
+}
