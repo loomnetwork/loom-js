@@ -15,7 +15,9 @@ import {
   CheckDelegationResponseV2,
   RegisterCandidateRequestV2,
   UnregisterCandidateRequestV2,
-  ValidatorStatisticV2
+  ValidatorStatisticV2,
+  TotalDelegationRequest,
+  TotalDelegationResponse
 } from '../proto/dposv2_pb'
 import { unmarshalBigUIntPB, marshalBigUIntPB } from '../big-uint'
 
@@ -66,6 +68,11 @@ export interface IDelegation {
   lockTime: number
   lockTimeTier: number
   state: DelegationState
+}
+
+export interface ITotalDelegation {
+  amount: BN
+  weightedAmount: BN
 }
 
 export class DPOS2 extends Contract {
@@ -129,6 +136,23 @@ export class DPOS2 extends Contract {
         ? unmarshalBigUIntPB(validator.getDelegationTotal()!)
         : new BN(0)
     }))
+  }
+
+  async totalDelegationAsync(delegator: Address): Promise<ITotalDelegation | null> {
+    const totalDelegationReq = new TotalDelegationRequest()
+    totalDelegationReq.setDelegatorAddress(delegator.MarshalPB())
+    const result = await this.staticCallAsync(
+      'TotalDelegation',
+      totalDelegationReq,
+      new TotalDelegationResponse()
+    )
+
+    return {
+      amount: result.getAmount() ? unmarshalBigUIntPB(result.getAmount()!) : new BN(0),
+      weightedAmount: result.getWeightedAmount()
+        ? unmarshalBigUIntPB(result.getWeightedAmount()!)
+        : new BN(0)
+    } as ITotalDelegation
   }
 
   async checkDelegationAsync(validator: Address, delegator: Address): Promise<IDelegation | null> {
