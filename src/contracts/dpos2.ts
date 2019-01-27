@@ -18,6 +18,8 @@ import {
   UnregisterCandidateRequestV2,
   ValidatorStatisticV2,
   CheckDistributionResponse
+  TotalDelegationRequest,
+  TotalDelegationResponse
 } from '../proto/dposv2_pb'
 import { unmarshalBigUIntPB, marshalBigUIntPB } from '../big-uint'
 
@@ -70,6 +72,11 @@ export interface IDelegation {
   state: DelegationState
 }
 
+export interface ITotalDelegation {
+  amount: BN
+  weightedAmount: BN
+}
+
 export class DPOS2 extends Contract {
   static async createAsync(client: Client, callerAddr: Address): Promise<DPOS2> {
     const contractAddr = await client.getContractAddressAsync('dposV2')
@@ -94,7 +101,7 @@ export class DPOS2 extends Contract {
 
     return result.getCandidatesList().map((candidate: CandidateV2) => ({
       pubKey: candidate.getPubKey_asU8()!,
-      address: Address.UmarshalPB(candidate.getAddress()!),
+      address: Address.UnmarshalPB(candidate.getAddress()!),
       fee: new BN(candidate.getFee()!),
       newFee: new BN(candidate.getNewfee()!),
       feeDelayCounter: new BN(candidate.getFeedelaycounter()!),
@@ -113,7 +120,7 @@ export class DPOS2 extends Contract {
     )
 
     return result.getStatisticsList().map((validator: ValidatorStatisticV2) => ({
-      address: Address.UmarshalPB(validator.getAddress()!),
+      address: Address.UnmarshalPB(validator.getAddress()!),
       pubKey: validator.getPubKey_asU8()!,
       upblockCount: validator.getUpblockCount(),
       blockCount: validator.getBlockCount(),
@@ -143,6 +150,23 @@ export class DPOS2 extends Contract {
     return result.getAmount() ? unmarshalBigUIntPB(result.getAmount()!) : new BN(0)
   }
 
+  async totalDelegationAsync(delegator: Address): Promise<ITotalDelegation | null> {
+    const totalDelegationReq = new TotalDelegationRequest()
+    totalDelegationReq.setDelegatorAddress(delegator.MarshalPB())
+    const result = await this.staticCallAsync(
+      'TotalDelegation',
+      totalDelegationReq,
+      new TotalDelegationResponse()
+    )
+
+    return {
+      amount: result.getAmount() ? unmarshalBigUIntPB(result.getAmount()!) : new BN(0),
+      weightedAmount: result.getWeightedAmount()
+        ? unmarshalBigUIntPB(result.getWeightedAmount()!)
+        : new BN(0)
+    } as ITotalDelegation
+  }
+
   async checkDelegationAsync(validator: Address, delegator: Address): Promise<IDelegation | null> {
     const checkDelegationReq = new CheckDelegationRequestV2()
     checkDelegationReq.setValidatorAddress(validator.MarshalPB())
@@ -156,11 +180,11 @@ export class DPOS2 extends Contract {
     const delegation = result.getDelegation()
     return delegation
       ? {
-          validator: Address.UmarshalPB(delegation.getValidator()!),
+          validator: Address.UnmarshalPB(delegation.getValidator()!),
           updateValidator: delegation.getUpdateValidator()
-            ? Address.UmarshalPB(delegation.getUpdateValidator()!)
+            ? Address.UnmarshalPB(delegation.getUpdateValidator()!)
             : undefined,
-          delegator: Address.UmarshalPB(delegation.getDelegator()!),
+          delegator: Address.UnmarshalPB(delegation.getDelegator()!),
           amount: delegation.getAmount() ? unmarshalBigUIntPB(delegation.getAmount()!) : new BN(0),
           updateAmount: delegation.getUpdateAmount()
             ? unmarshalBigUIntPB(delegation.getAmount()!)

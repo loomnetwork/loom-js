@@ -18,7 +18,13 @@ import Web3 from 'web3'
 import { DPOS2, Coin, LoomCoinTransferGateway, AddressMapper } from '../contracts'
 import { IWithdrawalReceipt } from '../contracts/transfer-gateway'
 import { sleep } from '../helpers'
-import { IValidator, ICandidate, IDelegation, LockTimeTier } from '../contracts/dpos2'
+import {
+  IValidator,
+  ICandidate,
+  IDelegation,
+  LockTimeTier,
+  ITotalDelegation
+} from '../contracts/dpos2'
 import { selectProtocol } from '../rpc-client-factory'
 
 import debug from 'debug'
@@ -296,6 +302,16 @@ export class DPOSUser {
     const validatorAddress = this.prefixAddress(validator)
     const delegatorAddress = delegator ? this.prefixAddress(delegator) : this._address
     return this._dappchainDPOS.checkDelegationAsync(validatorAddress, delegatorAddress)
+  }
+
+  /**
+   * Returns the total stake a delegator has delegated to all validators
+   *
+   * @param delegator The delegator's hex address. If not supplied, will use the current account as a delegator.
+   */
+  async getTotalDelegationAsync(delegator?: string): Promise<ITotalDelegation | null> {
+    const delegatorAddress = delegator ? this.prefixAddress(delegator) : this._address
+    return this._dappchainDPOS.totalDelegationAsync(delegatorAddress)
   }
 
   async getPendingWithdrawalReceiptAsync(): Promise<IWithdrawalReceipt | null> {

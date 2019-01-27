@@ -1,11 +1,12 @@
+import debug from 'debug'
 import BN from 'bn.js'
 import Web3 from 'web3'
 
-import { PlasmaCashBlock } from './plasma-cash-block'
-import { bytesToHexAddr } from '../crypto-utils'
 import { PlasmaCashTx } from './plasma-cash-tx'
 import { ethers } from 'ethers'
 import { hexBN } from '../helpers'
+
+const debugLog = debug('plasma-cash:ethereum-client')
 
 export enum PlasmaCoinMode {
   ETH = 0,
@@ -35,6 +36,7 @@ export interface IPlasmaCoin {
   /** Hex encoded Ethereum address of the token contract, prefixed by 0x. */
   contractAddress: string
 }
+
 export interface IPlasmaExitData {
   /** Identifier of a coin's exit. */
   slot: BN
@@ -326,7 +328,7 @@ export class EthereumPlasmaClient {
    */
   challengeAfterAsync(params: IPlasmaChallengeParams): Promise<ethers.ContractTransaction> {
     const { slot, challengingBlockNum, challengingTx, from, gas, gasPrice } = params
-    // console.log("challenging with", params)
+    debugLog('Challenging with', params)
     const txBytes = challengingTx.rlpEncode()
     return this._plasmaContract.challengeAfter(
       '0x' + slot.toString(16),
