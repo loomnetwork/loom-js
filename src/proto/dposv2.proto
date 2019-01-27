@@ -210,3 +210,10 @@ message TotalDelegationResponse {
     BigUInt amount = 1;
     BigUInt weighted_amount = 2;
 }
+
+message CheckDistributionRequest {
+}
+
+message CheckDistributionResponse {
+    BigUInt amount = 1;
+}
