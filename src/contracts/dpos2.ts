@@ -17,7 +17,7 @@ import {
   RegisterCandidateRequestV2,
   UnregisterCandidateRequestV2,
   ValidatorStatisticV2,
-  CheckDistributionResponse
+  CheckDistributionResponse,
   TotalDelegationRequest,
   TotalDelegationResponse
 } from '../proto/dposv2_pb'
