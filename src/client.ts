@@ -2,6 +2,7 @@ import debug from 'debug'
 import { Message } from 'google-protobuf'
 import EventEmitter from 'events'
 import retry from 'retry'
+import * as url from 'url'
 
 import { VMType } from './proto/loom_pb'
 import {
@@ -282,6 +283,8 @@ export class Client extends EventEmitter {
     this._writeClient.on(RPCClientEvent.Disconnected, (url: string) =>
       this._emitNetEvent(url, ClientEvent.Disconnected)
     )
+
+    readClient = overrideReadURL(writeClient, readClient)
 
     if (!readClient || writeClient === readClient) {
       this._readClient = this._writeClient
@@ -757,4 +760,24 @@ export class Client extends EventEmitter {
       this.emit(kind, eventArgs)
     }
   }
+}
+
+function overrideReadURL(
+  writeClient?: IJSONRPCClient | string,
+  readClient?: IJSONRPCClient | string
+): IJSONRPCClient | string | undefined {
+  if (typeof readClient === 'string') {
+    const origUrl = new url.URL(readClient)
+    if (origUrl.hostname === 'plasma.dappchains.com') {
+      origUrl.hostname = 'plasma-readonly.dappchains.com'
+      return origUrl.toString()
+    }
+  } else if (!readClient && typeof writeClient === 'string') {
+    const origUrl = new url.URL(writeClient)
+    if (origUrl.hostname === 'plasma.dappchains.com') {
+      origUrl.hostname = 'plasma-readonly.dappchains.com'
+      return origUrl.toString()
+    }
+  }
+  return readClient
 }
