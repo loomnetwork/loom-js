@@ -32,7 +32,16 @@ export function hexBN(num: any): BN {
 export function parseUrl(rawUrl: string): URL {
   // In NodeJS 10+ and browsers the URL class is a global object.
   // In earlier NodeJS versions it needs to be imported.
-  if (typeof URL === 'undefined') {
+  let importURL = true
+  try {
+    if (typeof URL !== 'undefined') {
+      importURL = false
+    }
+  } catch (err) {
+    // probably ReferenceError: URL is not defined
+  }
+
+  if (importURL) {
     const url = require('url')
     return new url.URL(rawUrl)
   }
