@@ -291,11 +291,8 @@ export class Client extends EventEmitter {
     if (!readClient || writeClient === readClient) {
       this._readClient = this._writeClient
     } else {
-      if (typeof readClient === 'string') {
-        this._readClient = new WSRPCClient(overrideReadUrl(readClient))
-      } else {
-        this._readClient = readClient
-      }
+      this._readClient =
+        typeof readClient === 'string' ? new WSRPCClient(overrideReadUrl(readClient)) : readClient
       this._readClient.on(RPCClientEvent.Error, (url: string, err: any) =>
         this._emitNetEvent(url, ClientEvent.Error, err)
       )
