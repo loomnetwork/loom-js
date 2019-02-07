@@ -1,6 +1,8 @@
 import debug from 'debug'
 import BN from 'bn.js'
 import Web3 from 'web3'
+import { ethers, utils } from 'ethers'
+
 import {
   Entity,
   IEntityParams,
@@ -18,11 +20,11 @@ import {
 } from '..'
 import { IPlasmaCoin } from './ethereum-client'
 import { sleep } from '../helpers'
-import { ethers, utils } from 'ethers'
 import { AddressMapper } from '../contracts/address-mapper'
 import { EthersSigner } from '../solidity-helpers'
 import { selectProtocol } from '../rpc-client-factory'
 import { JSONRPCProtocol } from '../internal/json-rpc-client'
+import { overrideReadURL } from '../client'
 
 const debugLog = debug('plasma-cash:user')
 const errorLog = debug('plasma-cash:user:error')
@@ -32,7 +34,6 @@ const ERC20_ABI = [
   'function approve(address spender, uint256 value) public returns (bool)',
   'function allowance(address owner, address spender) public view returns (uint256)'
 ]
-// Helper function to create a user instance.
 
 // User friendly wrapper for all Entity related functions, taking advantage of the database
 export class User extends Entity {
@@ -119,7 +120,7 @@ export class User extends Entity {
       protocols: [{ url: dappchainEndpoint + writerSuffix }]
     })
     const reader = createJSONRPCClient({
-      protocols: [{ url: dappchainEndpoint + readerSuffix }]
+      protocols: [{ url: overrideReadURL(dappchainEndpoint + readerSuffix) as string }]
     })
     const dAppClient = new Client(chainId || 'default', writer, reader)
     let privKey

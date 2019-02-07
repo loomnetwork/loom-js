@@ -762,8 +762,8 @@ export class Client extends EventEmitter {
   }
 }
 
-function overrideReadURL(
-  writeClient?: IJSONRPCClient | string,
+export function overrideReadURL(
+  writeClient: IJSONRPCClient | string,
   readClient?: IJSONRPCClient | string
 ): IJSONRPCClient | string | undefined {
   if (typeof readClient === 'string') {
