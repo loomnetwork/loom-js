@@ -24,7 +24,7 @@ import { AddressMapper } from '../contracts/address-mapper'
 import { EthersSigner } from '../solidity-helpers'
 import { selectProtocol } from '../rpc-client-factory'
 import { JSONRPCProtocol } from '../internal/json-rpc-client'
-import { overrideReadURL } from '../client'
+import { overrideReadUrl } from '../client'
 
 const debugLog = debug('plasma-cash:user')
 const errorLog = debug('plasma-cash:user:error')
@@ -120,7 +120,7 @@ export class User extends Entity {
       protocols: [{ url: dappchainEndpoint + writerSuffix }]
     })
     const reader = createJSONRPCClient({
-      protocols: [{ url: overrideReadURL(dappchainEndpoint + readerSuffix) as string }]
+      protocols: [{ url: overrideReadUrl(dappchainEndpoint + readerSuffix) }]
     })
     const dAppClient = new Client(chainId || 'default', writer, reader)
     let privKey

@@ -26,7 +26,7 @@ import {
   ITotalDelegation
 } from '../contracts/dpos2'
 import { selectProtocol } from '../rpc-client-factory'
-import { overrideReadURL } from '../client'
+import { overrideReadUrl } from '../client'
 
 const log = debug('dpos-user')
 
@@ -106,7 +106,7 @@ export class DPOSUser {
       protocols: [{ url: dappchainEndpoint + writerSuffix }]
     })
     const reader = createJSONRPCClient({
-      protocols: [{ url: overrideReadURL(dappchainEndpoint + readerSuffix) as string }]
+      protocols: [{ url: overrideReadUrl(dappchainEndpoint + readerSuffix) }]
     })
 
     const client = new Client(chainId, writer, reader)

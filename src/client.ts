@@ -284,12 +284,18 @@ export class Client extends EventEmitter {
       this._emitNetEvent(url, ClientEvent.Disconnected)
     )
 
-    readClient = overrideReadURL(writeClient, readClient)
+    if (!readClient && typeof writeClient === 'string') {
+      readClient = overrideReadUrl(writeClient)
+    }
 
     if (!readClient || writeClient === readClient) {
       this._readClient = this._writeClient
     } else {
-      this._readClient = typeof readClient === 'string' ? new WSRPCClient(readClient) : readClient
+      if (typeof readClient === 'string') {
+        this._readClient = new WSRPCClient(overrideReadUrl(readClient))
+      } else {
+        this._readClient = readClient
+      }
       this._readClient.on(RPCClientEvent.Error, (url: string, err: any) =>
         this._emitNetEvent(url, ClientEvent.Error, err)
       )
@@ -762,22 +768,11 @@ export class Client extends EventEmitter {
   }
 }
 
-export function overrideReadURL(
-  writeClient: IJSONRPCClient | string,
-  readClient?: IJSONRPCClient | string
-): IJSONRPCClient | string | undefined {
-  if (typeof readClient === 'string') {
-    const origUrl = new url.URL(readClient)
-    if (origUrl.hostname === 'plasma.dappchains.com') {
-      origUrl.hostname = 'plasma-readonly.dappchains.com'
-      return origUrl.toString()
-    }
-  } else if (!readClient && typeof writeClient === 'string') {
-    const origUrl = new url.URL(writeClient)
-    if (origUrl.hostname === 'plasma.dappchains.com') {
-      origUrl.hostname = 'plasma-readonly.dappchains.com'
-      return origUrl.toString()
-    }
+export function overrideReadUrl(readUrl: string): string {
+  const origUrl = new url.URL(readUrl)
+  if (origUrl.hostname === 'plasma.dappchains.com') {
+    origUrl.hostname = 'plasma-readonly.dappchains.com'
+    return origUrl.toString()
   }
-  return readClient
+  return readUrl
 }
