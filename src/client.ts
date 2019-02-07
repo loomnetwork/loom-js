@@ -2,7 +2,6 @@ import debug from 'debug'
 import { Message } from 'google-protobuf'
 import EventEmitter from 'events'
 import retry from 'retry'
-import * as url from 'url'
 
 import { VMType } from './proto/loom_pb'
 import {
@@ -18,7 +17,7 @@ import { Uint8ArrayToB64, B64ToUint8Array, bufferToProtobufBytes } from './crypt
 import { Address, LocalAddress } from './address'
 import { WSRPCClient, IJSONRPCEvent } from './internal/ws-rpc-client'
 import { RPCClientEvent, IJSONRPCClient } from './internal/json-rpc-client'
-import { sleep } from './helpers'
+import { sleep, parseUrl } from './helpers'
 
 export interface ITxHandlerResult {
   code?: number
@@ -766,7 +765,7 @@ export class Client extends EventEmitter {
 }
 
 export function overrideReadUrl(readUrl: string): string {
-  const origUrl = new url.URL(readUrl)
+  const origUrl = parseUrl(readUrl)
   if (origUrl.hostname === 'plasma.dappchains.com') {
     origUrl.hostname = 'plasma-readonly.dappchains.com'
     return origUrl.toString()

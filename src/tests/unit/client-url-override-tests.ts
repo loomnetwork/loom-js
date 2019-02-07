@@ -1,7 +1,7 @@
 import test from 'tape'
-import * as url from 'url'
 
 import { Client } from '../../index'
+import { parseUrl } from '../../helpers'
 
 test('Client URL Override', t => {
   try {
@@ -17,8 +17,8 @@ test('Client URL Override', t => {
       client.on('error', (msg: any) => {
         // don't care about connection errors, just want to validate URL override
       })
-      const readUrl = new url.URL(client.readUrl)
-      const writeUrl = new url.URL(client.writeUrl)
+      const readUrl = parseUrl(client.readUrl)
+      const writeUrl = parseUrl(client.writeUrl)
       t.equal(readUrl.hostname, readOnlyHostname, 'Read URL override was applied')
       t.equal(writeUrl.hostname, hostname, 'Write URL was unchanged')
       client.disconnect()
