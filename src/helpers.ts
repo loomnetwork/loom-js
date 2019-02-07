@@ -28,3 +28,22 @@ export function sleep(ms: any) {
 export function hexBN(num: any): BN {
   return new BN(num._hex.slice(2), 16)
 }
+
+export function parseUrl(rawUrl: string): URL {
+  // In NodeJS 10+ and browsers the URL class is a global object.
+  // In earlier NodeJS versions it needs to be imported.
+  let importURL = true
+  try {
+    if (typeof URL !== 'undefined') {
+      importURL = false
+    }
+  } catch (err) {
+    // probably ReferenceError: URL is not defined
+  }
+
+  if (importURL) {
+    const url = require('url')
+    return new url.URL(rawUrl)
+  }
+  return new URL(rawUrl)
+}

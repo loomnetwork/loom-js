@@ -1,4 +1,7 @@
 import BN from 'bn.js'
+import debug from 'debug'
+import { ethers, ContractTransaction } from 'ethers'
+import Web3 from 'web3'
 
 import {
   CryptoUtils,
@@ -12,9 +15,6 @@ import {
   EthersSigner
 } from '..'
 import { JSONRPCProtocol } from '../internal/json-rpc-client'
-
-import { ethers, ContractTransaction } from 'ethers'
-import Web3 from 'web3'
 import { DPOS2, Coin, LoomCoinTransferGateway, AddressMapper } from '../contracts'
 import { IWithdrawalReceipt } from '../contracts/transfer-gateway'
 import { sleep } from '../helpers'
@@ -26,8 +26,8 @@ import {
   ITotalDelegation
 } from '../contracts/dpos2'
 import { selectProtocol } from '../rpc-client-factory'
+import { overrideReadUrl } from '../client'
 
-import debug from 'debug'
 const log = debug('dpos-user')
 
 const coinMultiplier = new BN(10).pow(new BN(18))
@@ -106,7 +106,7 @@ export class DPOSUser {
       protocols: [{ url: dappchainEndpoint + writerSuffix }]
     })
     const reader = createJSONRPCClient({
-      protocols: [{ url: dappchainEndpoint + readerSuffix }]
+      protocols: [{ url: overrideReadUrl(dappchainEndpoint + readerSuffix) }]
     })
 
     const client = new Client(chainId, writer, reader)
