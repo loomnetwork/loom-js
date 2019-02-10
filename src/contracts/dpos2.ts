@@ -187,7 +187,7 @@ export class DPOS2 extends Contract {
           delegator: Address.UnmarshalPB(delegation.getDelegator()!),
           amount: delegation.getAmount() ? unmarshalBigUIntPB(delegation.getAmount()!) : new BN(0),
           updateAmount: delegation.getUpdateAmount()
-            ? unmarshalBigUIntPB(delegation.getAmount()!)
+            ? unmarshalBigUIntPB(delegation.getUpdateAmount()!)
             : new BN(0),
           height: new BN(delegation.getHeight()),
           lockTime: delegation.getLockTime(),
