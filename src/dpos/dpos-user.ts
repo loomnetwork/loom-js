@@ -223,6 +223,10 @@ export class DPOSUser {
     return this._dappchainDPOS.getCandidatesAsync()
   }
 
+  getTimeUntilElectionsAsync(): Promise<BN> {
+    return this._dappchainDPOS.getTimeUntilElectionAsync()
+  }
+
   /**
    * Deposits funds from mainnet to the gateway
    */

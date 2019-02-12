@@ -19,7 +19,9 @@ import {
   ValidatorStatisticV2,
   CheckDistributionResponse,
   TotalDelegationRequest,
-  TotalDelegationResponse
+  TotalDelegationResponse,
+  TimeUntilElectionRequest,
+  TimeUntilElectionResponse
 } from '../proto/dposv2_pb'
 import { unmarshalBigUIntPB, marshalBigUIntPB } from '../big-uint'
 
@@ -89,6 +91,17 @@ export class DPOS2 extends Contract {
 
   constructor(params: { contractAddr: Address; callerAddr: Address; client: Client }) {
     super(params)
+  }
+
+  async getTimeUntilElectionAsync(): Promise<BN> {
+    const timeUntilElectionRequest = new TimeUntilElectionRequest()
+    const result = await this.staticCallAsync(
+      'TimeUntilElection',
+      timeUntilElectionRequest,
+      new TimeUntilElectionResponse()
+    )
+
+    return new BN(result.getTimeUntilElection())
   }
 
   async getCandidatesAsync(): Promise<Array<ICandidate>> {
