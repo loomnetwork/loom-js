@@ -1098,3 +1098,39 @@ export namespace CheckDistributionResponse {
   }
 }
 
+export class TimeUntilElectionRequest extends jspb.Message {
+  serializeBinary(): Uint8Array;
+  toObject(includeInstance?: boolean): TimeUntilElectionRequest.AsObject;
+  static toObject(includeInstance: boolean, msg: TimeUntilElectionRequest): TimeUntilElectionRequest.AsObject;
+  static extensions: {[key: number]: jspb.ExtensionFieldInfo<jspb.Message>};
+  static extensionsBinary: {[key: number]: jspb.ExtensionFieldBinaryInfo<jspb.Message>};
+  static serializeBinaryToWriter(message: TimeUntilElectionRequest, writer: jspb.BinaryWriter): void;
+  static deserializeBinary(bytes: Uint8Array): TimeUntilElectionRequest;
+  static deserializeBinaryFromReader(message: TimeUntilElectionRequest, reader: jspb.BinaryReader): TimeUntilElectionRequest;
+}
+
+export namespace TimeUntilElectionRequest {
+  export type AsObject = {
+  }
+}
+
+export class TimeUntilElectionResponse extends jspb.Message {
+  getTimeUntilElection(): number;
+  setTimeUntilElection(value: number): void;
+
+  serializeBinary(): Uint8Array;
+  toObject(includeInstance?: boolean): TimeUntilElectionResponse.AsObject;
+  static toObject(includeInstance: boolean, msg: TimeUntilElectionResponse): TimeUntilElectionResponse.AsObject;
+  static extensions: {[key: number]: jspb.ExtensionFieldInfo<jspb.Message>};
+  static extensionsBinary: {[key: number]: jspb.ExtensionFieldBinaryInfo<jspb.Message>};
+  static serializeBinaryToWriter(message: TimeUntilElectionResponse, writer: jspb.BinaryWriter): void;
+  static deserializeBinary(bytes: Uint8Array): TimeUntilElectionResponse;
+  static deserializeBinaryFromReader(message: TimeUntilElectionResponse, reader: jspb.BinaryReader): TimeUntilElectionResponse;
+}
+
+export namespace TimeUntilElectionResponse {
+  export type AsObject = {
+    timeUntilElection: number,
+  }
+}
+

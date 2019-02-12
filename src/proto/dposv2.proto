@@ -217,3 +217,10 @@ message CheckDistributionRequest {
 message CheckDistributionResponse {
     BigUInt amount = 1;
 }
+
+message TimeUntilElectionRequest {
+}
+
+message TimeUntilElectionResponse {
+    int64 time_until_election = 1 [jstype = JS_STRING];
+}
