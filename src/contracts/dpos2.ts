@@ -244,7 +244,7 @@ export class DPOS2 extends Contract {
     delegateRequest.setValidatorAddress(validator.MarshalPB())
     delegateRequest.setAmount(marshalBigUIntPB(amount))
     delegateRequest.setLocktimeTier(tier)
-    return this.callAsync<void>('Delegate', delegateRequest)
+    return this.callAsync<void>('Delegate2', delegateRequest)
   }
 
   async unbondAsync(validator: Address, amount: BN | number | string): Promise<void> {
