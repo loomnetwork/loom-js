@@ -311,22 +311,33 @@ export class TransferGateway extends Contract {
   }
 
   /**
+   * Attempt to transfer tokens that originated from the specified Ethereum contract, and that have
+   * been deposited to the Ethereum Gateway, but haven't yet been received by the depositors on the
+   * DAppChain because of a missing identity or contract mapping. This method can only be called by
+   * the creator of the specified token contract, or the Gateway owner.
+   *
    * @param tokenContract token contract to reclaim the tokens
    */
   async reclaimContractTokensAsync(tokenContract: Address): Promise<void> {
-    const tgReclaimContractTokensReq = new TransferGatewayReclaimContractTokensRequest()
-    tgReclaimContractTokensReq.setTokenContract(tokenContract.MarshalPB())
-    return this.callAsync<void>('ReclaimContractTokens', tgReclaimContractTokensReq)
+    const req = new TransferGatewayReclaimContractTokensRequest()
+    req.setTokenContract(tokenContract.MarshalPB())
+    return this.callAsync<void>('ReclaimContractTokens', req)
   }
 
   /**
-   * @param depositors depositors addresses to reclaim token
+   * Attempt to transfer any tokens that the caller may have deposited into the Ethereum Gateway
+   * but hasn't yet received from the DAppChain Gateway because of a missing identity or contract
+   * mapping.
+   *
+   * @param depositors Optional list of DAppChain accounts to reclaim tokens for, when set tokens
+   *                   will be reclaimed for the specified accounts instead of the caller's account.
+   *                   NOTE: Only the Gateway owner is authorized to provide a list of accounts.
    */
-  async reclaimDepositorTokensAsync(depositors: Array<Address>): Promise<void> {
-    const tgReclaimDepositorTokens = new TransferGatewayReclaimDepositorTokensRequest()
-    tgReclaimDepositorTokens.setDepositorsList(
-      depositors.map((address: Address) => address.MarshalPB())
-    )
-    return this.callAsync<void>('ReclaimDepositorTokens', tgReclaimDepositorTokens)
+  async reclaimDepositorTokensAsync(depositors?: Array<Address>): Promise<void> {
+    const req = new TransferGatewayReclaimDepositorTokensRequest()
+    if (depositors && depositors.length > 0) {
+      req.setDepositorsList(depositors.map((address: Address) => address.MarshalPB()))
+    }
+    return this.callAsync<void>('ReclaimDepositorTokens', req)
   }
 }
