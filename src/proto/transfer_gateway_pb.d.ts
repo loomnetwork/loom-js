@@ -31,10 +31,12 @@ export class TransferGatewayWithdrawalReceipt extends jspb.Message {
   getWithdrawalNonce(): number;
   setWithdrawalNonce(value: number): void;
 
-  getOracleSignature(): Uint8Array | string;
-  getOracleSignature_asU8(): Uint8Array;
-  getOracleSignature_asB64(): string;
-  setOracleSignature(value: Uint8Array | string): void;
+  clearValidatorSignaturesList(): void;
+  getValidatorSignaturesList(): Array<Uint8Array | string>;
+  getValidatorSignaturesList_asU8(): Array<Uint8Array>;
+  getValidatorSignaturesList_asB64(): Array<string>;
+  setValidatorSignaturesList(value: Array<Uint8Array | string>): void;
+  addValidatorSignatures(value: Uint8Array | string, index?: number): Uint8Array | string;
 
   serializeBinary(): Uint8Array;
   toObject(includeInstance?: boolean): TransferGatewayWithdrawalReceipt.AsObject;
@@ -54,7 +56,7 @@ export namespace TransferGatewayWithdrawalReceipt {
     tokenId?: proto_loom_pb.BigUInt.AsObject,
     tokenAmount?: proto_loom_pb.BigUInt.AsObject,
     withdrawalNonce: number,
-    oracleSignature: Uint8Array | string,
+    validatorSignaturesList: Array<Uint8Array | string>,
   }
 }
 
@@ -110,10 +112,12 @@ export class TransferGatewayTokenWithdrawalSigned extends jspb.Message {
   getTokenAmount(): proto_loom_pb.BigUInt | undefined;
   setTokenAmount(value?: proto_loom_pb.BigUInt): void;
 
-  getSig(): Uint8Array | string;
-  getSig_asU8(): Uint8Array;
-  getSig_asB64(): string;
-  setSig(value: Uint8Array | string): void;
+  clearValidatorSignaturesList(): void;
+  getValidatorSignaturesList(): Array<Uint8Array | string>;
+  getValidatorSignaturesList_asU8(): Array<Uint8Array>;
+  getValidatorSignaturesList_asB64(): Array<string>;
+  setValidatorSignaturesList(value: Array<Uint8Array | string>): void;
+  addValidatorSignatures(value: Uint8Array | string, index?: number): Uint8Array | string;
 
   serializeBinary(): Uint8Array;
   toObject(includeInstance?: boolean): TransferGatewayTokenWithdrawalSigned.AsObject;
@@ -132,7 +136,7 @@ export namespace TransferGatewayTokenWithdrawalSigned {
     tokenKind: TransferGatewayTokenKind,
     tokenId?: proto_loom_pb.BigUInt.AsObject,
     tokenAmount?: proto_loom_pb.BigUInt.AsObject,
-    sig: Uint8Array | string,
+    validatorSignaturesList: Array<Uint8Array | string>,
   }
 }
 
@@ -382,10 +386,12 @@ export class TransferGatewayConfirmWithdrawalReceiptRequest extends jspb.Message
   getTokenOwner(): proto_loom_pb.Address | undefined;
   setTokenOwner(value?: proto_loom_pb.Address): void;
 
-  getOracleSignature(): Uint8Array | string;
-  getOracleSignature_asU8(): Uint8Array;
-  getOracleSignature_asB64(): string;
-  setOracleSignature(value: Uint8Array | string): void;
+  clearValidatorSignaturesList(): void;
+  getValidatorSignaturesList(): Array<Uint8Array | string>;
+  getValidatorSignaturesList_asU8(): Array<Uint8Array>;
+  getValidatorSignaturesList_asB64(): Array<string>;
+  setValidatorSignaturesList(value: Array<Uint8Array | string>): void;
+  addValidatorSignatures(value: Uint8Array | string, index?: number): Uint8Array | string;
 
   getWithdrawalHash(): Uint8Array | string;
   getWithdrawalHash_asU8(): Uint8Array;
@@ -405,7 +411,7 @@ export class TransferGatewayConfirmWithdrawalReceiptRequest extends jspb.Message
 export namespace TransferGatewayConfirmWithdrawalReceiptRequest {
   export type AsObject = {
     tokenOwner?: proto_loom_pb.Address.AsObject,
-    oracleSignature: Uint8Array | string,
+    validatorSignaturesList: Array<Uint8Array | string>,
     withdrawalHash: Uint8Array | string,
   }
 }
