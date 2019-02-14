@@ -49,6 +49,7 @@
     "shelljs": "^0.8.2",
     "tslib": "^1.9.3",
     "tweetnacl": "^1.0.0",
+    "typechain": "^0.3.11",
     "web3": "1.0.0-beta.33"
   },
   "devDependencies": {

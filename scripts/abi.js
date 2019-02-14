@@ -8,8 +8,8 @@ shell.cp(
   './dist/plasma-cash/contracts/'
 )
 
-shell.mkdir('-p', './dist/dpos/contracts')
+shell.mkdir('-p', './dist/mainnet-contracts')
 shell.cp(
-  './src/dpos/contracts/*.json',
-  './dist/dpos/contracts/'
+  './src/mainnet-contracts/*.json',
+  './dist/mainnet-contracts/'
 )
