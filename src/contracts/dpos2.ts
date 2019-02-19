@@ -21,7 +21,8 @@ import {
   TotalDelegationRequest,
   TotalDelegationResponse,
   TimeUntilElectionRequest,
-  TimeUntilElectionResponse
+  TimeUntilElectionResponse,
+  RedelegateRequestV2
 } from '../proto/dposv2_pb'
 import { unmarshalBigUIntPB, marshalBigUIntPB } from '../big-uint'
 
@@ -246,6 +247,15 @@ export class DPOS2 extends Contract {
     delegateRequest.setLocktimeTier(tier)
     return this.callAsync<void>('Delegate2', delegateRequest)
   }
+
+  async redelegateAsync(oldValidator: Address, validator: Address, amount: BN): Promise<void> {
+    const redelegateRequest = new RedelegateRequestV2()
+    redelegateRequest.setFormerValidatorAddress(oldValidator.MarshalPB())
+    redelegateRequest.setValidatorAddress(validator.MarshalPB())
+    redelegateRequest.setAmount(marshalBigUIntPB(amount))
+    return this.callAsync<void>('Redelegate', redelegateRequest)
+  }
+
 
   async unbondAsync(validator: Address, amount: BN | number | string): Promise<void> {
     const unbondRequest = new UnbondRequestV2()
