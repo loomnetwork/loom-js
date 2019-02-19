@@ -211,13 +211,13 @@ export class DPOS2 extends Contract {
       : null
   }
 
-  async claimDistributionAsync(withdrawalAddress: Address): Promise<void> {
+  claimDistributionAsync(withdrawalAddress: Address): Promise<void> {
     const claimDistributionRequest = new ClaimDistributionRequestV2()
     claimDistributionRequest.setWithdrawalAddress(withdrawalAddress.MarshalPB())
     return this.callAsync<void>('ClaimDistribution', claimDistributionRequest)
   }
 
-  async registerCandidateAsync(
+  registerCandidateAsync(
     pubKey: string,
     fee: BN,
     name: string,
@@ -235,12 +235,12 @@ export class DPOS2 extends Contract {
     return this.callAsync<void>('RegisterCandidate', registerCandidateRequest)
   }
 
-  async unregisterCandidateAsync(): Promise<void> {
+  unregisterCandidateAsync(): Promise<void> {
     const unregisterCandidateRequest = new UnregisterCandidateRequestV2()
     return this.callAsync<void>('UnregisterCandidate', unregisterCandidateRequest)
   }
 
-  async delegateAsync(validator: Address, amount: BN, tier: LockTimeTier): Promise<void> {
+  delegateAsync(validator: Address, amount: BN, tier: LockTimeTier): Promise<void> {
     const delegateRequest = new DelegateRequestV2()
     delegateRequest.setValidatorAddress(validator.MarshalPB())
     delegateRequest.setAmount(marshalBigUIntPB(amount))
@@ -248,7 +248,7 @@ export class DPOS2 extends Contract {
     return this.callAsync<void>('Delegate2', delegateRequest)
   }
 
-  async redelegateAsync(oldValidator: Address, validator: Address, amount: BN): Promise<void> {
+  redelegateAsync(oldValidator: Address, validator: Address, amount: BN): Promise<void> {
     const redelegateRequest = new RedelegateRequestV2()
     redelegateRequest.setFormerValidatorAddress(oldValidator.MarshalPB())
     redelegateRequest.setValidatorAddress(validator.MarshalPB())
@@ -257,7 +257,7 @@ export class DPOS2 extends Contract {
   }
 
 
-  async unbondAsync(validator: Address, amount: BN | number | string): Promise<void> {
+  unbondAsync(validator: Address, amount: BN | number | string): Promise<void> {
     const unbondRequest = new UnbondRequestV2()
     unbondRequest.setValidatorAddress(validator.MarshalPB())
     unbondRequest.setAmount(marshalBigUIntPB(new BN(amount)))
