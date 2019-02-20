@@ -1,11 +1,11 @@
 import BN from 'bn.js'
 import debug from 'debug'
-import { ethers } from 'ethers'
+import { ethers, utils } from 'ethers'
 import Web3 from 'web3'
 
 import { CryptoUtils, Address, LocalAddress, Client, Contracts } from '.'
 import { Coin, LoomCoinTransferGateway } from './contracts'
-import { IWithdrawalReceipt, Signature } from './contracts/transfer-gateway'
+import { IWithdrawalReceipt } from './contracts/transfer-gateway'
 import { sleep } from './helpers'
 
 import { CrossChain } from './crosschain'
@@ -166,8 +166,8 @@ export class GatewayUser extends CrossChain {
    * Withdraw funds from the gateway to mainnet
    */
   async withdrawAsync(amount: BN): Promise<ethers.ContractTransaction> {
-    const sig = await this.depositCoinToDAppChainGatewayAsync(amount)
-    return this.withdrawCoinFromRinkebyGatewayAsync(amount, sig)
+    const sigs = await this.depositCoinToDAppChainGatewayAsync(amount)
+    return this.withdrawCoinFromRinkebyGatewayAsync(amount, sigs)
   }
 
   async resumeWithdrawalAsync() {
@@ -177,7 +177,7 @@ export class GatewayUser extends CrossChain {
       return
     }
     const amount = receipt.tokenAmount!
-    return this.withdrawCoinFromRinkebyGatewayAsync(amount, receipt.sig)
+    return this.withdrawCoinFromRinkebyGatewayAsync(amount, receipt.sigs)
   }
 
   async getPendingWithdrawalReceiptAsync(): Promise<IWithdrawalReceipt | null> {
@@ -208,9 +208,9 @@ export class GatewayUser extends CrossChain {
    *
    * @param amount The amount that will be deposited to the DAppChain Gateway (and will be possible to withdraw from the mainnet)
    */
-  private async depositCoinToDAppChainGatewayAsync(amount: BN) {
+  private async depositCoinToDAppChainGatewayAsync(amount: BN): Promise<Array<utils.Signature>> {
     let pendingReceipt = await this.getPendingWithdrawalReceiptAsync()
-    let signature: Signature
+    let signature: Array<utils.Signature>
     if (pendingReceipt === null) {
       await this._dappchainLoom.approveAsync(this._dappchainGateway.address, amount)
       const ethereumAddressStr = await this.ethAddress
@@ -222,28 +222,37 @@ export class GatewayUser extends CrossChain {
         ethereumAddress
       )
       log(`${amount.div(coinMultiplier).toString()} tokens deposited to DAppChain Gateway...`)
-      while (pendingReceipt === null || pendingReceipt.sig === null) {
+      while (pendingReceipt === null || pendingReceipt.sigs === null) {
         pendingReceipt = await this.getPendingWithdrawalReceiptAsync()
         await sleep(2000)
       }
     }
-    signature = pendingReceipt.sig
+    signature = pendingReceipt.sigs
 
     return signature
   }
 
   private async withdrawCoinFromRinkebyGatewayAsync(
     amount: BN,
-    sig: Signature
+    sigs: Array<utils.Signature>
   ): Promise<ethers.ContractTransaction> {
+    let vs: Array<number>
+    let rs: Array<string>
+    let ss: Array<string>
+    for (let i  in sigs) {
+      vs.push(sigs[i].v)
+      rs.push(sigs[i].r)
+      ss.push(sigs[i].s)
+    }
+    this._ethereumLoom.address
     return this._ethereumGateway.functions.withdrawERC20(
       amount.toString(),
       this._ethereumLoom.address,
       // @ts-ignore
       sig.validatorIndexes,
-      sig.v,
-      sig.r,
-      sig.s
+      vs,
+      rs,
+      ss
     )
   }
 }
