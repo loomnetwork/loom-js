@@ -250,7 +250,15 @@ export class GatewayUser extends CrossChain {
     let vs: Array<number>
     let rs: Array<string>
     let ss: Array<string>
+
+    const withdrawalHash = await this.getWithdrawalMsg(amount)
+
+    let validators = await this._ethereumVMC.functions.getValidators()
+    let indexes: Array<number>
+
     for (let i  in sigs) {
+      let recAddress = ethers.utils.recoverAddress(withdrawalHash, sigs[i])
+      indexes.push(validators.indexOf(recAddress))
       vs.push(sigs[i].v)
       rs.push(sigs[i].r)
       ss.push(sigs[i].s)
@@ -259,11 +267,27 @@ export class GatewayUser extends CrossChain {
     return this._ethereumGateway.functions.withdrawERC20(
       amount.toString(),
       this._ethereumLoom.address,
-      // @ts-ignore
-      sig.validatorIndexes,
+      indexes,
       vs,
       rs,
       ss
     )
+  }
+
+  // Create message so that we can recover and order validators
+  private async getWithdrawalMsg(amount: BN): Promise<string> {
+
+    let nonce = await this.ethereumGateway.functions.nonces(this.ethAddress)
+    let amountHashed = ethers.utils.solidityKeccak256(
+      ['uint256', 'address'],
+      [amount, this.ethereumLoom.address]
+    )
+
+    const msg = ethers.utils.solidityKeccak256(
+      ['address', 'uint256', 'address', 'bytes32'],
+      [this.ethAddress, nonce, this.ethereumGateway.address, amountHashed]
+    )
+
+    return msg
   }
 }
