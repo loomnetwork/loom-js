@@ -174,7 +174,9 @@ export class DPOS2 extends Contract {
     )
 
     return {
-      delegationTotal:  result.getDelegationTotal() ? unmarshalBigUIntPB(result.getDelegationTotal()) : new BN(0),
+      delegationTotal: result.getDelegationTotal()
+        ? unmarshalBigUIntPB(result.getDelegationTotal())
+        : new BN(0),
       delegationsArray: result.getDelegationsList().map(this.getDelegation)
     }
   }
@@ -189,7 +191,9 @@ export class DPOS2 extends Contract {
 
     return result.getListresponsesList().map(d => {
       return {
-        delegationTotal:  d.getDelegationTotal() ? unmarshalBigUIntPB(d.getDelegationTotal()) : new BN(0),
+        delegationTotal: d.getDelegationTotal()
+          ? unmarshalBigUIntPB(d.getDelegationTotal())
+          : new BN(0),
         delegationsArray: d.getDelegationsList().map(this.getDelegation)
       }
     })
@@ -281,7 +285,6 @@ export class DPOS2 extends Contract {
     return this.callAsync<void>('Redelegate', redelegateRequest)
   }
 
-
   unbondAsync(validator: Address, amount: BN | number | string): Promise<void> {
     const unbondRequest = new UnbondRequestV2()
     unbondRequest.setValidatorAddress(validator.MarshalPB())
@@ -291,19 +294,19 @@ export class DPOS2 extends Contract {
 
   private getDelegation(delegation: DelegationV2): IDelegation {
     return {
-          validator: Address.UnmarshalPB(delegation.getValidator()!),
-          updateValidator: delegation.getUpdateValidator()
-            ? Address.UnmarshalPB(delegation.getUpdateValidator()!)
-            : undefined,
-          delegator: Address.UnmarshalPB(delegation.getDelegator()!),
-          amount: delegation.getAmount() ? unmarshalBigUIntPB(delegation.getAmount()!) : new BN(0),
-          updateAmount: delegation.getUpdateAmount()
-            ? unmarshalBigUIntPB(delegation.getUpdateAmount()!)
-            : new BN(0),
-          height: new BN(delegation.getHeight()),
-          lockTime: delegation.getLockTime(),
-          lockTimeTier: delegation.getLocktimeTier(),
-          state: delegation.getState()
-        }
+      validator: Address.UnmarshalPB(delegation.getValidator()!),
+      updateValidator: delegation.getUpdateValidator()
+        ? Address.UnmarshalPB(delegation.getUpdateValidator()!)
+        : undefined,
+      delegator: Address.UnmarshalPB(delegation.getDelegator()!),
+      amount: delegation.getAmount() ? unmarshalBigUIntPB(delegation.getAmount()!) : new BN(0),
+      updateAmount: delegation.getUpdateAmount()
+        ? unmarshalBigUIntPB(delegation.getUpdateAmount()!)
+        : new BN(0),
+      height: new BN(delegation.getHeight()),
+      lockTime: delegation.getLockTime(),
+      lockTimeTier: delegation.getLocktimeTier(),
+      state: delegation.getState()
+    }
   }
 }
