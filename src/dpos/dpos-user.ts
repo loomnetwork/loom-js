@@ -82,7 +82,7 @@ export class DPOSUser {
    */
   async delegateAsync(candidate: string, amount: BN, tier: LockTimeTier): Promise<void> {
     const address = this.prefixAddress(candidate)
-    await this._dappchainLoom.approveAsync(this._dappchainDPOS.address, amount.mul(coinMultiplier))
+    await this._dappchainLoom.approveAsync(this._dappchainDPOS.address, amount)
     return this._dappchainDPOS.delegateAsync(address, amount, tier)
   }
 

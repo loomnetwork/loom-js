@@ -178,7 +178,7 @@ export class GatewayUser extends CrossChain {
    */
   async withdrawAsync(amount: BN): Promise<ethers.ContractTransaction> {
     const sigs = await this.depositCoinToDAppChainGatewayAsync(amount)
-    return this.withdrawCoinFromRinkebyGatewayAsync(amount, sigs)
+    return this.withdrawCoinFromEthereumGatewayAsync(amount, sigs)
   }
 
   async resumeWithdrawalAsync() {
@@ -188,7 +188,7 @@ export class GatewayUser extends CrossChain {
       return
     }
     const amount = receipt.tokenAmount!
-    return this.withdrawCoinFromRinkebyGatewayAsync(amount, receipt.sigs)
+    return this.withdrawCoinFromEthereumGatewayAsync(amount, receipt.sigs)
   }
 
   async getPendingWithdrawalReceiptAsync(): Promise<IWithdrawalReceipt | null> {
@@ -243,7 +243,7 @@ export class GatewayUser extends CrossChain {
     return signature
   }
 
-  private async withdrawCoinFromRinkebyGatewayAsync(
+  private async withdrawCoinFromEthereumGatewayAsync(
     amount: BN,
     sigs: Array<utils.Signature>
   ): Promise<ethers.ContractTransaction> {
@@ -256,6 +256,8 @@ export class GatewayUser extends CrossChain {
     let validators = await this._ethereumVMC.functions.getValidators()
     let indexes: Array<number>
 
+    // Split signature in v,r,s arrays
+    // Store the ordering of the validators' signatures in `indexes`
     for (let i  in sigs) {
       let recAddress = ethers.utils.recoverAddress(withdrawalHash, sigs[i])
       indexes.push(validators.indexOf(recAddress))
