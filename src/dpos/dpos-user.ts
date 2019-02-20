@@ -23,7 +23,8 @@ import {
   ICandidate,
   IDelegation,
   LockTimeTier,
-  ITotalDelegation
+  ITotalDelegation,
+  ICandidateDelegations
 } from '../contracts/dpos2'
 import { selectProtocol } from '../rpc-client-factory'
 import { overrideReadUrl } from '../client'
@@ -221,6 +222,15 @@ export class DPOSUser {
 
   listCandidatesAsync(): Promise<ICandidate[]> {
     return this._dappchainDPOS.getCandidatesAsync()
+  }
+
+  listAllDelegationsAsync(): Promise<Array<ICandidateDelegations>> {
+    return this._dappchainDPOS.getAllDelegations()
+  }
+
+  listDelegationsAsync(candidate: string): Promise<ICandidateDelegations> {
+    const address = this.prefixAddress(candidate)
+    return this._dappchainDPOS.getDelegations(address)
   }
 
   getTimeUntilElectionsAsync(): Promise<BN> {
