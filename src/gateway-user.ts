@@ -16,13 +16,16 @@ const coinMultiplier = new BN(10).pow(new BN(18))
 
 import { ERC20Gateway } from './mainnet-contracts/ERC20Gateway'
 import { ERC20 } from './mainnet-contracts/ERC20'
+import { VMC } from './mainnet-contracts/VMC'
 
 const ERC20GatewayABI = require('./mainnet-contracts/ERC20.json')
 const ERC20ABI = require('./mainnet-contracts/ERC20.json')
+const VMCABI = require('./mainnet-contracts/VMC.json')
 
 export class GatewayUser extends CrossChain {
   private _ethereumGateway: ERC20Gateway
   private _ethereumLoom: ERC20
+  private _ethereumVMC: VMC
   private _dappchainGateway: Contracts.LoomCoinTransferGateway
   private _dappchainLoom: Contracts.Coin
 
@@ -33,6 +36,7 @@ export class GatewayUser extends CrossChain {
     dappchainKey: string,
     chainId: string,
     gatewayAddress: string,
+    vmcAddress: string,
     loomAddress: string
   ): Promise<GatewayUser> {
     const provider = new ethers.providers.JsonRpcProvider(endpoint)
@@ -43,6 +47,7 @@ export class GatewayUser extends CrossChain {
       dappchainKey,
       chainId,
       gatewayAddress,
+      vmcAddress,
       loomAddress
     )
   }
@@ -53,6 +58,7 @@ export class GatewayUser extends CrossChain {
     dappchainKey: string,
     chainId: string,
     gatewayAddress: string,
+    vmcAddress: string,
     loomAddress: string
   ): Promise<GatewayUser> {
     const provider = new ethers.providers.Web3Provider(web3.currentProvider)
@@ -63,6 +69,7 @@ export class GatewayUser extends CrossChain {
       dappchainKey,
       chainId,
       gatewayAddress,
+      vmcAddress,
       loomAddress
     )
   }
@@ -73,6 +80,7 @@ export class GatewayUser extends CrossChain {
     dappchainKey: string,
     chainId: string,
     gatewayAddress: string,
+    vmcAddress: string,
     loomAddress: string
   ): Promise<GatewayUser> {
     let crosschain = await CrossChain.createUserAsync(
@@ -93,6 +101,7 @@ export class GatewayUser extends CrossChain {
       crosschain.loomAddress,
       crosschain.ethAddress,
       gatewayAddress,
+      vmcAddress,
       loomAddress,
       dappchainGateway,
       dappchainLoom,
@@ -106,6 +115,7 @@ export class GatewayUser extends CrossChain {
     address: Address,
     ethAddress: string,
     gatewayAddress: string,
+    vmcAddress: string,
     loomAddress: string,
     dappchainGateway: Contracts.LoomCoinTransferGateway,
     dappchainLoom: Contracts.Coin,
@@ -115,6 +125,7 @@ export class GatewayUser extends CrossChain {
 
     this._ethereumGateway = new ERC20Gateway(gatewayAddress, ERC20GatewayABI, wallet)
     this._ethereumLoom = new ERC20(loomAddress, ERC20ABI, wallet)
+    this._ethereumVMC = new VMC(vmcAddress, VMCABI, wallet)
     this._dappchainGateway = dappchainGateway
     this._dappchainLoom = dappchainLoom
     this._dappchainGateway = dappchainGateway
