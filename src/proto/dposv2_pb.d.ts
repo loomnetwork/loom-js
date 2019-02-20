@@ -1134,3 +1134,91 @@ export namespace TimeUntilElectionResponse {
   }
 }
 
+export class ListDelegationsRequest extends jspb.Message {
+  hasCandidate(): boolean;
+  clearCandidate(): void;
+  getCandidate(): proto_loom_pb.Address | undefined;
+  setCandidate(value?: proto_loom_pb.Address): void;
+
+  serializeBinary(): Uint8Array;
+  toObject(includeInstance?: boolean): ListDelegationsRequest.AsObject;
+  static toObject(includeInstance: boolean, msg: ListDelegationsRequest): ListDelegationsRequest.AsObject;
+  static extensions: {[key: number]: jspb.ExtensionFieldInfo<jspb.Message>};
+  static extensionsBinary: {[key: number]: jspb.ExtensionFieldBinaryInfo<jspb.Message>};
+  static serializeBinaryToWriter(message: ListDelegationsRequest, writer: jspb.BinaryWriter): void;
+  static deserializeBinary(bytes: Uint8Array): ListDelegationsRequest;
+  static deserializeBinaryFromReader(message: ListDelegationsRequest, reader: jspb.BinaryReader): ListDelegationsRequest;
+}
+
+export namespace ListDelegationsRequest {
+  export type AsObject = {
+    candidate?: proto_loom_pb.Address.AsObject,
+  }
+}
+
+export class ListDelegationsResponse extends jspb.Message {
+  clearDelegationsList(): void;
+  getDelegationsList(): Array<DelegationV2>;
+  setDelegationsList(value: Array<DelegationV2>): void;
+  addDelegations(value?: DelegationV2, index?: number): DelegationV2;
+
+  hasDelegationTotal(): boolean;
+  clearDelegationTotal(): void;
+  getDelegationTotal(): proto_loom_pb.BigUInt | undefined;
+  setDelegationTotal(value?: proto_loom_pb.BigUInt): void;
+
+  serializeBinary(): Uint8Array;
+  toObject(includeInstance?: boolean): ListDelegationsResponse.AsObject;
+  static toObject(includeInstance: boolean, msg: ListDelegationsResponse): ListDelegationsResponse.AsObject;
+  static extensions: {[key: number]: jspb.ExtensionFieldInfo<jspb.Message>};
+  static extensionsBinary: {[key: number]: jspb.ExtensionFieldBinaryInfo<jspb.Message>};
+  static serializeBinaryToWriter(message: ListDelegationsResponse, writer: jspb.BinaryWriter): void;
+  static deserializeBinary(bytes: Uint8Array): ListDelegationsResponse;
+  static deserializeBinaryFromReader(message: ListDelegationsResponse, reader: jspb.BinaryReader): ListDelegationsResponse;
+}
+
+export namespace ListDelegationsResponse {
+  export type AsObject = {
+    delegationsList: Array<DelegationV2.AsObject>,
+    delegationTotal?: proto_loom_pb.BigUInt.AsObject,
+  }
+}
+
+export class ListAllDelegationsRequest extends jspb.Message {
+  serializeBinary(): Uint8Array;
+  toObject(includeInstance?: boolean): ListAllDelegationsRequest.AsObject;
+  static toObject(includeInstance: boolean, msg: ListAllDelegationsRequest): ListAllDelegationsRequest.AsObject;
+  static extensions: {[key: number]: jspb.ExtensionFieldInfo<jspb.Message>};
+  static extensionsBinary: {[key: number]: jspb.ExtensionFieldBinaryInfo<jspb.Message>};
+  static serializeBinaryToWriter(message: ListAllDelegationsRequest, writer: jspb.BinaryWriter): void;
+  static deserializeBinary(bytes: Uint8Array): ListAllDelegationsRequest;
+  static deserializeBinaryFromReader(message: ListAllDelegationsRequest, reader: jspb.BinaryReader): ListAllDelegationsRequest;
+}
+
+export namespace ListAllDelegationsRequest {
+  export type AsObject = {
+  }
+}
+
+export class ListAllDelegationsResponse extends jspb.Message {
+  clearListresponsesList(): void;
+  getListresponsesList(): Array<ListDelegationsResponse>;
+  setListresponsesList(value: Array<ListDelegationsResponse>): void;
+  addListresponses(value?: ListDelegationsResponse, index?: number): ListDelegationsResponse;
+
+  serializeBinary(): Uint8Array;
+  toObject(includeInstance?: boolean): ListAllDelegationsResponse.AsObject;
+  static toObject(includeInstance: boolean, msg: ListAllDelegationsResponse): ListAllDelegationsResponse.AsObject;
+  static extensions: {[key: number]: jspb.ExtensionFieldInfo<jspb.Message>};
+  static extensionsBinary: {[key: number]: jspb.ExtensionFieldBinaryInfo<jspb.Message>};
+  static serializeBinaryToWriter(message: ListAllDelegationsResponse, writer: jspb.BinaryWriter): void;
+  static deserializeBinary(bytes: Uint8Array): ListAllDelegationsResponse;
+  static deserializeBinaryFromReader(message: ListAllDelegationsResponse, reader: jspb.BinaryReader): ListAllDelegationsResponse;
+}
+
+export namespace ListAllDelegationsResponse {
+  export type AsObject = {
+    listresponsesList: Array<ListDelegationsResponse.AsObject>,
+  }
+}
+
