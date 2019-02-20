@@ -87,6 +87,20 @@ export class DPOSUser {
   }
 
   /**
+   * Redelegates an amount of LOOM tokens from a validator to another
+   *
+   * @param formerValidator The candidate's hex address
+   * @param newValidator The candidate's hex address
+   * @param amount The amount delegated
+   */
+  async redelegateAsync(formerValidator: string, validator: string, amount: BN): Promise<void> {
+    const validatorAddress = this.prefixAddress(validator)
+    const formerValidatorAddress = this.prefixAddress(formerValidator)
+    return this._dappchainDPOS.redelegateAsync(formerValidatorAddress, validatorAddress, amount)
+  }
+
+
+  /**
    * Undelegates an amount of LOOM tokens from a candidate/validator
    *
    * @param candidate The candidate's hex address
