@@ -22,7 +22,12 @@ import {
   TotalDelegationResponse,
   TimeUntilElectionRequest,
   TimeUntilElectionResponse,
-  RedelegateRequestV2
+  RedelegateRequestV2,
+  ListAllDelegationsRequest,
+  ListAllDelegationsResponse,
+  ListDelegationsRequest,
+  ListDelegationsResponse,
+  DelegationV2
 } from '../proto/dposv2_pb'
 import { unmarshalBigUIntPB, marshalBigUIntPB } from '../big-uint'
 
@@ -78,6 +83,11 @@ export interface IDelegation {
 export interface ITotalDelegation {
   amount: BN
   weightedAmount: BN
+}
+
+export interface ICandidateDelegations {
+  delegationTotal: BN
+  delegationsArray: Array<IDelegation>
 }
 
 export class DPOS2 extends Contract {
@@ -154,6 +164,37 @@ export class DPOS2 extends Contract {
     }))
   }
 
+  async getDelegations(candidate: Address): Promise<ICandidateDelegations> {
+    const listDelegationsReq = new ListDelegationsRequest()
+    listDelegationsReq.setCandidate(candidate.MarshalPB())
+    const result = await this.staticCallAsync(
+      'ListDelegations',
+      listDelegationsReq,
+      new ListDelegationsResponse()
+    )
+
+    return {
+      delegationTotal:  result.getDelegationTotal() ? unmarshalBigUIntPB(result.getDelegationTotal()) : new BN(0),
+      delegationsArray: result.getDelegationsList().map(this.getDelegation)
+    }
+  }
+
+  async getAllDelegations(): Promise<Array<ICandidateDelegations>> {
+    const listAllDelegationsReq = new ListAllDelegationsRequest()
+    const result = await this.staticCallAsync(
+      'ListAllDelegations',
+      listAllDelegationsReq,
+      new ListAllDelegationsResponse()
+    )
+
+    return result.getListresponsesList().map(d => {
+      return {
+        delegationTotal:  d.getDelegationTotal() ? unmarshalBigUIntPB(d.getDelegationTotal()) : new BN(0),
+        delegationsArray: d.getDelegationsList().map(this.getDelegation)
+      }
+    })
+  }
+
   async checkDistributionAsync(): Promise<BN> {
     const checkDistributionReq = new CheckDistributionRequest()
     const result = await this.staticCallAsync(
@@ -192,23 +233,7 @@ export class DPOS2 extends Contract {
     )
 
     const delegation = result.getDelegation()
-    return delegation
-      ? {
-          validator: Address.UnmarshalPB(delegation.getValidator()!),
-          updateValidator: delegation.getUpdateValidator()
-            ? Address.UnmarshalPB(delegation.getUpdateValidator()!)
-            : undefined,
-          delegator: Address.UnmarshalPB(delegation.getDelegator()!),
-          amount: delegation.getAmount() ? unmarshalBigUIntPB(delegation.getAmount()!) : new BN(0),
-          updateAmount: delegation.getUpdateAmount()
-            ? unmarshalBigUIntPB(delegation.getUpdateAmount()!)
-            : new BN(0),
-          height: new BN(delegation.getHeight()),
-          lockTime: delegation.getLockTime(),
-          lockTimeTier: delegation.getLocktimeTier(),
-          state: delegation.getState()
-        }
-      : null
+    return delegation ? this.getDelegation(delegation) : null
   }
 
   claimDistributionAsync(withdrawalAddress: Address): Promise<void> {
@@ -262,5 +287,23 @@ export class DPOS2 extends Contract {
     unbondRequest.setValidatorAddress(validator.MarshalPB())
     unbondRequest.setAmount(marshalBigUIntPB(new BN(amount)))
     return this.callAsync<void>('Unbond', unbondRequest)
+  }
+
+  private getDelegation(delegation: DelegationV2): IDelegation {
+    return {
+          validator: Address.UnmarshalPB(delegation.getValidator()!),
+          updateValidator: delegation.getUpdateValidator()
+            ? Address.UnmarshalPB(delegation.getUpdateValidator()!)
+            : undefined,
+          delegator: Address.UnmarshalPB(delegation.getDelegator()!),
+          amount: delegation.getAmount() ? unmarshalBigUIntPB(delegation.getAmount()!) : new BN(0),
+          updateAmount: delegation.getUpdateAmount()
+            ? unmarshalBigUIntPB(delegation.getUpdateAmount()!)
+            : new BN(0),
+          height: new BN(delegation.getHeight()),
+          lockTime: delegation.getLockTime(),
+          lockTimeTier: delegation.getLocktimeTier(),
+          state: delegation.getState()
+        }
   }
 }
