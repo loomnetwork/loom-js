@@ -224,3 +224,19 @@ message TimeUntilElectionRequest {
 message TimeUntilElectionResponse {
     int64 time_until_election = 1 [jstype = JS_STRING];
 }
+
+message ListDelegationsRequest {
+    Address candidate = 1;
+}
+
+message ListDelegationsResponse {
+    repeated DelegationV2 delegations = 1;
+    BigUInt delegation_total = 2;
+}
+
+message ListAllDelegationsRequest {
+}
+
+message ListAllDelegationsResponse {
+    repeated ListDelegationsResponse listResponses = 1;
+}

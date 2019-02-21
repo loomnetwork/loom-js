@@ -23,7 +23,8 @@ import {
   ICandidate,
   IDelegation,
   LockTimeTier,
-  ITotalDelegation
+  ITotalDelegation,
+  ICandidateDelegations
 } from '../contracts/dpos2'
 import { selectProtocol } from '../rpc-client-factory'
 import { overrideReadUrl } from '../client'
@@ -223,6 +224,15 @@ export class DPOSUser {
     return this._dappchainDPOS.getCandidatesAsync()
   }
 
+  listAllDelegationsAsync(): Promise<Array<ICandidateDelegations>> {
+    return this._dappchainDPOS.getAllDelegations()
+  }
+
+  listDelegationsAsync(candidate: string): Promise<ICandidateDelegations> {
+    const address = this.prefixAddress(candidate)
+    return this._dappchainDPOS.getDelegations(address)
+  }
+
   getTimeUntilElectionsAsync(): Promise<BN> {
     return this._dappchainDPOS.getTimeUntilElectionAsync()
   }
@@ -292,7 +302,6 @@ export class DPOSUser {
     const formerValidatorAddress = this.prefixAddress(formerValidator)
     return this._dappchainDPOS.redelegateAsync(formerValidatorAddress, validatorAddress, amount)
   }
-
 
   /**
    * Undelegates an amount of LOOM tokens from a candidate/validator
