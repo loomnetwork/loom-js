@@ -27,7 +27,7 @@ export class DPOSUser {
     dappchainKey: string,
     chainId: string
   ): Promise<DPOSUser> {
-    const { client, pubKey, address } = createClient(dappchainKey, dappchainEndpoint, chainId)
+    const { client, address } = createClient(dappchainKey, dappchainEndpoint, chainId)
 
     const dappchainDPOS = await DPOS2.createAsync(client, address)
     const dappchainLoom = await Coin.createAsync(client, address)

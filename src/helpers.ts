@@ -61,7 +61,7 @@ export function createClient(
   dappchainKey: string,
   dappchainEndpoint: string,
   chainId: string
-): any {
+): {client: Client, publicKey: Uint8Array, address: Address } {
   const privateKey = CryptoUtils.B64ToUint8Array(dappchainKey)
   const publicKey = CryptoUtils.publicKeyFromPrivateKey(privateKey)
 
