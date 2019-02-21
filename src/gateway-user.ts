@@ -22,6 +22,37 @@ const ERC20GatewayABI = require('./mainnet-contracts/ERC20.json')
 const ERC20ABI = require('./mainnet-contracts/ERC20.json')
 const VMCABI = require('./mainnet-contracts/VMC.json')
 
+export interface ICreateGatewayMetamaskUserArgs {
+  web3: Web3
+  dappchainEndpoint: string
+  dappchainKey: string
+  chainId: string
+  gatewayAddress: string
+  vmcAddress: string
+  loomAddress: string
+}
+
+export interface ICreateGatewayOfflineUserArgs {
+  endpoint: string
+  privateKey: string
+  dappchainEndpoint: string
+  dappchainKey: string
+  chainId: string
+  gatewayAddress: string
+  vmcAddress: string
+  loomAddress: string
+}
+
+export interface ICreateGatewayUserArgs {
+  wallet: ethers.Signer
+  dappchainEndpoint: string
+  dappchainKey: string
+  chainId: string
+  gatewayAddress: string
+  vmcAddress: string
+  loomAddress: string
+}
+
 export class GatewayUser extends CrossChain {
   private _ethereumGateway: ERC20Gateway
   private _ethereumLoom: ERC20
@@ -29,19 +60,19 @@ export class GatewayUser extends CrossChain {
   private _dappchainGateway: Contracts.LoomCoinTransferGateway
   private _dappchainLoom: Contracts.Coin
 
-  static async createGatewayOfflineUserAsync(
-    endpoint: string,
-    privateKey: string,
-    dappchainEndpoint: string,
-    dappchainKey: string,
-    chainId: string,
-    gatewayAddress: string,
-    vmcAddress: string,
-    loomAddress: string
-  ): Promise<GatewayUser> {
+  static createGatewayOfflineUserAsync({
+    endpoint,
+    privateKey,
+    dappchainEndpoint,
+    dappchainKey,
+    chainId,
+    gatewayAddress,
+    vmcAddress,
+    loomAddress
+  }: ICreateGatewayOfflineUserArgs): Promise<GatewayUser> {
     const provider = new ethers.providers.JsonRpcProvider(endpoint)
     const wallet = new ethers.Wallet(privateKey, provider)
-    return GatewayUser.createGatewayUserAsync(
+    return GatewayUser.createGatewayUserAsync({
       wallet,
       dappchainEndpoint,
       dappchainKey,
@@ -49,21 +80,21 @@ export class GatewayUser extends CrossChain {
       gatewayAddress,
       vmcAddress,
       loomAddress
-    )
+    })
   }
 
-  static async createGatewayMetamaskUserAsync(
-    web3: Web3,
-    dappchainEndpoint: string,
-    dappchainKey: string,
-    chainId: string,
-    gatewayAddress: string,
-    vmcAddress: string,
-    loomAddress: string
-  ): Promise<GatewayUser> {
+  static createGatewayMetamaskUserAsync({
+    web3,
+    dappchainEndpoint,
+    dappchainKey,
+    chainId,
+    gatewayAddress,
+    vmcAddress,
+    loomAddress
+  }: ICreateGatewayMetamaskUserArgs): Promise<GatewayUser> {
     const provider = new ethers.providers.Web3Provider(web3.currentProvider)
     const wallet = provider.getSigner()
-    return GatewayUser.createGatewayUserAsync(
+    return GatewayUser.createGatewayUserAsync({
       wallet,
       dappchainEndpoint,
       dappchainKey,
@@ -71,18 +102,18 @@ export class GatewayUser extends CrossChain {
       gatewayAddress,
       vmcAddress,
       loomAddress
-    )
+    })
   }
 
-  static async createGatewayUserAsync(
-    wallet: ethers.Signer,
-    dappchainEndpoint: string,
-    dappchainKey: string,
-    chainId: string,
-    gatewayAddress: string,
-    vmcAddress: string,
-    loomAddress: string
-  ): Promise<GatewayUser> {
+  static async createGatewayUserAsync({
+    wallet,
+    dappchainEndpoint,
+    dappchainKey,
+    chainId,
+    gatewayAddress,
+    vmcAddress,
+    loomAddress
+  }: ICreateGatewayUserArgs): Promise<GatewayUser> {
     let crosschain = await CrossChain.createUserAsync(
       wallet,
       dappchainEndpoint,
@@ -258,7 +289,7 @@ export class GatewayUser extends CrossChain {
 
     // Split signature in v,r,s arrays
     // Store the ordering of the validators' signatures in `indexes`
-    for (let i  in sigs) {
+    for (let i in sigs) {
       let recAddress = ethers.utils.recoverAddress(withdrawalHash, sigs[i])
       indexes.push(validators.indexOf(recAddress))
       vs.push(sigs[i].v)
@@ -278,7 +309,6 @@ export class GatewayUser extends CrossChain {
 
   // Create message so that we can recover and order validators
   private async getWithdrawalMsg(amount: BN): Promise<string> {
-
     let nonce = await this.ethereumGateway.functions.nonces(this.ethAddress)
     let amountHashed = ethers.utils.solidityKeccak256(
       ['uint256', 'address'],
