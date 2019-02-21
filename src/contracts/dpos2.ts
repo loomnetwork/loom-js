@@ -175,7 +175,7 @@ export class DPOS2 extends Contract {
 
     return {
       delegationTotal: result.getDelegationTotal()
-        ? unmarshalBigUIntPB(result.getDelegationTotal())
+        ? unmarshalBigUIntPB(result.getDelegationTotal()!)
         : new BN(0),
       delegationsArray: result.getDelegationsList().map(this.getDelegation)
     }
@@ -192,7 +192,7 @@ export class DPOS2 extends Contract {
     return result.getListresponsesList().map(d => {
       return {
         delegationTotal: d.getDelegationTotal()
-          ? unmarshalBigUIntPB(d.getDelegationTotal())
+          ? unmarshalBigUIntPB(d.getDelegationTotal()!)
           : new BN(0),
         delegationsArray: d.getDelegationsList().map(this.getDelegation)
       }
