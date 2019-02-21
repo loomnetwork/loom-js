@@ -256,7 +256,6 @@ export class DPOS2 extends Contract {
     return this.callAsync<void>('Redelegate', redelegateRequest)
   }
 
-
   unbondAsync(validator: Address, amount: BN | number | string): Promise<void> {
     const unbondRequest = new UnbondRequestV2()
     unbondRequest.setValidatorAddress(validator.MarshalPB())

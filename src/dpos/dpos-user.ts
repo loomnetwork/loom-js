@@ -99,7 +99,6 @@ export class DPOSUser {
     return this._dappchainDPOS.redelegateAsync(formerValidatorAddress, validatorAddress, amount)
   }
 
-
   /**
    * Undelegates an amount of LOOM tokens from a candidate/validator
    *
