@@ -1,0 +1,51 @@
+syntax = "proto3";
+
+import "proto/loom.proto";
+
+// Bidirectional mapping between addresses (contracts or accounts) on two different blockchains.
+// One of the address fields must contain a local address (same chain ID as the contract), while the
+// other must contain a foreign address.
+message AddressMapperMapping {
+    // Address on a blockchain
+    Address from = 1;
+    // Corresponding address on another blockchain
+    Address to = 2;
+}
+
+// Genesis
+
+message AddressMapperInitRequest {
+
+}
+
+// Request & Response
+
+message AddressMapperAddIdentityMappingRequest {
+    // Address on a blockchain
+    Address from = 1;
+    // Corresponding address on another blockchain
+    Address to = 2;
+    // Signature of a hash of the two addresses signed with the key that corresponds to the foreign address
+    bytes signature = 3;
+}
+
+message AddressMapperRemoveMappingRequest {
+    // TODO
+}
+
+message AddressMapperGetMappingRequest {
+    Address from = 1;
+}
+
+message AddressMapperGetMappingResponse {
+    Address from = 1; // Address that was provided in the request
+    Address to = 2;
+}
+
+message AddressMapperHasMappingRequest {
+    Address from = 1;
+}
+
+message AddressMapperHasMappingResponse {
+    bool has_mapping = 1;
+}

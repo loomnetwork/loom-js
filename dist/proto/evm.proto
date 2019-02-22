@@ -1,0 +1,108 @@
+
+syntax = "proto3";
+
+import "proto/loom.proto";
+
+message EthFilterEnvelope {
+    oneof message {
+        EthBlockHashList eth_block_hash_list = 1;
+        EthFilterLogList eth_filter_log_list = 2;
+        EthTxHashList eth_tx_hash_list = 3;
+    }
+}
+
+message EthBlockHashList {
+    repeated bytes eth_block_hash = 1;
+}
+
+message EthTxHashList {
+    repeated bytes eth_tx_hash = 1;
+}
+
+message EventDataList {
+    repeated EventData events = 1;
+}
+
+message EventData {
+    repeated string topics = 1;
+    Address caller = 2;
+    Address address = 3;
+    string plugin_name = 4;
+    uint64 block_height = 5;
+    bytes encoded_body = 6;
+    bytes original_request = 7;
+    bytes tx_hash = 8;
+    uint64 transaction_index = 9;
+    bytes block_hash = 10;
+    int64 block_time = 11;
+}
+
+message TxReceiptList {
+    repeated EvmTxReceipt tx_receipts = 1;
+}
+
+message EvmTxReceipt {
+    int32 transaction_index = 1;
+    bytes block_hash = 2;
+    int64 block_number = 3;
+    int32 cumulative_gas_used = 4;
+    int32 gas_used = 5 ;
+    bytes contract_address = 6;
+    repeated EventData logs = 7;
+    bytes logs_bloom = 8;
+    int32 status = 9;
+    bytes tx_hash = 10;
+}
+
+message EvmTxObject {
+    bytes hash = 1;                 // : DATA, 32 Bytes - hash of the transaction.
+    uint64 nonce = 2;                // : QUANTITY - the number of transactions made by the sender prior to this one.
+    bytes block_hash = 3;           // : DATA, 32 Bytes - hash of the block where this transaction was in. null when its pending.
+    int64 block_number = 4;         // : QUANTITY - block number where this transaction was in. null when its pending.
+    int32 transaction_index = 5;    // : QUANTITY - integer of the transactions index position in the block. null when its pending.
+    bytes from = 6;                 // : DATA, 20 Bytes - address of the sender.
+    bytes to = 7;                   // : DATA, 20 Bytes - address of the receiver. null when its a contract creation transaction.
+    int64 value = 8;                // : QUANTITY - value transferred in Wei.
+    int64 gas_price = 9;            // : QUANTITY - gas price provided by the sender in Wei.
+    int64 gas = 10;                 // : QUANTITY - gas provided by the sender.
+    bytes input = 11;               //: DATA - the data send along with the transaction.
+}
+
+message EthBlockInfo {
+    int64 number = 1;                   //: QUANTITY - the block number. null when its pending block.
+    bytes hash = 2;                     //: DATA, 32 Bytes - hash of the block. null when its pending block.
+    bytes parent_hash = 3;              //: DATA, 32 Bytes - hash of the parent block.
+    bytes nonce = 4;                    //: DATA, 8 Bytes - hash of the generated proof-of-work. null when its pending block.
+    bytes sha3_uncles  = 5;             //: DATA, 32 Bytes - SHA3 of the uncles data in the block.
+    bytes logs_bloom = 6;               //: DATA, 256 Bytes - the bloom filter for the logs of the block. null when its pending block.
+    bytes transactions_root = 7;        //: DATA, 32 Bytes - the root of the transaction trie of the block.
+    bytes state_root = 8;               //t: DATA, 32 Bytes - the root of the final state trie of the block.
+    bytes receipts_root = 9;            //: DATA, 32 Bytes - the root of the receipts trie of the block.
+    bytes miner = 10;                   //: DATA, 20 Bytes - the address of the beneficiary to whom the mining rewards were given.
+    int64 difficulty = 11;              //: QUANTITY - integer of the difficulty for this block.
+    int64 total_difficulty = 12;        //: QUANTITY - integer of the total difficulty of the chain until this block.
+    bytes extra_data = 13;              //: DATA - the "extra data" field of this block.
+    int64 size = 14;                    //: QUANTITY - integer the size of this block in bytes.
+    int64 gasLimit = 15;                //: QUANTITY - the maximum gas allowed in this block.
+    int64 gasUsed = 16;                 //: QUANTITY - the total used gas by all transactions in this block.
+    int64 timestamp = 17;               //: QUANTITY - the unix timestamp for when the block was collated.
+    repeated bytes transactions = 18;   //: Array - Array of transaction objects, or 32 Bytes transaction hashes depending on the last given parameter.
+    repeated bytes uncles = 19;         //: Array - Array of uncle hashes.
+}
+
+message EthFilterLogList {
+    repeated EthFilterLog eth_block_logs = 1;
+}
+
+message EthFilterLog {
+    bool removed = 1;
+    int64 log_index = 2;
+    int32 transaction_index = 3;
+    bytes transaction_hash = 4;
+    bytes block_hash = 5;
+    int64 block_number = 6;
+    bytes address = 7;
+    bytes data = 8;
+    repeated bytes topics = 9;
+    int64 block_time = 10;
+}
