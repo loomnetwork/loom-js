@@ -248,7 +248,7 @@ export class DPOSUser {
       await this._wallet.getAddress(),
       this._ethereumGateway.address
     )
-    let currentApprovalBN = new BN(currentApproval.toString()) 
+    let currentApprovalBN = new BN(currentApproval.toString())
 
     log('Current approval:', currentApproval)
     if (amount.gt(currentApprovalBN)) {
@@ -259,7 +259,10 @@ export class DPOSUser {
       await tx.wait()
       log('Approved an extra', amount.sub(currentApprovalBN))
     }
-    return this._ethereumGateway.functions.depositERC20(amount.toString(), this._ethereumLoom.address)
+    return this._ethereumGateway.functions.depositERC20(
+      amount.toString(),
+      this._ethereumLoom.address
+    )
   }
 
   /**
@@ -405,7 +408,11 @@ export class DPOSUser {
     amount: BN,
     sig: string
   ): Promise<ethers.ContractTransaction> {
-    return this._ethereumGateway.functions.withdrawERC20(amount.toString(), sig, this._ethereumLoom.address)
+    return this._ethereumGateway.functions.withdrawERC20(
+      amount.toString(),
+      sig,
+      this._ethereumLoom.address
+    )
   }
 
   /**
