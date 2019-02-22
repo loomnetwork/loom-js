@@ -1222,3 +1222,59 @@ export namespace ListAllDelegationsResponse {
   }
 }
 
+export class CheckAllDelegationsRequest extends jspb.Message {
+  hasDelegatorAddress(): boolean;
+  clearDelegatorAddress(): void;
+  getDelegatorAddress(): proto_loom_pb.Address | undefined;
+  setDelegatorAddress(value?: proto_loom_pb.Address): void;
+
+  serializeBinary(): Uint8Array;
+  toObject(includeInstance?: boolean): CheckAllDelegationsRequest.AsObject;
+  static toObject(includeInstance: boolean, msg: CheckAllDelegationsRequest): CheckAllDelegationsRequest.AsObject;
+  static extensions: {[key: number]: jspb.ExtensionFieldInfo<jspb.Message>};
+  static extensionsBinary: {[key: number]: jspb.ExtensionFieldBinaryInfo<jspb.Message>};
+  static serializeBinaryToWriter(message: CheckAllDelegationsRequest, writer: jspb.BinaryWriter): void;
+  static deserializeBinary(bytes: Uint8Array): CheckAllDelegationsRequest;
+  static deserializeBinaryFromReader(message: CheckAllDelegationsRequest, reader: jspb.BinaryReader): CheckAllDelegationsRequest;
+}
+
+export namespace CheckAllDelegationsRequest {
+  export type AsObject = {
+    delegatorAddress?: proto_loom_pb.Address.AsObject,
+  }
+}
+
+export class CheckAllDelegationsResponse extends jspb.Message {
+  hasAmount(): boolean;
+  clearAmount(): void;
+  getAmount(): proto_loom_pb.BigUInt | undefined;
+  setAmount(value?: proto_loom_pb.BigUInt): void;
+
+  hasWeightedAmount(): boolean;
+  clearWeightedAmount(): void;
+  getWeightedAmount(): proto_loom_pb.BigUInt | undefined;
+  setWeightedAmount(value?: proto_loom_pb.BigUInt): void;
+
+  clearDelegationsList(): void;
+  getDelegationsList(): Array<DelegationV2>;
+  setDelegationsList(value: Array<DelegationV2>): void;
+  addDelegations(value?: DelegationV2, index?: number): DelegationV2;
+
+  serializeBinary(): Uint8Array;
+  toObject(includeInstance?: boolean): CheckAllDelegationsResponse.AsObject;
+  static toObject(includeInstance: boolean, msg: CheckAllDelegationsResponse): CheckAllDelegationsResponse.AsObject;
+  static extensions: {[key: number]: jspb.ExtensionFieldInfo<jspb.Message>};
+  static extensionsBinary: {[key: number]: jspb.ExtensionFieldBinaryInfo<jspb.Message>};
+  static serializeBinaryToWriter(message: CheckAllDelegationsResponse, writer: jspb.BinaryWriter): void;
+  static deserializeBinary(bytes: Uint8Array): CheckAllDelegationsResponse;
+  static deserializeBinaryFromReader(message: CheckAllDelegationsResponse, reader: jspb.BinaryReader): CheckAllDelegationsResponse;
+}
+
+export namespace CheckAllDelegationsResponse {
+  export type AsObject = {
+    amount?: proto_loom_pb.BigUInt.AsObject,
+    weightedAmount?: proto_loom_pb.BigUInt.AsObject,
+    delegationsList: Array<DelegationV2.AsObject>,
+  }
+}
+
