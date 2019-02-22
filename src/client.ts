@@ -279,6 +279,7 @@ export class Client extends EventEmitter {
 
     const client = new Client(chainId, writer, reader)
     log('Initialized', dappchainEndpoint)
+
     client.txMiddleware = [
       new NonceTxMiddleware(publicKey, client),
       new SignedTxMiddleware(privateKey)
