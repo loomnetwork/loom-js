@@ -234,8 +234,8 @@ export class DPOSUser {
     return this._dappchainDPOS.getDelegations(address)
   }
 
-  listDelegatorDelegations(delegator: string): Promise<IDelegatorDelegations> {
-    const address = this.prefixAddress(delegator)
+  listDelegatorDelegations(delegator?: string): Promise<IDelegatorDelegations> {
+    const address = delegator ? this.prefixAddress(delegator) : this._address
     return this._dappchainDPOS.checkDelegatorDelegations(address)
   }
 
