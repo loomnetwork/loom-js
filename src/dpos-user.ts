@@ -10,32 +10,36 @@ import {
   Client,
   Contracts,
   EthersSigner
-} from '..'
-import { DPOS2, Coin, LoomCoinTransferGateway, AddressMapper } from '../contracts'
-import { IWithdrawalReceipt } from '../contracts/transfer-gateway'
-import { sleep, createDefaultClient } from '../helpers'
+} from '.'
+import { DPOS2, Coin, LoomCoinTransferGateway, AddressMapper } from './contracts'
+import { IWithdrawalReceipt } from './contracts/transfer-gateway'
+import { sleep, createDefaultClient } from './helpers'
 import {
   IValidator,
   ICandidate,
   IDelegation,
   LockTimeTier,
   ITotalDelegation,
-  ICandidateDelegations
-} from '../contracts/dpos2'
+  ICandidateDelegations,
+  IDelegatorDelegations
+} from './contracts/dpos2'
 
 const log = debug('dpos-user')
 
 const coinMultiplier = new BN(10).pow(new BN(18))
-const ERC20Gateway = require('./contracts/ERC20Gateway.json')
-const ERC20 = require('./contracts/ERC20.json')
+const ERC20GatewayABI = require('./mainnet-contracts/ERC20Gateway.json')
+const ERC20ABI = require('./mainnet-contracts/ERC20.json')
+
+import { ERC20 } from './mainnet-contracts/ERC20'
+import { ERC20Gateway } from './mainnet-contracts/ERC20Gateway'
 
 export class DPOSUser {
   private _wallet: ethers.Signer
   private _client: Client
   private _address: Address
   private _ethAddress: string
-  private _ethereumGateway: ethers.Contract
-  private _ethereumLoom: ethers.Contract
+  private _ethereumGateway: ERC20Gateway
+  private _ethereumLoom: ERC20
   private _dappchainGateway: Contracts.LoomCoinTransferGateway
   private _dappchainLoom: Contracts.Coin
   private _dappchainDPOS: Contracts.DPOS2
@@ -127,8 +131,8 @@ export class DPOSUser {
     this._address = address
     this._ethAddress = ethAddress
     this._client = client
-    this._ethereumGateway = new ethers.Contract(gatewayAddress, ERC20Gateway, wallet)
-    this._ethereumLoom = new ethers.Contract(loomAddress, ERC20, wallet)
+    this._ethereumGateway = new ERC20Gateway(gatewayAddress, ERC20GatewayABI, wallet)
+    this._ethereumLoom = new ERC20(loomAddress, ERC20ABI, wallet)
     this._dappchainGateway = dappchainGateway
     this._dappchainLoom = dappchainLoom
     this._dappchainDPOS = dappchainDPOS
@@ -202,6 +206,12 @@ export class DPOSUser {
     return this._dappchainDPOS.getDelegations(address)
   }
 
+  listDelegatorDelegations(delegator?: string): Promise<IDelegatorDelegations> {
+    const address = delegator ? this.prefixAddress(delegator) : this._address
+    return this._dappchainDPOS.checkDelegatorDelegations(address)
+  }
+
+
   getTimeUntilElectionsAsync(): Promise<BN> {
     return this._dappchainDPOS.getTimeUntilElectionAsync()
   }
@@ -210,22 +220,25 @@ export class DPOSUser {
    * Deposits funds from mainnet to the gateway
    */
   async depositAsync(amount: BN): Promise<ethers.ContractTransaction> {
-    let currentApproval = await this._ethereumLoom.allowance(
+    let currentApproval = await this._ethereumLoom.functions.allowance(
       await this._wallet.getAddress(),
       this._ethereumGateway.address
     )
-    currentApproval = new BN(currentApproval._hex.split('0x')[1], 16) // ugly way to convert the BN
+    let currentApprovalBN = new BN(currentApproval.toString())
 
     log('Current approval:', currentApproval)
-    if (amount.gt(currentApproval)) {
-      let tx: ContractTransaction = await this._ethereumLoom.approve(
+    if (amount.gt(currentApprovalBN)) {
+      let tx: ContractTransaction = await this._ethereumLoom.functions.approve(
         this._ethereumGateway.address,
-        amount.sub(currentApproval).toString()
+        amount.sub(currentApprovalBN).toString()
       )
       await tx.wait()
-      log('Approved an extra', amount.sub(currentApproval))
+      log('Approved an extra', amount.sub(currentApprovalBN))
     }
-    return this._ethereumGateway.depositERC20(amount.toString(), this._ethereumLoom.address)
+    return this._ethereumGateway.functions.depositERC20(
+      amount.toString(),
+      this._ethereumLoom.address
+    )
   }
 
   /**
@@ -371,7 +384,11 @@ export class DPOSUser {
     amount: BN,
     sig: string
   ): Promise<ethers.ContractTransaction> {
-    return this._ethereumGateway.withdrawERC20(amount.toString(), sig, this._ethereumLoom.address)
+    return this._ethereumGateway.functions.withdrawERC20(
+      amount.toString(),
+      sig,
+      this._ethereumLoom.address
+    )
   }
 
   /**
