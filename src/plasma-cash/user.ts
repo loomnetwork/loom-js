@@ -109,32 +109,14 @@ export class User extends Entity {
     startBlock?: BN,
     chainId?: string
   ): Promise<User> {
+    const { client: dAppClient, publicKey: pubKey, address: callerAddress }  = Client.new(
+      dappchainPrivateKey || CryptoUtils.Uint8ArrayToB64(CryptoUtils.generatePrivateKey()),
+      dappchainEndpoint,
+      chainId || 'default'
+    )
+
     const database = new PlasmaDB(dbPath)
     const ethPlasmaClient = new EthereumPlasmaClient(wallet, plasmaAddress, eventsEndpoint)
-
-    const protocol = selectProtocol(dappchainEndpoint)
-    const writerSuffix = protocol == JSONRPCProtocol.HTTP ? '/rpc' : '/websocket'
-    const readerSuffix = protocol == JSONRPCProtocol.HTTP ? '/query' : '/queryws'
-
-    const writer = createJSONRPCClient({
-      protocols: [{ url: dappchainEndpoint + writerSuffix }]
-    })
-    const reader = createJSONRPCClient({
-      protocols: [{ url: overrideReadUrl(dappchainEndpoint + readerSuffix) }]
-    })
-    const dAppClient = new Client(chainId || 'default', writer, reader)
-    let privKey
-    if (dappchainPrivateKey === null) {
-      privKey = CryptoUtils.generatePrivateKey()
-    } else {
-      privKey = CryptoUtils.B64ToUint8Array(dappchainPrivateKey)
-    }
-    const pubKey = CryptoUtils.publicKeyFromPrivateKey(privKey)
-    dAppClient.txMiddleware = [
-      new NonceTxMiddleware(pubKey, dAppClient),
-      new SignedTxMiddleware(privKey)
-    ]
-    const callerAddress = new Address(chainId || 'default', LocalAddress.fromPublicKey(pubKey))
 
     const addressMapper = await AddressMapper.createAsync(
       dAppClient,
