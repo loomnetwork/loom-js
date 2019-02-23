@@ -27,7 +27,9 @@ import {
   ListAllDelegationsResponse,
   ListDelegationsRequest,
   ListDelegationsResponse,
-  DelegationV2
+  DelegationV2,
+  CheckAllDelegationsResponse,
+  CheckAllDelegationsRequest
 } from '../proto/dposv2_pb'
 import { unmarshalBigUIntPB, marshalBigUIntPB } from '../big-uint'
 
@@ -89,6 +91,13 @@ export interface ICandidateDelegations {
   delegationTotal: BN
   delegationsArray: Array<IDelegation>
 }
+
+export interface IDelegatorDelegations {
+  amount: BN
+  weightedAmount: BN
+  delegationsArray: Array<IDelegation>
+}
+
 
 export class DPOS2 extends Contract {
   static async createAsync(client: Client, callerAddr: Address): Promise<DPOS2> {
@@ -198,6 +207,30 @@ export class DPOS2 extends Contract {
       }
     })
   }
+
+  async checkDelegatorDelegations(delegator: Address): Promise<IDelegatorDelegations> {
+    const checkDelegatorDelegationsReq = new CheckAllDelegationsRequest()
+    checkDelegatorDelegationsReq.setDelegatorAddress(delegator.MarshalPB())
+    const result = await this.staticCallAsync(
+      'CheckAllDelegations',
+      checkDelegatorDelegationsReq,
+      new CheckAllDelegationsResponse()
+    )
+
+    return {
+      amount: result.getAmount()
+        ? unmarshalBigUIntPB(result.getAmount()!)
+        : new BN(0),
+      weightedAmount: result.getWeightedAmount()
+        ? unmarshalBigUIntPB(result.getWeightedAmount()!)
+        : new BN(0),
+      delegationsArray: result.getDelegationsList().map(this.getDelegation)
+    }
+  }
+
+
+
+
 
   async checkDistributionAsync(): Promise<BN> {
     const checkDistributionReq = new CheckDistributionRequest()
