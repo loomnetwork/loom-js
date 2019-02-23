@@ -1,7 +1,14 @@
-import { Client, ITxMiddlewareHandler } from './client'
+import { Client, ITxMiddlewareHandler, overrideReadUrl } from './client'
 import { NonceTxMiddleware, SignedTxMiddleware } from './middleware'
-import { publicKeyFromPrivateKey } from './crypto-utils'
+import { publicKeyFromPrivateKey, B64ToUint8Array } from './crypto-utils'
 import BN from 'bn.js'
+import { selectProtocol } from './rpc-client-factory';
+import { JSONRPCProtocol } from './internal/json-rpc-client';
+import { createJSONRPCClient, LocalAddress } from '.';
+import { Address } from './address';
+import debug from 'debug'
+
+const log = debug('helpers')
 
 /**
  * Creates the default set of tx middleware required to successfully commit a tx to a Loom DAppChain.
@@ -46,4 +53,38 @@ export function parseUrl(rawUrl: string): URL {
     return new url.URL(rawUrl)
   }
   return new URL(rawUrl)
+}
+
+
+export function createDefaultClient(
+  dappchainKey: string,
+  dappchainEndpoint: string,
+  chainId: string
+): { client: Client; publicKey: Uint8Array; address: Address } {
+  const privateKey = B64ToUint8Array(dappchainKey)
+  const publicKey = publicKeyFromPrivateKey(privateKey)
+
+  const protocol = selectProtocol(dappchainEndpoint)
+  const writerSuffix = protocol == JSONRPCProtocol.HTTP ? '/rpc' : '/websocket'
+  const readerSuffix = protocol == JSONRPCProtocol.HTTP ? '/query' : '/queryws'
+
+  const writer = createJSONRPCClient({
+    protocols: [{ url: dappchainEndpoint + writerSuffix }]
+  })
+  const reader = createJSONRPCClient({
+    protocols: [{ url: overrideReadUrl(dappchainEndpoint + readerSuffix) }]
+  })
+
+  const client = new Client(chainId, writer, reader)
+  log('Initialized', dappchainEndpoint)
+
+  client.txMiddleware = createDefaultTxMiddleware(client, privateKey)
+
+  client.on('error', (msg: any) => {
+    log('PlasmaChain connection error', msg)
+  })
+
+  const address = new Address(chainId, LocalAddress.fromPublicKey(publicKey))
+
+  return { client, publicKey, address }
 }

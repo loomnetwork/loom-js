@@ -8,16 +8,12 @@ import {
   Address,
   LocalAddress,
   Client,
-  createJSONRPCClient,
-  NonceTxMiddleware,
-  SignedTxMiddleware,
   Contracts,
   EthersSigner
 } from '.'
-import { JSONRPCProtocol } from './internal/json-rpc-client'
 import { DPOS2, Coin, LoomCoinTransferGateway, AddressMapper } from './contracts'
 import { IWithdrawalReceipt } from './contracts/transfer-gateway'
-import { sleep } from './helpers'
+import { sleep, createDefaultClient } from './helpers'
 import {
   IValidator,
   ICandidate,
@@ -27,8 +23,6 @@ import {
   ICandidateDelegations,
   IDelegatorDelegations
 } from './contracts/dpos2'
-import { selectProtocol } from './rpc-client-factory'
-import { overrideReadUrl } from './client'
 
 const log = debug('dpos-user')
 
@@ -100,32 +94,7 @@ export class DPOSUser {
     gatewayAddress: string,
     loomAddress: string
   ): Promise<DPOSUser> {
-    const privateKey = CryptoUtils.B64ToUint8Array(dappchainKey)
-    const publicKey = CryptoUtils.publicKeyFromPrivateKey(privateKey)
-
-    const protocol = selectProtocol(dappchainEndpoint)
-    const writerSuffix = protocol == JSONRPCProtocol.HTTP ? '/rpc' : '/websocket'
-    const readerSuffix = protocol == JSONRPCProtocol.HTTP ? '/query' : '/queryws'
-
-    const writer = createJSONRPCClient({
-      protocols: [{ url: dappchainEndpoint + writerSuffix }]
-    })
-    const reader = createJSONRPCClient({
-      protocols: [{ url: overrideReadUrl(dappchainEndpoint + readerSuffix) }]
-    })
-
-    const client = new Client(chainId, writer, reader)
-    log('Initialized', dappchainEndpoint)
-    client.txMiddleware = [
-      new NonceTxMiddleware(publicKey, client),
-      new SignedTxMiddleware(privateKey)
-    ]
-
-    client.on('error', (msg: any) => {
-      log('PlasmaChain connection error', msg)
-    })
-
-    const address = new Address(chainId, LocalAddress.fromPublicKey(publicKey))
+    const { client, address } = createDefaultClient(dappchainKey, dappchainEndpoint, chainId)
     const ethAddress = await wallet.getAddress()
 
     const dappchainLoom = await Coin.createAsync(client, address)

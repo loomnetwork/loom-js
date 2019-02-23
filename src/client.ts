@@ -13,7 +13,11 @@ import {
   EthFilterLogList,
   EthTxHashList
 } from './proto/evm_pb'
-import { Uint8ArrayToB64, B64ToUint8Array, bufferToProtobufBytes } from './crypto-utils'
+import {
+  Uint8ArrayToB64,
+  B64ToUint8Array,
+  bufferToProtobufBytes,
+} from './crypto-utils'
 import { Address, LocalAddress } from './address'
 import { WSRPCClient, IJSONRPCEvent } from './internal/ws-rpc-client'
 import { RPCClientEvent, IJSONRPCClient } from './internal/json-rpc-client'
