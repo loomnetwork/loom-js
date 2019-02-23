@@ -8,23 +8,17 @@ import {
   IEntityParams,
   EthereumPlasmaClient,
   CryptoUtils,
-  NonceTxMiddleware,
-  SignedTxMiddleware,
   Address,
   LocalAddress,
   IDatabaseCoin,
   DAppChainPlasmaClient,
   Client,
-  createJSONRPCClient,
   PlasmaDB
 } from '..'
 import { IPlasmaCoin } from './ethereum-client'
 import { sleep } from '../helpers'
 import { AddressMapper } from '../contracts/address-mapper'
 import { EthersSigner } from '../solidity-helpers'
-import { selectProtocol } from '../rpc-client-factory'
-import { JSONRPCProtocol } from '../internal/json-rpc-client'
-import { overrideReadUrl } from '../client'
 
 const debugLog = debug('plasma-cash:user')
 const errorLog = debug('plasma-cash:user:error')
@@ -109,7 +103,7 @@ export class User extends Entity {
     startBlock?: BN,
     chainId?: string
   ): Promise<User> {
-    const { client: dAppClient, publicKey: pubKey, address: callerAddress }  = Client.new(
+    const { client: dAppClient, publicKey: pubKey, address: callerAddress } = Client.new(
       dappchainPrivateKey || CryptoUtils.Uint8ArrayToB64(CryptoUtils.generatePrivateKey()),
       dappchainEndpoint,
       chainId || 'default'

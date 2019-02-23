@@ -22,7 +22,7 @@ import {
 import { Address, LocalAddress } from './address'
 import { WSRPCClient, IJSONRPCEvent } from './internal/ws-rpc-client'
 import { RPCClientEvent, IJSONRPCClient } from './internal/json-rpc-client'
-import { sleep, parseUrl } from './helpers'
+import { sleep, parseUrl, createDefaultTxMiddleware } from './helpers'
 
 import { SignedTxMiddleware } from './middleware/signed-tx-middleware'
 import { NonceTxMiddleware } from './middleware/nonce-tx-middleware'
@@ -280,10 +280,7 @@ export class Client extends EventEmitter {
     const client = new Client(chainId, writer, reader)
     log('Initialized', dappchainEndpoint)
 
-    client.txMiddleware = [
-      new NonceTxMiddleware(publicKey, client),
-      new SignedTxMiddleware(privateKey)
-    ]
+    client.txMiddleware = createDefaultTxMiddleware(client, privateKey)
 
     client.on('error', (msg: any) => {
       log('PlasmaChain connection error', msg)

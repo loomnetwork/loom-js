@@ -96,32 +96,7 @@ export class DPOSUser {
     gatewayAddress: string,
     loomAddress: string
   ): Promise<DPOSUser> {
-    const privateKey = CryptoUtils.B64ToUint8Array(dappchainKey)
-    const publicKey = CryptoUtils.publicKeyFromPrivateKey(privateKey)
-
-    const protocol = selectProtocol(dappchainEndpoint)
-    const writerSuffix = protocol == JSONRPCProtocol.HTTP ? '/rpc' : '/websocket'
-    const readerSuffix = protocol == JSONRPCProtocol.HTTP ? '/query' : '/queryws'
-
-    const writer = createJSONRPCClient({
-      protocols: [{ url: dappchainEndpoint + writerSuffix }]
-    })
-    const reader = createJSONRPCClient({
-      protocols: [{ url: overrideReadUrl(dappchainEndpoint + readerSuffix) }]
-    })
-
-    const client = new Client(chainId, writer, reader)
-    log('Initialized', dappchainEndpoint)
-    client.txMiddleware = [
-      new NonceTxMiddleware(publicKey, client),
-      new SignedTxMiddleware(privateKey)
-    ]
-
-    client.on('error', (msg: any) => {
-      log('PlasmaChain connection error', msg)
-    })
-
-    const address = new Address(chainId, LocalAddress.fromPublicKey(publicKey))
+    const { client, address } = Client.new(dappchainKey, dappchainEndpoint, chainId)
     const ethAddress = await wallet.getAddress()
 
     const dappchainLoom = await Coin.createAsync(client, address)
