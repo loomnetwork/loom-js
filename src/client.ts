@@ -17,7 +17,6 @@ import {
   Uint8ArrayToB64,
   B64ToUint8Array,
   bufferToProtobufBytes,
-  publicKeyFromPrivateKey
 } from './crypto-utils'
 import { Address, LocalAddress } from './address'
 import { WSRPCClient, IJSONRPCEvent } from './internal/ws-rpc-client'
