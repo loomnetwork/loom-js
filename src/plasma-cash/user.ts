@@ -12,11 +12,10 @@ import {
   LocalAddress,
   IDatabaseCoin,
   DAppChainPlasmaClient,
-  Client,
   PlasmaDB
 } from '..'
 import { IPlasmaCoin } from './ethereum-client'
-import { sleep } from '../helpers'
+import { sleep, createDefaultClient } from '../helpers'
 import { AddressMapper } from '../contracts/address-mapper'
 import { EthersSigner } from '../solidity-helpers'
 
@@ -103,7 +102,7 @@ export class User extends Entity {
     startBlock?: BN,
     chainId?: string
   ): Promise<User> {
-    const { client: dAppClient, publicKey: pubKey, address: callerAddress } = Client.new(
+    const { client: dAppClient, publicKey: pubKey, address: callerAddress } = createDefaultClient(
       dappchainPrivateKey || CryptoUtils.Uint8ArrayToB64(CryptoUtils.generatePrivateKey()),
       dappchainEndpoint,
       chainId || 'default'

@@ -8,16 +8,12 @@ import {
   Address,
   LocalAddress,
   Client,
-  createJSONRPCClient,
-  NonceTxMiddleware,
-  SignedTxMiddleware,
   Contracts,
   EthersSigner
 } from '..'
-import { JSONRPCProtocol } from '../internal/json-rpc-client'
 import { DPOS2, Coin, LoomCoinTransferGateway, AddressMapper } from '../contracts'
 import { IWithdrawalReceipt } from '../contracts/transfer-gateway'
-import { sleep } from '../helpers'
+import { sleep, createDefaultClient } from '../helpers'
 import {
   IValidator,
   ICandidate,
@@ -26,8 +22,6 @@ import {
   ITotalDelegation,
   ICandidateDelegations
 } from '../contracts/dpos2'
-import { selectProtocol } from '../rpc-client-factory'
-import { overrideReadUrl } from '../client'
 
 const log = debug('dpos-user')
 
@@ -96,7 +90,7 @@ export class DPOSUser {
     gatewayAddress: string,
     loomAddress: string
   ): Promise<DPOSUser> {
-    const { client, address } = Client.new(dappchainKey, dappchainEndpoint, chainId)
+    const { client, address } = createDefaultClient(dappchainKey, dappchainEndpoint, chainId)
     const ethAddress = await wallet.getAddress()
 
     const dappchainLoom = await Coin.createAsync(client, address)

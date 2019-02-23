@@ -22,15 +22,7 @@ import {
 import { Address, LocalAddress } from './address'
 import { WSRPCClient, IJSONRPCEvent } from './internal/ws-rpc-client'
 import { RPCClientEvent, IJSONRPCClient } from './internal/json-rpc-client'
-import { sleep, parseUrl, createDefaultTxMiddleware } from './helpers'
-
-import { SignedTxMiddleware } from './middleware/signed-tx-middleware'
-import { NonceTxMiddleware } from './middleware/nonce-tx-middleware'
-
-import { JSONRPCProtocol } from './internal/json-rpc-client'
-import { createJSONRPCClient, selectProtocol } from './rpc-client-factory'
-
-const log = debug('helpers')
+import { sleep, parseUrl } from './helpers'
 
 export interface ITxHandlerResult {
   code?: number
@@ -256,39 +248,6 @@ export class Client extends EventEmitter {
 
   get writeUrl(): string {
     return this._writeClient.url
-  }
-
-  static new(
-    dappchainKey: string,
-    dappchainEndpoint: string,
-    chainId: string
-  ): { client: Client; publicKey: Uint8Array; address: Address } {
-    const privateKey = B64ToUint8Array(dappchainKey)
-    const publicKey = publicKeyFromPrivateKey(privateKey)
-
-    const protocol = selectProtocol(dappchainEndpoint)
-    const writerSuffix = protocol == JSONRPCProtocol.HTTP ? '/rpc' : '/websocket'
-    const readerSuffix = protocol == JSONRPCProtocol.HTTP ? '/query' : '/queryws'
-
-    const writer = createJSONRPCClient({
-      protocols: [{ url: dappchainEndpoint + writerSuffix }]
-    })
-    const reader = createJSONRPCClient({
-      protocols: [{ url: overrideReadUrl(dappchainEndpoint + readerSuffix) }]
-    })
-
-    const client = new Client(chainId, writer, reader)
-    log('Initialized', dappchainEndpoint)
-
-    client.txMiddleware = createDefaultTxMiddleware(client, privateKey)
-
-    client.on('error', (msg: any) => {
-      log('PlasmaChain connection error', msg)
-    })
-
-    const address = new Address(chainId, LocalAddress.fromPublicKey(publicKey))
-
-    return { client, publicKey, address }
   }
 
   /**
