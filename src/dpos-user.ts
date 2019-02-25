@@ -131,8 +131,10 @@ export class DPOSUser {
     this._address = address
     this._ethAddress = ethAddress
     this._client = client
-    this._ethereumGateway = new ERC20Gateway(gatewayAddress, ERC20GatewayABI, wallet)
-    this._ethereumLoom = new ERC20(loomAddress, ERC20ABI, wallet)
+    // @ts-ignore
+    this._ethereumGateway = new ethers.Contract(gatewayAddress, ERC20GatewayABI, wallet)
+    // @ts-ignore
+    this._ethereumLoom = new ethers.Contract(loomAddress, ERC20ABI, wallet)
     this._dappchainGateway = dappchainGateway
     this._dappchainLoom = dappchainLoom
     this._dappchainDPOS = dappchainDPOS
