@@ -11,16 +11,20 @@ const options = {
     target: "ethers",
     outDir: "src/mainnet-contracts"
 }
-ts_generator.tsGenerator({ cwd, loggingLvl: "info" }, new typechain.Typechain({ cwd, rawConfig: options }))
 
-shell.mkdir('-p', './dist/plasma-cash/contracts')
-shell.cp(
-  './src/plasma-cash/contracts/*.json',
-  './dist/plasma-cash/contracts/'
-)
+ts_generator.tsGenerator(
+  { cwd, loggingLvl: "info" },
+  new typechain.Typechain({ cwd, rawConfig: options })
+).then(() => {
+  shell.mkdir('-p', './dist/plasma-cash/contracts')
+  shell.cp(
+    './src/plasma-cash/contracts/*.json',
+    './dist/plasma-cash/contracts/'
+  )
 
-shell.mkdir('-p', './dist/mainnet-contracts')
-shell.cp(
-  './src/mainnet-contracts/*.json',
-  './dist/mainnet-contracts/'
-)
+  shell.mkdir('-p', './dist/mainnet-contracts')
+  shell.cp(
+    './src/mainnet-contracts/*.json',
+    './dist/mainnet-contracts/'
+  )
+})
