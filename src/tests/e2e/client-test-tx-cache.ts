@@ -296,7 +296,6 @@ test('Test CachedNonceTxMiddleware - duplicate tx', async t => {
 
     try {
       // Should not fail
-      console.log("Sending tx #1")
       await callTransactionAsync(client, caller, address, functionSetOk)
     } catch (err) {
       console.error(err)
@@ -305,7 +304,6 @@ test('Test CachedNonceTxMiddleware - duplicate tx', async t => {
 
     try {
       // Should not fail, and should force the nonce to be incremented on the node
-      console.log("Sending tx #2")
       await callTransactionAsync(client2, caller, address, functionSetOk)
     } catch (err) {
       console.error(err)
@@ -314,7 +312,6 @@ test('Test CachedNonceTxMiddleware - duplicate tx', async t => {
 
     try {
       // Should fail because cached nonce doesn't match the one on the node anymore
-      console.log("Sending tx #3")
       await callTransactionAsync(client, caller, address, functionSetOk)
     } catch (err) {
       console.error(err)
@@ -324,7 +321,6 @@ test('Test CachedNonceTxMiddleware - duplicate tx', async t => {
     try {
       // Should not fail because the cached nonce should've been reset, and a fresh nonce should
       // be used for this call
-      console.log("Sending tx #4")
       await callTransactionAsync(client, caller, address, functionSetOk)
     } catch (err) {
       console.error(err)
@@ -333,7 +329,6 @@ test('Test CachedNonceTxMiddleware - duplicate tx', async t => {
 
     try {
       // Should not fail because the cached nonce should still be good
-      console.log("Sending tx #5")
       await callTransactionAsync(client, caller, address, functionSetOk)
     } catch (err) {
       console.error(err)

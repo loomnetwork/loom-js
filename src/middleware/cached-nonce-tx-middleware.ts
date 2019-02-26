@@ -25,16 +25,16 @@ export class CachedNonceTxMiddleware implements ITxMiddlewareHandler {
 
   async Handle(txData: Readonly<Uint8Array>): Promise<Uint8Array> {
     if (this._lastNonce === -1) {
-      console.log('CachedNonceTxMiddleware Nonce not found getting from loomchain')
+      log('Nonce not cached')
       try {
         const key = bytesToHex(this._publicKey)
         this._lastNonce = await this._client.getNonceAsync(key)
       } catch (err) {
-        throw Error('CachedNonceTxMiddleware Failed to obtain latest nonce')
+        throw Error('Failed to obtain latest nonce')
       }
     }
 
-    console.log(`CachedNonceTxMiddleware Next nonce ${this._lastNonce + 1}`)
+    log(`Next nonce ${this._lastNonce + 1}`)
 
     const tx = new NonceTx()
     tx.setInner(txData as Uint8Array)
@@ -48,8 +48,7 @@ export class CachedNonceTxMiddleware implements ITxMiddlewareHandler {
     const isFailedTx = commit && commit.code
     if (isInvalidTx || isFailedTx) {
       // Nonce has to be reset regardless of the cause of the tx failure.
-      console.log(`CachedNonceTxMiddleware Reset cached nonce due to failed tx`)
-      console.log(JSON.stringify(results))
+      log(`Reset cached nonce due to failed tx`)
       this._lastNonce = -1
       // Throw a specific error for a nonce mismatch
       const isCheckTxNonceInvalid =
@@ -65,9 +64,9 @@ export class CachedNonceTxMiddleware implements ITxMiddlewareHandler {
         throw new Error(INVALID_TX_NONCE_ERROR)
       }
     } else if (this._lastNonce !== -1) {
-      console.log('CachedNonceTxMiddleware Reset cached nonce')
       // Only increment the nonce if the tx is valid
       this._lastNonce++
+      log(`Incremented cached nonce to ${this._lastNonce}`)
     }
     return results
   }
@@ -78,7 +77,7 @@ export class CachedNonceTxMiddleware implements ITxMiddlewareHandler {
       // which means the cached nonce has diverged from the nonce on the node, need to clear it out
       // so it's refetched for the next tx.
       this._lastNonce = -1
-      console.log('CachedNonceTxMiddleware Reset cached nonce due to dupe tx')
+      log('Reset cached nonce due to dupe tx')
     }
   }
 }

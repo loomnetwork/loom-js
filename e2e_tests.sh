@@ -75,8 +75,8 @@ stop_chains() {
 }
 
 run_tests() {
-  #yarn test:node
-  #yarn test:browser
+  yarn test:node
+  yarn test:browser
   yarn e2e:node
 }
 
