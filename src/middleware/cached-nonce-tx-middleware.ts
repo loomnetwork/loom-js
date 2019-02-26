@@ -48,7 +48,8 @@ export class CachedNonceTxMiddleware implements ITxMiddlewareHandler {
     const isFailedTx = commit && commit.code !== 0
     if (isInvalidTx || isFailedTx) {
       // Nonce has to be reset regardless of the cause of the tx failure.
-      console.log('CachedNonceTxMiddleware Reset cached nonce due to failed tx')
+      console.log(`CachedNonceTxMiddleware Reset cached nonce due to failed tx`)
+      console.log(JSON.stringify(results))
       this._lastNonce = -1
       // Throw a specific error for a nonce mismatch
       const isCheckTxNonceInvalid =
