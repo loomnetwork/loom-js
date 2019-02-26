@@ -13,11 +13,7 @@ import {
   EthFilterLogList,
   EthTxHashList
 } from './proto/evm_pb'
-import {
-  Uint8ArrayToB64,
-  B64ToUint8Array,
-  bufferToProtobufBytes,
-} from './crypto-utils'
+import { Uint8ArrayToB64, B64ToUint8Array, bufferToProtobufBytes } from './crypto-utils'
 import { Address, LocalAddress } from './address'
 import { WSRPCClient, IJSONRPCEvent } from './internal/ws-rpc-client'
 import { RPCClientEvent, IJSONRPCClient } from './internal/json-rpc-client'
@@ -65,6 +61,8 @@ const debugLog = debug('client')
 export interface ITxMiddlewareHandler {
   // Transforms and returns tx data.
   Handle(txData: Readonly<Uint8Array>): Promise<Uint8Array>
+  // Handles an error that occured when the tx was broadcast to the chain.
+  handleError?(err: any): void
   // Checks the tx results and throws an error if needed.
   HandleResults?(results: ITxResults): ITxResults
 }
@@ -136,10 +134,15 @@ export interface IChainEventArgs extends IClientEventArgs {
   topics: Array<string>
 }
 
-const TX_ALREADY_EXISTS_ERROR = 'Tx already exists in cache'
+export const TX_ALREADY_EXISTS_ERROR = 'Tx already exists in cache'
 
 export function isTxAlreadyInCacheError(err: any): boolean {
-  return err instanceof Error && err.message === TX_ALREADY_EXISTS_ERROR
+  // TODO: Need to update the WS client to throw the same errors as the HTTP client, so don't
+  //       have to detect two different errors everywhere.
+  return (
+    (err instanceof Error && err.message.indexOf(TX_ALREADY_EXISTS_ERROR) !== -1) || // HTTP
+    (err.data && err.data.indexOf(TX_ALREADY_EXISTS_ERROR) !== -1) // WS
+  )
 }
 
 export interface ITxBroadcaster {
@@ -359,10 +362,14 @@ export class Client extends EventEmitter {
     try {
       result = await this.txBroadcaster.broadcast(this._writeClient, txBytes)
     } catch (err) {
-      if (
-        (err instanceof Error && err.message.indexOf(TX_ALREADY_EXISTS_ERROR) !== -1) || // HTTP
-        (err.data && err.data.indexOf(TX_ALREADY_EXISTS_ERROR) !== -1) // WS
-      ) {
+      // Allow the middleware to handle errors. They're applied in reverse order so that the last
+      // middleware that was applied to the tx that was sent will be get to handle the error first.
+      for (let i = middleware.length - 1; i >= 0; i--) {
+        if (middleware[i].handleError) {
+          middleware[i].handleError!(err)
+        }
+      }
+      if (isTxAlreadyInCacheError(err)) {
         throw new Error(TX_ALREADY_EXISTS_ERROR)
       }
       throw err
