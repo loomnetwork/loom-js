@@ -342,7 +342,7 @@ test('Test CachedNonceTxMiddleware - duplicate tx', async t => {
   }
 
   if (client2) {
-    client.disconnect()
+    client2.disconnect()
   }
 
   t.end()

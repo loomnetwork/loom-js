@@ -15,16 +15,16 @@ const log = debug('cached-nonce-tx-middleware')
 export class CachedNonceTxMiddleware implements ITxMiddlewareHandler {
   private _publicKey: Uint8Array
   private _client: Client
-  private _lastNonce: number | null
+  private _lastNonce: number
 
   constructor(publicKey: Uint8Array, client: Client) {
     this._publicKey = publicKey
     this._client = client
-    this._lastNonce = null
+    this._lastNonce = -1
   }
 
   async Handle(txData: Readonly<Uint8Array>): Promise<Uint8Array> {
-    if (this._lastNonce === null) {
+    if (this._lastNonce === -1) {
       console.log('CachedNonceTxMiddleware Nonce not found getting from loomchain')
       try {
         const key = bytesToHex(this._publicKey)
@@ -48,7 +48,8 @@ export class CachedNonceTxMiddleware implements ITxMiddlewareHandler {
     const isFailedTx = commit && commit.code !== 0
     if (isInvalidTx || isFailedTx) {
       // Nonce has to be reset regardless of the cause of the tx failure.
-      this._lastNonce = null
+      console.log('CachedNonceTxMiddleware Reset cached nonce due to failed tx')
+      this._lastNonce = -1
       // Throw a specific error for a nonce mismatch
       const isCheckTxNonceInvalid =
         validation &&
@@ -62,7 +63,8 @@ export class CachedNonceTxMiddleware implements ITxMiddlewareHandler {
       if (isCheckTxNonceInvalid || isDeliverTxNonceInvalid) {
         throw new Error(INVALID_TX_NONCE_ERROR)
       }
-    } else if (this._lastNonce !== null) {
+    } else if (this._lastNonce !== -1) {
+      console.log('CachedNonceTxMiddleware Reset cached nonce')
       // Only increment the nonce if the tx is valid
       this._lastNonce++
     }
@@ -74,8 +76,8 @@ export class CachedNonceTxMiddleware implements ITxMiddlewareHandler {
       // This error indicates the tx payload & nonce were identical to a previously sent tx,
       // which means the cached nonce has diverged from the nonce on the node, need to clear it out
       // so it's refetched for the next tx.
-      this._lastNonce = null
-      console.log('CachedNonceTxMiddleware Reset cached nonce')
+      this._lastNonce = -1
+      console.log('CachedNonceTxMiddleware Reset cached nonce due to dupe tx')
     }
   }
 }
