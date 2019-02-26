@@ -25,7 +25,7 @@ export class CachedNonceTxMiddleware implements ITxMiddlewareHandler {
 
   async Handle(txData: Readonly<Uint8Array>): Promise<Uint8Array> {
     if (this._lastNonce === null) {
-      log('Nonce not found getting from loomchain')
+      console.log('Nonce not found getting from loomchain')
       try {
         const key = bytesToHex(this._publicKey)
         this._lastNonce = await this._client.getNonceAsync(key)
@@ -34,7 +34,7 @@ export class CachedNonceTxMiddleware implements ITxMiddlewareHandler {
       }
     }
 
-    log(`Next nonce ${this._lastNonce + 1}`)
+    console.log(`Next nonce ${this._lastNonce + 1}`)
 
     const tx = new NonceTx()
     tx.setInner(txData as Uint8Array)
@@ -75,6 +75,7 @@ export class CachedNonceTxMiddleware implements ITxMiddlewareHandler {
       // which means the cached nonce has diverged from the nonce on the node, need to clear it out
       // so it's refetched for the next tx.
       this._lastNonce = null
+      console.log('Reset cached nonce')
     }
   }
 }

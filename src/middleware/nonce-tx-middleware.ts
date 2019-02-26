@@ -29,7 +29,7 @@ export class NonceTxMiddleware implements ITxMiddlewareHandler {
     const key = bytesToHex(this._publicKey)
     const nonce = await this._client.getNonceAsync(key)
 
-    log(`Next nonce ${nonce + 1}`)
+    console.log(`Next nonce ${nonce + 1}`)
 
     const tx = new NonceTx()
     tx.setInner(txData as Uint8Array)
