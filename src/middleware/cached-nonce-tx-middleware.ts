@@ -1,6 +1,6 @@
 import debug from 'debug'
 import { NonceTx } from '../proto/loom_pb'
-import { ITxMiddlewareHandler, Client, ITxResults } from '../client'
+import { ITxMiddlewareHandler, Client, ITxResults, isTxAlreadyInCacheError } from '../client'
 import { bytesToHex } from '../crypto-utils'
 import { INVALID_TX_NONCE_ERROR } from './nonce-tx-middleware'
 
@@ -67,5 +67,14 @@ export class CachedNonceTxMiddleware implements ITxMiddlewareHandler {
       this._lastNonce++
     }
     return results
+  }
+
+  handleError(err: any): void {
+    if (isTxAlreadyInCacheError(err)) {
+      // This error indicates the tx payload & nonce were identical to a previously sent tx,
+      // which means the cached nonce has diverged from the nonce on the node, need to clear it out
+      // so it's refetched for the next tx.
+      this._lastNonce = null
+    }
   }
 }
