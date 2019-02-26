@@ -331,6 +331,15 @@ test('Test CachedNonceTxMiddleware - duplicate tx', async t => {
       cacheErrCount++
     }
 
+    try {
+      // Should not fail because the cached nonce should still be good
+      console.log("Sending tx #5")
+      await callTransactionAsync(client, caller, address, functionSetOk)
+    } catch (err) {
+      console.error(err)
+      cacheErrCount++
+    }
+
     t.equal(cacheErrCount, 1, 'expect to receive only one cache error')
   } catch (err) {
     console.error(err)
