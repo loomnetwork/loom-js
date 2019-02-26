@@ -208,7 +208,7 @@ test('Client tx already in cache error (HTTP)', async t => {
   t.end()
 })
 
-test('Test CachedNonceTxMiddleware', async t => {
+test('Test CachedNonceTxMiddleware - failed tx', async t => {
   const address = await deploySimpleStoreContract()
 
   let client = createTestHttpClient()
@@ -218,7 +218,7 @@ test('Test CachedNonceTxMiddleware', async t => {
     const publicKey = CryptoUtils.publicKeyFromPrivateKey(privateKey)
 
     // Middleware used for client
-    client.txMiddleware = client.txMiddleware = [
+    client.txMiddleware = [
       new CachedNonceTxMiddleware(publicKey, client),
       new SignedTxMiddleware(privateKey)
     ]
@@ -259,6 +259,85 @@ test('Test CachedNonceTxMiddleware', async t => {
   }
 
   if (client) {
+    client.disconnect()
+  }
+
+  t.end()
+})
+
+test('Test CachedNonceTxMiddleware - duplicate tx', async t => {
+  const address = await deploySimpleStoreContract()
+
+  const client = createTestHttpClient()
+  const client2 = createTestHttpClient()
+
+  try {
+    const privateKey = CryptoUtils.generatePrivateKey()
+    const publicKey = CryptoUtils.publicKeyFromPrivateKey(privateKey)
+
+    client.txMiddleware = [
+      new CachedNonceTxMiddleware(publicKey, client),
+      new SignedTxMiddleware(privateKey)
+    ]
+
+    client2.txMiddleware = [
+      new NonceTxMiddleware(publicKey, client2),
+      new SignedTxMiddleware(privateKey)
+    ]
+
+    const caller = new Address('default', LocalAddress.fromPublicKey(publicKey))
+
+    const functionSetOk = Buffer.from(
+      '60fe47b1000000000000000000000000000000000000000000000000000000000000000f',
+      'hex'
+    )
+
+    let cacheErrCount = 0
+
+    try {
+      // Should not fail
+      await callTransactionAsync(client, caller, address, functionSetOk)
+    } catch (err) {
+      console.error(err)
+      cacheErrCount++
+    }
+
+    try {
+      // Should not fail, and should force the nonce to be incremented on the node
+      await callTransactionAsync(client2, caller, address, functionSetOk)
+    } catch (err) {
+      console.error(err)
+      cacheErrCount++
+    }
+
+    try {
+      // Should fail because cached nonce doesn't match the one on the node anymore
+      await callTransactionAsync(client, caller, address, functionSetOk)
+    } catch (err) {
+      console.error(err)
+      cacheErrCount++
+    }
+
+    try {
+      // Should not fail because the cached nonce should've been reset, and a fresh nonce should
+      // be used for this call
+      await callTransactionAsync(client, caller, address, functionSetOk)
+    } catch (err) {
+      console.error(err)
+      cacheErrCount++
+    }
+
+    t.equal(cacheErrCount, 1, 'expect to receive only one cache error')
+  } catch (err) {
+    console.error(err)
+    t.fail(err.message)
+  }
+
+  if (client) {
+    client.disconnect()
+  }
+
+  if (client2) {
     client.disconnect()
   }
 
