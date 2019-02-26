@@ -2,6 +2,8 @@ import test from 'tape'
 
 import {
   NonceTxMiddleware,
+  SignedTxMiddleware,
+  CachedNonceTxMiddleware,
   CryptoUtils,
   Client,
   ITxMiddlewareHandler
@@ -12,7 +14,7 @@ import { LoomProvider } from '../../loom-provider'
 import { deployContract } from '../evm-helpers'
 import { bufferToProtobufBytes } from '../../crypto-utils'
 import { Address, LocalAddress } from '../../address'
-import { createDefaultTxMiddleware } from '../../helpers';
+import { createDefaultTxMiddleware } from '../../helpers'
 
 /**
  * Requires the SimpleStore solidity contract deployed on a loomchain.
@@ -129,7 +131,10 @@ test('Client tx already in cache error (Websocket)', async t => {
     const publicKey = CryptoUtils.publicKeyFromPrivateKey(privateKey)
 
     // Middleware used for client
-    client.txMiddleware = createDefaultTxMiddleware(client, privateKey)
+    client.txMiddleware = client.txMiddleware = [
+      new DuplicateNonceTxMiddleware(publicKey, client),
+      new SignedTxMiddleware(privateKey)
+    ]
 
     const caller = new Address('default', LocalAddress.fromPublicKey(publicKey))
 
@@ -169,7 +174,10 @@ test('Client tx already in cache error (HTTP)', async t => {
     const publicKey = CryptoUtils.publicKeyFromPrivateKey(privateKey)
 
     // Middleware used for client
-    client.txMiddleware = createDefaultTxMiddleware(client, privateKey)
+    client.txMiddleware = [
+      new DuplicateNonceTxMiddleware(publicKey, client),
+      new SignedTxMiddleware(privateKey)
+    ]
 
     const caller = new Address('default', LocalAddress.fromPublicKey(publicKey))
 
@@ -210,7 +218,10 @@ test('Test CachedNonceTxMiddleware', async t => {
     const publicKey = CryptoUtils.publicKeyFromPrivateKey(privateKey)
 
     // Middleware used for client
-    client.txMiddleware = createDefaultTxMiddleware(client, privateKey)
+    client.txMiddleware = client.txMiddleware = [
+      new CachedNonceTxMiddleware(publicKey, client),
+      new SignedTxMiddleware(privateKey)
+    ]
 
     const caller = new Address('default', LocalAddress.fromPublicKey(publicKey))
 
