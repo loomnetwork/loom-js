@@ -20,23 +20,19 @@ export class SpeculativeNonceTxMiddleware implements ITxMiddlewareHandler {
   private _publicKey: Uint8Array
   private _client: Client
   private _lastNonce: number
+  private _fetchNoncePromise: Promise<void> | null
 
   constructor(publicKey: Uint8Array, client: Client) {
     this._publicKey = publicKey
     this._client = client
     this._lastNonce = -1
+    this._fetchNoncePromise = null
   }
 
   async Handle(txData: Readonly<Uint8Array>): Promise<Uint8Array> {
     if (this._lastNonce === -1) {
       log('Nonce not cached')
-      try {
-        // TODO: make sure only one request is in flight at any time
-        const key = bytesToHex(this._publicKey)
-        this._lastNonce = await this._client.getNonceAsync(key)
-      } catch (err) {
-        throw Error('Failed to obtain latest nonce')
-      }
+      await this._updateLastNonce()
     }
 
     this._lastNonce++
@@ -83,4 +79,27 @@ export class SpeculativeNonceTxMiddleware implements ITxMiddlewareHandler {
       log('Reset cached nonce due to dupe tx')
     }
   }
+
+  private async _updateLastNonce(): Promise<void> {
+    // make sure only one request is in flight at any time
+    if (this._fetchNoncePromise) {
+      return this._fetchNoncePromise
+    }
+    this._fetchNoncePromise = this._fetchNonce()
+    this._fetchNoncePromise
+      .then(() => (this._fetchNoncePromise = null))
+      .catch(() => (this._fetchNoncePromise = null))
+    return this._fetchNoncePromise
+  }
+
+  private async _fetchNonce(): Promise<void> {
+    try {
+      const key = bytesToHex(this._publicKey)
+      this._lastNonce = await this._client.getNonceAsync(key)
+    } catch (err) {
+      throw Error('Failed to obtain latest nonce')
+    }
+  }
+
+  private _getNextNonce() {}
 }
