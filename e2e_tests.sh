@@ -77,7 +77,7 @@ stop_chains() {
 run_tests() {
   #yarn test:node
   #yarn test:browser
-  DEBUG=* yarn e2e:node
+  DEBUG=client,speculative-nonce-tx-middleware yarn e2e:node
 }
 
 cleanup() {
