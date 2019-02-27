@@ -15,6 +15,7 @@ import { LoomProvider } from '../../loom-provider'
 import { deployContract } from '../evm-helpers'
 import { bufferToProtobufBytes } from '../../crypto-utils'
 import { Address, LocalAddress } from '../../address'
+import { sleep } from './plasma-cash/config'
 
 /**
  * Requires the SimpleStore solidity contract deployed on a loomchain.
@@ -538,10 +539,13 @@ test('Test SpeculativeNonceTxMiddleware - rapid txs', async t => {
     for (let i = 0; i < 4; i++) {
       const p = callTransactionAsync(client, caller, address, functionSetOk)
       p.catch(err => {
-        console.error(err)
+        console.error(`Error sending tx ${i + 1}: ${err}`)
         cacheErrCount++
       })
       promises.push(p)
+      // Even though we don't want to wait for tx result before sending the next one there still
+      // needs to be slight delay to force the txs to be sent in the right order.
+      await sleep(100)
     }
 
     await Promise.all(promises)
