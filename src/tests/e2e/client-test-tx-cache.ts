@@ -94,7 +94,7 @@ async function callTransactionAsync(client: Client, from: Address, to: Address, 
 
   return client.commitTxAsync<Transaction>(tx)
 }
-/*
+
 // Middleware that creates a NonceTx with the same nonce every time.
 class DuplicateNonceTxMiddleware implements ITxMiddlewareHandler {
   private _mw: NonceTxMiddleware
@@ -352,7 +352,6 @@ test('Test CachedNonceTxMiddleware - duplicate tx', async t => {
 
   t.end()
 })
-*/
 
 // Tests that SpeculativeNonceTxMiddleware can recover after a tx fails due to a contract error.
 test('Test SpeculativeNonceTxMiddleware - failed tx', async t => {
