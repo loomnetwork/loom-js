@@ -1,3 +1,4 @@
+/*
 // Client WS-RPC
 import './e2e/ws-rpc-client-tests'
 
@@ -15,9 +16,9 @@ import './e2e/loom-provider-web3-child-events'
 import './e2e/client-evm-tests'
 import './e2e/client-evm-event-tests'
 import './e2e/client-evm-event-tests-2'
-
+*/
 import './e2e/client-test-tx-cache'
-
+/*
 import './e2e/multiple-events-nd-tests'
 
 // Contracts
@@ -30,3 +31,4 @@ import './e2e/contract-tests'
 
 // Simple Store Contract
 import './e2e/evm-contract-tests'
+*/
