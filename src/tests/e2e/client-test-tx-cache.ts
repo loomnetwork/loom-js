@@ -352,7 +352,7 @@ test('Test CachedNonceTxMiddleware - duplicate tx', async t => {
 
   t.end()
 })
-
+*/
 test('Test SpeculativeNonceTxMiddleware - failed tx', async t => {
   const address = await deploySimpleStoreContract()
 
@@ -504,13 +504,10 @@ test('Test SpeculativeNonceTxMiddleware - duplicate tx', async t => {
 
   t.end()
 })
-*/
 
 test('Test SpeculativeNonceTxMiddleware - rapid txs', async t => {
   const address = await deploySimpleStoreContract()
-
   const client = createTestHttpClient()
-  const client2 = createTestHttpClient()
 
   try {
     const privateKey = CryptoUtils.generatePrivateKey()
@@ -521,11 +518,6 @@ test('Test SpeculativeNonceTxMiddleware - rapid txs', async t => {
       new SignedTxMiddleware(privateKey)
     ]
 
-    client2.txMiddleware = [
-      new NonceTxMiddleware(publicKey, client2),
-      new SignedTxMiddleware(privateKey)
-    ]
-
     const caller = new Address('default', LocalAddress.fromPublicKey(publicKey))
 
     const functionSetOk = Buffer.from(
@@ -533,14 +525,14 @@ test('Test SpeculativeNonceTxMiddleware - rapid txs', async t => {
       'hex'
     )
 
-    let cacheErrCount = 0
+    let errCount = 0
     const promises: Promise<any>[] = []
 
     for (let i = 0; i < 4; i++) {
       const p = callTransactionAsync(client, caller, address, functionSetOk)
       p.catch(err => {
         console.error(`Error sending tx ${i + 1}: ${err}`)
-        cacheErrCount++
+        errCount++
       })
       promises.push(p)
       // Even though we don't want to wait for tx result before sending the next one there still
@@ -550,7 +542,7 @@ test('Test SpeculativeNonceTxMiddleware - rapid txs', async t => {
 
     await Promise.all(promises)
 
-    t.equal(cacheErrCount, 0, 'expect to receive no errors')
+    t.equal(errCount, 0, 'expect to receive no errors')
   } catch (err) {
     console.error(err)
     t.fail(err.message)
@@ -558,10 +550,6 @@ test('Test SpeculativeNonceTxMiddleware - rapid txs', async t => {
 
   if (client) {
     client.disconnect()
-  }
-
-  if (client2) {
-    client2.disconnect()
   }
 
   t.end()
