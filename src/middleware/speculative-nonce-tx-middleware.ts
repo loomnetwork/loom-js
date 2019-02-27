@@ -94,8 +94,10 @@ export class SpeculativeNonceTxMiddleware implements ITxMiddlewareHandler {
 
   private async _fetchNonce(): Promise<void> {
     try {
+      log('Fetching nonce...')
       const key = bytesToHex(this._publicKey)
       this._lastNonce = await this._client.getNonceAsync(key)
+      log(`Fetched nonce ${this._lastNonce}`)
     } catch (err) {
       throw Error('Failed to obtain latest nonce')
     }
