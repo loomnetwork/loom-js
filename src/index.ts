@@ -17,6 +17,7 @@ export {
   SignedTxMiddleware,
   NonceTxMiddleware,
   CachedNonceTxMiddleware,
+  SpeculativeNonceTxMiddleware,
   isInvalidTxNonceError
 } from './middleware'
 export { createDefaultTxMiddleware } from './helpers'
