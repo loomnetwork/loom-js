@@ -15,7 +15,7 @@ import { LoomProvider } from '../../loom-provider'
 import { deployContract } from '../evm-helpers'
 import { bufferToProtobufBytes } from '../../crypto-utils'
 import { Address, LocalAddress } from '../../address'
-import { sleep } from './plasma-cash/config'
+import { sleep } from '../../helpers'
 
 /**
  * Requires the SimpleStore solidity contract deployed on a loomchain.
@@ -353,6 +353,8 @@ test('Test CachedNonceTxMiddleware - duplicate tx', async t => {
   t.end()
 })
 */
+
+// Tests that SpeculativeNonceTxMiddleware can recover after a tx fails due to a contract error.
 test('Test SpeculativeNonceTxMiddleware - failed tx', async t => {
   const address = await deploySimpleStoreContract()
 
@@ -382,18 +384,19 @@ test('Test SpeculativeNonceTxMiddleware - failed tx', async t => {
     )
 
     let cacheErrCount = 0
-    try {
-      // Should revert because the value is 100
-      await callTransactionAsync(client, caller, address, functionSetErr)
-    } catch (err) {
-      cacheErrCount++
-    }
 
     try {
       // Should not fail
       await callTransactionAsync(client, caller, address, functionSetOk)
     } catch (err) {
       console.error(err)
+      cacheErrCount++
+    }
+
+    try {
+      // Should revert because the value is 100
+      await callTransactionAsync(client, caller, address, functionSetErr)
+    } catch (err) {
       cacheErrCount++
     }
 
@@ -418,6 +421,8 @@ test('Test SpeculativeNonceTxMiddleware - failed tx', async t => {
   t.end()
 })
 
+// Tests that SpeculativeNonceTxMiddleware can recover when txs are sent by the same caller using
+// multiple clients.
 test('Test SpeculativeNonceTxMiddleware - duplicate tx', async t => {
   const address = await deploySimpleStoreContract()
 
@@ -505,6 +510,7 @@ test('Test SpeculativeNonceTxMiddleware - duplicate tx', async t => {
   t.end()
 })
 
+// Tests that SpeculativeNonceTxMiddleware correctly allocates sequential nonces to a batch of txs.
 test('Test SpeculativeNonceTxMiddleware - rapid txs', async t => {
   const address = await deploySimpleStoreContract()
   const client = createTestHttpClient()
@@ -550,6 +556,67 @@ test('Test SpeculativeNonceTxMiddleware - rapid txs', async t => {
 
   if (client) {
     client.disconnect()
+  }
+
+  t.end()
+})
+
+// Tests that SpeculativeNonceTxMiddleware can recover while allocating nonces to a batch of txs.
+test('Test SpeculativeNonceTxMiddleware - rapid txs', async t => {
+  const address = await deploySimpleStoreContract()
+  const client = createTestWSClient()
+  const client2 = createTestHttpClient()
+
+  try {
+    const privateKey = CryptoUtils.generatePrivateKey()
+    const publicKey = CryptoUtils.publicKeyFromPrivateKey(privateKey)
+
+    client.txMiddleware = [
+      new SpeculativeNonceTxMiddleware(publicKey, client),
+      new SignedTxMiddleware(privateKey)
+    ]
+
+    client2.txMiddleware = [
+      new NonceTxMiddleware(publicKey, client2),
+      new SignedTxMiddleware(privateKey)
+    ]
+
+    const caller = new Address('default', LocalAddress.fromPublicKey(publicKey))
+
+    const functionSetOk = Buffer.from(
+      '60fe47b1000000000000000000000000000000000000000000000000000000000000000f',
+      'hex'
+    )
+
+    let errCount = 0
+    const promises: Promise<any>[] = []
+
+    for (let i = 0; i < 6; i++) {
+      const p = callTransactionAsync(i !== 4 ? client : client2, caller, address, functionSetOk)
+      p.catch(err => {
+        console.error(`Error sending tx ${i + 1}: ${err}`)
+        errCount++
+      })
+      promises.push(p)
+      // Even though we don't want to wait for tx result before sending the next one there still
+      // needs to be slight delay to force the txs to be sent in the right order.
+      await sleep(100)
+    }
+
+    await Promise.all(promises)
+
+    t.equal(errCount, 0, 'expect to receive no errors')
+  } catch (err) {
+    console.error(err)
+    t.fail(err.message)
+  }
+
+  if (client) {
+    client.disconnect()
+  }
+
+  if (client2) {
+    client2.disconnect()
   }
 
   t.end()

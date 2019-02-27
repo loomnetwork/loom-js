@@ -75,7 +75,7 @@ export class SpeculativeNonceTxMiddleware implements ITxMiddlewareHandler {
       // which means the cached nonce has diverged from the nonce on the node, need to clear it out
       // so it's refetched for the next tx.
       this._lastNonce = -1
-      // TODO: start a timeout so nonce is requeried too soon
+      // TODO: start a timeout so nonce isn't requeried too soon
       log('Reset cached nonce due to dupe tx')
     }
   }
@@ -102,6 +102,4 @@ export class SpeculativeNonceTxMiddleware implements ITxMiddlewareHandler {
       throw Error('Failed to obtain latest nonce')
     }
   }
-
-  private _getNextNonce() {}
 }
