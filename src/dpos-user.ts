@@ -27,23 +27,26 @@ import {
 const log = debug('dpos-user')
 
 const coinMultiplier = new BN(10).pow(new BN(18))
-const ERC20GatewayABI = require('./mainnet-contracts/ERC20Gateway.json')
 const ERC20ABI = require('./mainnet-contracts/ERC20.json')
+const ERC20GatewayABI = require('./mainnet-contracts/ERC20Gateway.json')
+const ERC20GatewayABI_v2 = require('./mainnet-contracts/ERC20Gateway_v2.json')
 
 import { ERC20 } from './mainnet-contracts/ERC20'
 import { ERC20Gateway } from './mainnet-contracts/ERC20Gateway'
+import { ERC20Gateway as ERC20Gateway_v2 } from './mainnet-contracts/ERC20Gateway_v2'
 
 export class DPOSUser {
   private _wallet: ethers.Signer
   private _client: Client
   private _address: Address
   private _ethAddress: string
-  private _ethereumGateway: ERC20Gateway
+  private _ethereumGateway: ERC20Gateway_v2
   private _ethereumLoom: ERC20
   private _dappchainGateway: Contracts.LoomCoinTransferGateway
   private _dappchainLoom: Contracts.Coin
   private _dappchainDPOS: Contracts.DPOS2
   private _dappchainMapper: Contracts.AddressMapper
+  private _version: number
 
   static async createOfflineUserAsync(
     endpoint: string,
@@ -52,7 +55,8 @@ export class DPOSUser {
     dappchainKey: string,
     chainId: string,
     gatewayAddress: string,
-    loomAddress: string
+    loomAddress: string,
+    version?: number
   ): Promise<DPOSUser> {
     const provider = new ethers.providers.JsonRpcProvider(endpoint)
     const wallet = new ethers.Wallet(privateKey, provider)
@@ -62,7 +66,8 @@ export class DPOSUser {
       dappchainKey,
       chainId,
       gatewayAddress,
-      loomAddress
+      loomAddress,
+      version
     )
   }
 
@@ -72,7 +77,8 @@ export class DPOSUser {
     dappchainKey: string,
     chainId: string,
     gatewayAddress: string,
-    loomAddress: string
+    loomAddress: string,
+    version?: number
   ): Promise<DPOSUser> {
     const provider = new ethers.providers.Web3Provider(web3.currentProvider)
     const wallet = provider.getSigner()
@@ -82,7 +88,8 @@ export class DPOSUser {
       dappchainKey,
       chainId,
       gatewayAddress,
-      loomAddress
+      loomAddress,
+      version
     )
   }
 
@@ -92,7 +99,8 @@ export class DPOSUser {
     dappchainKey: string,
     chainId: string,
     gatewayAddress: string,
-    loomAddress: string
+    loomAddress: string,
+    version?: number
   ): Promise<DPOSUser> {
     const { client, address } = createDefaultClient(dappchainKey, dappchainEndpoint, chainId)
     const ethAddress = await wallet.getAddress()
@@ -111,7 +119,8 @@ export class DPOSUser {
       dappchainGateway,
       dappchainLoom,
       dappchainDPOS,
-      dappchainMapper
+      dappchainMapper,
+      version
     )
   }
 
@@ -125,14 +134,17 @@ export class DPOSUser {
     dappchainGateway: Contracts.LoomCoinTransferGateway,
     dappchainLoom: Contracts.Coin,
     dappchainDPOS: Contracts.DPOS2,
-    dappchainMapper: Contracts.AddressMapper
+    dappchainMapper: Contracts.AddressMapper,
+    version: number = 1
   ) {
+    this._version = version
     this._wallet = wallet
     this._address = address
     this._ethAddress = ethAddress
     this._client = client
+    const gatewayABI = version == 2 ? ERC20GatewayABI_v2 : ERC20GatewayABI
     // @ts-ignore
-    this._ethereumGateway = new ethers.Contract(gatewayAddress, ERC20GatewayABI, wallet)
+    this._ethereumGateway = new ethers.Contract(gatewayAddress, gatewayABI, wallet)
     // @ts-ignore
     this._ethereumLoom = new ethers.Contract(loomAddress, ERC20ABI, wallet)
     this._dappchainGateway = dappchainGateway
@@ -386,6 +398,22 @@ export class DPOSUser {
     amount: BN,
     sig: string
   ): Promise<ethers.ContractTransaction> {
+    if (this._version === 2) {
+      // Ugly hack to extract the 'mode' bit from the old signature format - if it's still used
+      let sign = ethers.utils.splitSignature('0x' + sig.slice(4))
+      let valIndexes = [0]
+
+      return this._ethereumGateway.functions.withdrawERC20(
+        amount.toString(),
+        this._ethereumLoom.address,
+        valIndexes,
+        [sign.v!],
+        [sign.r],
+        [sign.s]
+      )
+    }
+
+    // @ts-ignore
     return this._ethereumGateway.functions.withdrawERC20(
       amount.toString(),
       sig,
