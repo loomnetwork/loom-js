@@ -3,14 +3,7 @@ import debug from 'debug'
 import { ethers, ContractTransaction } from 'ethers'
 import Web3 from 'web3'
 
-import {
-  CryptoUtils,
-  Address,
-  LocalAddress,
-  Client,
-  Contracts,
-  EthersSigner
-} from '.'
+import { CryptoUtils, Address, LocalAddress, Client, Contracts, EthersSigner } from '.'
 import { DPOS2, Coin, LoomCoinTransferGateway, AddressMapper } from './contracts'
 import { IWithdrawalReceipt } from './contracts/transfer-gateway'
 import { sleep, createDefaultClient } from './helpers'
@@ -213,7 +206,6 @@ export class DPOSUser {
     return this._dappchainDPOS.checkDelegatorDelegations(address)
   }
 
-
   getTimeUntilElectionsAsync(): Promise<BN> {
     return this._dappchainDPOS.getTimeUntilElectionAsync()
   }
@@ -351,6 +343,25 @@ export class DPOSUser {
 
   disconnect() {
     this._client.disconnect()
+  }
+
+  async getUnclaimedLoomTokensAsync(owner: string): Promise<BN> {
+    const address = owner ? this.prefixAddress(owner) : this._address
+    const tokens = await this._dappchainGateway.getUnclaimedTokensAsync(address)
+
+    const unclaimedLoomTokens = tokens.filter(t => t.tokenContract.toString() === this.ethAddress)
+
+    // There is only 1 LOOM token and there's only 1 balance for it:
+    // All other parameters of UnclaimedToken are for ERC721(x) tokens.
+    let amount
+    if (unclaimedLoomTokens.length > 0) {
+      amount = new BN(0)
+    } else {
+      const amounts = unclaimedLoomTokens[0].tokenAmounts!
+      amount = amounts ? amounts[0] : new BN(0)
+    }
+
+    return amount
   }
 
   /**
