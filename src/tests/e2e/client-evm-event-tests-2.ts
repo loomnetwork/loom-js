@@ -7,7 +7,7 @@ import { LoomProvider } from '../../loom-provider'
 import { deployContract } from '../evm-helpers'
 import { bufferToProtobufBytes } from '../../crypto-utils'
 import { Address, LocalAddress } from '../../address'
-import { createDefaultTxMiddleware } from '../../helpers';
+import { createDefaultTxMiddleware } from '../../helpers'
 
 /**
  * Requires the SimpleStore solidity contract deployed on a loomchain.

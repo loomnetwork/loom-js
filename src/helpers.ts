@@ -2,10 +2,10 @@ import { Client, ITxMiddlewareHandler, overrideReadUrl } from './client'
 import { NonceTxMiddleware, SignedTxMiddleware } from './middleware'
 import { publicKeyFromPrivateKey, B64ToUint8Array } from './crypto-utils'
 import BN from 'bn.js'
-import { selectProtocol } from './rpc-client-factory';
-import { JSONRPCProtocol } from './internal/json-rpc-client';
-import { createJSONRPCClient, LocalAddress } from '.';
-import { Address } from './address';
+import { selectProtocol } from './rpc-client-factory'
+import { JSONRPCProtocol } from './internal/json-rpc-client'
+import { createJSONRPCClient, LocalAddress } from '.'
+import { Address } from './address'
 import debug from 'debug'
 
 const log = debug('helpers')
@@ -54,7 +54,6 @@ export function parseUrl(rawUrl: string): URL {
   }
   return new URL(rawUrl)
 }
-
 
 export function createDefaultClient(
   dappchainKey: string,
