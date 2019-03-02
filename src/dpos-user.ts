@@ -3,14 +3,7 @@ import debug from 'debug'
 import { ethers, ContractTransaction } from 'ethers'
 import Web3 from 'web3'
 
-import {
-  CryptoUtils,
-  Address,
-  LocalAddress,
-  Client,
-  Contracts,
-  EthersSigner
-} from '.'
+import { CryptoUtils, Address, LocalAddress, Client, Contracts, EthersSigner } from '.'
 import { DPOS2, Coin, LoomCoinTransferGateway, AddressMapper } from './contracts'
 import { IWithdrawalReceipt } from './contracts/transfer-gateway'
 import { sleep, createDefaultClient } from './helpers'
@@ -106,9 +99,13 @@ export class DPOSUser {
     const ethAddress = await wallet.getAddress()
 
     const dappchainLoom = await Coin.createAsync(client, address)
-    const dappchainDPOS = await DPOS2.createAsync(client, address)
+    log('Connected to dappchain Loom Token')
     const dappchainGateway = await LoomCoinTransferGateway.createAsync(client, address)
+    log('Connected to dappchain Gateway Contract')
     const dappchainMapper = await AddressMapper.createAsync(client, address)
+    log('Connected to dappchain Address Mapoper contract')
+    const dappchainDPOS = await DPOS2.createAsync(client, address)
+    log('Connected to dappchain DPOS Contract')
     return new DPOSUser(
       wallet,
       client,
@@ -224,7 +221,6 @@ export class DPOSUser {
     const address = delegator ? this.prefixAddress(delegator) : this._address
     return this._dappchainDPOS.checkDelegatorDelegations(address)
   }
-
 
   getTimeUntilElectionsAsync(): Promise<BN> {
     return this._dappchainDPOS.getTimeUntilElectionAsync()
@@ -354,10 +350,8 @@ export class DPOSUser {
     if (address === undefined) {
       return this._dappchainLoom.getBalanceOfAsync(this._address)
     }
-
-    const pubKey = CryptoUtils.B64ToUint8Array(address)
-    const callerAddress = new Address(this._client.chainId, LocalAddress.fromPublicKey(pubKey))
-    const balance = await this._dappchainLoom.getBalanceOfAsync(callerAddress)
+    const addr = this.prefixAddress(address)
+    const balance = await this._dappchainLoom.getBalanceOfAsync(addr)
     return balance
   }
 
