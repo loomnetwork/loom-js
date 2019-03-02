@@ -345,7 +345,7 @@ export class DPOSUser {
     this._client.disconnect()
   }
 
-  async getUnclaimedLoomTokensAsync(owner: string): Promise<BN> {
+  async getUnclaimedLoomTokensAsync(owner?: string): Promise<BN> {
     const address = owner ? this.prefixAddress(owner) : this._address
     const tokens = await this._dappchainGateway.getUnclaimedTokensAsync(address)
 
@@ -354,9 +354,11 @@ export class DPOSUser {
     // There is only 1 LOOM token and there's only 1 balance for it:
     // All other parameters of UnclaimedToken are for ERC721(x) tokens.
     let amount
-    if (unclaimedLoomTokens.length > 0) {
+    if (unclaimedLoomTokens.length === 0) {
+      // no unclaimed tokens
       amount = new BN(0)
     } else {
+      // if the amounts array was set
       const amounts = unclaimedLoomTokens[0].tokenAmounts!
       amount = amounts ? amounts[0] : new BN(0)
     }
