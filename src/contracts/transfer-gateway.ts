@@ -13,7 +13,6 @@ import {
   TransferGatewayContractMappingConfirmed,
   TransferGatewayReclaimContractTokensRequest,
   TransferGatewayReclaimDepositorTokensRequest,
-  TransferGatewayUnclaimedToken,
   TransferGatewayGetUnclaimedTokensRequest,
   TransferGatewayGetUnclaimedTokensResponse
 } from '../proto/transfer_gateway_pb'

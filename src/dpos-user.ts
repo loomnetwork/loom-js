@@ -346,10 +346,12 @@ export class DPOSUser {
   }
 
   async getUnclaimedLoomTokensAsync(owner?: string): Promise<BN> {
-    const address = owner ? this.prefixAddress(owner) : this._address
+    const address = owner ? Address.fromString(`eth:${owner}`) : Address.fromString(`eth:${this.ethAddress}`)
     const tokens = await this._dappchainGateway.getUnclaimedTokensAsync(address)
 
-    const unclaimedLoomTokens = tokens.filter(t => t.tokenContract.toString() === this.ethAddress)
+    const unclaimedLoomTokens = tokens.filter(
+      t => t.tokenContract.local.toString() === this.ethereumLoom.address
+    )
 
     // There is only 1 LOOM token and there's only 1 balance for it:
     // All other parameters of UnclaimedToken are for ERC721(x) tokens.
