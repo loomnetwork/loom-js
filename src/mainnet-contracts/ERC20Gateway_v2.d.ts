@@ -6,7 +6,7 @@ import { Provider } from "ethers/providers";
 import { BigNumber } from "ethers/utils";
 import { TransactionOverrides } from ".";
 
-export class ERC20Gateway extends Contract {
+export class ERC20Gateway_v2 extends Contract {
   functions: {
     nonces(arg0: string): Promise<BigNumber>;
 

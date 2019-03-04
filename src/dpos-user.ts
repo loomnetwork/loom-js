@@ -26,7 +26,7 @@ const ERC20GatewayABI_v2 = require('./mainnet-contracts/ERC20Gateway_v2.json')
 
 import { ERC20 } from './mainnet-contracts/ERC20'
 import { ERC20Gateway } from './mainnet-contracts/ERC20Gateway'
-import { ERC20Gateway as ERC20Gateway_v2 } from './mainnet-contracts/ERC20Gateway_v2'
+import { ERC20Gateway_v2 } from './mainnet-contracts/ERC20Gateway_v2'
 
 export class DPOSUser {
   private _wallet: ethers.Signer
