@@ -338,7 +338,7 @@ export class TransferGateway extends Contract {
     const req = new TransferGatewayGetUnclaimedTokensRequest()
     req.setOwner(owner.MarshalPB())
     const result = await this.staticCallAsync(
-      'WithdrawalReceipt',
+      'GetUnclaimedTokens',
       req,
       new TransferGatewayGetUnclaimedTokensResponse()
     )
