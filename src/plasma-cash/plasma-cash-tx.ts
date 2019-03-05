@@ -96,13 +96,13 @@ export function unmarshalPlasmaTxPB(rawTx: PlasmaTx): PlasmaCashTx {
     denomination: rawTx.hasDenomination()
       ? unmarshalBigUIntPB(rawTx.getDenomination()!)
       : new BN(0),
-    newOwner: Address.UmarshalPB(rawTx.getNewOwner()!).local.toString(),
+    newOwner: Address.UnmarshalPB(rawTx.getNewOwner()!).local.toString(),
     sig: rawTx.getSignature_asU8(),
     proof: rawTx.getProof_asU8()
   })
   const sender = rawTx.getSender()
   if (sender) {
-    tx.prevOwner = Address.UmarshalPB(sender).local.toString()
+    tx.prevOwner = Address.UnmarshalPB(sender).local.toString()
   }
   return tx
 }

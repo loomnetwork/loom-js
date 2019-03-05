@@ -1,0 +1,601 @@
+[
+  {
+    "constant": true,
+    "inputs": [],
+    "name": "loomAddress",
+    "outputs": [
+      {
+        "name": "",
+        "type": "address"
+      }
+    ],
+    "payable": false,
+    "stateMutability": "view",
+    "type": "function",
+    "signature": "0x37179db8"
+  },
+  {
+    "constant": false,
+    "inputs": [
+      {
+        "name": "amount",
+        "type": "uint256"
+      },
+      {
+        "name": "contractAddress",
+        "type": "address"
+      }
+    ],
+    "name": "depositERC20",
+    "outputs": [],
+    "payable": false,
+    "stateMutability": "nonpayable",
+    "type": "function",
+    "signature": "0x392d661c"
+  },
+  {
+    "constant": true,
+    "inputs": [
+      {
+        "name": "contractAddress",
+        "type": "address"
+      }
+    ],
+    "name": "getERC20",
+    "outputs": [
+      {
+        "name": "",
+        "type": "uint256"
+      }
+    ],
+    "payable": false,
+    "stateMutability": "view",
+    "type": "function",
+    "signature": "0x4e0dc557"
+  },
+  {
+    "constant": true,
+    "inputs": [
+      {
+        "name": "",
+        "type": "address"
+      }
+    ],
+    "name": "nonces",
+    "outputs": [
+      {
+        "name": "",
+        "type": "uint256"
+      }
+    ],
+    "payable": false,
+    "stateMutability": "view",
+    "type": "function",
+    "signature": "0x7ecebe00"
+  },
+  {
+    "constant": false,
+    "inputs": [
+      {
+        "name": "amount",
+        "type": "uint256"
+      },
+      {
+        "name": "contractAddress",
+        "type": "address"
+      },
+      {
+        "name": "_valIndexes",
+        "type": "uint256[]"
+      },
+      {
+        "name": "_v",
+        "type": "uint8[]"
+      },
+      {
+        "name": "_r",
+        "type": "bytes32[]"
+      },
+      {
+        "name": "_s",
+        "type": "bytes32[]"
+      }
+    ],
+    "name": "withdrawERC20",
+    "outputs": [],
+    "payable": false,
+    "stateMutability": "nonpayable",
+    "type": "function",
+    "signature": "0xb0116dc7"
+  },
+  {
+    "inputs": [
+      {
+        "name": "_vmc",
+        "type": "address"
+      }
+    ],
+    "payable": false,
+    "stateMutability": "nonpayable",
+    "type": "constructor",
+    "signature": "constructor"
+  },
+  {
+    "payable": true,
+    "stateMutability": "payable",
+    "type": "fallback"
+  },
+  {
+    "anonymous": false,
+    "inputs": [
+      {
+        "indexed": false,
+        "name": "from",
+        "type": "address"
+      },
+      {
+        "indexed": false,
+        "name": "amount",
+        "type": "uint256"
+      }
+    ],
+    "name": "ETHReceived",
+    "type": "event",
+    "signature": "0xbfe611b001dfcd411432f7bf0d79b82b4b2ee81511edac123a3403c357fb972a"
+  },
+  {
+    "anonymous": false,
+    "inputs": [
+      {
+        "indexed": false,
+        "name": "operator",
+        "type": "address"
+      },
+      {
+        "indexed": false,
+        "name": "from",
+        "type": "address"
+      },
+      {
+        "indexed": false,
+        "name": "tokenId",
+        "type": "uint256"
+      },
+      {
+        "indexed": false,
+        "name": "contractAddress",
+        "type": "address"
+      },
+      {
+        "indexed": false,
+        "name": "data",
+        "type": "bytes"
+      }
+    ],
+    "name": "ERC721Received",
+    "type": "event",
+    "signature": "0x691f4eac2b8850491851c72f70a121d76b20836d776658438f5b13dd9f8dbc6e"
+  },
+  {
+    "anonymous": false,
+    "inputs": [
+      {
+        "indexed": false,
+        "name": "operator",
+        "type": "address"
+      },
+      {
+        "indexed": false,
+        "name": "from",
+        "type": "address"
+      },
+      {
+        "indexed": false,
+        "name": "tokenId",
+        "type": "uint256"
+      },
+      {
+        "indexed": false,
+        "name": "amount",
+        "type": "uint256"
+      },
+      {
+        "indexed": false,
+        "name": "contractAddress",
+        "type": "address"
+      },
+      {
+        "indexed": false,
+        "name": "data",
+        "type": "bytes"
+      }
+    ],
+    "name": "ERC721XReceived",
+    "type": "event",
+    "signature": "0xc341982fb8843f55f2f7aae4eb89231a4ef94a199f370debe7bc5c07c2de2bab"
+  },
+  {
+    "anonymous": false,
+    "inputs": [
+      {
+        "indexed": false,
+        "name": "operator",
+        "type": "address"
+      },
+      {
+        "indexed": false,
+        "name": "to",
+        "type": "address"
+      },
+      {
+        "indexed": false,
+        "name": "tokenTypes",
+        "type": "uint256[]"
+      },
+      {
+        "indexed": false,
+        "name": "amounts",
+        "type": "uint256[]"
+      },
+      {
+        "indexed": false,
+        "name": "contractAddress",
+        "type": "address"
+      },
+      {
+        "indexed": false,
+        "name": "data",
+        "type": "bytes"
+      }
+    ],
+    "name": "ERC721XBatchReceived",
+    "type": "event",
+    "signature": "0x48d67933be7b1e6d77d914145d793b5c9ced38156f34ebab23216e085435ac55"
+  },
+  {
+    "anonymous": false,
+    "inputs": [
+      {
+        "indexed": false,
+        "name": "from",
+        "type": "address"
+      },
+      {
+        "indexed": false,
+        "name": "amount",
+        "type": "uint256"
+      },
+      {
+        "indexed": false,
+        "name": "contractAddress",
+        "type": "address"
+      }
+    ],
+    "name": "ERC20Received",
+    "type": "event",
+    "signature": "0xa13cf347fb36122550e414f6fd1a0c2e490cff76331c4dcc20f760891ecca12a"
+  },
+  {
+    "anonymous": false,
+    "inputs": [
+      {
+        "indexed": true,
+        "name": "owner",
+        "type": "address"
+      },
+      {
+        "indexed": false,
+        "name": "kind",
+        "type": "uint8"
+      },
+      {
+        "indexed": false,
+        "name": "contractAddress",
+        "type": "address"
+      },
+      {
+        "indexed": false,
+        "name": "value",
+        "type": "uint256"
+      }
+    ],
+    "name": "TokenWithdrawn",
+    "type": "event",
+    "signature": "0x591f2d33d85291e32c4067b5a497caf3ddb5b1830eba9909e66006ec3a0051b4"
+  },
+  {
+    "anonymous": false,
+    "inputs": [
+      {
+        "indexed": true,
+        "name": "from",
+        "type": "address"
+      },
+      {
+        "indexed": false,
+        "name": "amount",
+        "type": "uint256"
+      },
+      {
+        "indexed": false,
+        "name": "loomCoinAddress",
+        "type": "address"
+      }
+    ],
+    "name": "LoomCoinReceived",
+    "type": "event",
+    "signature": "0x91557346f7592c9279b67cc52709a00442f0597658ec38a5fe84568c016331d7"
+  },
+  {
+    "constant": false,
+    "inputs": [
+      {
+        "name": "tokenId",
+        "type": "uint256"
+      },
+      {
+        "name": "amount",
+        "type": "uint256"
+      },
+      {
+        "name": "contractAddress",
+        "type": "address"
+      },
+      {
+        "name": "_valIndexes",
+        "type": "uint256[]"
+      },
+      {
+        "name": "_v",
+        "type": "uint8[]"
+      },
+      {
+        "name": "_r",
+        "type": "bytes32[]"
+      },
+      {
+        "name": "_s",
+        "type": "bytes32[]"
+      }
+    ],
+    "name": "withdrawERC721X",
+    "outputs": [],
+    "payable": false,
+    "stateMutability": "nonpayable",
+    "type": "function",
+    "signature": "0xced7c92a"
+  },
+  {
+    "constant": false,
+    "inputs": [
+      {
+        "name": "uid",
+        "type": "uint256"
+      },
+      {
+        "name": "contractAddress",
+        "type": "address"
+      },
+      {
+        "name": "_valIndexes",
+        "type": "uint256[]"
+      },
+      {
+        "name": "_v",
+        "type": "uint8[]"
+      },
+      {
+        "name": "_r",
+        "type": "bytes32[]"
+      },
+      {
+        "name": "_s",
+        "type": "bytes32[]"
+      }
+    ],
+    "name": "withdrawERC721",
+    "outputs": [],
+    "payable": false,
+    "stateMutability": "nonpayable",
+    "type": "function",
+    "signature": "0x03c0fe3a"
+  },
+  {
+    "constant": false,
+    "inputs": [
+      {
+        "name": "amount",
+        "type": "uint256"
+      },
+      {
+        "name": "_valIndexes",
+        "type": "uint256[]"
+      },
+      {
+        "name": "_v",
+        "type": "uint8[]"
+      },
+      {
+        "name": "_r",
+        "type": "bytes32[]"
+      },
+      {
+        "name": "_s",
+        "type": "bytes32[]"
+      }
+    ],
+    "name": "withdrawETH",
+    "outputs": [],
+    "payable": false,
+    "stateMutability": "nonpayable",
+    "type": "function",
+    "signature": "0xda293eb3"
+  },
+  {
+    "constant": false,
+    "inputs": [
+      {
+        "name": "_operator",
+        "type": "address"
+      },
+      {
+        "name": "_from",
+        "type": "address"
+      },
+      {
+        "name": "_tokenId",
+        "type": "uint256"
+      },
+      {
+        "name": "_amount",
+        "type": "uint256"
+      },
+      {
+        "name": "_data",
+        "type": "bytes"
+      }
+    ],
+    "name": "onERC721XReceived",
+    "outputs": [
+      {
+        "name": "",
+        "type": "bytes4"
+      }
+    ],
+    "payable": false,
+    "stateMutability": "nonpayable",
+    "type": "function",
+    "signature": "0x93ba7daa"
+  },
+  {
+    "constant": false,
+    "inputs": [
+      {
+        "name": "_operator",
+        "type": "address"
+      },
+      {
+        "name": "_from",
+        "type": "address"
+      },
+      {
+        "name": "_types",
+        "type": "uint256[]"
+      },
+      {
+        "name": "_amounts",
+        "type": "uint256[]"
+      },
+      {
+        "name": "_data",
+        "type": "bytes"
+      }
+    ],
+    "name": "onERC721XBatchReceived",
+    "outputs": [
+      {
+        "name": "",
+        "type": "bytes4"
+      }
+    ],
+    "payable": false,
+    "stateMutability": "nonpayable",
+    "type": "function",
+    "signature": "0xb3b0f4c7"
+  },
+  {
+    "constant": false,
+    "inputs": [
+      {
+        "name": "_operator",
+        "type": "address"
+      },
+      {
+        "name": "_from",
+        "type": "address"
+      },
+      {
+        "name": "_uid",
+        "type": "uint256"
+      },
+      {
+        "name": "_data",
+        "type": "bytes"
+      }
+    ],
+    "name": "onERC721Received",
+    "outputs": [
+      {
+        "name": "",
+        "type": "bytes4"
+      }
+    ],
+    "payable": false,
+    "stateMutability": "nonpayable",
+    "type": "function",
+    "signature": "0x150b7a02"
+  },
+  {
+    "constant": true,
+    "inputs": [],
+    "name": "getETH",
+    "outputs": [
+      {
+        "name": "",
+        "type": "uint256"
+      }
+    ],
+    "payable": false,
+    "stateMutability": "view",
+    "type": "function",
+    "signature": "0x14f6c3be"
+  },
+  {
+    "constant": true,
+    "inputs": [
+      {
+        "name": "uid",
+        "type": "uint256"
+      },
+      {
+        "name": "contractAddress",
+        "type": "address"
+      }
+    ],
+    "name": "getERC721",
+    "outputs": [
+      {
+        "name": "",
+        "type": "bool"
+      }
+    ],
+    "payable": false,
+    "stateMutability": "view",
+    "type": "function",
+    "signature": "0x4e56ef52"
+  },
+  {
+    "constant": true,
+    "inputs": [
+      {
+        "name": "tokenId",
+        "type": "uint256"
+      },
+      {
+        "name": "contractAddress",
+        "type": "address"
+      }
+    ],
+    "name": "getERC721X",
+    "outputs": [
+      {
+        "name": "",
+        "type": "uint256"
+      }
+    ],
+    "payable": false,
+    "stateMutability": "view",
+    "type": "function",
+    "signature": "0xb4c60342"
+  }
+]

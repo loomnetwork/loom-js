@@ -15,7 +15,9 @@ import './e2e/loom-provider-web3-child-events'
 import './e2e/client-evm-tests'
 import './e2e/client-evm-event-tests'
 import './e2e/client-evm-event-tests-2'
+
 import './e2e/client-test-tx-cache'
+
 import './e2e/multiple-events-nd-tests'
 
 // Contracts

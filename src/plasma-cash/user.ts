@@ -1,28 +1,23 @@
 import debug from 'debug'
 import BN from 'bn.js'
 import Web3 from 'web3'
+import { ethers, utils } from 'ethers'
+
 import {
   Entity,
   IEntityParams,
   EthereumPlasmaClient,
   CryptoUtils,
-  NonceTxMiddleware,
-  SignedTxMiddleware,
   Address,
   LocalAddress,
   IDatabaseCoin,
   DAppChainPlasmaClient,
-  Client,
-  createJSONRPCClient,
   PlasmaDB
 } from '..'
 import { IPlasmaCoin } from './ethereum-client'
-import { sleep } from '../helpers'
-import { ethers, utils } from 'ethers'
+import { sleep, createDefaultClient } from '../helpers'
 import { AddressMapper } from '../contracts/address-mapper'
 import { EthersSigner } from '../solidity-helpers'
-import { selectProtocol } from '../rpc-client-factory'
-import { JSONRPCProtocol } from '../internal/json-rpc-client'
 
 const debugLog = debug('plasma-cash:user')
 const errorLog = debug('plasma-cash:user:error')
@@ -32,7 +27,6 @@ const ERC20_ABI = [
   'function approve(address spender, uint256 value) public returns (bool)',
   'function allowance(address owner, address spender) public view returns (uint256)'
 ]
-// Helper function to create a user instance.
 
 // User friendly wrapper for all Entity related functions, taking advantage of the database
 export class User extends Entity {
@@ -108,32 +102,14 @@ export class User extends Entity {
     startBlock?: BN,
     chainId?: string
   ): Promise<User> {
+    const { client: dAppClient, publicKey: pubKey, address: callerAddress } = createDefaultClient(
+      dappchainPrivateKey || CryptoUtils.Uint8ArrayToB64(CryptoUtils.generatePrivateKey()),
+      dappchainEndpoint,
+      chainId || 'default'
+    )
+
     const database = new PlasmaDB(dbPath)
     const ethPlasmaClient = new EthereumPlasmaClient(wallet, plasmaAddress, eventsEndpoint)
-
-    const protocol = selectProtocol(dappchainEndpoint)
-    const writerSuffix = protocol == JSONRPCProtocol.HTTP ? '/rpc' : '/websocket'
-    const readerSuffix = protocol == JSONRPCProtocol.HTTP ? '/query' : '/queryws'
-
-    const writer = createJSONRPCClient({
-      protocols: [{ url: dappchainEndpoint + writerSuffix }]
-    })
-    const reader = createJSONRPCClient({
-      protocols: [{ url: dappchainEndpoint + readerSuffix }]
-    })
-    const dAppClient = new Client(chainId || 'default', writer, reader)
-    let privKey
-    if (dappchainPrivateKey === null) {
-      privKey = CryptoUtils.generatePrivateKey()
-    } else {
-      privKey = CryptoUtils.B64ToUint8Array(dappchainPrivateKey)
-    }
-    const pubKey = CryptoUtils.publicKeyFromPrivateKey(privKey)
-    dAppClient.txMiddleware = [
-      new NonceTxMiddleware(pubKey, dAppClient),
-      new SignedTxMiddleware(privKey)
-    ]
-    const callerAddress = new Address(chainId || 'default', LocalAddress.fromPublicKey(pubKey))
 
     const addressMapper = await AddressMapper.createAsync(
       dAppClient,

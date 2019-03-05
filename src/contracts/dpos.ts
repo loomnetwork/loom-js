@@ -73,7 +73,7 @@ export class DPOS extends Contract {
 
     return result.getCandidatesList().map((canditate: Candidate) => {
       return {
-        address: Address.UmarshalPB(canditate.getAddress()!),
+        address: Address.UnmarshalPB(canditate.getAddress()!),
         pubKey: canditate.getPubKey_asU8()!
       }
     }) as Array<ICandidate>

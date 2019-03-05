@@ -749,6 +749,7 @@ export class LoomProvider {
         address: contractAddress,
         blockHash,
         blockNumber,
+        blockTime: logEvent.getBlockTime(),
         transactionHash: bytesToHexAddrLC(logEvent.getTxHash_asU8()),
         transactionIndex,
         type: 'mined',
@@ -807,6 +808,7 @@ export class LoomProvider {
   private _createLogResult(log: EthFilterLog): IEthFilterLog {
     return {
       removed: log.getRemoved(),
+      blockTime: log.getBlockTime(),
       logIndex: numberToHexLC(log.getLogIndex()),
       transactionIndex: numberToHex(log.getTransactionIndex()),
       transactionHash: bytesToHexAddrLC(log.getTransactionHash_asU8()),

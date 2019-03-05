@@ -4,41 +4,43 @@ import { ITxMiddlewareHandler, Client, ITxResults, isTxAlreadyInCacheError } fro
 import { bytesToHex } from '../crypto-utils'
 import { INVALID_TX_NONCE_ERROR } from './nonce-tx-middleware'
 
-const log = debug('cached-nonce-tx-middleware')
+const log = debug('speculative-nonce-tx-middleware')
 
 /**
  * Wraps data in a NonceTx.
  * This middleware obtains the initial nonce value from the chain, and then increments it locally
  * for every tx, if a tx fails due to a nonce mismatch the chain is queried again to obtain the
  * latest nonce.
+ *
+ * The CachedNonceTxMiddleware waits for a tx to be commited before incrementing the cached nonce,
+ * while the SpeculativeNonceTxMiddleware increments the cached nonce before the tx is even
+ * sent to the chain - which makes it possible for a caller to rapidly submit a bunch of txs.
  */
-export class CachedNonceTxMiddleware implements ITxMiddlewareHandler {
+export class SpeculativeNonceTxMiddleware implements ITxMiddlewareHandler {
   private _publicKey: Uint8Array
   private _client: Client
   private _lastNonce: number
+  private _fetchNoncePromise: Promise<void> | null
 
   constructor(publicKey: Uint8Array, client: Client) {
     this._publicKey = publicKey
     this._client = client
     this._lastNonce = -1
+    this._fetchNoncePromise = null
   }
 
   async Handle(txData: Readonly<Uint8Array>): Promise<Uint8Array> {
     if (this._lastNonce === -1) {
       log('Nonce not cached')
-      try {
-        const key = bytesToHex(this._publicKey)
-        this._lastNonce = await this._client.getNonceAsync(key)
-      } catch (err) {
-        throw Error('Failed to obtain latest nonce')
-      }
+      await this._updateLastNonce()
     }
 
-    log(`Next nonce ${this._lastNonce + 1}`)
+    this._lastNonce++
+    log(`Next nonce ${this._lastNonce}`)
 
     const tx = new NonceTx()
     tx.setInner(txData as Uint8Array)
-    tx.setSequence(this._lastNonce + 1)
+    tx.setSequence(this._lastNonce)
     return tx.serializeBinary()
   }
 
@@ -63,10 +65,6 @@ export class CachedNonceTxMiddleware implements ITxMiddlewareHandler {
       if (isCheckTxNonceInvalid || isDeliverTxNonceInvalid) {
         throw new Error(INVALID_TX_NONCE_ERROR)
       }
-    } else if (this._lastNonce !== -1) {
-      // Only increment the nonce if the tx is valid
-      this._lastNonce++
-      log(`Incremented cached nonce to ${this._lastNonce}`)
     }
     return results
   }
@@ -77,7 +75,31 @@ export class CachedNonceTxMiddleware implements ITxMiddlewareHandler {
       // which means the cached nonce has diverged from the nonce on the node, need to clear it out
       // so it's refetched for the next tx.
       this._lastNonce = -1
+      // TODO: start a timeout so nonce isn't requeried too soon
       log('Reset cached nonce due to dupe tx')
+    }
+  }
+
+  private async _updateLastNonce(): Promise<void> {
+    // make sure only one request is in flight at any time
+    if (this._fetchNoncePromise) {
+      return this._fetchNoncePromise
+    }
+    this._fetchNoncePromise = this._fetchNonce()
+    this._fetchNoncePromise
+      .then(() => (this._fetchNoncePromise = null))
+      .catch(() => (this._fetchNoncePromise = null))
+    return this._fetchNoncePromise
+  }
+
+  private async _fetchNonce(): Promise<void> {
+    try {
+      log('Fetching nonce...')
+      const key = bytesToHex(this._publicKey)
+      this._lastNonce = await this._client.getNonceAsync(key)
+      log(`Fetched nonce ${this._lastNonce}`)
+    } catch (err) {
+      throw Error('Failed to obtain latest nonce')
     }
   }
 }
