@@ -15,6 +15,7 @@ export { Address, LocalAddress } from './address'
 export { unmarshalBigUIntPB, marshalBigUIntPB } from './big-uint'
 export {
   SignedTxMiddleware,
+  SignedEthTxMiddleware,
   NonceTxMiddleware,
   CachedNonceTxMiddleware,
   SpeculativeNonceTxMiddleware,

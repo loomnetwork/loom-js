@@ -34,6 +34,7 @@ import {
 } from './crypto-utils'
 import { soliditySha3 } from './solidity-helpers'
 import { marshalBigUIntPB } from './big-uint'
+import { SignedEthTxMiddleware } from './middleware'
 
 export interface IEthReceipt {
   transactionHash: string
@@ -90,7 +91,7 @@ export interface IEthFilterLog {
 
 export type SetupMiddlewareFunction = (
   client: Client,
-  privateKey: Uint8Array
+  privateKey: Uint8Array | null
 ) => ITxMiddlewareHandler[]
 
 export type EthRPCMethod = (payload: IEthRPCPayload) => any
@@ -117,7 +118,7 @@ export class LoomProvider {
   private _netVersionFromChainId: number
   private _ethRPCMethods: Map<string, EthRPCMethod>
   protected notificationCallbacks: Array<Function>
-  readonly accounts: Map<string, Uint8Array>
+  readonly accounts: Map<string, Uint8Array | null>
 
   /**
    * The retry strategy that should be used to retry some web3 requests.
@@ -157,8 +158,8 @@ export class LoomProvider {
     )
 
     if (!this._setupMiddlewares) {
-      this._setupMiddlewares = (client: Client, privateKey: Uint8Array) => {
-        return createDefaultTxMiddleware(client, privateKey)
+      this._setupMiddlewares = (client: Client, privateKey: Uint8Array | null) => {
+        return createDefaultTxMiddleware(client, privateKey as Uint8Array)
       }
     }
 
@@ -185,6 +186,16 @@ export class LoomProvider {
       )
       log(`New account added ${accountAddress}`)
     })
+  }
+
+  /**
+   *
+   * @param address Address to be register the middleware
+   * @param middlewares Array of middlewares for the address
+   */
+  setMiddlewaresForAddress(address: string, middlewares: Array<ITxMiddlewareHandler>) {
+    this.accounts.set(address, null)
+    this._accountMiddlewares.set(address, middlewares)
   }
 
   // PUBLIC FUNCTION TO SUPPORT WEB3
@@ -378,7 +389,7 @@ export class LoomProvider {
 
     const accounts = new Array()
 
-    this.accounts.forEach((value: Uint8Array, key: string) => {
+    this.accounts.forEach((_value: Uint8Array | null, key: string) => {
       accounts.push(key)
     })
 
@@ -637,14 +648,29 @@ export class LoomProvider {
     return responseData.getTxHash_asU8()
   }
 
+  private _isEthSignMiddlewarePresent(fromPublicAddr: string): boolean {
+    const middlewares = this._accountMiddlewares.get(fromPublicAddr) as Array<ITxMiddlewareHandler>
+
+    if (!middlewares) {
+      return false
+    }
+
+    return !!middlewares.find(
+      (middleware: ITxMiddlewareHandler) => middleware instanceof SignedEthTxMiddleware
+    )
+  }
+
   private _callAsync(payload: {
     to: string
     from: string
     data: string
     value: string
   }): Promise<any> {
-    const caller = new Address(this._client.chainId, LocalAddress.fromHexString(payload.from))
-    const address = new Address(this._client.chainId, LocalAddress.fromHexString(payload.to))
+    const isEthSignMiddlewarePresent = this._isEthSignMiddlewarePresent(payload.from)
+    const chainId = isEthSignMiddlewarePresent ? 'eth' : this._client.chainId
+
+    const caller = new Address(chainId, LocalAddress.fromHexString(payload.from))
+    const address = new Address(chainId, LocalAddress.fromHexString(payload.to))
     const data = Buffer.from(payload.data.slice(2), 'hex')
     const value = new BN((payload.value || '0x0').slice(2), 16)
 
