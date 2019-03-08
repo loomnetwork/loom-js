@@ -31,7 +31,7 @@ export class SignedEthTxMiddleware implements ITxMiddlewareHandler {
     const etherSigner = new EthersSigner(this.signer)
     const sig = await etherSigner.signAsync(hash)
 
-    // Remove the first unused byte on sig
+    // Recovers the public key
     const publicKey = ethers.utils.recoverPublicKey(
       ethers.utils.arrayify(ethers.utils.hashMessage(ethers.utils.arrayify(hash))),
       `0x${bytesToHex(sig.slice(1))}`
@@ -44,8 +44,6 @@ export class SignedEthTxMiddleware implements ITxMiddlewareHandler {
 
     const signedTx = new SignedTx()
     signedTx.setInner(txData as Uint8Array)
-
-    // Remove the first unused byte of the signature
     signedTx.setSignature(sig)
     signedTx.setPublicKey(hexToBytes(publicKey))
     signedTx.setChainname('eth')
