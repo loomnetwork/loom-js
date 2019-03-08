@@ -8,6 +8,7 @@ import {
   TransferGatewayWithdrawalReceiptRequest,
   TransferGatewayWithdrawalReceiptResponse,
   TransferGatewayTokenKind,
+  TransferGatewayAddAuthorizedContractMappingRequest,
   TransferGatewayAddContractMappingRequest,
   TransferGatewayTokenWithdrawalSigned,
   TransferGatewayContractMappingConfirmed,
@@ -139,6 +140,29 @@ export class TransferGateway extends Contract {
         } as IContractMappingConfirmedEventArgs)
       }
     })
+  }
+
+   /**
+   * Adds a contract mapping to the DAppChain Gateway using gatway owner signature.
+   * A contract mapping associates a token contract on the DAppChain with it's counterpart on Ethereum.
+   */
+  addAuthorizedContractMappingAsync(params: {
+    foreignContract: Address
+    localContract: Address
+    gatewayOwnerSig: Uint8Array
+  }): Promise<void> {
+    const {
+      foreignContract,
+      localContract,
+      gatewayOwnerSig
+    } = params
+
+    const mappingContractRequest = new TransferGatewayAddAuthorizedContractMappingRequest()
+    mappingContractRequest.setForeignContract(foreignContract.MarshalPB())
+    mappingContractRequest.setLocalContract(localContract.MarshalPB())
+    mappingContractRequest.setGatewayOwnerSig(gatewayOwnerSig)
+
+    return this.callAsync<void>('AddAuthorizedContractMapping', mappingContractRequest)
   }
 
   /**

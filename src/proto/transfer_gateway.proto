@@ -54,6 +54,15 @@ message TransferGatewayTokenWithdrawalSigned {
 
 // Contract Mapping
 
+message TransferGatewayAddAuthorizedContractMappingRequest {
+    // Address on foreign blockchain
+    Address foreign_contract = 1;
+    // Corresponding address on local blockchain
+    Address local_contract = 2;
+    // Signature of gateway owner
+    bytes gateway_owner_sig = 3;
+}
+
 message TransferGatewayAddContractMappingRequest {
     // Address on foreign blockchain
     Address foreign_contract = 1;
