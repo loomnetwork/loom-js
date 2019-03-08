@@ -149,18 +149,15 @@ export class TransferGateway extends Contract {
   addAuthorizedContractMappingAsync(params: {
     foreignContract: Address
     localContract: Address
-    gatewayOwnerSig: Uint8Array
   }): Promise<void> {
     const {
       foreignContract,
-      localContract,
-      gatewayOwnerSig
+      localContract
     } = params
 
     const mappingContractRequest = new TransferGatewayAddAuthorizedContractMappingRequest()
     mappingContractRequest.setForeignContract(foreignContract.MarshalPB())
     mappingContractRequest.setLocalContract(localContract.MarshalPB())
-    mappingContractRequest.setGatewayOwnerSig(gatewayOwnerSig)
 
     return this.callAsync<void>('AddAuthorizedContractMapping', mappingContractRequest)
   }
