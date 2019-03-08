@@ -151,7 +151,35 @@ async function bootstrapTest(
   return { client, addressMapper, pubKey, privKey, signer, loomProvider, contract, ABI }
 }
 
-test('Test Signed Eth Tx Middleware', async t => {
+test('Test Signed Eth Tx Middleware Type 1', async t => {
+  try {
+    const { client, signer, pubKey, loomProvider, contract } = await bootstrapTest(
+      createTestHttpClient
+    )
+
+    const ethAddress = await signer.getAddress()
+
+    // Ethereum account needs his on middlewares
+    loomProvider.setMiddlewaresForAddress(ethAddress, [
+      new CachedNonceTxMiddleware(pubKey, client),
+      new SignedEthTxMiddleware(signer)
+    ])
+
+    let tx1 = await contract.methods.set(1).send({ from: ethAddress })
+    t.equal(
+      tx1.status,
+      '0x1',
+      `SimpleStore.set should return correct status for address (to) ${ethAddress}`
+    )
+  } catch (err) {
+    console.error(err)
+    t.fail(err.message)
+  }
+
+  t.end()
+})
+
+test('Test Signed Eth Tx Middleware Type 2', async t => {
   try {
     const { client, addressMapper, signer, pubKey, loomProvider, contract } = await bootstrapTest(
       createTestHttpClient
@@ -182,15 +210,15 @@ test('Test Signed Eth Tx Middleware', async t => {
       new SignedEthTxMiddleware(signer)
     ])
 
-    let tx2 = await contract.methods.set(1).send({ from: to.local.toString() })
+    let tx1 = await contract.methods.set(1).send({ from: to.local.toString() })
     t.equal(
-      tx2.status,
+      tx1.status,
       '0x1',
       `SimpleStore.set should return correct status for address (to) ${to.local.toString()}`
     )
 
     t.equal(
-      tx2.events.NewValueSet.returnValues.sender,
+      tx1.events.NewValueSet.returnValues.sender,
       to.local.toString(),
       'Should be the same sender'
     )
