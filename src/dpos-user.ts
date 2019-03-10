@@ -3,7 +3,7 @@ import debug from 'debug'
 import { ethers, ContractTransaction } from 'ethers'
 import Web3 from 'web3'
 
-import { CryptoUtils, Address, LocalAddress, Client, Contracts, EthersSigner } from '.'
+import { CryptoUtils, Address, Client, Contracts, EthersSigner } from '.'
 import { DPOS2, Coin, LoomCoinTransferGateway, AddressMapper } from './contracts'
 import { IWithdrawalReceipt } from './contracts/transfer-gateway'
 import { sleep, createDefaultClient } from './helpers'
@@ -21,12 +21,12 @@ const log = debug('dpos-user')
 
 const coinMultiplier = new BN(10).pow(new BN(18))
 const ERC20ABI = require('./mainnet-contracts/ERC20.json')
-const ERC20GatewayABI = require('./mainnet-contracts/ERC20Gateway.json')
 const ERC20GatewayABI_v2 = require('./mainnet-contracts/ERC20Gateway_v2.json')
+const VMCABI = require('./mainnet-contracts/ValidatorManagerContract.json')
 
 import { ERC20 } from './mainnet-contracts/ERC20'
-import { ERC20Gateway } from './mainnet-contracts/ERC20Gateway'
 import { ERC20Gateway_v2 } from './mainnet-contracts/ERC20Gateway_v2'
+import { ValidatorManagerContract } from './mainnet-contracts/ValidatorManagerContract'
 
 export class DPOSUser {
   private _wallet: ethers.Signer
@@ -35,11 +35,11 @@ export class DPOSUser {
   private _ethAddress: string
   private _ethereumGateway: ERC20Gateway_v2
   private _ethereumLoom: ERC20
+  private _ethereumVMC?: ValidatorManagerContract
   private _dappchainGateway: Contracts.LoomCoinTransferGateway
   private _dappchainLoom: Contracts.Coin
   private _dappchainDPOS: Contracts.DPOS2
   private _dappchainMapper: Contracts.AddressMapper
-  private _version: number
 
   static async createOfflineUserAsync(
     endpoint: string,
@@ -49,7 +49,7 @@ export class DPOSUser {
     chainId: string,
     gatewayAddress: string,
     loomAddress: string,
-    version?: number
+    vmcAddress?: string
   ): Promise<DPOSUser> {
     const provider = new ethers.providers.JsonRpcProvider(endpoint)
     const wallet = new ethers.Wallet(privateKey, provider)
@@ -60,7 +60,7 @@ export class DPOSUser {
       chainId,
       gatewayAddress,
       loomAddress,
-      version
+      vmcAddress
     )
   }
 
@@ -71,7 +71,7 @@ export class DPOSUser {
     chainId: string,
     gatewayAddress: string,
     loomAddress: string,
-    version?: number
+    vmcAddress?: string
   ): Promise<DPOSUser> {
     const provider = new ethers.providers.Web3Provider(web3.currentProvider)
     const wallet = provider.getSigner()
@@ -82,7 +82,7 @@ export class DPOSUser {
       chainId,
       gatewayAddress,
       loomAddress,
-      version
+      vmcAddress
     )
   }
 
@@ -93,7 +93,7 @@ export class DPOSUser {
     chainId: string,
     gatewayAddress: string,
     loomAddress: string,
-    version?: number
+    vmcAddress?: string
   ): Promise<DPOSUser> {
     const { client, address } = createDefaultClient(dappchainKey, dappchainEndpoint, chainId)
     const ethAddress = await wallet.getAddress()
@@ -117,7 +117,7 @@ export class DPOSUser {
       dappchainLoom,
       dappchainDPOS,
       dappchainMapper,
-      version
+      vmcAddress
     )
   }
 
@@ -132,18 +132,21 @@ export class DPOSUser {
     dappchainLoom: Contracts.Coin,
     dappchainDPOS: Contracts.DPOS2,
     dappchainMapper: Contracts.AddressMapper,
-    version: number = 1
+    vmcAddress?: string
   ) {
-    this._version = version
     this._wallet = wallet
     this._address = address
     this._ethAddress = ethAddress
     this._client = client
-    const gatewayABI = version == 2 ? ERC20GatewayABI_v2 : ERC20GatewayABI
+    const gatewayABI = ERC20GatewayABI_v2
     // @ts-ignore
     this._ethereumGateway = new ethers.Contract(gatewayAddress, gatewayABI, wallet)
     // @ts-ignore
     this._ethereumLoom = new ethers.Contract(loomAddress, ERC20ABI, wallet)
+    if (vmcAddress) {
+      // @ts-ignore
+      this._ethereumVMC = new ethers.Contract(vmcAddress, VMCABI, wallet)
+    }
     this._dappchainGateway = dappchainGateway
     this._dappchainLoom = dappchainLoom
     this._dappchainDPOS = dappchainDPOS
@@ -392,28 +395,58 @@ export class DPOSUser {
     amount: BN,
     sig: string
   ): Promise<ethers.ContractTransaction> {
-    if (this._version === 2) {
-      // Ugly hack to extract the 'mode' bit from the old signature format - if it's still used (68 = 66 + 2, where 2 is the 0x)
-      sig = sig.length === 68 ? '0x' + sig.slice(4) : sig
-      let sign = ethers.utils.splitSignature(sig)
-      let valIndexes = [0]
+    let vs: Array<number> = []
+    let rs: Array<string> = []
+    let ss: Array<string> = []
+    let indexes: Array<number> = []
 
-      return this._ethereumGateway.functions.withdrawERC20(
-        amount.toString(),
-        this._ethereumLoom.address,
-        valIndexes,
-        [sign.v!],
-        [sign.r],
-        [sign.s]
+    // split sig string into 65 byte array of sigs
+    let sigs = sig.slice(2).match(/.65}/g)!
+
+    const withdrawalHash = await this.getWithdrawalMsg(amount)
+
+    let validators = await this._ethereumVMC!.functions.getValidators()
+
+    // Split signature in v,r,s arrays
+    // Store the ordering of the validators' signatures in `indexes`
+    for (let i in sigs) {
+      let hash = ethers.utils.arrayify(
+        ethers.utils.hashMessage(ethers.utils.arrayify(withdrawalHash))
       )
+
+      let recAddress = ethers.utils.recoverAddress(hash, sigs[i])
+      indexes.push(validators.indexOf(recAddress))
+
+      const s = ethers.utils.splitSignature(sigs[i])
+      vs.push(s.v!)
+      rs.push(s.r)
+      ss.push(s.s)
     }
 
-    // @ts-ignore
     return this._ethereumGateway.functions.withdrawERC20(
       amount.toString(),
-      sig,
-      this._ethereumLoom.address
+      this._ethereumLoom.address,
+      indexes,
+      vs,
+      rs,
+      ss
     )
+  }
+
+  // Create message so that we can recover and order validators
+  private async getWithdrawalMsg(amount: BN): Promise<string> {
+    let nonce = await this.ethereumGateway.functions.nonces(this.ethAddress)
+    let amountHashed = ethers.utils.solidityKeccak256(
+      ['uint256', 'address'],
+      [amount, this.ethereumLoom.address]
+    )
+
+    const msg = ethers.utils.solidityKeccak256(
+      ['address', 'uint256', 'address', 'bytes32'],
+      [this.ethAddress, nonce, this.ethereumGateway.address, amountHashed]
+    )
+
+    return msg
   }
 
   /**
