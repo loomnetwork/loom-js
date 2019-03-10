@@ -393,8 +393,9 @@ export class DPOSUser {
     sig: string
   ): Promise<ethers.ContractTransaction> {
     if (this._version === 2) {
-      // Ugly hack to extract the 'mode' bit from the old signature format - if it's still used
-      let sign = ethers.utils.splitSignature('0x' + sig.slice(4))
+      // Ugly hack to extract the 'mode' bit from the old signature format - if it's still used (68 = 66 + 2, where 2 is the 0x)
+      sig = sig.length === 68 ? '0x' + sig.slice(4) : sig
+      let sign = ethers.utils.splitSignature(sig)
       let valIndexes = [0]
 
       return this._ethereumGateway.functions.withdrawERC20(
