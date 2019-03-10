@@ -1,0 +1,85 @@
+syntax = "proto3";
+
+message SignedTx {
+    bytes inner = 1;
+    bytes signature = 2;
+    bytes public_key = 3;
+}
+
+message NonceTx {
+    bytes inner = 1;
+    uint64 sequence = 2;
+}
+
+message BigUInt {
+    bytes value = 1;
+}
+
+message Address {
+    string chain_id = 1;
+    bytes local = 2;
+}
+
+message Transaction {
+    uint32 id = 1;
+    bytes data = 2;
+}
+
+enum VMType {
+    PLUGIN = 0;
+    EVM = 1;
+}
+
+message MessageTx {
+    Address to = 1;
+    Address from = 2;
+    bytes data = 3;
+}
+
+message DeployTx {
+    VMType vm_type = 1;
+    bytes code = 2;
+    string name = 3;
+}
+
+message DeployResponse {
+    Address contract = 1;
+    bytes output = 2;
+}
+
+message DeployResponseData {
+    bytes tx_hash = 1;
+    bytes bytecode = 2;
+}
+
+message CallTx {
+    VMType vm_type = 1;
+    bytes input = 2;
+    BigUInt value = 3;
+}
+
+enum EncodingType {
+    JSON = 0;
+    PROTOBUF3 = 1;
+}
+
+message PluginCode {
+    string name = 1;
+    bytes input = 2;
+}
+
+message Request {
+    EncodingType content_type = 1;
+    EncodingType accept = 2;
+    bytes body = 3;
+}
+
+message Response {
+    EncodingType content_type = 1;
+    bytes body = 2;
+}
+
+message ContractMethodCall {
+    string method = 1;
+    bytes args = 2;
+}

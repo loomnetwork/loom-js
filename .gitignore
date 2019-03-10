@@ -10,7 +10,7 @@ db
 
 # Only apps should have lockfiles
 package-lock.json
-/dist/*
+# /dist/*
 loom.umd.js
 /.env.test
 /yarn-error.log
