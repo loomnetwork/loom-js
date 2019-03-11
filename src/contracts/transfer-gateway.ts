@@ -12,10 +12,19 @@ import {
   TransferGatewayTokenWithdrawalSigned,
   TransferGatewayContractMappingConfirmed,
   TransferGatewayReclaimContractTokensRequest,
-  TransferGatewayReclaimDepositorTokensRequest
+  TransferGatewayReclaimDepositorTokensRequest,
+  TransferGatewayGetUnclaimedTokensRequest,
+  TransferGatewayGetUnclaimedTokensResponse
 } from '../proto/transfer_gateway_pb'
 import { marshalBigUIntPB, unmarshalBigUIntPB } from '../big-uint'
 import { B64ToUint8Array } from '../crypto-utils'
+
+export interface IUnclaimedToken {
+  tokenContract: Address
+  tokenKind: TransferGatewayTokenKind
+  tokenIds?: Array<BN>
+  tokenAmounts?: Array<BN>
+}
 
 export interface IWithdrawalReceipt {
   tokenOwner: Address
@@ -322,6 +331,51 @@ export class TransferGateway extends Contract {
     const req = new TransferGatewayReclaimContractTokensRequest()
     req.setTokenContract(tokenContract.MarshalPB())
     return this.callAsync<void>('ReclaimContractTokens', req)
+  }
+
+  async getUnclaimedTokensAsync(owner: Address): Promise<Array<IUnclaimedToken>> {
+    const req = new TransferGatewayGetUnclaimedTokensRequest()
+    req.setOwner(owner.MarshalPB())
+    const result = await this.staticCallAsync(
+      'GetUnclaimedTokens',
+      req,
+      new TransferGatewayGetUnclaimedTokensResponse()
+    )
+
+    const unclaimedTokens = result.getUnclaimedTokensList()
+
+    let tokens: Array<IUnclaimedToken> = []
+    for (let token of unclaimedTokens) {
+      const tokenKind = token.getTokenKind()
+      let tokenIds: Array<BN> = []
+      let tokenAmounts: Array<BN> = []
+      if (tokenKind === TransferGatewayTokenKind.ERC721) {
+        // Set only the tokenId for ERC721
+        for (let amt of token.getAmountsList()) {
+          tokenIds.push(unmarshalBigUIntPB(amt.getTokenId()!))
+        }
+      } else if (tokenKind === TransferGatewayTokenKind.ERC721X) {
+        // Set both the tokenId and the tokenAmounts for ERC721x
+        for (let amt of token.getAmountsList()) {
+          tokenIds.push(unmarshalBigUIntPB(amt.getTokenId()!))
+          tokenAmounts.push(unmarshalBigUIntPB(amt.getTokenAmount()!))
+        }
+      } else {
+        // Set only amount for all other cases
+        for (let amt of token.getAmountsList()) {
+          tokenAmounts.push(unmarshalBigUIntPB(amt.getTokenAmount()!))
+        }
+      }
+
+      tokens.push({
+        tokenContract: Address.UnmarshalPB(token.getTokenContract()!),
+        tokenKind: tokenKind,
+        tokenAmounts: tokenAmounts,
+        tokenIds: tokenIds
+      })
+    }
+
+    return tokens
   }
 
   /**

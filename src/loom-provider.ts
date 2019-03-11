@@ -144,7 +144,7 @@ export class LoomProvider {
     setupMiddlewaresFunction?: SetupMiddlewareFunction
   ) {
     this._client = client
-    this._netVersionFromChainId = this._chainIdToNetVersion()
+    this._netVersionFromChainId = LoomProvider.chainIdToNetVersion(this._client.chainId)
     this._setupMiddlewares = setupMiddlewaresFunction!
     this._accountMiddlewares = new Map<string, Array<ITxMiddlewareHandler>>()
     this._ethRPCMethods = new Map<string, EthRPCMethod>()
@@ -271,6 +271,19 @@ export class LoomProvider {
     }
 
     this._ethRPCMethods.set(method, customMethodFn)
+  }
+
+  /**
+   * Return the numerical representation of the ChainId
+   * More details at: https://github.com/loomnetwork/loom-js/issues/110
+   */
+  static chainIdToNetVersion(chainId: string): number {
+    // Avoids the error "Number can only safely store up to 53 bits" on Web3
+    // Ensures the value less than 9007199254740991 (Number.MAX_SAFE_INTEGER)
+    const chainIdHash = soliditySha3(chainId)
+      .slice(2) // Removes 0x
+      .slice(0, 13) // Produces safe Number less than 9007199254740991
+    return new BN(chainIdHash).toNumber()
   }
 
   removeListener(type: string, callback: (...args: any[]) => void) {
@@ -584,15 +597,6 @@ export class LoomProvider {
 
   private _ethUnsubscribe(payload: IEthRPCPayload) {
     return this._client.evmUnsubscribeAsync(payload.params[0])
-  }
-
-  private _chainIdToNetVersion() {
-    // Avoids the error "Number can only safely store up to 53 bits" on Web3
-    // Ensures the value less than 9007199254740991 (Number.MAX_SAFE_INTEGER)
-    const chainIdHash = soliditySha3(this._client.chainId)
-      .slice(2) // Removes 0x
-      .slice(0, 13) // Produces safe Number less than 9007199254740991
-    return new BN(chainIdHash).toNumber()
   }
 
   private _netVersion() {
