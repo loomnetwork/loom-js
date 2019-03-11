@@ -13,7 +13,12 @@ import {
   EthFilterLogList,
   EthTxHashList
 } from './proto/evm_pb'
-import { Uint8ArrayToB64, B64ToUint8Array, bufferToProtobufBytes } from './crypto-utils'
+import {
+  Uint8ArrayToB64,
+  B64ToUint8Array,
+  bufferToProtobufBytes,
+  hexToBytes
+} from './crypto-utils'
 import { Address, LocalAddress } from './address'
 import { WSRPCClient, IJSONRPCEvent } from './internal/ws-rpc-client'
 import { RPCClientEvent, IJSONRPCClient } from './internal/json-rpc-client'
@@ -703,13 +708,38 @@ export class Client extends EventEmitter {
   /**
    * Gets a nonce for the given public key.
    *
-   * This should only be called by NonceTxMiddleware.
+   * This should only be called by middlewares.
    *
    * @param key A hex encoded public key.
    * @return The nonce.
    */
   async getNonceAsync(key: string): Promise<number> {
     return parseInt(await this._writeClient.sendAsync<string>('nonce', { key }), 10)
+  }
+
+  /**
+   * Gets a nonce for the given chain id and local address.
+   *
+   * This should only be called by middlewares.
+   *
+   * Account Type
+   * 1) Native account is recognized by the chain type only
+   * 2) AddressMapped account recognized through the address mapper
+   *
+   * @param chainId chainId as string
+   * @param localAddr local address in hex
+   * @param accountType sets localAddr the account type
+   */
+  async getNonce2Async(chainId: string, localAddr: string, accountType: string): Promise<number> {
+    const local = Uint8ArrayToB64(hexToBytes(localAddr))
+    return parseInt(
+      await this._writeClient.sendAsync<string>('nonce2', {
+        chainId,
+        local,
+        accountType
+      }),
+      10
+    )
   }
 
   /**

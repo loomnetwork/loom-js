@@ -194,8 +194,12 @@ export class LoomProvider {
    * @param middlewares Array of middlewares for the address
    */
   setMiddlewaresForAddress(address: string, middlewares: Array<ITxMiddlewareHandler>) {
-    this.accounts.set(address, null)
-    this._accountMiddlewares.set(address, middlewares)
+    this.accounts.set(address.toLowerCase(), null)
+    this._accountMiddlewares.set(address.toLowerCase(), middlewares)
+  }
+
+  get accountMiddlewares(): Map<string, Array<ITxMiddlewareHandler>> {
+    return this._accountMiddlewares
   }
 
   // PUBLIC FUNCTION TO SUPPORT WEB3
@@ -651,6 +655,8 @@ export class LoomProvider {
   private _isEthSignMiddlewarePresent(fromPublicAddr: string): boolean {
     const middlewares = this._accountMiddlewares.get(fromPublicAddr) as Array<ITxMiddlewareHandler>
 
+    log('Call using middlewares', middlewares)
+
     if (!middlewares) {
       return false
     }
@@ -667,10 +673,12 @@ export class LoomProvider {
     value: string
   }): Promise<any> {
     const isEthSignMiddlewarePresent = this._isEthSignMiddlewarePresent(payload.from)
-    const chainId = isEthSignMiddlewarePresent ? 'eth' : this._client.chainId
+    const callerChainId = isEthSignMiddlewarePresent ? 'eth' : this._client.chainId
 
-    const caller = new Address(chainId, LocalAddress.fromHexString(payload.from))
-    const address = new Address(chainId, LocalAddress.fromHexString(payload.to))
+    log('Call using chainID', callerChainId)
+
+    const caller = new Address(callerChainId, LocalAddress.fromHexString(payload.from))
+    const address = new Address(this._client.chainId, LocalAddress.fromHexString(payload.to))
     const data = Buffer.from(payload.data.slice(2), 'hex')
     const value = new BN((payload.value || '0x0').slice(2), 16)
 

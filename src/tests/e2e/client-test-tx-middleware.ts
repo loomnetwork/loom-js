@@ -1,6 +1,6 @@
 import test from 'tape'
 
-import { CachedNonceTxMiddleware, CryptoUtils, Client, Contracts } from '../../index'
+import { CachedNonceTxMiddleware, CryptoUtils, Client, Nonce2TxMiddleware } from '../../index'
 
 import { LoomProvider } from '../../loom-provider'
 import { deployContract } from '../evm-helpers'
@@ -10,6 +10,7 @@ import { ethers } from 'ethers'
 import { SignedEthTxMiddleware } from '../../middleware'
 import { EthersSigner } from '../../solidity-helpers'
 import { createTestHttpClient } from '../helpers'
+import { AddressMapper } from '../../contracts'
 
 // import Web3 from 'web3'
 const Web3 = require('web3')
@@ -52,7 +53,6 @@ async function bootstrapTest(
   createClient: () => Client
 ): Promise<{
   client: Client
-  addressMapper: Contracts.AddressMapper
   pubKey: Uint8Array
   privKey: Uint8Array
   signer: ethers.Signer
@@ -139,16 +139,10 @@ async function bootstrapTest(
     from: LocalAddress.fromPublicKey(pubKey).toString()
   })
 
-  // Create address mapper instance
-  const addressMapper = await Contracts.AddressMapper.createAsync(
-    client,
-    new Address(client.chainId, LocalAddress.fromPublicKey(pubKey))
-  )
-
   // And get the signer
   const signer = getEthersSigner()
 
-  return { client, addressMapper, pubKey, privKey, signer, loomProvider, contract, ABI }
+  return { client, pubKey, privKey, signer, loomProvider, contract, ABI }
 }
 
 test('Test Signed Eth Tx Middleware Type 1', async t => {
@@ -157,19 +151,31 @@ test('Test Signed Eth Tx Middleware Type 1', async t => {
       createTestHttpClient
     )
 
+    // Get address of the account 0 = 0x90f8bf6a479f320ead074411a4b0e7944ea8c9c1
     const ethAddress = await signer.getAddress()
 
     // Ethereum account needs his on middlewares
-    client.txMiddleware = [
-      new CachedNonceTxMiddleware(pubKey, client),
+    loomProvider.setMiddlewaresForAddress(ethAddress, [
+      new Nonce2TxMiddleware(client),
       new SignedEthTxMiddleware(signer)
-    ]
+    ])
 
-    let tx1 = await contract.methods.set(1).send({ from: ethAddress })
+    const middlewaresUsed = loomProvider.accountMiddlewares.get(ethAddress.toLowerCase())
+    t.assert(middlewaresUsed![0] instanceof Nonce2TxMiddleware, 'Nonce2TxMiddleware used')
+    t.assert(middlewaresUsed![1] instanceof SignedEthTxMiddleware, 'SignedEthTxMiddleware used')
+
+    let tx = await contract.methods.set(1).send({ from: ethAddress })
+
     t.equal(
-      tx1.status,
+      tx.status,
       '0x1',
       `SimpleStore.set should return correct status for address (to) ${ethAddress}`
+    )
+
+    t.equal(
+      tx.events.NewValueSet.returnValues.sender,
+      ethAddress,
+      `Sender should be same sender from eth ${ethAddress}`
     )
   } catch (err) {
     console.error(err)
@@ -179,53 +185,65 @@ test('Test Signed Eth Tx Middleware Type 1', async t => {
   t.end()
 })
 
-// test('Test Signed Eth Tx Middleware Type 2', async t => {
-//   try {
-//     const { client, addressMapper, signer, pubKey, loomProvider, contract } = await bootstrapTest(
-//       createTestHttpClient
-//     )
+test('Test Signed Eth Tx Middleware Type 2', async t => {
+  try {
+    const { client, signer, pubKey, loomProvider, contract } = await bootstrapTest(
+      createTestHttpClient
+    )
 
-//     // Set the mapping
-//     const ethAddress = await signer.getAddress()
-//     const from = new Address(client.chainId, LocalAddress.fromPublicKey(pubKey))
-//     const to = new Address('eth', LocalAddress.fromHexString(ethAddress))
+    const addressMapper = await AddressMapper.createAsync(
+      client,
+      new Address(client.chainId, LocalAddress.fromPublicKey(pubKey))
+    )
 
-//     // Add mapping if not added yet
-//     if (!(await addressMapper.hasMappingAsync(from))) {
-//       const ethersSigner = new EthersSigner(signer)
-//       await addressMapper.addIdentityMappingAsync(from, to, ethersSigner)
-//     }
+    // Set the mapping
+    const ethAddress = await signer.getAddress()
+    const from = new Address(client.chainId, LocalAddress.fromPublicKey(pubKey))
+    const to = new Address('eth', LocalAddress.fromHexString(ethAddress))
 
-//     try {
-//       const addressMapped = await addressMapper.getMappingAsync(from)
-//       t.assert(addressMapped.from.equals(from), 'Should be mapped the from address')
-//       t.assert(addressMapped.to.equals(to), 'Should be mapped the to address')
-//     } catch (err) {
-//       t.error(err)
-//     }
+    // Add mapping if not added yet
+    if (!(await addressMapper.hasMappingAsync(from))) {
+      const ethersSigner = new EthersSigner(signer)
+      await addressMapper.addIdentityMappingAsync(from, to, ethersSigner)
+    }
 
-//     // Ethereum account needs his on middlewares
-//     loomProvider.setMiddlewaresForAddress(to.local.toString(), [
-//       new CachedNonceTxMiddleware(pubKey, client),
-//       new SignedEthTxMiddleware(signer)
-//     ])
+    try {
+      const addressMapped = await addressMapper.getMappingAsync(from)
+      t.assert(addressMapped.from.equals(from), 'Should be mapped the from address')
+      t.assert(addressMapped.to.equals(to), 'Should be mapped the to address')
+    } catch (err) {
+      t.error(err)
+    }
 
-//     let tx1 = await contract.methods.set(1).send({ from: to.local.toString() })
-//     t.equal(
-//       tx1.status,
-//       '0x1',
-//       `SimpleStore.set should return correct status for address (to) ${to.local.toString()}`
-//     )
+    // Ethereum account needs his on middlewares
+    loomProvider.setMiddlewaresForAddress(to.local.toString(), [
+      new CachedNonceTxMiddleware(pubKey, client),
+      new SignedEthTxMiddleware(signer, true)
+    ])
 
-//     t.equal(
-//       tx1.events.NewValueSet.returnValues.sender,
-//       to.local.toString(),
-//       'Should be the same sender'
-//     )
-//   } catch (err) {
-//     console.error(err)
-//     t.fail(err.message)
-//   }
+    const middlewaresUsed = loomProvider.accountMiddlewares.get(ethAddress.toLowerCase())
+    t.assert(
+      middlewaresUsed![0] instanceof CachedNonceTxMiddleware,
+      'CachedNonceTxMiddleware used'
+    )
+    t.assert(middlewaresUsed![1] instanceof SignedEthTxMiddleware, 'SignedEthTxMiddleware used')
 
-//   t.end()
-// })
+    let tx = await contract.methods.set(1).send({ from: to.local.toString() })
+    t.equal(
+      tx.status,
+      '0x1',
+      `SimpleStore.set should return correct status for address (to) ${to.local.toString()}`
+    )
+
+    t.equal(
+      tx.events.NewValueSet.returnValues.sender.toLowerCase(),
+      from.local.toString(),
+      `Should be the same sender from loomchain ${from.local.toString()}`
+    )
+  } catch (err) {
+    console.error(err)
+    t.fail(err.message)
+  }
+
+  t.end()
+})

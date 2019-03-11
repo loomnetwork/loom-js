@@ -3,7 +3,7 @@ import { ethers } from 'ethers'
 import { SignedTx, NonceTx, MessageTx, Transaction } from '../proto/loom_pb'
 import { ITxMiddlewareHandler } from '../client'
 import { EthersSigner, soliditySha3 } from '../solidity-helpers'
-import { bytesToHex, hexToBytes, bufferToProtobufBytes } from '../crypto-utils'
+import { bytesToHex, hexToBytes } from '../crypto-utils'
 import { Address } from '../address'
 
 const log = debug('signed-eth-tx-middleware')
@@ -15,8 +15,12 @@ export class SignedEthTxMiddleware implements ITxMiddlewareHandler {
   signer: ethers.Signer
   fromAddress!: string
 
-  constructor(signer: ethers.Signer) {
+  // Apply Eth chain name removes the needing for the account to be mapped
+  applyEthChainName: boolean
+
+  constructor(signer: ethers.Signer, applyEthChainName: boolean = false) {
     this.signer = signer
+    this.applyEthChainName = applyEthChainName
   }
 
   private getHashedValues(txData: Readonly<Uint8Array>): string {
@@ -40,12 +44,12 @@ export class SignedEthTxMiddleware implements ITxMiddlewareHandler {
         value: toAddress
       },
       {
-        type: 'uint256',
+        type: 'uint64',
         value: sequence // nonce
       },
       {
         type: 'bytes',
-        value: `0x${bytesToHex(txData as Uint8Array)}`
+        value: bytesToHex(txData as Uint8Array)
       }
     ]
 
@@ -79,6 +83,8 @@ export class SignedEthTxMiddleware implements ITxMiddlewareHandler {
       `0x${bytesToHex(sig.slice(1))}`
     )
 
+    log('Public key found', publicKey)
+
     // Check if we're generating the right public key
     if (ethers.utils.computeAddress(publicKey) !== this.fromAddress) {
       throw Error("Public key generated isn't valid")
@@ -88,7 +94,11 @@ export class SignedEthTxMiddleware implements ITxMiddlewareHandler {
     signedTx.setInner(txData as Uint8Array)
     signedTx.setSignature(sig)
     signedTx.setPublicKey(hexToBytes(publicKey))
-    signedTx.setChainname('eth')
+
+    if (this.applyEthChainName) {
+      signedTx.setChainname('eth')
+    }
+
     return Promise.resolve(signedTx.serializeBinary())
   }
 }
