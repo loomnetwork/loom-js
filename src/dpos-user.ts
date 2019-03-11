@@ -3,7 +3,7 @@ import debug from 'debug'
 import { ethers, ContractTransaction } from 'ethers'
 import Web3 from 'web3'
 
-import { CryptoUtils, Address, LocalAddress, Client, Contracts, EthersSigner } from '.'
+import { CryptoUtils, Address, Client, Contracts, EthersSigner } from '.'
 import { DPOS2, Coin, LoomCoinTransferGateway, AddressMapper } from './contracts'
 import { IWithdrawalReceipt } from './contracts/transfer-gateway'
 import { sleep, createDefaultClient } from './helpers'
@@ -20,12 +20,13 @@ import {
 const log = debug('dpos-user')
 
 const coinMultiplier = new BN(10).pow(new BN(18))
+const V2_GATEWAYS = ['oracle-dev', 'asia-1']
+
 const ERC20ABI = require('./mainnet-contracts/ERC20.json')
 const ERC20GatewayABI = require('./mainnet-contracts/ERC20Gateway.json')
 const ERC20GatewayABI_v2 = require('./mainnet-contracts/ERC20Gateway_v2.json')
 
 import { ERC20 } from './mainnet-contracts/ERC20'
-import { ERC20Gateway } from './mainnet-contracts/ERC20Gateway'
 import { ERC20Gateway_v2 } from './mainnet-contracts/ERC20Gateway_v2'
 
 export class DPOSUser {
@@ -95,6 +96,12 @@ export class DPOSUser {
     loomAddress: string,
     version?: number
   ): Promise<DPOSUser> {
+    // If no gateway version is provided, pick based on the chain URL prefix
+    if (version === undefined) {
+      const chainName = dappchainEndpoint.split('.')[0]
+      version = chainName in V2_GATEWAYS ? 2 : 1
+    }
+
     const { client, address } = createDefaultClient(dappchainKey, dappchainEndpoint, chainId)
     const ethAddress = await wallet.getAddress()
 
