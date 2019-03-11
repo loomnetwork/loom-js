@@ -20,7 +20,7 @@ import {
 const log = debug('dpos-user')
 
 const coinMultiplier = new BN(10).pow(new BN(18))
-const V2_GATEWAYS = ['oracle-dev', 'asia-1']
+const V2_GATEWAYS = ['oracle-dev', 'asia1']
 
 const ERC20ABI = require('./mainnet-contracts/ERC20.json')
 const ERC20GatewayABI = require('./mainnet-contracts/ERC20Gateway.json')
@@ -99,7 +99,11 @@ export class DPOSUser {
     // If no gateway version is provided, pick based on the chain URL prefix
     if (version === undefined) {
       const chainName = dappchainEndpoint.split('.')[0]
-      version = chainName in V2_GATEWAYS ? 2 : 1
+      for (let chainPrefix of V2_GATEWAYS) {
+        if (chainName.indexOf(chainPrefix) != -1) {
+          version = 2
+        }
+      }
     }
 
     const { client, address } = createDefaultClient(dappchainKey, dappchainEndpoint, chainId)
@@ -272,6 +276,7 @@ export class DPOSUser {
       log('No pending receipt')
       return
     }
+    log('Got receipt:', receipt)
     const signature = CryptoUtils.bytesToHexAddr(receipt.oracleSignature)
     const amount = receipt.tokenAmount!
     return this.withdrawCoinFromRinkebyGatewayAsync(amount, signature)
@@ -392,6 +397,7 @@ export class DPOSUser {
     }
     signature = pendingReceipt.oracleSignature
 
+    log('Got receipt', pendingReceipt)
     return CryptoUtils.bytesToHexAddr(signature)
   }
 
@@ -399,12 +405,21 @@ export class DPOSUser {
     amount: BN,
     sig: string
   ): Promise<ethers.ContractTransaction> {
+    const hash = await this.createWithdrawalHash(amount)
+    log('Receipt hash:', hash)
+
     if (this._version === 2) {
       // Ugly hack to extract the 'mode' bit from the old signature format - if it's still used (68 = 66 + 2, where 2 is the 0x)
-      sig = sig.length === 68 ? '0x' + sig.slice(4) : sig
+      sig = sig.length === 134 ? '0x' + sig.slice(4) : sig
       let sign = ethers.utils.splitSignature(sig)
-      let valIndexes = [0]
 
+      let signer = ethers.utils.recoverAddress(
+        ethers.utils.arrayify(ethers.utils.hashMessage(ethers.utils.arrayify(hash))),
+        sign
+      )
+      log('Receipt was signed by:', signer)
+
+      let valIndexes = [0]
       return this._ethereumGateway.functions.withdrawERC20(
         amount.toString(),
         this._ethereumLoom.address,
@@ -421,6 +436,21 @@ export class DPOSUser {
       sig,
       this._ethereumLoom.address
     )
+  }
+
+  private async createWithdrawalHash(amount: BN): Promise<string> {
+    let nonce = await this.ethereumGateway.functions.nonces(this.ethAddress)
+    let amountHashed = ethers.utils.solidityKeccak256(
+      ['uint256', 'address'],
+      [amount.toString(), this.ethereumLoom.address]
+    )
+
+    const msg = ethers.utils.solidityKeccak256(
+      ['address', 'uint256', 'address', 'bytes32'],
+      [this.ethAddress, nonce, this.ethereumGateway.address, amountHashed]
+    )
+
+    return msg
   }
 
   /**
