@@ -404,7 +404,7 @@ export class DPOSUser {
     return this._ethereumGateway.functions.withdrawERC20(
       amount.toString(),
       sig,
-      this._ethereumLoom.address
+      null
     )
   }
 
