@@ -20,8 +20,6 @@ import {
 const log = debug('dpos-user')
 
 const coinMultiplier = new BN(10).pow(new BN(18))
-const V2_GATEWAYS = ['oracle-dev', 'asia-1']
-
 const ERC20ABI = require('./mainnet-contracts/ERC20.json')
 const ERC20GatewayABI_v2 = require('./mainnet-contracts/ERC20Gateway_v2.json')
 const VMCABI = require('./mainnet-contracts/ValidatorManagerContract.json')
@@ -97,11 +95,6 @@ export class DPOSUser {
     loomAddress: string,
     vmcAddress?: string
   ): Promise<DPOSUser> {
-    // If no gateway version is provided, pick based on the chain URL prefix
-    if (version === undefined) {
-      const chainName = dappchainEndpoint.split('.')[0]
-      version = chainName in V2_GATEWAYS ? 2 : 1
-    }
 
     const { client, address } = createDefaultClient(dappchainKey, dappchainEndpoint, chainId)
     const ethAddress = await wallet.getAddress()
