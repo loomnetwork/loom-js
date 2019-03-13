@@ -136,35 +136,6 @@ export namespace TransferGatewayTokenWithdrawalSigned {
   }
 }
 
-export class TransferGatewayAddAuthorizedContractMappingRequest extends jspb.Message {
-  hasForeignContract(): boolean;
-  clearForeignContract(): void;
-  getForeignContract(): proto_loom_pb.Address | undefined;
-  setForeignContract(value?: proto_loom_pb.Address): void;
-
-  hasLocalContract(): boolean;
-  clearLocalContract(): void;
-  getLocalContract(): proto_loom_pb.Address | undefined;
-  setLocalContract(value?: proto_loom_pb.Address): void;
-
-  serializeBinary(): Uint8Array;
-  toObject(includeInstance?: boolean): TransferGatewayAddAuthorizedContractMappingRequest.AsObject;
-  static toObject(includeInstance: boolean, msg: TransferGatewayAddAuthorizedContractMappingRequest): TransferGatewayAddAuthorizedContractMappingRequest.AsObject;
-  static extensions: {[key: number]: jspb.ExtensionFieldInfo<jspb.Message>};
-  static extensionsBinary: {[key: number]: jspb.ExtensionFieldBinaryInfo<jspb.Message>};
-  static serializeBinaryToWriter(message: TransferGatewayAddAuthorizedContractMappingRequest, writer: jspb.BinaryWriter): void;
-  static deserializeBinary(bytes: Uint8Array): TransferGatewayAddAuthorizedContractMappingRequest;
-  static deserializeBinaryFromReader(message: TransferGatewayAddAuthorizedContractMappingRequest, reader: jspb.BinaryReader): TransferGatewayAddAuthorizedContractMappingRequest;
-}
-
-export namespace TransferGatewayAddAuthorizedContractMappingRequest {
-  export type AsObject = {
-    foreignContract?: proto_loom_pb.Address.AsObject,
-    localContract?: proto_loom_pb.Address.AsObject,
-    gatewayOwnerSig: Uint8Array | string,
-  }
-}
-
 export class TransferGatewayAddContractMappingRequest extends jspb.Message {
   hasForeignContract(): boolean;
   clearForeignContract(): void;

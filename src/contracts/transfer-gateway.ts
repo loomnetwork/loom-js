@@ -8,7 +8,6 @@ import {
   TransferGatewayWithdrawalReceiptRequest,
   TransferGatewayWithdrawalReceiptResponse,
   TransferGatewayTokenKind,
-  TransferGatewayAddAuthorizedContractMappingRequest,
   TransferGatewayAddContractMappingRequest,
   TransferGatewayTokenWithdrawalSigned,
   TransferGatewayContractMappingConfirmed,
@@ -155,7 +154,7 @@ export class TransferGateway extends Contract {
       localContract
     } = params
 
-    const mappingContractRequest = new TransferGatewayAddAuthorizedContractMappingRequest()
+    const mappingContractRequest = new TransferGatewayAddContractMappingRequest()
     mappingContractRequest.setForeignContract(foreignContract.MarshalPB())
     mappingContractRequest.setLocalContract(localContract.MarshalPB())
 
