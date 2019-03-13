@@ -18,11 +18,16 @@ export class SignedEthTxMiddleware implements ITxMiddlewareHandler {
   // Apply Eth chain name removes the needing for the account to be mapped
   applyEthChainName: boolean
 
+  /**
+   * @param signer ether signer responsible for sign the Metamask tx
+   * @param applyEthChainName apply eth chain name if this the eth address is mapped
+   */
   constructor(signer: ethers.Signer, applyEthChainName: boolean = false) {
     this.signer = signer
     this.applyEthChainName = applyEthChainName
   }
 
+  // Hashes from address, to address, nonce and bytes from txData
   private getHashedValues(txData: Readonly<Uint8Array>): string {
     // Accessing previous buffers to retrieve required data
     const nonce = NonceTx.deserializeBinary(txData as Uint8Array)

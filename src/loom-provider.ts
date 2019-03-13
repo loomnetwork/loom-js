@@ -189,6 +189,7 @@ export class LoomProvider {
   }
 
   /**
+   * Set an array of middlewares for a given account
    *
    * @param address Address to be register the middleware
    * @param middlewares Array of middlewares for the address
@@ -652,6 +653,7 @@ export class LoomProvider {
     return responseData.getTxHash_asU8()
   }
 
+  // Checks if the SignedEthTxMiddleware middleware is present
   private _isEthSignMiddlewarePresent(fromPublicAddr: string): boolean {
     const middlewares = this._accountMiddlewares.get(fromPublicAddr) as Array<ITxMiddlewareHandler>
 
@@ -673,6 +675,7 @@ export class LoomProvider {
     value: string
   }): Promise<any> {
     const isEthSignMiddlewarePresent = this._isEthSignMiddlewarePresent(payload.from)
+    // Eth middlewares requires requires eth as chainId
     const callerChainId = isEthSignMiddlewarePresent ? 'eth' : this._client.chainId
 
     log('Call using chainID', callerChainId)
