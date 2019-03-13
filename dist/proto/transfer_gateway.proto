@@ -138,27 +138,3 @@ message TransferGatewayConfirmWithdrawalReceiptRequest {
     // 32-byte hash of the withdrawal details
     bytes withdrawal_hash = 3; // TODO: figure out if there's any point passing this around
 }
-
-message TransferGatewayTokenAmount {
-    BigUInt token_id = 1;
-    BigUInt token_amount = 2;
-}
-
-// Stores all unclaimed tokens of a depositor for a single contract.
-message TransferGatewayUnclaimedToken {
-    // Foreign address of token contract
-    Address token_contract = 1;
-    TransferGatewayTokenKind token_kind = 2;
-    // For ERC721 this is a list of token IDs (amount is omitted because it should always be 1).
-    // For ERC721X this is a list of token IDs with the corresponding amount of each token.
-    // For ERC20/ETH this list will contain a single value containing the total unclaimed ERC20/ETH amount.
-    repeated TransferGatewayTokenAmount amounts = 3;
-}
-
-message TransferGatewayGetUnclaimedTokensRequest {
-    Address owner = 1;
-}
-
-message TransferGatewayGetUnclaimedTokensResponse {
-    repeated TransferGatewayUnclaimedToken unclaimed_tokens = 1;
-}
