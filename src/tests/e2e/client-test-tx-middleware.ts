@@ -255,14 +255,25 @@ test('Test Signed Eth Tx Middleware Type 2', async t => {
 
 test('Test Signed Eth Tx Middleware Type 2 with Coin Contract', async t => {
   try {
-    const { client, signer, pubKey, loomProvider, contract } = await bootstrapTest(
-      createTestHttpClient
+    // Create the client
+    const privKey = CryptoUtils.B64ToUint8Array(
+      'D6XCGyCcDZ5TE22h66AlU+Bn6JqL4RnSl4a09RGU9LfM53JFG/T5GAnC0uiuIIiw9Dl0TwEAmdGb+WE0Bochkg=='
     )
+    const pubKey = CryptoUtils.publicKeyFromPrivateKey(privKey)
+    const client = createTestHttpClient()
+    client.on('error', err => console.error(err))
 
+    // <---- From this point using loom common middleware until change
+    client.txMiddleware = createDefaultTxMiddleware(client, privKey)
+
+    // Create AddressMapper wrapper
     const addressMapper = await AddressMapper.createAsync(
       client,
       new Address(client.chainId, LocalAddress.fromPublicKey(pubKey))
     )
+
+    // And get the signer
+    const signer = getEthersSigner()
 
     // Set the mapping
     const ethAddress = await signer.getAddress()
@@ -275,6 +286,7 @@ test('Test Signed Eth Tx Middleware Type 2 with Coin Contract', async t => {
       await addressMapper.addIdentityMappingAsync(from, to, ethersSigner)
     }
 
+    // Check if map exists
     try {
       const addressMapped = await addressMapper.getMappingAsync(from)
       t.assert(addressMapped.from.equals(from), 'Should be mapped the from address')
@@ -283,13 +295,22 @@ test('Test Signed Eth Tx Middleware Type 2 with Coin Contract', async t => {
       t.error(err)
     }
 
+    // <---- From this point it should call using eth sign
+
+    // Create Coin wrapper
     const coin = await Coin.createAsync(
       client,
-      new Address(client.chainId, LocalAddress.fromPublicKey(pubKey))
+      new Address('eth', LocalAddress.fromHexString(ethAddress))
     )
 
     const spender = new Address(client.chainId, LocalAddress.fromPublicKey(pubKey))
 
+    client.txMiddleware = [
+      new CachedNonceTxMiddleware(pubKey, client),
+      new SignedEthTxMiddleware(signer, true)
+    ]
+
+    // Check approval on coin native contract
     await coin.approveAsync(spender, toCoinE18(1))
 
     // Using owner and spender as the same just for test

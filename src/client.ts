@@ -753,6 +753,8 @@ export class Client extends EventEmitter {
     if (!addrStr) {
       return null
     }
+
+    debugLog(`Found contract ${contractName} with address ${Address.fromString(addrStr)}`)
     return Address.fromString(addrStr)
   }
 
