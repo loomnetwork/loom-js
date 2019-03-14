@@ -6,7 +6,7 @@ import Web3 from 'web3'
 import { CryptoUtils, Address, LocalAddress, Client, Contracts, EthersSigner } from '.'
 import { DPOS2, Coin, LoomCoinTransferGateway, AddressMapper } from './contracts'
 import { IWithdrawalReceipt } from './contracts/transfer-gateway'
-import { sleep, createDefaultClient } from './helpers'
+import { sleep, createDefaultClient, createDefaultEthSignClient } from './helpers'
 import {
   IValidator,
   ICandidate,
@@ -25,6 +25,8 @@ const ERC20ABI = require('./mainnet-contracts/ERC20.json')
 
 import { ERC20 } from './mainnet-contracts/ERC20'
 import { ERC20Gateway } from './mainnet-contracts/ERC20Gateway'
+import { NonceTxMiddleware, SignedEthTxMiddleware } from './middleware'
+import { B64ToUint8Array, publicKeyFromPrivateKey } from './crypto-utils'
 
 export class DPOSUser {
   private _wallet: ethers.Signer
@@ -76,6 +78,44 @@ export class DPOSUser {
       chainId,
       gatewayAddress,
       loomAddress
+    )
+  }
+
+  static async createEthSignMetamaskUserAsync(
+    web3: Web3,
+    dappchainEndpoint: string,
+    dappchainKey: string,
+    chainId: string,
+    gatewayAddress: string,
+    loomAddress: string
+  ): Promise<DPOSUser> {
+    const provider = new ethers.providers.Web3Provider(web3.currentProvider)
+    const wallet = provider.getSigner()
+
+    const { client, address } = createDefaultEthSignClient(
+      dappchainKey,
+      dappchainEndpoint,
+      chainId,
+      wallet
+    )
+
+    const ethAddress = await wallet.getAddress()
+    const dappchainLoom = await Coin.createAsync(client, address)
+    const dappchainDPOS = await DPOS2.createAsync(client, address)
+    const dappchainGateway = await LoomCoinTransferGateway.createAsync(client, address)
+    const dappchainMapper = await AddressMapper.createAsync(client, address)
+
+    return new DPOSUser(
+      wallet,
+      client,
+      address,
+      ethAddress,
+      gatewayAddress,
+      loomAddress,
+      dappchainGateway,
+      dappchainLoom,
+      dappchainDPOS,
+      dappchainMapper
     )
   }
 
@@ -346,7 +386,9 @@ export class DPOSUser {
   }
 
   async getUnclaimedLoomTokensAsync(owner?: string): Promise<BN> {
-    const address = owner ? Address.fromString(`eth:${owner}`) : Address.fromString(`eth:${this.ethAddress}`)
+    const address = owner
+      ? Address.fromString(`eth:${owner}`)
+      : Address.fromString(`eth:${this.ethAddress}`)
     const tokens = await this._dappchainGateway.getUnclaimedTokensAsync(address)
 
     const unclaimedLoomTokens = tokens.filter(

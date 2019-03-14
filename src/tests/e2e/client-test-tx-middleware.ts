@@ -1,4 +1,5 @@
 import test from 'tape'
+import BN from 'bn.js'
 
 import { CachedNonceTxMiddleware, CryptoUtils, Client, Nonce2TxMiddleware } from '../../index'
 
@@ -10,7 +11,7 @@ import { ethers } from 'ethers'
 import { SignedEthTxMiddleware } from '../../middleware'
 import { EthersSigner } from '../../solidity-helpers'
 import { createTestHttpClient } from '../helpers'
-import { AddressMapper } from '../../contracts'
+import { AddressMapper, Coin } from '../../contracts'
 
 // import Web3 from 'web3'
 const Web3 = require('web3')
@@ -41,6 +42,10 @@ const Web3 = require('web3')
  * }
  *
  */
+
+const toCoinE18 = (amount: number): BN => {
+  return new BN(10).pow(new BN(18)).mul(new BN(amount))
+}
 
 // TODO: Need a factory to create connection properly likes plasma-cash test
 function getEthersSigner() {
@@ -240,6 +245,56 @@ test('Test Signed Eth Tx Middleware Type 2', async t => {
       from.local.toString(),
       `Should be the same sender from loomchain ${from.local.toString()}`
     )
+  } catch (err) {
+    console.error(err)
+    t.fail(err.message)
+  }
+
+  t.end()
+})
+
+test('Test Signed Eth Tx Middleware Type 2 with Coin Contract', async t => {
+  try {
+    const { client, signer, pubKey, loomProvider, contract } = await bootstrapTest(
+      createTestHttpClient
+    )
+
+    const addressMapper = await AddressMapper.createAsync(
+      client,
+      new Address(client.chainId, LocalAddress.fromPublicKey(pubKey))
+    )
+
+    // Set the mapping
+    const ethAddress = await signer.getAddress()
+    const from = new Address(client.chainId, LocalAddress.fromPublicKey(pubKey))
+    const to = new Address('eth', LocalAddress.fromHexString(ethAddress))
+
+    // Add mapping if not added yet
+    if (!(await addressMapper.hasMappingAsync(from))) {
+      const ethersSigner = new EthersSigner(signer)
+      await addressMapper.addIdentityMappingAsync(from, to, ethersSigner)
+    }
+
+    try {
+      const addressMapped = await addressMapper.getMappingAsync(from)
+      t.assert(addressMapped.from.equals(from), 'Should be mapped the from address')
+      t.assert(addressMapped.to.equals(to), 'Should be mapped the to address')
+    } catch (err) {
+      t.error(err)
+    }
+
+    const coin = await Coin.createAsync(
+      client,
+      new Address(client.chainId, LocalAddress.fromPublicKey(pubKey))
+    )
+
+    const spender = new Address(client.chainId, LocalAddress.fromPublicKey(pubKey))
+
+    await coin.approveAsync(spender, toCoinE18(1))
+
+    // Using owner and spender as the same just for test
+    const allowance = await coin.getAllowanceAsync(spender, spender)
+    t.equal(allowance.toString(), '1000000000000000000', 'Allowance should ok')
   } catch (err) {
     console.error(err)
     t.fail(err.message)
