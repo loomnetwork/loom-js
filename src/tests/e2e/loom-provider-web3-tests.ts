@@ -201,6 +201,23 @@ test('LoomProvider + Web3 + Get version', async t => {
   t.end()
 })
 
+test('LoomProvider + Web3 + getBlockNumber', async t => {
+  const { client, web3 } = await newContractAndClient()
+  try {
+    const blockNumber = await web3.eth.getBlockNumber()
+    t.assert(typeof blockNumber === 'number', 'Block number should be a number')
+  } catch (err) {
+    console.log(err)
+  }
+
+  if (client) {
+    client.disconnect()
+  }
+
+  t.end()
+})
+
+
 test('LoomProvider + Web3 + getBlockByNumber', async t => {
   const { client, web3 } = await newContractAndClient()
   try {
