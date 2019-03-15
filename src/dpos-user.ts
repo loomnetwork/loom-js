@@ -23,10 +23,12 @@ const coinMultiplier = new BN(10).pow(new BN(18))
 const V2_GATEWAYS = ['oracle-dev', 'asia1']
 
 const ERC20ABI = require('./mainnet-contracts/ERC20.json')
+const ValidatorManagerContractABI = require('./mainnet-contracts/ValidatorManagerContract.json')
 const ERC20GatewayABI = require('./mainnet-contracts/ERC20Gateway.json')
 const ERC20GatewayABI_v2 = require('./mainnet-contracts/ERC20Gateway_v2.json')
 
 import { ERC20 } from './mainnet-contracts/ERC20'
+import { ValidatorManagerContract } from './mainnet-contracts/ValidatorManagerContract'
 import { ERC20Gateway_v2 } from './mainnet-contracts/ERC20Gateway_v2'
 
 enum GatewayVersion {
@@ -41,6 +43,7 @@ export class DPOSUser {
   private _ethAddress: string
   private _ethereumGateway: ERC20Gateway_v2
   private _ethereumLoom: ERC20
+  private _ethereumVMC?: ValidatorManagerContract
   private _dappchainGateway: Contracts.LoomCoinTransferGateway
   private _dappchainLoom: Contracts.Coin
   private _dappchainDPOS: Contracts.DPOS2
@@ -55,6 +58,7 @@ export class DPOSUser {
     chainId: string,
     gatewayAddress: string,
     loomAddress: string,
+    vmcAddress?: string,
     version?: number
   ): Promise<DPOSUser> {
     const provider = new ethers.providers.JsonRpcProvider(endpoint)
@@ -66,6 +70,7 @@ export class DPOSUser {
       chainId,
       gatewayAddress,
       loomAddress,
+      vmcAddress,
       version
     )
   }
@@ -77,6 +82,7 @@ export class DPOSUser {
     chainId: string,
     gatewayAddress: string,
     loomAddress: string,
+    vmcAddress?: string,
     version?: GatewayVersion
   ): Promise<DPOSUser> {
     const provider = new ethers.providers.Web3Provider(web3.currentProvider)
@@ -88,6 +94,7 @@ export class DPOSUser {
       chainId,
       gatewayAddress,
       loomAddress,
+      vmcAddress,
       version
     )
   }
@@ -99,6 +106,7 @@ export class DPOSUser {
     chainId: string,
     gatewayAddress: string,
     loomAddress: string,
+    vmcAddress?: string,
     version?: GatewayVersion
   ): Promise<DPOSUser> {
     // If no gateway version is provided, pick based on the chain URL prefix
@@ -133,6 +141,7 @@ export class DPOSUser {
       dappchainLoom,
       dappchainDPOS,
       dappchainMapper,
+      vmcAddress,
       version
     )
   }
@@ -148,6 +157,7 @@ export class DPOSUser {
     dappchainLoom: Contracts.Coin,
     dappchainDPOS: Contracts.DPOS2,
     dappchainMapper: Contracts.AddressMapper,
+    vmcAddress?: string,
     version: GatewayVersion = GatewayVersion.SINGLESIG
   ) {
     this._version = version
@@ -160,10 +170,18 @@ export class DPOSUser {
     this._ethereumGateway = new ethers.Contract(gatewayAddress, gatewayABI, wallet)
     // @ts-ignore
     this._ethereumLoom = new ethers.Contract(loomAddress, ERC20ABI, wallet)
+    if (version === GatewayVersion.MULTISIG && vmcAddress !== undefined) {
+      // @ts-ignore
+      this._ethereumVMC = new ethers.Contract(vmcAddress, ValidatorManagerContractABI, wallet)
+    }
     this._dappchainGateway = dappchainGateway
     this._dappchainLoom = dappchainLoom
     this._dappchainDPOS = dappchainDPOS
     this._dappchainMapper = dappchainMapper
+  }
+
+  get ethereumVMC(): ethers.Contract | undefined {
+    return this._ethereumVMC
   }
 
   get ethereumGateway(): ethers.Contract {
@@ -435,7 +453,7 @@ export class DPOSUser {
     amount: BN,
     sig: string
   ): Promise<ethers.ContractTransaction> {
-    if (this._version === GatewayVersion.MULTISIG) {
+    if (this._version === GatewayVersion.MULTISIG && this._ethereumVMC !== undefined) {
       const withdrawalHash = await this.createWithdrawalHash(amount)
       let vs: Array<number> = []
       let rs: Array<string> = []
