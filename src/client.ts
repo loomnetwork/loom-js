@@ -99,6 +99,18 @@ export enum ClientEvent {
   Disconnected = 'disconnected'
 }
 
+export enum AccountType {
+  /**
+   * The account isn't mapped
+   */
+  Local = '1',
+
+  /**
+   * The account from sender is mapped than use this option
+   */
+  Foreign = '2'
+}
+
 export interface IClientEventArgs {
   kind: ClientEvent
   /** URL that corresponds to the RPC client this event originated from. */
@@ -723,14 +735,18 @@ export class Client extends EventEmitter {
    * This should only be called by middlewares.
    *
    * Account Type
-   * 1) Native account is recognized by the chain type only
-   * 2) AddressMapped account recognized through the address mapper
+   * 1) Local account is recognized by the chain as the chainId configured
+   * 2) Foreign account recognized through the address mapper (eth)
    *
    * @param chainId chainId as string
    * @param localAddr local address in hex
-   * @param accountType sets localAddr the account type
+   * @param accountType sets local address or foreign address
    */
-  async getNonce2Async(chainId: string, localAddr: string, accountType: string): Promise<number> {
+  async getNonce2Async(
+    chainId: string,
+    localAddr: string,
+    accountType: AccountType
+  ): Promise<number> {
     const local = Uint8ArrayToB64(hexToBytes(localAddr))
     return parseInt(
       await this._writeClient.sendAsync<string>('nonce2', {

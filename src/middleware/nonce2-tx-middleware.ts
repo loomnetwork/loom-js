@@ -1,6 +1,6 @@
 import debug from 'debug'
 import { NonceTx, Transaction, MessageTx } from '../proto/loom_pb'
-import { ITxMiddlewareHandler, Client, ITxResults } from '../client'
+import { ITxMiddlewareHandler, Client, ITxResults, AccountType } from '../client'
 import { Address } from '../address'
 
 const log = debug('nonce2-tx-middleware')
@@ -9,18 +9,6 @@ export const INVALID_TX_NONCE_ERROR = 'Invalid tx nonce'
 
 export function isInvalidTxNonceError(err: any): boolean {
   return err instanceof Error && err.message === INVALID_TX_NONCE_ERROR
-}
-
-export enum AccountType {
-  /**
-   * The account isn't mapped
-   */
-  Local = '1',
-
-  /**
-   * The account from sender is mapped than use this option
-   */
-  Foreign = '2'
 }
 
 /**
@@ -49,7 +37,7 @@ export class Nonce2TxMiddleware implements ITxMiddlewareHandler {
     const nonce = await this._client.getNonce2Async(
       this._fromAddress.chainId,
       this._fromAddress.local.toString(),
-      this._accountType as string
+      this._accountType
     )
 
     log(`Next nonce ${nonce + 1}`)
