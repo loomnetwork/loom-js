@@ -11,8 +11,7 @@
     ],
     "payable": false,
     "stateMutability": "view",
-    "type": "function",
-    "signature": "0x37179db8"
+    "type": "function"
   },
   {
     "constant": false,
@@ -30,8 +29,7 @@
     "outputs": [],
     "payable": false,
     "stateMutability": "nonpayable",
-    "type": "function",
-    "signature": "0x392d661c"
+    "type": "function"
   },
   {
     "constant": true,
@@ -50,8 +48,7 @@
     ],
     "payable": false,
     "stateMutability": "view",
-    "type": "function",
-    "signature": "0x4e0dc557"
+    "type": "function"
   },
   {
     "constant": true,
@@ -70,8 +67,7 @@
     ],
     "payable": false,
     "stateMutability": "view",
-    "type": "function",
-    "signature": "0x7ecebe00"
+    "type": "function"
   },
   {
     "constant": false,
@@ -105,8 +101,7 @@
     "outputs": [],
     "payable": false,
     "stateMutability": "nonpayable",
-    "type": "function",
-    "signature": "0xb0116dc7"
+    "type": "function"
   },
   {
     "inputs": [
@@ -117,8 +112,7 @@
     ],
     "payable": false,
     "stateMutability": "nonpayable",
-    "type": "constructor",
-    "signature": "constructor"
+    "type": "constructor"
   },
   {
     "payable": true,
@@ -140,8 +134,7 @@
       }
     ],
     "name": "ETHReceived",
-    "type": "event",
-    "signature": "0xbfe611b001dfcd411432f7bf0d79b82b4b2ee81511edac123a3403c357fb972a"
+    "type": "event"
   },
   {
     "anonymous": false,
@@ -173,8 +166,7 @@
       }
     ],
     "name": "ERC721Received",
-    "type": "event",
-    "signature": "0x691f4eac2b8850491851c72f70a121d76b20836d776658438f5b13dd9f8dbc6e"
+    "type": "event"
   },
   {
     "anonymous": false,
@@ -211,8 +203,7 @@
       }
     ],
     "name": "ERC721XReceived",
-    "type": "event",
-    "signature": "0xc341982fb8843f55f2f7aae4eb89231a4ef94a199f370debe7bc5c07c2de2bab"
+    "type": "event"
   },
   {
     "anonymous": false,
@@ -249,8 +240,7 @@
       }
     ],
     "name": "ERC721XBatchReceived",
-    "type": "event",
-    "signature": "0x48d67933be7b1e6d77d914145d793b5c9ced38156f34ebab23216e085435ac55"
+    "type": "event"
   },
   {
     "anonymous": false,
@@ -272,8 +262,7 @@
       }
     ],
     "name": "ERC20Received",
-    "type": "event",
-    "signature": "0xa13cf347fb36122550e414f6fd1a0c2e490cff76331c4dcc20f760891ecca12a"
+    "type": "event"
   },
   {
     "anonymous": false,
@@ -300,8 +289,7 @@
       }
     ],
     "name": "TokenWithdrawn",
-    "type": "event",
-    "signature": "0x591f2d33d85291e32c4067b5a497caf3ddb5b1830eba9909e66006ec3a0051b4"
+    "type": "event"
   },
   {
     "anonymous": false,
@@ -323,8 +311,7 @@
       }
     ],
     "name": "LoomCoinReceived",
-    "type": "event",
-    "signature": "0x91557346f7592c9279b67cc52709a00442f0597658ec38a5fe84568c016331d7"
+    "type": "event"
   },
   {
     "constant": false,
@@ -362,8 +349,7 @@
     "outputs": [],
     "payable": false,
     "stateMutability": "nonpayable",
-    "type": "function",
-    "signature": "0xced7c92a"
+    "type": "function"
   },
   {
     "constant": false,
@@ -397,8 +383,7 @@
     "outputs": [],
     "payable": false,
     "stateMutability": "nonpayable",
-    "type": "function",
-    "signature": "0x03c0fe3a"
+    "type": "function"
   },
   {
     "constant": false,
@@ -428,8 +413,7 @@
     "outputs": [],
     "payable": false,
     "stateMutability": "nonpayable",
-    "type": "function",
-    "signature": "0xda293eb3"
+    "type": "function"
   },
   {
     "constant": false,
@@ -464,8 +448,7 @@
     ],
     "payable": false,
     "stateMutability": "nonpayable",
-    "type": "function",
-    "signature": "0x93ba7daa"
+    "type": "function"
   },
   {
     "constant": false,
@@ -500,8 +483,7 @@
     ],
     "payable": false,
     "stateMutability": "nonpayable",
-    "type": "function",
-    "signature": "0xb3b0f4c7"
+    "type": "function"
   },
   {
     "constant": false,
@@ -532,8 +514,7 @@
     ],
     "payable": false,
     "stateMutability": "nonpayable",
-    "type": "function",
-    "signature": "0x150b7a02"
+    "type": "function"
   },
   {
     "constant": true,
@@ -547,8 +528,7 @@
     ],
     "payable": false,
     "stateMutability": "view",
-    "type": "function",
-    "signature": "0x14f6c3be"
+    "type": "function"
   },
   {
     "constant": true,
@@ -571,8 +551,7 @@
     ],
     "payable": false,
     "stateMutability": "view",
-    "type": "function",
-    "signature": "0x4e56ef52"
+    "type": "function"
   },
   {
     "constant": true,
@@ -595,7 +574,6 @@
     ],
     "payable": false,
     "stateMutability": "view",
-    "type": "function",
-    "signature": "0xb4c60342"
+    "type": "function"
   }
 ]

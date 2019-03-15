@@ -3,7 +3,7 @@ import debug from 'debug'
 import { ethers, ContractTransaction } from 'ethers'
 import Web3 from 'web3'
 
-import { CryptoUtils, Address, LocalAddress, Client, Contracts, EthersSigner } from '.'
+import { CryptoUtils, Address, Client, Contracts, EthersSigner } from '.'
 import { DPOS2, Coin, LoomCoinTransferGateway, AddressMapper } from './contracts'
 import { IWithdrawalReceipt } from './contracts/transfer-gateway'
 import { sleep, createDefaultClient } from './helpers'
@@ -20,23 +20,32 @@ import {
 const log = debug('dpos-user')
 
 const coinMultiplier = new BN(10).pow(new BN(18))
-const ERC20GatewayABI = require('./mainnet-contracts/ERC20Gateway.json')
+const V2_GATEWAYS = ['oracle-dev', 'asia1']
+
 const ERC20ABI = require('./mainnet-contracts/ERC20.json')
+const ERC20GatewayABI = require('./mainnet-contracts/ERC20Gateway.json')
+const ERC20GatewayABI_v2 = require('./mainnet-contracts/ERC20Gateway_v2.json')
 
 import { ERC20 } from './mainnet-contracts/ERC20'
-import { ERC20Gateway } from './mainnet-contracts/ERC20Gateway'
+import { ERC20Gateway_v2 } from './mainnet-contracts/ERC20Gateway_v2'
+
+enum GatewayVersion {
+  SINGLESIG = 1,
+  MULTISIG = 2
+}
 
 export class DPOSUser {
   private _wallet: ethers.Signer
   private _client: Client
   private _address: Address
   private _ethAddress: string
-  private _ethereumGateway: ERC20Gateway
+  private _ethereumGateway: ERC20Gateway_v2
   private _ethereumLoom: ERC20
   private _dappchainGateway: Contracts.LoomCoinTransferGateway
   private _dappchainLoom: Contracts.Coin
   private _dappchainDPOS: Contracts.DPOS2
   private _dappchainMapper: Contracts.AddressMapper
+  private _version: GatewayVersion
 
   static async createOfflineUserAsync(
     endpoint: string,
@@ -45,7 +54,8 @@ export class DPOSUser {
     dappchainKey: string,
     chainId: string,
     gatewayAddress: string,
-    loomAddress: string
+    loomAddress: string,
+    version?: number
   ): Promise<DPOSUser> {
     const provider = new ethers.providers.JsonRpcProvider(endpoint)
     const wallet = new ethers.Wallet(privateKey, provider)
@@ -55,7 +65,8 @@ export class DPOSUser {
       dappchainKey,
       chainId,
       gatewayAddress,
-      loomAddress
+      loomAddress,
+      version
     )
   }
 
@@ -65,7 +76,8 @@ export class DPOSUser {
     dappchainKey: string,
     chainId: string,
     gatewayAddress: string,
-    loomAddress: string
+    loomAddress: string,
+    version?: GatewayVersion
   ): Promise<DPOSUser> {
     const provider = new ethers.providers.Web3Provider(web3.currentProvider)
     const wallet = provider.getSigner()
@@ -75,7 +87,8 @@ export class DPOSUser {
       dappchainKey,
       chainId,
       gatewayAddress,
-      loomAddress
+      loomAddress,
+      version
     )
   }
 
@@ -85,15 +98,30 @@ export class DPOSUser {
     dappchainKey: string,
     chainId: string,
     gatewayAddress: string,
-    loomAddress: string
+    loomAddress: string,
+    version?: GatewayVersion
   ): Promise<DPOSUser> {
+    // If no gateway version is provided, pick based on the chain URL prefix
+    if (version === undefined) {
+      const chainName = dappchainEndpoint.split('.')[0]
+      for (let chainPrefix of V2_GATEWAYS) {
+        if (chainName.indexOf(chainPrefix) != -1) {
+          version = GatewayVersion.MULTISIG
+        }
+      }
+    }
+
     const { client, address } = createDefaultClient(dappchainKey, dappchainEndpoint, chainId)
     const ethAddress = await wallet.getAddress()
 
     const dappchainLoom = await Coin.createAsync(client, address)
-    const dappchainDPOS = await DPOS2.createAsync(client, address)
+    log('Connected to dappchain Loom Token')
     const dappchainGateway = await LoomCoinTransferGateway.createAsync(client, address)
+    log('Connected to dappchain Gateway Contract')
     const dappchainMapper = await AddressMapper.createAsync(client, address)
+    log('Connected to dappchain Address Mapoper contract')
+    const dappchainDPOS = await DPOS2.createAsync(client, address)
+    log('Connected to dappchain DPOS Contract')
     return new DPOSUser(
       wallet,
       client,
@@ -104,7 +132,8 @@ export class DPOSUser {
       dappchainGateway,
       dappchainLoom,
       dappchainDPOS,
-      dappchainMapper
+      dappchainMapper,
+      version
     )
   }
 
@@ -118,14 +147,17 @@ export class DPOSUser {
     dappchainGateway: Contracts.LoomCoinTransferGateway,
     dappchainLoom: Contracts.Coin,
     dappchainDPOS: Contracts.DPOS2,
-    dappchainMapper: Contracts.AddressMapper
+    dappchainMapper: Contracts.AddressMapper,
+    version: GatewayVersion = GatewayVersion.SINGLESIG
   ) {
+    this._version = version
     this._wallet = wallet
     this._address = address
     this._ethAddress = ethAddress
     this._client = client
+    const gatewayABI = version == GatewayVersion.MULTISIG ? ERC20GatewayABI_v2 : ERC20GatewayABI
     // @ts-ignore
-    this._ethereumGateway = new ethers.Contract(gatewayAddress, ERC20GatewayABI, wallet)
+    this._ethereumGateway = new ethers.Contract(gatewayAddress, gatewayABI, wallet)
     // @ts-ignore
     this._ethereumLoom = new ethers.Contract(loomAddress, ERC20ABI, wallet)
     this._dappchainGateway = dappchainGateway
@@ -249,6 +281,7 @@ export class DPOSUser {
       log('No pending receipt')
       return
     }
+    log('Got receipt:', receipt)
     const signature = CryptoUtils.bytesToHexAddr(receipt.oracleSignature)
     const amount = receipt.tokenAmount!
     return this.withdrawCoinFromRinkebyGatewayAsync(amount, signature)
@@ -334,10 +367,8 @@ export class DPOSUser {
     if (address === undefined) {
       return this._dappchainLoom.getBalanceOfAsync(this._address)
     }
-
-    const pubKey = CryptoUtils.B64ToUint8Array(address)
-    const callerAddress = new Address(this._client.chainId, LocalAddress.fromPublicKey(pubKey))
-    const balance = await this._dappchainLoom.getBalanceOfAsync(callerAddress)
+    const addr = this.prefixAddress(address)
+    const balance = await this._dappchainLoom.getBalanceOfAsync(addr)
     return balance
   }
 
@@ -394,6 +425,7 @@ export class DPOSUser {
     }
     signature = pendingReceipt.oracleSignature
 
+    log('Got receipt', pendingReceipt)
     return CryptoUtils.bytesToHexAddr(signature)
   }
 
@@ -401,11 +433,52 @@ export class DPOSUser {
     amount: BN,
     sig: string
   ): Promise<ethers.ContractTransaction> {
+
+    if (this._version === GatewayVersion.MULTISIG) {
+      const hash = await this.createWithdrawalHash(amount)
+      log('Receipt hash:', hash)
+      // Ugly hack to extract the 'mode' bit from the old signature format - if it's still used (134 = 66*2 + 2, where 2 is the 0x)
+      sig = sig.length === 134 ? '0x' + sig.slice(4) : sig
+      let expandedSig = ethers.utils.splitSignature(sig)
+
+      let signer = ethers.utils.recoverAddress(
+        ethers.utils.arrayify(ethers.utils.hashMessage(ethers.utils.arrayify(hash))),
+        expandedSig
+      )
+      log('Receipt was signed by:', signer)
+
+      let valIndexes = [0]
+      return this._ethereumGateway.functions.withdrawERC20(
+        amount.toString(),
+        this._ethereumLoom.address,
+        valIndexes,
+        [expandedSig.v!],
+        [expandedSig.r],
+        [expandedSig.s]
+      )
+    }
+
+    // @ts-ignore
     return this._ethereumGateway.functions.withdrawERC20(
       amount.toString(),
       sig,
       this._ethereumLoom.address
     )
+  }
+
+  private async createWithdrawalHash(amount: BN): Promise<string> {
+    let nonce = await this.ethereumGateway.functions.nonces(this.ethAddress)
+    let amountHashed = ethers.utils.solidityKeccak256(
+      ['uint256', 'address'],
+      [amount.toString(), this.ethereumLoom.address]
+    )
+
+    const msg = ethers.utils.solidityKeccak256(
+      ['address', 'uint256', 'address', 'bytes32'],
+      [this.ethAddress, nonce, this.ethereumGateway.address, amountHashed]
+    )
+
+    return msg
   }
 
   /**

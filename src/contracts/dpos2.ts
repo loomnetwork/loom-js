@@ -98,7 +98,6 @@ export interface IDelegatorDelegations {
   delegationsArray: Array<IDelegation>
 }
 
-
 export class DPOS2 extends Contract {
   static async createAsync(client: Client, callerAddr: Address): Promise<DPOS2> {
     const contractAddr = await client.getContractAddressAsync('dposV2')
@@ -218,19 +217,13 @@ export class DPOS2 extends Contract {
     )
 
     return {
-      amount: result.getAmount()
-        ? unmarshalBigUIntPB(result.getAmount()!)
-        : new BN(0),
+      amount: result.getAmount() ? unmarshalBigUIntPB(result.getAmount()!) : new BN(0),
       weightedAmount: result.getWeightedAmount()
         ? unmarshalBigUIntPB(result.getWeightedAmount()!)
         : new BN(0),
       delegationsArray: result.getDelegationsList().map(this.getDelegation)
     }
   }
-
-
-
-
 
   async checkDistributionAsync(): Promise<BN> {
     const checkDistributionReq = new CheckDistributionRequest()
