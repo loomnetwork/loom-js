@@ -15,12 +15,12 @@ export enum AccountType {
   /**
    * The account isn't mapped
    */
-  Native = '1',
+  Local = '1',
 
   /**
    * The account from sender is mapped than use this option
    */
-  AddressMapped = '2'
+  Foreign = '2'
 }
 
 /**
@@ -31,30 +31,24 @@ export enum AccountType {
 export class Nonce2TxMiddleware implements ITxMiddlewareHandler {
   private _client: Client
   private _accountType: AccountType
+  private _fromAddress: Address
 
   /**
    *
-   * @param fromAddress ethereum address on from
+   * @param fromAddress
    * @param client
-   * @param isAccountMapped
+   * @param accountType
    */
-  constructor(client: Client, isAccountMapped: AccountType = AccountType.Native) {
+  constructor(fromAddress: Address, client: Client, accountType: AccountType = AccountType.Local) {
+    this._fromAddress = fromAddress
     this._client = client
-    this._accountType = isAccountMapped
-  }
-
-  private getFrom(txData: Readonly<Uint8Array>): Address {
-    // Accessing previous buffers to retrieve required data
-    const transaction = Transaction.deserializeBinary(txData as Uint8Array)
-    const message = MessageTx.deserializeBinary(transaction.getData() as Uint8Array)
-    return Address.UnmarshalPB(message.getFrom()!)
+    this._accountType = accountType
   }
 
   async Handle(txData: Readonly<Uint8Array>): Promise<Uint8Array> {
-    const fromAddress = this.getFrom(txData)
     const nonce = await this._client.getNonce2Async(
-      fromAddress.chainId,
-      fromAddress.local.toString(),
+      this._fromAddress.chainId,
+      this._fromAddress.local.toString(),
       this._accountType as string
     )
 

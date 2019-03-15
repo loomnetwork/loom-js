@@ -91,7 +91,7 @@ export interface IEthFilterLog {
 
 export type SetupMiddlewareFunction = (
   client: Client,
-  privateKey: Uint8Array | null
+  privateKey: Uint8Array
 ) => ITxMiddlewareHandler[]
 
 export type EthRPCMethod = (payload: IEthRPCPayload) => any
@@ -158,7 +158,7 @@ export class LoomProvider {
     )
 
     if (!this._setupMiddlewares) {
-      this._setupMiddlewares = (client: Client, privateKey: Uint8Array | null) => {
+      this._setupMiddlewares = (client: Client, privateKey: Uint8Array) => {
         return createDefaultTxMiddleware(client, privateKey as Uint8Array)
       }
     }

@@ -161,7 +161,7 @@ test('Test Signed Eth Tx Middleware Type 1', async t => {
 
     // Ethereum account needs his on middlewares
     loomProvider.setMiddlewaresForAddress(ethAddress, [
-      new Nonce2TxMiddleware(client),
+      new Nonce2TxMiddleware(new Address('eth', LocalAddress.fromHexString(ethAddress)), client),
       new SignedEthTxMiddleware(signer)
     ])
 

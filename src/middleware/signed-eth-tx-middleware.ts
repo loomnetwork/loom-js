@@ -90,20 +90,15 @@ export class SignedEthTxMiddleware implements ITxMiddlewareHandler {
 
     log('Public key found', publicKey)
 
-    // Check if we're generating the right public key
-    if (ethers.utils.computeAddress(publicKey) !== this.fromAddress) {
-      throw Error("Public key generated isn't valid")
-    }
-
     const signedTx = new SignedTx()
     signedTx.setInner(txData as Uint8Array)
     signedTx.setSignature(sig)
     signedTx.setPublicKey(hexToBytes(publicKey))
 
     if (this.applyEthChainName) {
-      signedTx.setChainname('eth')
+      signedTx.setChainName('eth')
     }
 
-    return Promise.resolve(signedTx.serializeBinary())
+    return signedTx.serializeBinary()
   }
 }
