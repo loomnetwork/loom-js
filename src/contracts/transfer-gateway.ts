@@ -141,7 +141,7 @@ export class TransferGateway extends Contract {
     })
   }
 
-   /**
+  /**
    * Adds a contract mapping to the DAppChain Gateway using gatway owner signature.
    * A contract mapping associates a token contract on the DAppChain with it's counterpart on Ethereum.
    */
@@ -149,10 +149,7 @@ export class TransferGateway extends Contract {
     foreignContract: Address
     localContract: Address
   }): Promise<void> {
-    const {
-      foreignContract,
-      localContract
-    } = params
+    const { foreignContract, localContract } = params
 
     const mappingContractRequest = new TransferGatewayAddContractMappingRequest()
     mappingContractRequest.setForeignContract(foreignContract.MarshalPB())

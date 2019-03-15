@@ -10,49 +10,45 @@ import { ethers } from 'ethers'
 import debug from 'debug'
 
 export interface IParsedSigsArray {
-  vs : Array<number>
-  rs : Array<string>
-  ss : Array<string>
-  valIndexes : Array<number>
+  vs: Array<number>
+  rs: Array<string>
+  ss: Array<string>
+  valIndexes: Array<number>
 }
 
-export function parseSigs(
-    sig: string,
-    hash: string,
-    validators: string[]
-  ): IParsedSigsArray {
-    let vs: Array<number> = []
-    let rs: Array<string> = []
-    let ss: Array<string> = []
-    let valIndexes: Array<number> = []
+export function parseSigs(sig: string, hash: string, validators: string[]): IParsedSigsArray {
+  let vs: Array<number> = []
+  let rs: Array<string> = []
+  let ss: Array<string> = []
+  let valIndexes: Array<number> = []
 
-    // split sig string into 65 byte array of sigs
-    const sigs = sig
-      .slice(2)
-      .match(/.{1,130}/g)!
-      .map(s => '0x' + s)
+  // split sig string into 65 byte array of sigs
+  const sigs = sig
+    .slice(2)
+    .match(/.{1,130}/g)!
+    .map(s => '0x' + s)
 
-    // Split signature in v,r,s arrays
-    // Store the ordering of the validators' signatures in `valIndexes`
-    for (let i in sigs) {
-      const _hash = ethers.utils.arrayify(ethers.utils.hashMessage(ethers.utils.arrayify(hash)))
+  // Split signature in v,r,s arrays
+  // Store the ordering of the validators' signatures in `valIndexes`
+  for (let i in sigs) {
+    const _hash = ethers.utils.arrayify(ethers.utils.hashMessage(ethers.utils.arrayify(hash)))
 
-      const recAddress = ethers.utils.recoverAddress(_hash, sigs[i])
-      const ind = validators.indexOf(recAddress)
-      if (ind == -1) {
-        // skip if invalid signature
-        continue
-      }
-
-      valIndexes.push(validators.indexOf(recAddress))
-
-      const s = ethers.utils.splitSignature(sigs[i])
-      vs.push(s.v!)
-      rs.push(s.r)
-      ss.push(s.s)
+    const recAddress = ethers.utils.recoverAddress(_hash, sigs[i])
+    const ind = validators.indexOf(recAddress)
+    if (ind == -1) {
+      // skip if invalid signature
+      continue
     }
-    return { vs, rs, ss, valIndexes }
+
+    valIndexes.push(validators.indexOf(recAddress))
+
+    const s = ethers.utils.splitSignature(sigs[i])
+    vs.push(s.v!)
+    rs.push(s.r)
+    ss.push(s.s)
   }
+  return { vs, rs, ss, valIndexes }
+}
 
 const log = debug('helpers')
 
