@@ -29,6 +29,11 @@ const ERC20GatewayABI_v2 = require('./mainnet-contracts/ERC20Gateway_v2.json')
 import { ERC20 } from './mainnet-contracts/ERC20'
 import { ERC20Gateway_v2 } from './mainnet-contracts/ERC20Gateway_v2'
 
+enum GatewayVersion {
+  SINGLESIG = 1,
+  MULTISIG = 2
+}
+
 export class DPOSUser {
   private _wallet: ethers.Signer
   private _client: Client
@@ -40,7 +45,7 @@ export class DPOSUser {
   private _dappchainLoom: Contracts.Coin
   private _dappchainDPOS: Contracts.DPOS2
   private _dappchainMapper: Contracts.AddressMapper
-  private _version: number
+  private _version: GatewayVersion
 
   static async createOfflineUserAsync(
     endpoint: string,
@@ -72,7 +77,7 @@ export class DPOSUser {
     chainId: string,
     gatewayAddress: string,
     loomAddress: string,
-    version?: number
+    version?: GatewayVersion
   ): Promise<DPOSUser> {
     const provider = new ethers.providers.Web3Provider(web3.currentProvider)
     const wallet = provider.getSigner()
@@ -94,14 +99,14 @@ export class DPOSUser {
     chainId: string,
     gatewayAddress: string,
     loomAddress: string,
-    version?: number
+    version?: GatewayVersion
   ): Promise<DPOSUser> {
     // If no gateway version is provided, pick based on the chain URL prefix
     if (version === undefined) {
       const chainName = dappchainEndpoint.split('.')[0]
       for (let chainPrefix of V2_GATEWAYS) {
         if (chainName.indexOf(chainPrefix) != -1) {
-          version = 2
+          version = GatewayVersion.MULTISIG
         }
       }
     }
@@ -143,7 +148,7 @@ export class DPOSUser {
     dappchainLoom: Contracts.Coin,
     dappchainDPOS: Contracts.DPOS2,
     dappchainMapper: Contracts.AddressMapper,
-    version: number = 1
+    version: GatewayVersion = GatewayVersion.SINGLESIG
   ) {
     this._version = version
     this._wallet = wallet
@@ -428,17 +433,17 @@ export class DPOSUser {
     amount: BN,
     sig: string
   ): Promise<ethers.ContractTransaction> {
-    const hash = await this.createWithdrawalHash(amount)
-    log('Receipt hash:', hash)
 
-    if (this._version === 2) {
-      // Ugly hack to extract the 'mode' bit from the old signature format - if it's still used (68 = 66 + 2, where 2 is the 0x)
+    if (this._version === GatewayVersion.MULTISIG) {
+      const hash = await this.createWithdrawalHash(amount)
+      log('Receipt hash:', hash)
+      // Ugly hack to extract the 'mode' bit from the old signature format - if it's still used (134 = 66*2 + 2, where 2 is the 0x)
       sig = sig.length === 134 ? '0x' + sig.slice(4) : sig
-      let sign = ethers.utils.splitSignature(sig)
+      let expandedSig = ethers.utils.splitSignature(sig)
 
       let signer = ethers.utils.recoverAddress(
         ethers.utils.arrayify(ethers.utils.hashMessage(ethers.utils.arrayify(hash))),
-        sign
+        expandedSig
       )
       log('Receipt was signed by:', signer)
 
@@ -447,9 +452,9 @@ export class DPOSUser {
         amount.toString(),
         this._ethereumLoom.address,
         valIndexes,
-        [sign.v!],
-        [sign.r],
-        [sign.s]
+        [expandedSig.v!],
+        [expandedSig.r],
+        [expandedSig.s]
       )
     }
 
