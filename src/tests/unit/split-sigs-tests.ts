@@ -5,6 +5,9 @@ import { parseSigs } from '../../helpers'
 
 test('Split sigs', t => {
   try {
+    const singleSigWithMode =
+      '0x00cd7f07b4f35d2d2dee86bde44d765aef81673745aab5d5aaf4422dc73938237d2cbc5105bc0ceddbf4037b62003159903d35b834496a622ba4d9117008c164401c'
+
     const singleSig =
       '0xcd7f07b4f35d2d2dee86bde44d765aef81673745aab5d5aaf4422dc73938237d2cbc5105bc0ceddbf4037b62003159903d35b834496a622ba4d9117008c164401c'
 
@@ -43,16 +46,28 @@ test('Split sigs', t => {
 
     /////////////////
 
-    // Test that it works with 1 signature (should break the v/r/s correctly)
-    const ret = parseSigs(singleSig, withdrawalHash, validators)
-    const sig = ret.rs[0] + ret.ss[0].slice(2) + ret.vs[0].toString(16)
+    // Test that it works with 1 sig with mode
+    let ret = parseSigs(singleSigWithMode, withdrawalHash, validators)
+    let sig = ret.rs[0] + ret.ss[0].slice(2) + ret.vs[0].toString(16)
     t.equals(ret.ss.length, 1)
     t.equals(ret.rs.length, 1)
     t.equals(ret.vs.length, 1)
     t.equals(ret.valIndexes.length, 1)
     t.equals(sig, singleSig, 'v,r,s values were parsed correctly')
 
-    const recAddress = ethers.utils.recoverAddress(recHash, sig)
+    let recAddress = ethers.utils.recoverAddress(recHash, sig)
+    t.equals(validators[ret.valIndexes[0]], recAddress)
+
+    // Test that it works with 1 signature (should break the v/r/s correctly)
+    ret = parseSigs(singleSig, withdrawalHash, validators)
+    sig = ret.rs[0] + ret.ss[0].slice(2) + ret.vs[0].toString(16)
+    t.equals(ret.ss.length, 1)
+    t.equals(ret.rs.length, 1)
+    t.equals(ret.vs.length, 1)
+    t.equals(ret.valIndexes.length, 1)
+    t.equals(sig, singleSig, 'v,r,s values were parsed correctly')
+
+    recAddress = ethers.utils.recoverAddress(recHash, sig)
     t.equals(validators[ret.valIndexes[0]], recAddress)
 
     // Test that works with 6 validators

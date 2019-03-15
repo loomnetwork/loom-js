@@ -16,17 +16,29 @@ export interface IParsedSigsArray {
   valIndexes: Array<number>
 }
 
+export const ORACLE_SIG_SIZE_WITH_MODE = 134 // '0x'.length + (65 + 1) * 2
+export const ORACLE_SIG_SIZE = 132 // '0x'.length + 65 * 2
+
 export function parseSigs(sig: string, hash: string, validators: string[]): IParsedSigsArray {
   let vs: Array<number> = []
   let rs: Array<string> = []
   let ss: Array<string> = []
   let valIndexes: Array<number> = []
 
-  // split sig string into 65 byte array of sigs
-  const sigs = sig
-    .slice(2)
-    .match(/.{1,130}/g)!
-    .map(s => '0x' + s)
+  let sigs: Array<string>
+  if (sig.length === ORACLE_SIG_SIZE_WITH_MODE) {
+    // using old oracle but new mainnet contract requires removing the 'mode' bit from the signature
+    sigs = ['0x' + sig.slice(4)]
+  } else if (sig.length === ORACLE_SIG_SIZE) {
+    // if the oracle signs without a mode
+    sigs = [sig]
+  } else {
+    // else split sig string into 65 byte array of sigs
+    sigs = sig
+      .slice(2)
+      .match(/.{1,130}/g)!
+      .map(s => '0x' + s)
+  }
 
   // Split signature in v,r,s arrays
   // Store the ordering of the validators' signatures in `valIndexes`
