@@ -10,12 +10,13 @@ import {
 } from '../../index'
 import { createTestHttpClient } from '../helpers'
 import { EthersSigner } from '../../solidity-helpers'
-import { ethers } from 'ethers'
+import { ethers, Signer } from 'ethers'
 
 // TODO: Need a factory to create connection properly likes plasma-cash test
-function getEthersConnection() {
+async function getEthersConnection() {
   const provider = new ethers.providers.JsonRpcProvider('http://localhost:8545')
-  return provider.getSigner()
+  const accounts = (await provider.listAccounts()).map((acc: any) => provider.getSigner(acc))
+  return accounts[1]
 }
 
 async function getClientAndContract(
@@ -26,7 +27,7 @@ async function getClientAndContract(
   pubKey: Uint8Array
 }> {
   const privKey = CryptoUtils.B64ToUint8Array(
-    'D6XCGyCcDZ5TE22h66AlU+Bn6JqL4RnSl4a09RGU9LfM53JFG/T5GAnC0uiuIIiw9Dl0TwEAmdGb+WE0Bochkg=='
+    'RkNvOsko0nQFrJnXXVbmjGyaVmjQyr+ecJG8qGiF1LisazmV44qDcpsVsYvQZ9jxx7mIWJuZumIzYyLL6FOb4A=='
   )
   const pubKey = CryptoUtils.publicKeyFromPrivateKey(privKey)
   const client = createClient()
@@ -47,7 +48,7 @@ async function testAddIdentity(t: test.Test, createClient: () => Client) {
   const from = new Address('eth', LocalAddress.fromHexString(ethAddress))
   const to = new Address(client.chainId, LocalAddress.fromPublicKey(pubKey))
 
-  const ethers = getEthersConnection()
+  const ethers = await getEthersConnection()
   const ethersSigner = new EthersSigner(ethers)
 
   await addressMapper.addIdentityMappingAsync(from, to, ethersSigner)
