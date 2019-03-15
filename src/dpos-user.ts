@@ -155,7 +155,7 @@ export class DPOSUser {
     this._address = address
     this._ethAddress = ethAddress
     this._client = client
-    const gatewayABI = version == 2 ? ERC20GatewayABI_v2 : ERC20GatewayABI
+    const gatewayABI = version == GatewayVersion.MULTISIG ? ERC20GatewayABI_v2 : ERC20GatewayABI
     // @ts-ignore
     this._ethereumGateway = new ethers.Contract(gatewayAddress, gatewayABI, wallet)
     // @ts-ignore
