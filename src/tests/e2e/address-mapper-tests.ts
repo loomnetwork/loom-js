@@ -43,7 +43,7 @@ async function getClientAndContract(
 async function testAddIdentity(t: test.Test, createClient: () => Client) {
   const { client, addressMapper, pubKey } = await getClientAndContract(createClient)
 
-  const ethAddress = '0x90f8bf6a479f320ead074411a4b0e7944ea8c9c1'
+  const ethAddress = '0xffcf8fdee72ac11b5c542428b35eef5769c409f0'
   const from = new Address('eth', LocalAddress.fromHexString(ethAddress))
   const to = new Address(client.chainId, LocalAddress.fromPublicKey(pubKey))
 
