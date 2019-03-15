@@ -377,7 +377,9 @@ export class DPOSUser {
   }
 
   async getUnclaimedLoomTokensAsync(owner?: string): Promise<BN> {
-    const address = owner ? Address.fromString(`eth:${owner}`) : Address.fromString(`eth:${this.ethAddress}`)
+    const address = owner
+      ? Address.fromString(`eth:${owner}`)
+      : Address.fromString(`eth:${this.ethAddress}`)
     const tokens = await this._dappchainGateway.getUnclaimedTokensAsync(address)
 
     const unclaimedLoomTokens = tokens.filter(
@@ -433,28 +435,49 @@ export class DPOSUser {
     amount: BN,
     sig: string
   ): Promise<ethers.ContractTransaction> {
-
     if (this._version === GatewayVersion.MULTISIG) {
-      const hash = await this.createWithdrawalHash(amount)
-      log('Receipt hash:', hash)
-      // Ugly hack to extract the 'mode' bit from the old signature format - if it's still used (134 = 66*2 + 2, where 2 is the 0x)
-      sig = sig.length === 134 ? '0x' + sig.slice(4) : sig
-      let expandedSig = ethers.utils.splitSignature(sig)
+      const withdrawalHash = await this.createWithdrawalHash(amount)
+      let vs: Array<number> = []
+      let rs: Array<string> = []
+      let ss: Array<string> = []
+      let valIndexes: Array<number> = []
 
-      let signer = ethers.utils.recoverAddress(
-        ethers.utils.arrayify(ethers.utils.hashMessage(ethers.utils.arrayify(hash))),
-        expandedSig
-      )
-      log('Receipt was signed by:', signer)
+      // split sig string into 65 byte array of sigs
+      const sigs = sig
+        .slice(2)
+        .match(/.{1,130}/g)!
+        .map(s => '0x' + s)
+      const validators = await this._ethereumVMC!.functions.getValidators()
 
-      let valIndexes = [0]
+      // Split signature in v,r,s arrays
+      // Store the ordering of the validators' signatures in `indexes`
+      for (let i in sigs) {
+        const hash = ethers.utils.arrayify(
+          ethers.utils.hashMessage(ethers.utils.arrayify(withdrawalHash))
+        )
+
+        const recAddress = ethers.utils.recoverAddress(hash, sigs[i])
+        const ind = validators.indexOf(recAddress)
+        if (ind == -1) {
+          // skip if invalid signature
+          continue
+        }
+
+        valIndexes.push(validators.indexOf(recAddress))
+
+        const s = ethers.utils.splitSignature(sigs[i])
+        vs.push(s.v!)
+        rs.push(s.r)
+        ss.push(s.s)
+      }
+
       return this._ethereumGateway.functions.withdrawERC20(
         amount.toString(),
         this._ethereumLoom.address,
         valIndexes,
-        [expandedSig.v!],
-        [expandedSig.r],
-        [expandedSig.s]
+        vs,
+        rs,
+        ss
       )
     }
 
