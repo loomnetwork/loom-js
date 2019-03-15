@@ -6,7 +6,7 @@ import Web3 from 'web3'
 import { CryptoUtils, Address, Client, Contracts, EthersSigner } from '.'
 import { DPOS2, Coin, LoomCoinTransferGateway, AddressMapper } from './contracts'
 import { IWithdrawalReceipt } from './contracts/transfer-gateway'
-import { sleep, createDefaultClient } from './helpers'
+import { sleep, createDefaultClient, parseSigs } from './helpers'
 import {
   IValidator,
   ICandidate,
@@ -454,40 +454,9 @@ export class DPOSUser {
     sig: string
   ): Promise<ethers.ContractTransaction> {
     if (this._version === GatewayVersion.MULTISIG && this._ethereumVMC !== undefined) {
-      const withdrawalHash = await this.createWithdrawalHash(amount)
-      let vs: Array<number> = []
-      let rs: Array<string> = []
-      let ss: Array<string> = []
-      let valIndexes: Array<number> = []
-
-      // split sig string into 65 byte array of sigs
-      const sigs = sig
-        .slice(2)
-        .match(/.{1,130}/g)!
-        .map(s => '0x' + s)
+      const hash = await this.createWithdrawalHash(amount)
       const validators = await this._ethereumVMC!.functions.getValidators()
-
-      // Split signature in v,r,s arrays
-      // Store the ordering of the validators' signatures in `indexes`
-      for (let i in sigs) {
-        const hash = ethers.utils.arrayify(
-          ethers.utils.hashMessage(ethers.utils.arrayify(withdrawalHash))
-        )
-
-        const recAddress = ethers.utils.recoverAddress(hash, sigs[i])
-        const ind = validators.indexOf(recAddress)
-        if (ind == -1) {
-          // skip if invalid signature
-          continue
-        }
-
-        valIndexes.push(validators.indexOf(recAddress))
-
-        const s = ethers.utils.splitSignature(sigs[i])
-        vs.push(s.v!)
-        rs.push(s.r)
-        ss.push(s.s)
-      }
+      const { vs, rs, ss, valIndexes } = parseSigs(sig, hash, validators)
 
       return this._ethereumGateway.functions.withdrawERC20(
         amount.toString(),
