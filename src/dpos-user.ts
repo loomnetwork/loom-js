@@ -31,6 +31,7 @@ import { ERC20Gateway } from './mainnet-contracts/ERC20Gateway'
 import { NonceTxMiddleware, SignedEthTxMiddleware } from './middleware'
 import { B64ToUint8Array, publicKeyFromPrivateKey } from './crypto-utils'
 import { ERC20Gateway_v2 } from './mainnet-contracts/ERC20Gateway_v2'
+import { LocalAddress } from './address'
 
 enum GatewayVersion {
   SINGLESIG = 1,
@@ -484,7 +485,6 @@ export class DPOSUser {
     amount: BN,
     sig: string
   ): Promise<ethers.ContractTransaction> {
-
     if (this._version === GatewayVersion.MULTISIG) {
       const hash = await this.createWithdrawalHash(amount)
       log('Receipt hash:', hash)
