@@ -16,6 +16,29 @@ export interface IEthereumSigner {
 }
 
 /**
+ * Returns the Metamask signer from web3 current provider
+ */
+export function getMetamaskSigner(): ethers.Signer {
+  const provider = new ethers.providers.Web3Provider(web3.currentProvider)
+  return provider.getSigner()
+}
+
+/**
+ * Returns json rpc signer, ex: http://localhost:8545
+ *
+ * @param urlString url string to connect to provider
+ * @param accountIndex index of the account on providers list
+ */
+export async function getJsonRPCSignerAsync(
+  urlString: string,
+  accountIndex: number = 0
+): Promise<ethers.Signer> {
+  const provider = new ethers.providers.JsonRpcProvider(urlString)
+  const signers = (await provider.listAccounts()).map((acc: any) => provider.getSigner(acc))
+  return signers[accountIndex]
+}
+
+/**
  * Signs message using a Web3 account.
  * This signer should be used for interactive signing in the browser with MetaMask.
  */

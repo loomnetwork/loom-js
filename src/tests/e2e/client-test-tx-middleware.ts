@@ -13,7 +13,7 @@ import { LoomProvider } from '../../loom-provider'
 import { deployContract } from '../evm-helpers'
 import { Address, LocalAddress } from '../../address'
 import { createDefaultTxMiddleware } from '../../helpers'
-import { EthersSigner } from '../../solidity-helpers'
+import { EthersSigner, getJsonRPCSignerAsync } from '../../solidity-helpers'
 import { createTestHttpClient } from '../helpers'
 import { AddressMapper, Coin } from '../../contracts'
 
@@ -49,13 +49,6 @@ const Web3 = require('web3')
 
 const toCoinE18 = (amount: number): BN => {
   return new BN(10).pow(new BN(18)).mul(new BN(amount))
-}
-
-// TODO: Need a factory to create connection properly likes plasma-cash test
-function getEthersSigner() {
-  // ganache-cli -d
-  const provider = new ethers.providers.JsonRpcProvider('http://localhost:8545')
-  return provider.getSigner()
 }
 
 async function bootstrapTest(
@@ -149,7 +142,7 @@ async function bootstrapTest(
   })
 
   // And get the signer
-  const signer = getEthersSigner()
+  const signer = await getJsonRPCSignerAsync('http://localhost:8545')
 
   return { client, pubKey, privKey, signer, loomProvider, contract, ABI }
 }
@@ -283,7 +276,7 @@ test('Test Signed Eth Tx Middleware Type 2 with Coin Contract', async t => {
     )
 
     // And get the signer
-    const signer = getEthersSigner()
+    const signer = await getJsonRPCSignerAsync('http://localhost:8545')
 
     // Set the mapping
     const ethAddress = await signer.getAddress()

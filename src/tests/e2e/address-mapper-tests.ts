@@ -9,15 +9,8 @@ import {
   Contracts
 } from '../../index'
 import { createTestHttpClient } from '../helpers'
-import { EthersSigner } from '../../solidity-helpers'
+import { EthersSigner, getJsonRPCSignerAsync } from '../../solidity-helpers'
 import { ethers, Signer } from 'ethers'
-
-// TODO: Need a factory to create connection properly likes plasma-cash test
-async function getEthersConnection() {
-  const provider = new ethers.providers.JsonRpcProvider('http://localhost:8545')
-  const accounts = (await provider.listAccounts()).map((acc: any) => provider.getSigner(acc))
-  return accounts[1]
-}
 
 async function getClientAndContract(
   createClient: () => Client
@@ -48,7 +41,7 @@ async function testAddIdentity(t: test.Test, createClient: () => Client) {
   const from = new Address('eth', LocalAddress.fromHexString(ethAddress))
   const to = new Address(client.chainId, LocalAddress.fromPublicKey(pubKey))
 
-  const ethers = await getEthersConnection()
+  const ethers = await getJsonRPCSignerAsync('http://localhost:8545', 1)
   const ethersSigner = new EthersSigner(ethers)
 
   await addressMapper.addIdentityMappingAsync(from, to, ethersSigner)
