@@ -90,6 +90,7 @@ export function createDefaultClient(
 }
 
 export function createDefaultEthSignClient(
+  ethAddress: string,
   dappchainKey: string,
   dappchainEndpoint: string,
   chainId: string,
@@ -98,7 +99,10 @@ export function createDefaultEthSignClient(
   const defaultClientObj = createDefaultClient(dappchainKey, dappchainEndpoint, chainId)
 
   defaultClientObj.client.txMiddleware = [
-    new NonceTxMiddleware(defaultClientObj.publicKey, defaultClientObj.client),
+    new NonceTxMiddleware(
+      new Address('eth', LocalAddress.fromHexString(ethAddress)),
+      defaultClientObj.client
+    ),
     new SignedEthTxMiddleware(wallet)
   ]
 

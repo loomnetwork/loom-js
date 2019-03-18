@@ -106,15 +106,16 @@ export class DPOSUser {
   ): Promise<DPOSUser> {
     const provider = new ethers.providers.Web3Provider(web3.currentProvider)
     const wallet = provider.getSigner()
+    const ethAddress = await wallet.getAddress()
 
     const { client, address } = createDefaultEthSignClient(
+      ethAddress,
       dappchainKey,
       dappchainEndpoint,
       chainId,
       wallet
     )
 
-    const ethAddress = await wallet.getAddress()
     const dappchainLoom = await Coin.createAsync(
       client,
       new Address('eth', LocalAddress.fromHexString(ethAddress))
