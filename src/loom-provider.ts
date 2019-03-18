@@ -407,9 +407,9 @@ export class LoomProvider {
     return accounts
   }
 
-  private async _ethBlockNumber() {
+  private async _ethBlockNumber(): Promise<string> {
     const blockNumber = await this._client.getBlockHeightAsync()
-    return blockNumber
+    return numberToHexLC(+blockNumber)
   }
 
   private async _ethCall(payload: IEthRPCPayload) {
