@@ -29,3 +29,13 @@ TransferGateway:
   OracleStartupDelay: 5
   # Number of seconds to wait between reconnection attempts.
   OracleReconnectInterval: 5
+Auth:
+  Chains:
+    default:
+      TxType: "loom"
+    eth:
+      TxType: "eth"
+      AccountType: 1
+    eth1:
+      TxType: "eth"
+      AccountType: 0

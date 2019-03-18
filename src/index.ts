@@ -19,8 +19,7 @@ export {
   NonceTxMiddleware,
   CachedNonceTxMiddleware,
   SpeculativeNonceTxMiddleware,
-  isInvalidTxNonceError,
-  Nonce2TxMiddleware
+  isInvalidTxNonceError
 } from './middleware'
 export { createDefaultTxMiddleware } from './helpers'
 export { LoomProvider } from './loom-provider'

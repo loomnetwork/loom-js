@@ -134,6 +134,12 @@ export class LoomProvider {
   }
 
   /**
+   * Overrides the chain ID of the caller, when this is `null` the caller chain ID defaults
+   * to the client chain ID.
+   */
+  callerChainId: string | null = null
+
+  /**
    * Constructs the LoomProvider to bridges communication between Web3 and Loom DappChains
    *
    * @param client Client from LoomJS
@@ -653,34 +659,15 @@ export class LoomProvider {
     return responseData.getTxHash_asU8()
   }
 
-  // Checks if the SignedEthTxMiddleware middleware is present
-  private _isEthSignMiddlewarePresent(fromPublicAddr: string): boolean {
-    const middlewares = this._accountMiddlewares.get(fromPublicAddr) as Array<ITxMiddlewareHandler>
-
-    log('Call using middlewares', middlewares)
-
-    if (!middlewares) {
-      return false
-    }
-
-    return !!middlewares.find(
-      (middleware: ITxMiddlewareHandler) => middleware instanceof SignedEthTxMiddleware
-    )
-  }
-
   private _callAsync(payload: {
     to: string
     from: string
     data: string
     value: string
   }): Promise<any> {
-    const isEthSignMiddlewarePresent = this._isEthSignMiddlewarePresent(payload.from)
-    // Eth middlewares requires requires eth as chainId
-    const callerChainId = isEthSignMiddlewarePresent ? 'eth' : this._client.chainId
-
-    log('Call using chainID', callerChainId)
-
-    const caller = new Address(callerChainId, LocalAddress.fromHexString(payload.from))
+    const chainId = this.callerChainId === null ? this._client.chainId : this.callerChainId
+    const caller = new Address(chainId, LocalAddress.fromHexString(payload.from))
+    log('caller', caller.toString())
     const address = new Address(this._client.chainId, LocalAddress.fromHexString(payload.to))
     const data = Buffer.from(payload.data.slice(2), 'hex')
     const value = new BN((payload.value || '0x0').slice(2), 16)

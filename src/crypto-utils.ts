@@ -1,6 +1,6 @@
 import nacl from 'tweetnacl'
 
-export function bytesToHex(bytes: Uint8Array): string {
+export function bytesToHex(bytes: Readonly<Uint8Array>): string {
   return Buffer.from(bytes.buffer as ArrayBuffer, bytes.byteOffset, bytes.byteLength)
     .toString('hex')
     .toUpperCase()

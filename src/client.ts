@@ -99,18 +99,6 @@ export enum ClientEvent {
   Disconnected = 'disconnected'
 }
 
-export enum AccountType {
-  /**
-   * The account isn't mapped
-   */
-  Local = '1',
-
-  /**
-   * The account from sender is mapped than use this option
-   */
-  Foreign = '2'
-}
-
 export interface IClientEventArgs {
   kind: ClientEvent
   /** URL that corresponds to the RPC client this event originated from. */
@@ -718,44 +706,29 @@ export class Client extends EventEmitter {
   }
 
   /**
-   * Gets a nonce for the given public key.
+   * Gets a nonce for the account identified by the given public key.
    *
-   * This should only be called by middlewares.
+   * This should only be called by middleware.
    *
    * @param key A hex encoded public key.
    * @return The nonce.
    */
   async getNonceAsync(key: string): Promise<number> {
-    return parseInt(await this._writeClient.sendAsync<string>('nonce', { key }), 10)
+    return this.getAccountNonceAsync({ key })
   }
 
   /**
-   * Gets a nonce for the given chain id and local address.
+   * Gets a nonce for the account identified by the given public key or address.
    *
-   * This should only be called by middlewares.
+   * Only the key or the account needs to be provided, if both are provided the key is ignored.
+   * This should only be called by middleware.
    *
-   * Account Type
-   * 1) Local account is recognized by the chain as the chainId configured
-   * 2) Foreign account recognized through the address mapper (eth)
-   *
-   * @param chainId chainId as string
-   * @param localAddr local address in hex
-   * @param accountType sets local address or foreign address
+   * @param key A hex encoded public key.
+   * @parma account Account address prefixed by the chain ID, in the form chainID:0xdeadbeef
+   * @return The nonce.
    */
-  async getNonce2Async(
-    chainId: string,
-    localAddr: string,
-    accountType: AccountType
-  ): Promise<number> {
-    const local = Uint8ArrayToB64(hexToBytes(localAddr))
-    return parseInt(
-      await this._writeClient.sendAsync<string>('nonce2', {
-        chainId,
-        local,
-        accountType
-      }),
-      10
-    )
+  async getAccountNonceAsync(params: { key?: string; account?: string }): Promise<number> {
+    return parseInt(await this._writeClient.sendAsync<string>('nonce', params), 10)
   }
 
   /**

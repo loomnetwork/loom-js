@@ -99,7 +99,7 @@ export function createDefaultEthSignClient(
 
   defaultClientObj.client.txMiddleware = [
     new NonceTxMiddleware(defaultClientObj.publicKey, defaultClientObj.client),
-    new SignedEthTxMiddleware(wallet, true)
+    new SignedEthTxMiddleware(wallet)
   ]
 
   return { ...defaultClientObj }

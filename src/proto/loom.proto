@@ -4,7 +4,6 @@ message SignedTx {
     bytes inner = 1;
     bytes signature = 2;
     bytes public_key = 3;
-    string chain_name = 4;
 }
 
 message NonceTx {

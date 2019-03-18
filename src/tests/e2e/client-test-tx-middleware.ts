@@ -1,14 +1,18 @@
 import test from 'tape'
 import BN from 'bn.js'
+import { ethers } from 'ethers'
 
-import { CachedNonceTxMiddleware, CryptoUtils, Client, Nonce2TxMiddleware } from '../../index'
-
+import {
+  NonceTxMiddleware,
+  CachedNonceTxMiddleware,
+  SignedEthTxMiddleware,
+  CryptoUtils,
+  Client
+} from '../../index'
 import { LoomProvider } from '../../loom-provider'
 import { deployContract } from '../evm-helpers'
 import { Address, LocalAddress } from '../../address'
 import { createDefaultTxMiddleware } from '../../helpers'
-import { ethers } from 'ethers'
-import { SignedEthTxMiddleware } from '../../middleware'
 import { EthersSigner } from '../../solidity-helpers'
 import { createTestHttpClient } from '../helpers'
 import { AddressMapper, Coin } from '../../contracts'
@@ -152,21 +156,24 @@ async function bootstrapTest(
 
 test('Test Signed Eth Tx Middleware Type 1', async t => {
   try {
-    const { client, signer, pubKey, loomProvider, contract } = await bootstrapTest(
-      createTestHttpClient
-    )
+    const { client, signer, loomProvider, contract } = await bootstrapTest(createTestHttpClient)
 
     // Get address of the account 0 = 0x90f8bf6a479f320ead074411a4b0e7944ea8c9c1
     const ethAddress = await signer.getAddress()
-
-    // Ethereum account needs his on middlewares
+    const callerChainId = 'eth1'
+    // Override the default caller chain ID
+    loomProvider.callerChainId = callerChainId
+    // Ethereum account needs its own middleware
     loomProvider.setMiddlewaresForAddress(ethAddress, [
-      new Nonce2TxMiddleware(new Address('eth', LocalAddress.fromHexString(ethAddress)), client),
+      new NonceTxMiddleware(
+        new Address(callerChainId, LocalAddress.fromHexString(ethAddress)),
+        client
+      ),
       new SignedEthTxMiddleware(signer)
     ])
 
     const middlewaresUsed = loomProvider.accountMiddlewares.get(ethAddress.toLowerCase())
-    t.assert(middlewaresUsed![0] instanceof Nonce2TxMiddleware, 'Nonce2TxMiddleware used')
+    t.assert(middlewaresUsed![0] instanceof NonceTxMiddleware, 'Nonce2TxMiddleware used')
     t.assert(middlewaresUsed![1] instanceof SignedEthTxMiddleware, 'SignedEthTxMiddleware used')
 
     let tx = await contract.methods.set(1).send({ from: ethAddress })
@@ -220,10 +227,13 @@ test('Test Signed Eth Tx Middleware Type 2', async t => {
       t.error(err)
     }
 
-    // Ethereum account needs his on middlewares
+    const callerChainId = 'eth'
+    // Override the default caller chain ID
+    loomProvider.callerChainId = callerChainId
+    // Ethereum account needs its own middleware
     loomProvider.setMiddlewaresForAddress(to.local.toString(), [
-      new CachedNonceTxMiddleware(pubKey, client),
-      new SignedEthTxMiddleware(signer, true)
+      new CachedNonceTxMiddleware(pubKey, client), // FIX
+      new SignedEthTxMiddleware(signer)
     ])
 
     const middlewaresUsed = loomProvider.accountMiddlewares.get(ethAddress.toLowerCase())
@@ -307,7 +317,7 @@ test('Test Signed Eth Tx Middleware Type 2 with Coin Contract', async t => {
 
     client.txMiddleware = [
       new CachedNonceTxMiddleware(pubKey, client),
-      new SignedEthTxMiddleware(signer, true)
+      new SignedEthTxMiddleware(signer)
     ]
 
     // Check approval on coin native contract

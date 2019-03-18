@@ -19,9 +19,6 @@ export class SignedTx extends jspb.Message {
   getPublicKey_asB64(): string;
   setPublicKey(value: Uint8Array | string): void;
 
-  getChainName(): string;
-  setChainName(value: string): void;
-
   serializeBinary(): Uint8Array;
   toObject(includeInstance?: boolean): SignedTx.AsObject;
   static toObject(includeInstance: boolean, msg: SignedTx): SignedTx.AsObject;
@@ -37,7 +34,6 @@ export namespace SignedTx {
     inner: Uint8Array | string,
     signature: Uint8Array | string,
     publicKey: Uint8Array | string,
-    chainName: string,
   }
 }
 
