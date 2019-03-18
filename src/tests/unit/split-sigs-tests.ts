@@ -80,10 +80,12 @@ test('Split sigs', t => {
     // Split signature in v,r,s arrays
     // Store the ordering of the validators' signatures in `indexes`
     for (let i in valIndexes) {
+      console.log(i)
       const v = vs[i]
       const r = rs[i]
       const s = ss[i]
-      const ind = valIndexes[i]
+      // Check that they were sorted correctly
+      const ind = parseInt(i) // valIndexes[i]
 
       // reconstruct the signature from its pieces (we need to break into v,r,s for solidity)
       let sig = r + s.slice(2) + v.toString(16)

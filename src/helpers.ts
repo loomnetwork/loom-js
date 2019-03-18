@@ -59,6 +59,11 @@ export function parseSigs(sig: string, hash: string, validators: string[]): IPar
     rs.push(s.r)
     ss.push(s.s)
   }
+
+  vs = mapOrder(vs, valIndexes)
+  rs = mapOrder(rs, valIndexes)
+  ss = mapOrder(ss, valIndexes)
+  valIndexes.sort()
   return { vs, rs, ss, valIndexes }
 }
 
@@ -140,4 +145,19 @@ export function createDefaultClient(
   const address = new Address(chainId, LocalAddress.fromPublicKey(publicKey))
 
   return { client, publicKey, address }
+}
+
+function mapOrder(array: Array<any>, order: Array<number>): Array<any> {
+  if (array.length === 1) {
+    return array
+  }
+
+  let sortedArray = []
+
+  for (let i in order) {
+    const ind = order.indexOf(parseInt(i))
+    sortedArray.push(array[ind])
+  }
+
+  return sortedArray
 }
