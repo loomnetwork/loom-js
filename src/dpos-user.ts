@@ -6,7 +6,7 @@ import Web3 from 'web3'
 import { CryptoUtils, Address, Client, Contracts, EthersSigner } from '.'
 import { DPOS2, Coin, LoomCoinTransferGateway, AddressMapper } from './contracts'
 import { IWithdrawalReceipt } from './contracts/transfer-gateway'
-import { sleep, createDefaultClient, createDefaultEthSignClient } from './helpers'
+import { sleep, createDefaultClient, createDefaultEthSignClientAsync } from './helpers'
 import {
   IValidator,
   ICandidate,
@@ -32,6 +32,7 @@ import { NonceTxMiddleware, SignedEthTxMiddleware } from './middleware'
 import { B64ToUint8Array, publicKeyFromPrivateKey } from './crypto-utils'
 import { ERC20Gateway_v2 } from './mainnet-contracts/ERC20Gateway_v2'
 import { LocalAddress } from './address'
+import { getMetamaskSigner } from './solidity-helpers'
 
 enum GatewayVersion {
   SINGLESIG = 1,
@@ -83,8 +84,7 @@ export class DPOSUser {
     loomAddress: string,
     version?: GatewayVersion
   ): Promise<DPOSUser> {
-    const provider = new ethers.providers.Web3Provider(web3.currentProvider)
-    const wallet = provider.getSigner()
+    const wallet = getMetamaskSigner()
     return DPOSUser.createUserAsync(
       wallet,
       dappchainEndpoint,
@@ -104,17 +104,16 @@ export class DPOSUser {
     gatewayAddress: string,
     loomAddress: string
   ): Promise<DPOSUser> {
-    const provider = new ethers.providers.Web3Provider(web3.currentProvider)
-    const wallet = provider.getSigner()
-    const ethAddress = await wallet.getAddress()
+    const wallet = getMetamaskSigner()
 
-    const { client, address } = createDefaultEthSignClient(
-      ethAddress,
+    const { client, address } = await createDefaultEthSignClientAsync(
       dappchainKey,
       dappchainEndpoint,
       chainId,
       wallet
     )
+
+    const ethAddress = await wallet.getAddress()
 
     const dappchainLoom = await Coin.createAsync(
       client,
