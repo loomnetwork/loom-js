@@ -1,5 +1,5 @@
 import debug from 'debug'
-import { NonceTx } from '../proto/loom_pb'
+import { NonceTx, Address } from '../proto/loom_pb'
 import { ITxMiddlewareHandler, Client, ITxResults, isTxAlreadyInCacheError } from '../client'
 import { bytesToHex } from '../crypto-utils'
 import { INVALID_TX_NONCE_ERROR } from './nonce-tx-middleware'
@@ -17,13 +17,21 @@ const log = debug('speculative-nonce-tx-middleware')
  * sent to the chain - which makes it possible for a caller to rapidly submit a bunch of txs.
  */
 export class SpeculativeNonceTxMiddleware implements ITxMiddlewareHandler {
-  private _publicKey: Uint8Array
+  private _publicKey: Uint8Array | null = null
+  private _account: Address | null = null
   private _client: Client
   private _lastNonce: number
   private _fetchNoncePromise: Promise<void> | null
 
-  constructor(publicKey: Uint8Array, client: Client) {
-    this._publicKey = publicKey
+  constructor(publicKey: Uint8Array, client: Client)
+  constructor(account: Address, client: Client)
+  constructor(publicKeyOrAccount: Uint8Array | Address, client: Client) {
+    if (publicKeyOrAccount instanceof Address) {
+      this._account = publicKeyOrAccount
+    } else {
+      this._publicKey = publicKeyOrAccount
+    }
+
     this._client = client
     this._lastNonce = -1
     this._fetchNoncePromise = null
@@ -95,8 +103,9 @@ export class SpeculativeNonceTxMiddleware implements ITxMiddlewareHandler {
   private async _fetchNonce(): Promise<void> {
     try {
       log('Fetching nonce...')
-      const key = bytesToHex(this._publicKey)
-      this._lastNonce = await this._client.getNonceAsync(key)
+      const key = this._publicKey ? bytesToHex(this._publicKey) : undefined
+      const account = this._account ? this._account.toString() : undefined
+      this._lastNonce = await this._client.getAccountNonceAsync({ key, account })
       log(`Fetched nonce ${this._lastNonce}`)
     } catch (err) {
       throw Error('Failed to obtain latest nonce')
