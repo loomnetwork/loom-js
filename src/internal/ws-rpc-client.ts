@@ -198,7 +198,7 @@ export class WSRPCClient extends EventEmitter {
    */
   async sendAsync<T>(method: string, params: object | any[]): Promise<T> {
     await this.ensureConnectionAsync()
-    log(`Sending RPC msg to ${this.url}, method ${method}`)
+    log(`Sending RPC msg to ${this.url}, method ${method} with params ${JSON.stringify(params)}`)
     return this._client.call<T>(method, params, this.requestTimeout)
   }
 
@@ -217,5 +217,7 @@ export class WSRPCClient extends EventEmitter {
       log('EVM Event arrived', msg)
       this.emit(RPCClientEvent.EVMMessage, this.url, msg)
     }
+
+    log('Non-Loom and Non-EVM event', msg)
   }
 }
