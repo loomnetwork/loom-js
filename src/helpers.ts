@@ -89,14 +89,14 @@ export function createDefaultClient(
   return { client, publicKey, address }
 }
 
-export function createDefaultEthSignClient(
-  ethAddress: string,
+export async function createDefaultEthSignClientAsync(
   dappchainKey: string,
   dappchainEndpoint: string,
   chainId: string,
   wallet: ethers.Signer
-): { client: Client; publicKey: Uint8Array; address: Address } {
+): Promise<{ client: Client; publicKey: Uint8Array; address: Address }> {
   const defaultClientObj = createDefaultClient(dappchainKey, dappchainEndpoint, chainId)
+  const ethAddress = await wallet.getAddress()
 
   defaultClientObj.client.txMiddleware = [
     new NonceTxMiddleware(
