@@ -79,7 +79,10 @@ export class DPOSUser {
     loomAddress: string,
     version?: GatewayVersion
   ): Promise<DPOSUser> {
-    const provider = new ethers.providers.Web3Provider(web3.currentProvider)
+    // force personal sign by pretending to be metamask no matter what the web3 provider is
+    var forcedProvider:any = web3.currentProvider
+    forcedProvider.isMetaMask = true
+    const provider = new ethers.providers.Web3Provider(forcedProvider)
     const wallet = provider.getSigner()
     return DPOSUser.createUserAsync(
       wallet,
