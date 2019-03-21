@@ -2,6 +2,7 @@ import debug from 'debug'
 import { Message } from 'google-protobuf'
 import EventEmitter from 'events'
 import retry from 'retry'
+
 import { VMType } from './proto/loom_pb'
 import {
   EvmTxReceipt,
@@ -16,8 +17,9 @@ import { Uint8ArrayToB64, B64ToUint8Array, bufferToProtobufBytes } from './crypt
 import { Address, LocalAddress } from './address'
 import { WSRPCClient, IJSONRPCEvent } from './internal/ws-rpc-client'
 import { RPCClientEvent, IJSONRPCClient } from './internal/json-rpc-client'
+import { sleep, parseUrl } from './helpers'
 
-interface ITxHandlerResult {
+export interface ITxHandlerResult {
   code?: number
   log?: string // error message if code != 0
   data?: string
@@ -27,17 +29,42 @@ interface IBroadcastTxCommitResult {
   check_tx: ITxHandlerResult
   deliver_tx: ITxHandlerResult
   hash: string
-  height: string // int64
+  height?: string // int64
 }
 
-const log = debug('client')
+// Result of querying for a tx
+interface ITxQueryResult {
+  hash: string
+  height: string
+  index: string
+  tx_result: ITxHandlerResult
+  tx: string
+}
+
+export interface ITxBroadcastResult extends ITxHandlerResult {
+  hash: string
+}
+
+export interface ITxResults {
+  // Result of processing tx before it's included in a block (CheckTx)
+  validation: ITxHandlerResult
+  // Result of processing tx after it's included in a block (DeliverTx)
+  commit: ITxHandlerResult
+}
+
+const debugLog = debug('client')
 
 /**
- * Middleware handlers are expected to transform the input data and return the result.
+ * Middleware handlers are expected to transform the tx data and check tx results.
  * Handlers should not modify the original input data in any way.
  */
 export interface ITxMiddlewareHandler {
+  // Transforms and returns tx data.
   Handle(txData: Readonly<Uint8Array>): Promise<Uint8Array>
+  // Handles an error that occured when the tx was broadcast to the chain.
+  handleError?(err: any): void
+  // Checks the tx results and throws an error if needed.
+  HandleResults?(results: ITxResults): ITxResults
 }
 
 export enum ClientEvent {
@@ -46,6 +73,10 @@ export enum ClientEvent {
    * Listener will receive IChainEventArgs.
    */
   Contract = 'contractEvent',
+  /**
+   * Exclusively used by loom-provider
+   */
+  EVMEvent = 'evmEvent',
   /**
    * Emitted when an error occurs that can't be relayed by other means.
    * Listener will receive IClientErrorEventArgs.
@@ -83,7 +114,7 @@ export interface IClientErrorEventArgs extends IClientEventArgs {
 export interface IChainEventArgs extends IClientEventArgs {
   /** Identifier (currently only used by EVM events). */
   id: string
-  kind: ClientEvent.Contract
+  kind: ClientEvent.Contract | ClientEvent.EVMEvent
   /** Address of the contract that emitted the event. */
   contractAddress: Address
   /** Address of the caller that caused the event to be emitted. */
@@ -103,10 +134,89 @@ export interface IChainEventArgs extends IClientEventArgs {
   topics: Array<string>
 }
 
-const INVALID_TX_NONCE_ERROR = 'Invalid tx nonce'
+export const TX_ALREADY_EXISTS_ERROR = 'Tx already exists in cache'
 
-export function isInvalidTxNonceError(err: any): boolean {
-  return err instanceof Error && err.message === INVALID_TX_NONCE_ERROR
+export function isTxAlreadyInCacheError(err: any): boolean {
+  // TODO: Need to update the WS client to throw the same errors as the HTTP client, so don't
+  //       have to detect two different errors everywhere.
+  return (
+    (err instanceof Error && err.message.indexOf(TX_ALREADY_EXISTS_ERROR) !== -1) || // HTTP
+    (err.data && err.data.indexOf(TX_ALREADY_EXISTS_ERROR) !== -1) // WS
+  )
+}
+
+export interface ITxBroadcaster {
+  broadcast(client: IJSONRPCClient, txBytes: Uint8Array): Promise<IBroadcastTxCommitResult>
+}
+
+export class TxCommitBroadcaster implements ITxBroadcaster {
+  broadcast(client: IJSONRPCClient, txBytes: Uint8Array): Promise<IBroadcastTxCommitResult> {
+    return client.sendAsync<IBroadcastTxCommitResult>('broadcast_tx_commit', [
+      Uint8ArrayToB64(txBytes)
+    ])
+  }
+}
+
+export class TxSyncBroadcaster implements ITxBroadcaster {
+  resultPollingStrategy: retry.OperationOptions = {
+    retries: 5,
+    minTimeout: 3000, // 3s
+    maxTimeout: 5000, // 5s
+    randomize: true
+  }
+
+  async broadcast(client: IJSONRPCClient, txBytes: Uint8Array): Promise<IBroadcastTxCommitResult> {
+    const checkTxResult = await client.sendAsync<ITxBroadcastResult>('broadcast_tx_sync', [
+      Uint8ArrayToB64(txBytes)
+    ])
+
+    const { code, log, data } = checkTxResult
+    // if the tx failed in CheckTx it won't make it into a block, and won't be indexed
+    if (code !== 0) {
+      return {
+        check_tx: { code, log, data },
+        deliver_tx: {},
+        hash: checkTxResult.hash
+      }
+    }
+
+    await sleep(this.resultPollingStrategy.minTimeout)
+
+    const op = retry.operation(this.resultPollingStrategy)
+    const result = await new Promise<ITxQueryResult>((resolve, reject) => {
+      op.attempt((currentAttempt: number) => {
+        debugLog(`Querying for result of tx ${checkTxResult.hash} - attempt ${currentAttempt}`)
+        client
+          .sendAsync<ITxQueryResult>('tx', {
+            hash: Buffer.from(checkTxResult.hash, 'hex').toString('base64')
+          })
+          .then(result => resolve(result))
+          .catch(err => {
+            debugLog(
+              `Failed to retrieve result of tx ${checkTxResult.hash}: ${err.message || err.data}`
+            )
+            // keep trying to retrieve the result if the tx isn't found, until all retries are used up
+            if (
+              (err instanceof Error && err.message.endsWith('not found')) || // HTTP
+              (err.data && err.data.endsWith('not found')) // WS
+            ) {
+              if (!op.retry(err)) {
+                reject(err)
+              }
+            } else {
+              reject(err)
+            }
+          })
+      })
+    })
+
+    return {
+      check_tx: { code, log, data },
+      deliver_tx: result.tx_result,
+      hash: result.hash,
+      height: result.height
+    }
+  }
 }
 
 /**
@@ -128,21 +238,11 @@ export class Client extends EventEmitter {
   private _writeClient: IJSONRPCClient
   private _readClient!: IJSONRPCClient
 
+  /** Broadcaster to use to send txs & receive results. */
+  txBroadcaster: ITxBroadcaster
+
   /** Middleware to apply to transactions before they are transmitted to the DAppChain. */
   txMiddleware: ITxMiddlewareHandler[] = []
-
-  /**
-   * The retry strategy that should be used to resend a tx when it's rejected because of a bad nonce.
-   * Default is a binary exponential retry strategy with 5 retries.
-   * To understand how to tweak the retry strategy see
-   * https://github.com/tim-kos/node-retry#retrytimeoutsoptions
-   */
-  nonceRetryStrategy: retry.OperationOptions = {
-    retries: 5,
-    minTimeout: 500, // 0.5s
-    maxTimeout: 5000, // 5s
-    randomize: true
-  }
 
   get readUrl(): string {
     return this._readClient.url
@@ -175,6 +275,8 @@ export class Client extends EventEmitter {
   ) {
     super()
     this.chainId = chainId
+    this.txBroadcaster = new TxSyncBroadcaster()
+
     // TODO: basic validation of the URIs to ensure they have all required components.
     this._writeClient =
       typeof writeClient === 'string' ? new WSRPCClient(writeClient) : writeClient
@@ -188,10 +290,15 @@ export class Client extends EventEmitter {
       this._emitNetEvent(url, ClientEvent.Disconnected)
     )
 
+    if (!readClient && typeof writeClient === 'string') {
+      readClient = overrideReadUrl(writeClient)
+    }
+
     if (!readClient || writeClient === readClient) {
       this._readClient = this._writeClient
     } else {
-      this._readClient = typeof readClient === 'string' ? new WSRPCClient(readClient) : readClient
+      this._readClient =
+        typeof readClient === 'string' ? new WSRPCClient(overrideReadUrl(readClient)) : readClient
       this._readClient.on(RPCClientEvent.Error, (url: string, err: any) =>
         this._emitNetEvent(url, ClientEvent.Error, err)
       )
@@ -242,52 +349,46 @@ export class Client extends EventEmitter {
    *                        the `Client.txMiddleware` property.
    * @returns Result (if any) returned by the tx handler in the contract that processed the tx.
    */
-  commitTxAsync<T extends Message>(
+  async commitTxAsync<T extends Message>(
     tx: T,
     opts: { middleware?: ITxMiddlewareHandler[] } = {}
   ): Promise<Uint8Array | void> {
     const { middleware = this.txMiddleware } = opts
-    const op = retry.operation(this.nonceRetryStrategy)
-    return new Promise<Uint8Array | void>((resolve, reject) => {
-      op.attempt(currentAttempt => {
-        this._commitTxAsync<T>(tx, middleware)
-          .then(resolve)
-          .catch(err => {
-            if (err instanceof Error && err.message === INVALID_TX_NONCE_ERROR) {
-              if (!op.retry(err)) {
-                reject(err)
-              }
-            } else {
-              op.stop()
-              reject(err)
-            }
-          })
-      })
-    })
-  }
-
-  private async _commitTxAsync<T extends Message>(
-    tx: T,
-    middleware: ITxMiddlewareHandler[]
-  ): Promise<Uint8Array | void> {
     let txBytes = tx.serializeBinary()
     for (let i = 0; i < middleware.length; i++) {
       txBytes = await middleware[i].Handle(txBytes)
     }
-    const result = await this._writeClient.sendAsync<IBroadcastTxCommitResult>(
-      'broadcast_tx_commit',
-      [Uint8ArrayToB64(txBytes)]
-    )
+    let result: IBroadcastTxCommitResult
+    try {
+      result = await this.txBroadcaster.broadcast(this._writeClient, txBytes)
+    } catch (err) {
+      // Allow the middleware to handle errors. They're applied in reverse order so that the last
+      // middleware that was applied to the tx that was sent will be get to handle the error first.
+      for (let i = middleware.length - 1; i >= 0; i--) {
+        if (middleware[i].handleError) {
+          middleware[i].handleError!(err)
+        }
+      }
+      if (isTxAlreadyInCacheError(err)) {
+        throw new Error(TX_ALREADY_EXISTS_ERROR)
+      }
+      throw err
+    }
+
+    debugLog(`Result ${JSON.stringify(result, null, 2)}`)
+
     if (result) {
+      let results = { validation: result.check_tx, commit: result.deliver_tx }
+      // Allow the middleware to detect specific error conditions, and throw more precise errors
+      for (let i = middleware.length - 1; i >= 0; i--) {
+        if (middleware[i].HandleResults) {
+          results = middleware[i].HandleResults!(results)
+        }
+      }
+      // Throw generic errors if the tx failed
       if ((result.check_tx.code || 0) != 0) {
         if (!result.check_tx.log) {
           throw new Error(`Failed to commit Tx: ${result.check_tx.code}`)
-        }
-        if (
-          result.check_tx.code === 1 &&
-          result.check_tx.log === 'sequence number does not match'
-        ) {
-          throw new Error(INVALID_TX_NONCE_ERROR)
         }
         throw new Error(`Failed to commit Tx: ${result.check_tx.log}`)
       }
@@ -297,10 +398,21 @@ export class Client extends EventEmitter {
         }
         throw new Error(`Failed to commit Tx: ${result.deliver_tx.log}`)
       }
+      if (result.deliver_tx.data) {
+        return B64ToUint8Array(result.deliver_tx.data)
+      }
     }
-    if (result.deliver_tx.data) {
-      return B64ToUint8Array(result.deliver_tx.data)
+  }
+
+  /**
+   * addListenerForTopics
+   */
+  async addListenerForTopics() {
+    const emitContractEvent = (url: string, event: IJSONRPCEvent) => {
+      this._emitContractEvent(url, event, true)
     }
+
+    this._readClient.on(RPCClientEvent.EVMMessage, emitContractEvent)
   }
 
   /**
@@ -331,9 +443,12 @@ export class Client extends EventEmitter {
    * @param txHash Transaction hash returned by call transaction.
    * @return EvmTxReceipt The corresponding transaction receipt.
    */
-  async getEvmTxReceiptAsync(txHash: Uint8Array): Promise<EvmTxReceipt | null> {
+  async getEvmTxReceiptAsync(txHashArr: Uint8Array): Promise<EvmTxReceipt | null> {
+    const txHash = Uint8ArrayToB64(txHashArr)
+    debugLog(`Get EVM receipt for ${txHash}`)
+
     const result = await this._readClient.sendAsync<string>('evmtxreceipt', {
-      txHash: Uint8ArrayToB64(txHash)
+      txHash
     })
     if (result) {
       return EvmTxReceipt.deserializeBinary(bufferToProtobufBytes(B64ToUint8Array(result)))
@@ -384,7 +499,7 @@ export class Client extends EventEmitter {
    */
   async getEvmLogsAsync(filterObject: Object): Promise<Uint8Array | null> {
     const filter = JSON.stringify(filterObject)
-    log(`Send filter ${filter} to getlogs`)
+    debugLog(`Send filter ${filter} to getlogs`)
     const result = await this._readClient.sendAsync<string>('getevmlogs', {
       filter
     })
@@ -407,7 +522,7 @@ export class Client extends EventEmitter {
    */
   async newEvmFilterAsync(filterObject: Object): Promise<string | null> {
     const filter = JSON.stringify(filterObject)
-    log(`Send filter ${filter} to newfilter`)
+    debugLog(`Send filter ${filter} to newfilter`)
     const result = await this._readClient.sendAsync<string>('newevmfilter', {
       filter
     })
@@ -429,7 +544,7 @@ export class Client extends EventEmitter {
   async getEvmFilterChangesAsync(
     id: string
   ): Promise<EthBlockHashList | EthFilterLogList | EthTxHashList | null> {
-    log(`Get filter changes for ${JSON.stringify({ id }, null, 2)}`)
+    debugLog(`Get filter changes for ${JSON.stringify({ id }, null, 2)}`)
     const result = await this._readClient.sendAsync<Uint8Array>('getevmfilterchanges', {
       id
     })
@@ -529,8 +644,11 @@ export class Client extends EventEmitter {
     hashHexStr: string,
     full: boolean = true
   ): Promise<EthBlockInfo | null> {
+    const hash = Buffer.from(hashHexStr.slice(2), 'hex').toString('base64')
+    debugLog(`Evm block by hash ${hash}`)
+
     const result = await this._readClient.sendAsync<string>('getevmblockbyhash', {
-      hash: Buffer.from(hashHexStr.slice(2), 'hex').toString('base64'),
+      hash,
       full
     })
     if (result) {
@@ -597,7 +715,7 @@ export class Client extends EventEmitter {
    * @return The nonce.
    */
   async getNonceAsync(key: string): Promise<number> {
-    return parseInt(await this._readClient.sendAsync<string>('nonce', { key }), 10)
+    return parseInt(await this._writeClient.sendAsync<string>('nonce', { key }), 10)
   }
 
   /**
@@ -614,19 +732,19 @@ export class Client extends EventEmitter {
     return Address.fromString(addrStr)
   }
 
-  private _emitContractEvent(url: string, event: IJSONRPCEvent): void {
+  private _emitContractEvent(url: string, event: IJSONRPCEvent, isEVM: boolean = false): void {
     const { error, result } = event
     if (error) {
       const eventArgs: IClientErrorEventArgs = { kind: ClientEvent.Error, url, error }
       this.emit(ClientEvent.Error, eventArgs)
     } else if (result) {
-      log('Event', event.id, result)
+      debugLog('Event', event.id, result)
 
       // Ugh, no built-in JSON->Protobuf marshaller apparently
       // https://github.com/google/protobuf/issues/1591 so gotta do this manually
       const eventArgs: IChainEventArgs = {
         id: event.id,
-        kind: ClientEvent.Contract,
+        kind: isEVM ? ClientEvent.EVMEvent : ClientEvent.Contract,
         url,
         contractAddress: new Address(
           result.address.chain_id,
@@ -642,7 +760,9 @@ export class Client extends EventEmitter {
         transactionHash: result.tx_hash,
         transactionHashBytes: result.tx_hash ? B64ToUint8Array(result.tx_hash) : new Uint8Array([])
       }
-      this.emit(ClientEvent.Contract, eventArgs)
+
+      if (isEVM) this.emit(ClientEvent.EVMEvent, eventArgs)
+      else this.emit(ClientEvent.Contract, eventArgs)
     }
   }
 
@@ -659,4 +779,13 @@ export class Client extends EventEmitter {
       this.emit(kind, eventArgs)
     }
   }
+}
+
+export function overrideReadUrl(readUrl: string): string {
+  const origUrl = parseUrl(readUrl)
+  if (origUrl.hostname === 'plasma.dappchains.com') {
+    origUrl.hostname = 'plasma-readonly.dappchains.com'
+    return origUrl.toString()
+  }
+  return readUrl
 }

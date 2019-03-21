@@ -176,6 +176,50 @@ export namespace TransferGatewayAddContractMappingRequest {
   }
 }
 
+export class TransferGatewayReclaimDepositorTokensRequest extends jspb.Message {
+  clearDepositorsList(): void;
+  getDepositorsList(): Array<proto_loom_pb.Address>;
+  setDepositorsList(value: Array<proto_loom_pb.Address>): void;
+  addDepositors(value?: proto_loom_pb.Address, index?: number): proto_loom_pb.Address;
+
+  serializeBinary(): Uint8Array;
+  toObject(includeInstance?: boolean): TransferGatewayReclaimDepositorTokensRequest.AsObject;
+  static toObject(includeInstance: boolean, msg: TransferGatewayReclaimDepositorTokensRequest): TransferGatewayReclaimDepositorTokensRequest.AsObject;
+  static extensions: {[key: number]: jspb.ExtensionFieldInfo<jspb.Message>};
+  static extensionsBinary: {[key: number]: jspb.ExtensionFieldBinaryInfo<jspb.Message>};
+  static serializeBinaryToWriter(message: TransferGatewayReclaimDepositorTokensRequest, writer: jspb.BinaryWriter): void;
+  static deserializeBinary(bytes: Uint8Array): TransferGatewayReclaimDepositorTokensRequest;
+  static deserializeBinaryFromReader(message: TransferGatewayReclaimDepositorTokensRequest, reader: jspb.BinaryReader): TransferGatewayReclaimDepositorTokensRequest;
+}
+
+export namespace TransferGatewayReclaimDepositorTokensRequest {
+  export type AsObject = {
+    depositorsList: Array<proto_loom_pb.Address.AsObject>,
+  }
+}
+
+export class TransferGatewayReclaimContractTokensRequest extends jspb.Message {
+  hasTokenContract(): boolean;
+  clearTokenContract(): void;
+  getTokenContract(): proto_loom_pb.Address | undefined;
+  setTokenContract(value?: proto_loom_pb.Address): void;
+
+  serializeBinary(): Uint8Array;
+  toObject(includeInstance?: boolean): TransferGatewayReclaimContractTokensRequest.AsObject;
+  static toObject(includeInstance: boolean, msg: TransferGatewayReclaimContractTokensRequest): TransferGatewayReclaimContractTokensRequest.AsObject;
+  static extensions: {[key: number]: jspb.ExtensionFieldInfo<jspb.Message>};
+  static extensionsBinary: {[key: number]: jspb.ExtensionFieldBinaryInfo<jspb.Message>};
+  static serializeBinaryToWriter(message: TransferGatewayReclaimContractTokensRequest, writer: jspb.BinaryWriter): void;
+  static deserializeBinary(bytes: Uint8Array): TransferGatewayReclaimContractTokensRequest;
+  static deserializeBinaryFromReader(message: TransferGatewayReclaimContractTokensRequest, reader: jspb.BinaryReader): TransferGatewayReclaimContractTokensRequest;
+}
+
+export namespace TransferGatewayReclaimContractTokensRequest {
+  export type AsObject = {
+    tokenContract?: proto_loom_pb.Address.AsObject,
+  }
+}
+
 export class TransferGatewayWithdrawTokenRequest extends jspb.Message {
   hasTokenContract(): boolean;
   clearTokenContract(): void;
@@ -250,6 +294,40 @@ export namespace TransferGatewayWithdrawETHRequest {
   export type AsObject = {
     amount?: proto_loom_pb.BigUInt.AsObject,
     mainnetGateway?: proto_loom_pb.Address.AsObject,
+    recipient?: proto_loom_pb.Address.AsObject,
+  }
+}
+
+export class TransferGatewayWithdrawLoomCoinRequest extends jspb.Message {
+  hasAmount(): boolean;
+  clearAmount(): void;
+  getAmount(): proto_loom_pb.BigUInt | undefined;
+  setAmount(value?: proto_loom_pb.BigUInt): void;
+
+  hasTokenContract(): boolean;
+  clearTokenContract(): void;
+  getTokenContract(): proto_loom_pb.Address | undefined;
+  setTokenContract(value?: proto_loom_pb.Address): void;
+
+  hasRecipient(): boolean;
+  clearRecipient(): void;
+  getRecipient(): proto_loom_pb.Address | undefined;
+  setRecipient(value?: proto_loom_pb.Address): void;
+
+  serializeBinary(): Uint8Array;
+  toObject(includeInstance?: boolean): TransferGatewayWithdrawLoomCoinRequest.AsObject;
+  static toObject(includeInstance: boolean, msg: TransferGatewayWithdrawLoomCoinRequest): TransferGatewayWithdrawLoomCoinRequest.AsObject;
+  static extensions: {[key: number]: jspb.ExtensionFieldInfo<jspb.Message>};
+  static extensionsBinary: {[key: number]: jspb.ExtensionFieldBinaryInfo<jspb.Message>};
+  static serializeBinaryToWriter(message: TransferGatewayWithdrawLoomCoinRequest, writer: jspb.BinaryWriter): void;
+  static deserializeBinary(bytes: Uint8Array): TransferGatewayWithdrawLoomCoinRequest;
+  static deserializeBinaryFromReader(message: TransferGatewayWithdrawLoomCoinRequest, reader: jspb.BinaryReader): TransferGatewayWithdrawLoomCoinRequest;
+}
+
+export namespace TransferGatewayWithdrawLoomCoinRequest {
+  export type AsObject = {
+    amount?: proto_loom_pb.BigUInt.AsObject,
+    tokenContract?: proto_loom_pb.Address.AsObject,
     recipient?: proto_loom_pb.Address.AsObject,
   }
 }
@@ -332,10 +410,115 @@ export namespace TransferGatewayConfirmWithdrawalReceiptRequest {
   }
 }
 
+export class TransferGatewayTokenAmount extends jspb.Message {
+  hasTokenId(): boolean;
+  clearTokenId(): void;
+  getTokenId(): proto_loom_pb.BigUInt | undefined;
+  setTokenId(value?: proto_loom_pb.BigUInt): void;
+
+  hasTokenAmount(): boolean;
+  clearTokenAmount(): void;
+  getTokenAmount(): proto_loom_pb.BigUInt | undefined;
+  setTokenAmount(value?: proto_loom_pb.BigUInt): void;
+
+  serializeBinary(): Uint8Array;
+  toObject(includeInstance?: boolean): TransferGatewayTokenAmount.AsObject;
+  static toObject(includeInstance: boolean, msg: TransferGatewayTokenAmount): TransferGatewayTokenAmount.AsObject;
+  static extensions: {[key: number]: jspb.ExtensionFieldInfo<jspb.Message>};
+  static extensionsBinary: {[key: number]: jspb.ExtensionFieldBinaryInfo<jspb.Message>};
+  static serializeBinaryToWriter(message: TransferGatewayTokenAmount, writer: jspb.BinaryWriter): void;
+  static deserializeBinary(bytes: Uint8Array): TransferGatewayTokenAmount;
+  static deserializeBinaryFromReader(message: TransferGatewayTokenAmount, reader: jspb.BinaryReader): TransferGatewayTokenAmount;
+}
+
+export namespace TransferGatewayTokenAmount {
+  export type AsObject = {
+    tokenId?: proto_loom_pb.BigUInt.AsObject,
+    tokenAmount?: proto_loom_pb.BigUInt.AsObject,
+  }
+}
+
+export class TransferGatewayUnclaimedToken extends jspb.Message {
+  hasTokenContract(): boolean;
+  clearTokenContract(): void;
+  getTokenContract(): proto_loom_pb.Address | undefined;
+  setTokenContract(value?: proto_loom_pb.Address): void;
+
+  getTokenKind(): TransferGatewayTokenKind;
+  setTokenKind(value: TransferGatewayTokenKind): void;
+
+  clearAmountsList(): void;
+  getAmountsList(): Array<TransferGatewayTokenAmount>;
+  setAmountsList(value: Array<TransferGatewayTokenAmount>): void;
+  addAmounts(value?: TransferGatewayTokenAmount, index?: number): TransferGatewayTokenAmount;
+
+  serializeBinary(): Uint8Array;
+  toObject(includeInstance?: boolean): TransferGatewayUnclaimedToken.AsObject;
+  static toObject(includeInstance: boolean, msg: TransferGatewayUnclaimedToken): TransferGatewayUnclaimedToken.AsObject;
+  static extensions: {[key: number]: jspb.ExtensionFieldInfo<jspb.Message>};
+  static extensionsBinary: {[key: number]: jspb.ExtensionFieldBinaryInfo<jspb.Message>};
+  static serializeBinaryToWriter(message: TransferGatewayUnclaimedToken, writer: jspb.BinaryWriter): void;
+  static deserializeBinary(bytes: Uint8Array): TransferGatewayUnclaimedToken;
+  static deserializeBinaryFromReader(message: TransferGatewayUnclaimedToken, reader: jspb.BinaryReader): TransferGatewayUnclaimedToken;
+}
+
+export namespace TransferGatewayUnclaimedToken {
+  export type AsObject = {
+    tokenContract?: proto_loom_pb.Address.AsObject,
+    tokenKind: TransferGatewayTokenKind,
+    amountsList: Array<TransferGatewayTokenAmount.AsObject>,
+  }
+}
+
+export class TransferGatewayGetUnclaimedTokensRequest extends jspb.Message {
+  hasOwner(): boolean;
+  clearOwner(): void;
+  getOwner(): proto_loom_pb.Address | undefined;
+  setOwner(value?: proto_loom_pb.Address): void;
+
+  serializeBinary(): Uint8Array;
+  toObject(includeInstance?: boolean): TransferGatewayGetUnclaimedTokensRequest.AsObject;
+  static toObject(includeInstance: boolean, msg: TransferGatewayGetUnclaimedTokensRequest): TransferGatewayGetUnclaimedTokensRequest.AsObject;
+  static extensions: {[key: number]: jspb.ExtensionFieldInfo<jspb.Message>};
+  static extensionsBinary: {[key: number]: jspb.ExtensionFieldBinaryInfo<jspb.Message>};
+  static serializeBinaryToWriter(message: TransferGatewayGetUnclaimedTokensRequest, writer: jspb.BinaryWriter): void;
+  static deserializeBinary(bytes: Uint8Array): TransferGatewayGetUnclaimedTokensRequest;
+  static deserializeBinaryFromReader(message: TransferGatewayGetUnclaimedTokensRequest, reader: jspb.BinaryReader): TransferGatewayGetUnclaimedTokensRequest;
+}
+
+export namespace TransferGatewayGetUnclaimedTokensRequest {
+  export type AsObject = {
+    owner?: proto_loom_pb.Address.AsObject,
+  }
+}
+
+export class TransferGatewayGetUnclaimedTokensResponse extends jspb.Message {
+  clearUnclaimedTokensList(): void;
+  getUnclaimedTokensList(): Array<TransferGatewayUnclaimedToken>;
+  setUnclaimedTokensList(value: Array<TransferGatewayUnclaimedToken>): void;
+  addUnclaimedTokens(value?: TransferGatewayUnclaimedToken, index?: number): TransferGatewayUnclaimedToken;
+
+  serializeBinary(): Uint8Array;
+  toObject(includeInstance?: boolean): TransferGatewayGetUnclaimedTokensResponse.AsObject;
+  static toObject(includeInstance: boolean, msg: TransferGatewayGetUnclaimedTokensResponse): TransferGatewayGetUnclaimedTokensResponse.AsObject;
+  static extensions: {[key: number]: jspb.ExtensionFieldInfo<jspb.Message>};
+  static extensionsBinary: {[key: number]: jspb.ExtensionFieldBinaryInfo<jspb.Message>};
+  static serializeBinaryToWriter(message: TransferGatewayGetUnclaimedTokensResponse, writer: jspb.BinaryWriter): void;
+  static deserializeBinary(bytes: Uint8Array): TransferGatewayGetUnclaimedTokensResponse;
+  static deserializeBinaryFromReader(message: TransferGatewayGetUnclaimedTokensResponse, reader: jspb.BinaryReader): TransferGatewayGetUnclaimedTokensResponse;
+}
+
+export namespace TransferGatewayGetUnclaimedTokensResponse {
+  export type AsObject = {
+    unclaimedTokensList: Array<TransferGatewayUnclaimedToken.AsObject>,
+  }
+}
+
 export enum TransferGatewayTokenKind {
   ETH = 0,
   ERC20 = 1,
   ERC721 = 2,
   ERC721X = 3,
+  LOOMCOIN = 4,
 }
 

@@ -9,10 +9,10 @@ set -euxo pipefail
 
 # Prepare env
 DEFAULT_GOPATH=$GOPATH
-BUILD_NUMBER=512
 GANACHE_PORT=8545
 REPO_ROOT=`pwd`
 LOOM_DIR=`pwd`/tmp/e2e
+
 
 # Check available platforms
 PLATFORM='unknown'
@@ -28,7 +28,7 @@ fi
 
 download_dappchain() {
   cd $LOOM_DIR
-  wget https://private.delegatecall.com/loom/$PLATFORM/build-$BUILD_NUMBER/loom
+  wget https://private.delegatecall.com/loom/$PLATFORM/$BUILD_ID/loom
   chmod +x loom
   LOOM_BIN=`pwd`/loom
 }
@@ -63,8 +63,14 @@ start_chains() {
 }
 
 stop_chains() {
-  kill -9 $GANACHE_PID
-  kill -9 $LOOM_PID
+  if [[ -n "$GANACHE_PID" ]]; then
+    kill -9 $GANACHE_PID
+    GANACHE_PID=""
+  fi
+  if [[ -n "$LOOM_PID" ]]; then
+    kill -9 $LOOM_PID
+    LOOM_PID=""
+  fi
   pkill -f "${LOOM_DIR}/contracts/blueprint.0.0.1" || true
 }
 
@@ -79,14 +85,10 @@ cleanup() {
   export GOPATH=$DEFAULT_GOPATH
 }
 
-rm -rf $LOOM_DIR; true
-mkdir -p $LOOM_DIR
+if [ "${TRAVIS:-}" ]; then
+  mkdir -p $LOOM_DIR
 
-if [[ -z "${LOOM_BLUEPRINT_DIR:-}" ]]; then
   setup_weave_blueprint
-fi
-
-if [[ -z "${LOOM_BIN:-}" ]]; then
   download_dappchain
 fi
 
@@ -96,3 +98,10 @@ trap cleanup EXIT
 
 start_chains
 run_tests
+cleanup
+
+sleep 1
+
+if [ "${TRAVIS:-}" ]; then
+  rm -rf $LOOM_DIR
+fi

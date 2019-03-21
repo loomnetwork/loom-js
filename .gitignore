@@ -5,6 +5,8 @@ tmp
 chaindata
 app.data
 .DS_Store
+ganache.log
+db
 
 # Only apps should have lockfiles
 package-lock.json

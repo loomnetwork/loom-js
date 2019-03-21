@@ -91,7 +91,7 @@ export class WSRPCClient extends EventEmitter {
         // javascript are truly private... so we'll just handle those event message ourselves ;)
         ;((this._client as any).socket as EventEmitter).on('message', this._onEventMessage)
         if (this._client.ready) {
-          log('Subscribe for events')
+          log('Subscribe for events without topics')
           this._client
             .call('subevents', { topics: null }, this.requestTimeout)
             .then(() => {
@@ -100,6 +100,10 @@ export class WSRPCClient extends EventEmitter {
             })
             .catch(err => this.emit(RPCClientEvent.Error, this.url, err))
         }
+      }
+
+      if (event === RPCClientEvent.EVMMessage && this.listenerCount(event) === 0) {
+        ;((this._client as any).socket as EventEmitter).on('message', this._onEventMessage)
       }
     })
 
@@ -122,11 +126,19 @@ export class WSRPCClient extends EventEmitter {
             })
         }
       }
+
+      if (event === RPCClientEvent.EVMMessage && this.listenerCount(event) === 0) {
+        ;((this._client as any).socket as EventEmitter).removeListener(
+          'message',
+          this._onEventMessage
+        )
+      }
     })
 
     this._client.on('open', () => {
       this.emit(RPCClientEvent.Connected, this.url)
       if (this.listenerCount(RPCClientEvent.Message) > 0) {
+        log('Subscribe for events without topics')
         this._client
           .call('subevents', { topics: null }, this.requestTimeout)
           .then(() => {
@@ -186,7 +198,7 @@ export class WSRPCClient extends EventEmitter {
    */
   async sendAsync<T>(method: string, params: object | any[]): Promise<T> {
     await this.ensureConnectionAsync()
-    log(`Sending RPC msg to ${this.url}, method ${method}`)
+    log(`Sending RPC msg to ${this.url}, method ${method} with params ${JSON.stringify(params)}`)
     return this._client.call<T>(method, params, this.requestTimeout)
   }
 
@@ -195,9 +207,17 @@ export class WSRPCClient extends EventEmitter {
     const msg = JSON.parse(msgStr)
 
     // Events from native loomchain have the id equals 0
-    // Events from EVM have the id from the evmsubscribe command
-    if (msg.id === '0' || /^0x.+$/.test(msg.id)) {
+    if (msg.id === '0') {
+      log('Loom Event arrived', msg)
       this.emit(RPCClientEvent.Message, this.url, msg)
     }
+
+    // Events from EVM have the id from the evmsubscribe command
+    if (/^0x.+$/.test(msg.id)) {
+      log('EVM Event arrived', msg)
+      this.emit(RPCClientEvent.EVMMessage, this.url, msg)
+    }
+
+    log('Non-Loom and Non-EVM event', msg)
   }
 }

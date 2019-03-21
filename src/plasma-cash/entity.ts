@@ -1,3 +1,4 @@
+import debug from 'debug'
 import BN from 'bn.js'
 import Web3 from 'web3'
 
@@ -11,13 +12,18 @@ import {
 import { Address, LocalAddress } from '../address'
 import { DAppChainPlasmaClient } from './dappchain-client'
 import { PlasmaCashTx } from './plasma-cash-tx'
-import { OfflineWeb3Signer } from '../solidity-helpers'
-import { Account } from 'web3/eth/accounts'
+import { EthersSigner } from '../solidity-helpers'
 import { PlasmaDB } from './db'
-import Tx from 'ethereumjs-tx'
+
 const Plasma = require('./contracts/plasma-cash-abi.json')
 const abiDecoder = require('abi-decoder') // NodeJS
 abiDecoder.addABI(Plasma)
+
+import { ethers } from 'ethers'
+import { hexBN } from '../helpers'
+
+const debugLog = debug('plasma-cash:entity')
+const errorLog = debug('plasma-cash:entity:error')
 
 export interface IProofs {
   inclusion: { [blockNumber: string]: string }
@@ -27,11 +33,11 @@ export interface IProofs {
 
 export interface IEntityParams {
   /** Web3 account for use on Ethereum */
-  ethAccount: Account
   ethPlasmaClient: EthereumPlasmaClient
   dAppPlasmaClient: DAppChainPlasmaClient
   /** Allows to override the amount of gas used when sending txs to Ethereum. */
-  defaultGas?: string | number
+  defaultGas?: number
+  defaultAccount: string
   childBlockInterval: number
 }
 
@@ -46,18 +52,21 @@ export interface IWeb3EventSub {
  * on Ethereum, and one on the DAppChain, each identity has its own private/public key pair.
  */
 export class Entity {
-  private _web3: Web3
-  // web3 account
-  private _ethAccount: Account
+  private _ethers: ethers.Signer
   private _dAppPlasmaClient: DAppChainPlasmaClient
   private _ethPlasmaClient: EthereumPlasmaClient
-  private _defaultGas?: string | number
   private _childBlockInterval: number
-  private _exitWatchers: { [slot: string]: IWeb3EventSub }
-  private _challengeWatchers: { [slot: string]: IWeb3EventSub }
+  private _ethAddress: string
+  protected _defaultGas?: number
+  protected _exitWatchers: { [slot: string]: IWeb3EventSub }
+  protected _challengeWatchers: { [slot: string]: IWeb3EventSub }
+
+  get ethers(): ethers.Signer {
+    return this._ethers
+  }
 
   get web3(): Web3 {
-    return this._web3
+    return this._ethPlasmaClient.web3
   }
 
   get database(): PlasmaDB {
@@ -65,14 +74,14 @@ export class Entity {
   }
 
   get ethAddress(): string {
-    return this._ethAccount.address
+    return this._ethAddress
   }
 
-  get ethAccount(): Account {
-    return this._ethAccount
+  get plasmaEvents(): any {
+    return this._ethPlasmaClient.plasmaEvents
   }
 
-  get plasmaCashContract(): any {
+  get plasmaCashContract(): ethers.Contract {
     return this._ethPlasmaClient.plasmaCashContract
   }
 
@@ -80,15 +89,15 @@ export class Entity {
     return this._dAppPlasmaClient.contractName
   }
 
-  constructor(web3: Web3, params: IEntityParams) {
-    this._web3 = web3
-    this._ethAccount = params.ethAccount
+  constructor(ethers: ethers.Signer, params: IEntityParams) {
+    this._ethers = ethers
     this._ethPlasmaClient = params.ethPlasmaClient
     this._dAppPlasmaClient = params.dAppPlasmaClient
     this._defaultGas = params.defaultGas
     this._childBlockInterval = params.childBlockInterval
     this._exitWatchers = {}
     this._challengeWatchers = {}
+    this._ethAddress = params.defaultAccount
   }
 
   // This should be called whenever a new block gets received
@@ -126,7 +135,7 @@ export class Entity {
       newOwner,
       prevOwner: this.ethAddress
     })
-    await tx.signAsync(new OfflineWeb3Signer(this._web3, this._ethAccount))
+    await tx.signAsync(new EthersSigner(this._ethers))
     await this._dAppPlasmaClient.sendTxAsync(tx)
   }
 
@@ -177,19 +186,11 @@ export class Entity {
     })
   }
 
-  async submitPlasmaBlockAsync(): Promise<BN> {
-    await this._dAppPlasmaClient.debugFinalizeBlockAsync()
-    const blockNum = await this._dAppPlasmaClient.getCurrentPlasmaBlockNumAsync()
-    const block = await this._dAppPlasmaClient.getPlasmaBlockAtAsync(blockNum)
-    await this._ethPlasmaClient.debugSubmitBlockAsync({ block, from: this.ethAddress })
-    return blockNum
-  }
-
-  submitPlasmaDepositAsync(deposit: IPlasmaDeposit): Promise<void> {
-    return this._dAppPlasmaClient.debugSubmitDepositAsync(deposit)
-  }
-
-  async startExitAsync(params: { slot: BN; prevBlockNum: BN; exitBlockNum: BN }): Promise<object> {
+  async startExitAsync(params: {
+    slot: BN
+    prevBlockNum: BN
+    exitBlockNum: BN
+  }): Promise<ethers.ContractTransaction> {
     const { slot, prevBlockNum, exitBlockNum } = params
 
     // In case the sender is exiting a Deposit transaction, they should just create a signed
@@ -201,7 +202,7 @@ export class Entity {
         denomination: 1,
         newOwner: this.ethAddress
       })
-      await exitTx.signAsync(new OfflineWeb3Signer(this._web3, this._ethAccount))
+      await exitTx.signAsync(new EthersSigner(this._ethers))
       return this._ethPlasmaClient.startExitAsync({
         slot,
         exitTx,
@@ -230,27 +231,50 @@ export class Entity {
     })
   }
 
-  finalizeExitsAsync(): Promise<object> {
+  cancelExitsAsync(slots: BN[]): Promise<object> {
+    return this._ethPlasmaClient.cancelExitsAsync({
+      slots: slots,
+      from: this.ethAddress,
+      gas: this._defaultGas
+    })
+  }
+
+  async cancelExitAsync(slot: BN): Promise<any> {
+    return this._ethPlasmaClient.cancelExitAsync({
+      slot,
+      from: this.ethAddress,
+      gas: this._defaultGas
+    })
+  }
+
+  finalizeExitsAsync(slots: BN[]): Promise<object> {
     return this._ethPlasmaClient.finalizeExitsAsync({
+      slots: slots,
       from: this.ethAddress,
       gas: this._defaultGas
     })
   }
 
   async finalizeExitAsync(slot: BN): Promise<any> {
-    return await this.plasmaCashContract.finalizeExit([slot.toString()])
+    const tx = await this._ethPlasmaClient.finalizeExitAsync({
+      slot,
+      from: this.ethAddress,
+      gas: this._defaultGas
+    })
+    await tx.wait()
+    return tx
   }
 
   /**
    * @return Web3 subscription object that can be passed to stopWatching().
    */
   watchExit(slot: BN, fromBlock: BN): IWeb3EventSub {
-    console.log(`${this.prefix(slot)} Started watching exits`)
+    debugLog(`${this.prefix(slot)} Started watching exits`)
     if (this._exitWatchers[slot.toString()] !== undefined) {
       // replace old filter for that coin
       this._exitWatchers[slot.toString()].unsubscribe()
     }
-    this._exitWatchers[slot.toString()] = this.plasmaCashContract.events
+    this._exitWatchers[slot.toString()] = this.plasmaEvents.events
       .StartedExit({
         filter: { slot: slot.toString() },
         fromBlock: fromBlock
@@ -258,7 +282,7 @@ export class Entity {
       .on('data', (event: any, err: any) => {
         this.challengeExitAsync(slot, event.returnValues.owner)
       })
-      .on('error', (err: any) => console.log(err))
+      .on('error', (err: any) => errorLog(err))
     return this._exitWatchers[slot.toString()]
   }
 
@@ -266,12 +290,12 @@ export class Entity {
    * @return Web3 subscription object that can be passed to stopWatching().
    */
   watchChallenge(slot: BN, fromBlock: BN): IWeb3EventSub {
-    console.log(`${this.prefix(slot)} Started watching challenges`)
+    debugLog(`${this.prefix(slot)} Started watching challenges`)
     if (this._challengeWatchers[slot.toString()] !== undefined) {
       // replace old filter for that coin
       this._challengeWatchers[slot.toString()].unsubscribe()
     }
-    this._challengeWatchers[slot.toString()] = this.plasmaCashContract.events
+    this._challengeWatchers[slot.toString()] = this.plasmaEvents.events
       .ChallengedExit({
         filter: { slot: slot.toString() },
         fromBlock: fromBlock
@@ -283,7 +307,7 @@ export class Entity {
           event.returnValues.challengingBlockNumber
         )
       })
-      .on('error', (err: any) => console.log(err))
+      .on('error', (err: any) => errorLog(err))
     return this._challengeWatchers[slot.toString()]
   }
 
@@ -291,10 +315,10 @@ export class Entity {
     const exit = await this.getExitAsync(slot)
     if (exit.exitBlock.eq(new BN(0))) return
     if (owner === this.ethAddress) {
-      console.log(`${this.prefix(slot)} Valid exit!`)
+      debugLog(`${this.prefix(slot)} Valid exit!`)
       return
     } else {
-      console.log(`${this.prefix(slot)} Challenging exit!`)
+      debugLog(`${this.prefix(slot)} Challenging exit!`)
     }
 
     const coin = await this.getPlasmaCoinAsync(slot)
@@ -306,23 +330,22 @@ export class Entity {
         continue
       }
       if (blk.gt(exit.exitBlock)) {
-        console.log(`${this.prefix(slot)} Challenge Spent Coin with ${blk}!`)
-        await this.challengeAfterAsync({ slot: slot, challengingBlockNum: blk })
+        debugLog(`${this.prefix(slot)} Challenge Spent Coin with ${blk}!`)
+        const tx = await this.challengeAfterAsync({ slot: slot, challengingBlockNum: blk })
+        await tx.wait()
         break
       } else if (exit.prevBlock.lt(blk) && blk.lt(exit.exitBlock)) {
-        console.log(`${this.prefix(slot)} Challenge Double Spend with ${blk}!`)
-        await this.challengeBetweenAsync({ slot: slot, challengingBlockNum: blk })
+        debugLog(`${this.prefix(slot)} Challenge Double Spend with ${blk}!`)
+        const tx = await this.challengeBetweenAsync({ slot: slot, challengingBlockNum: blk })
+        await tx.wait()
         break
       } else if (blk.lt(exit.prevBlock)) {
-        const tx = await this.getPlasmaTxAsync(slot, blk)
-        console.log(
-          `${this.prefix(slot)} Challenge Invalid History! with ${tx.prevBlockNum} and ${blk}`
-        )
-        await this.challengeBeforeAsync({
+        debugLog(`${this.prefix(slot)} Challenge Invalid History! with ${blk}`)
+        const tx = await this.challengeBeforeAsync({
           slot: slot,
-          prevBlockNum: tx.prevBlockNum,
           challengingBlockNum: blk
         })
+        await tx.wait()
         break
       }
     }
@@ -341,11 +364,13 @@ export class Entity {
       }
       // challenge with the first block after the challengingBlock
       if (blk.gt(new BN(challengingBlockNum))) {
-        await this.respondChallengeBeforeAsync({
+        debugLog(`${this.prefix(slot)} Responding with ${blk}!`)
+        const tx = await this.respondChallengeBeforeAsync({
           slot,
           challengingTxHash: txHash,
           respondingBlockNum: blk
         })
+        await tx.wait()
         break
       }
     }
@@ -380,13 +405,23 @@ export class Entity {
 
   async verifyCoinHistoryAsync(slot: BN, proofs: IProofs): Promise<boolean> {
     // Check inclusion proofs
+    const coin = await this.getPlasmaCoinAsync(slot)
+    let earliestValidBlock = coin.depositBlockNum
     for (let p in proofs.inclusion) {
       const blockNumber = new BN(p)
       const tx = proofs.transactions[p] // get the block number from the proof of inclusion and get the tx from that
       const root = await this.getBlockRootAsync(blockNumber)
       const included = await this.checkInclusionAsync(tx, root, slot, proofs.inclusion[p])
-      if (!included) {
-        return false
+      if (included) {
+        // Skip deposit blocks
+        if (tx.prevBlockNum.eq(new BN(0))) {
+          continue
+        }
+        if (tx.prevBlockNum.eq(earliestValidBlock)) {
+          earliestValidBlock = blockNumber
+        } else {
+          return false
+        }
       }
     }
 
@@ -426,7 +461,7 @@ export class Entity {
 
   async getDepositEvents(fromBlock?: BN, all?: boolean): Promise<IPlasmaDeposit[]> {
     const filter = !all ? { from: this.ethAddress } : {}
-    const events: any[] = await this.plasmaCashContract.getPastEvents('Deposit', {
+    const events: any[] = await this.plasmaEvents.getPastEvents('Deposit', {
       filter: filter,
       fromBlock: fromBlock ? fromBlock : 0
     })
@@ -462,23 +497,24 @@ export class Entity {
 
   stopWatching(slot: BN) {
     if (this._exitWatchers[slot.toString()]) {
-      console.log(`${this.prefix(slot)} Stopped watching exits`)
+      debugLog(`${this.prefix(slot)} Stopped watching exits`)
       this._exitWatchers[slot.toString()].unsubscribe()
       delete this._exitWatchers[slot.toString()]
     }
     if (this._challengeWatchers[slot.toString()]) {
-      console.log(`${this.prefix(slot)} Stopped watching challenges`)
+      debugLog(`${this.prefix(slot)} Stopped watching challenges`)
       this._challengeWatchers[slot.toString()].unsubscribe()
       delete this._challengeWatchers[slot.toString()]
     }
   }
 
   async withdrawAsync(slot: BN) {
-    await this._ethPlasmaClient.withdrawAsync({
+    const tx = await this._ethPlasmaClient.withdrawAsync({
       slot,
       from: this.ethAddress,
       gas: this._defaultGas
     })
+    await tx.wait()
     this.database.removeCoin(slot) // remove the coin from the state
   }
 
@@ -489,7 +525,10 @@ export class Entity {
     })
   }
 
-  async challengeAfterAsync(params: { slot: BN; challengingBlockNum: BN }): Promise<object> {
+  async challengeAfterAsync(params: {
+    slot: BN
+    challengingBlockNum: BN
+  }): Promise<ethers.ContractTransaction> {
     const { slot, challengingBlockNum } = params
     const challengingTx = await this.getPlasmaTxAsync(slot, challengingBlockNum)
     if (!challengingTx) {
@@ -504,7 +543,10 @@ export class Entity {
     })
   }
 
-  async challengeBetweenAsync(params: { slot: BN; challengingBlockNum: BN }): Promise<object> {
+  async challengeBetweenAsync(params: {
+    slot: BN
+    challengingBlockNum: BN
+  }): Promise<ethers.ContractTransaction> {
     const { slot, challengingBlockNum } = params
     const challengingTx = await this.getPlasmaTxAsync(slot, challengingBlockNum)
     if (!challengingTx) {
@@ -521,10 +563,9 @@ export class Entity {
 
   async challengeBeforeAsync(params: {
     slot: BN
-    prevBlockNum: BN
     challengingBlockNum: BN
-  }): Promise<object> {
-    const { slot, prevBlockNum, challengingBlockNum } = params
+  }): Promise<ethers.ContractTransaction> {
+    const { slot, challengingBlockNum } = params
 
     // In case the sender is exiting a Deposit transaction, they should just create a signed
     // transaction to themselves. There is no need for a merkle proof.
@@ -535,7 +576,7 @@ export class Entity {
         denomination: 1,
         newOwner: this.ethAddress
       })
-      await challengingTx.signAsync(new OfflineWeb3Signer(this._web3, this._ethAccount))
+      await challengingTx.signAsync(new EthersSigner(this._ethers))
       return this._ethPlasmaClient.challengeBeforeAsync({
         slot,
         challengingTx,
@@ -550,42 +591,21 @@ export class Entity {
     if (!challengingTx) {
       throw new Error(`${this.prefix(slot)} Invalid exit block: missing tx`)
     }
-    const prevTx = await this.getPlasmaTxAsync(slot, challengingBlockNum)
-    if (!prevTx) {
-      throw new Error(`${this.prefix(slot)} Invalid prev block: missing tx`)
-    }
+
     return this._ethPlasmaClient.challengeBeforeAsync({
       slot,
-      prevTx,
       challengingTx,
-      prevBlockNum,
       challengingBlockNum,
       from: this.ethAddress,
       gas: this._defaultGas
     })
   }
 
-  async sendETH(to: string, value: BN, gas?: number): Promise<any> {
-    const nonce = await this._web3.eth.getTransactionCount(this.ethAddress)
-    const gasPrice = await this._web3.eth.getGasPrice()
-    const tx = new Tx({
-      to: to,
-      from: this.ethAddress,
-      gas: gas || 21000,
-      gasPrice: this._web3.utils.toHex(gasPrice),
-      nonce: this._web3.utils.toHex(nonce),
-      value: this._web3.utils.toHex(value || 0)
-    })
-    tx.sign(Buffer.from(this._ethAccount.privateKey.slice(2), 'hex'))
-    const serializedTx = tx.serialize()
-    return this._web3.eth.sendSignedTransaction(`0x${serializedTx.toString('hex')}`)
-  }
-
   async respondChallengeBeforeAsync(params: {
     slot: BN
     challengingTxHash: string
     respondingBlockNum: BN
-  }): Promise<object> {
+  }): Promise<ethers.ContractTransaction> {
     const { slot, challengingTxHash, respondingBlockNum } = params
     const respondingTx = await this.getPlasmaTxAsync(slot, respondingBlockNum)
     if (!respondingTx) {
@@ -607,19 +627,18 @@ export class Entity {
    *
    * @param tx The transaction that we want to decode.
    */
-  async getCoinFromTxAsync(tx: any): Promise<IPlasmaCoin> {
-    const _tx = await this.web3.eth.getTransactionReceipt(tx.transactionHash)
-
-    const depositLogs = abiDecoder
-      .decodeLogs(_tx.logs)
-      .filter((logItem: any) => logItem && logItem.name.indexOf('Deposit') !== -1)
-
-    if (depositLogs.length === 0) {
-      throw Error('Deposit event not found')
+  async getCoinFromTxAsync(tx: ethers.providers.TransactionResponse): Promise<IPlasmaCoin> {
+    const _tx = await tx.wait()
+    if (_tx.logs === undefined) {
+      throw Error('No logs were found')
     }
 
-    const data = depositLogs[0].events
-    const coinId = new BN(data[0].value.slice(2), 16)
+    const logs = _tx.logs.map(l => this.plasmaCashContract.interface.parseLog(l))
+    const depositLog = logs.find(l => l !== null && l.name === 'Deposit')
+    if (depositLog === undefined) {
+      throw Error('No deposit event found')
+    }
+    const coinId = hexBN(depositLog.values.slot)
     return this.getPlasmaCoinAsync(coinId)
   }
 

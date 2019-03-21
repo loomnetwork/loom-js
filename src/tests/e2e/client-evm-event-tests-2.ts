@@ -7,6 +7,7 @@ import { LoomProvider } from '../../loom-provider'
 import { deployContract } from '../evm-helpers'
 import { bufferToProtobufBytes } from '../../crypto-utils'
 import { Address, LocalAddress } from '../../address'
+import { createDefaultTxMiddleware } from '../../helpers'
 
 /**
  * Requires the SimpleStore solidity contract deployed on a loomchain.
@@ -83,10 +84,7 @@ test('Client EVM Event test (two filters)', async t => {
     const result = await deployContract(loomProvider, contractData)
 
     // Middleware used for client
-    client.txMiddleware = [
-      new NonceTxMiddleware(publicKey, client),
-      new SignedTxMiddleware(privateKey)
-    ]
+    client.txMiddleware = createDefaultTxMiddleware(client, privateKey)
 
     // Filter by topics
 

@@ -4,7 +4,7 @@ import BN from 'bn.js'
 import { Address, LocalAddress } from '../address'
 import { unmarshalBigUIntPB, marshalBigUIntPB } from '../big-uint'
 import { bufferToProtobufBytes, bytesToHex } from '../crypto-utils'
-import { soliditySha3, OfflineWeb3Signer } from '../solidity-helpers'
+import { soliditySha3, EthersSigner } from '../solidity-helpers'
 import { PlasmaTx } from '../proto/plasma_cash_pb'
 
 export class PlasmaCashTx {
@@ -79,7 +79,7 @@ export class PlasmaCashTx {
    * Signs the tx.
    * @param signer Signer to use for signing the tx.
    */
-  async signAsync(signer: OfflineWeb3Signer) {
+  async signAsync(signer: EthersSigner) {
     this.sigBytes = await signer.signAsync(this.hash)
   }
 }
@@ -96,13 +96,13 @@ export function unmarshalPlasmaTxPB(rawTx: PlasmaTx): PlasmaCashTx {
     denomination: rawTx.hasDenomination()
       ? unmarshalBigUIntPB(rawTx.getDenomination()!)
       : new BN(0),
-    newOwner: Address.UmarshalPB(rawTx.getNewOwner()!).local.toString(),
+    newOwner: Address.UnmarshalPB(rawTx.getNewOwner()!).local.toString(),
     sig: rawTx.getSignature_asU8(),
     proof: rawTx.getProof_asU8()
   })
   const sender = rawTx.getSender()
   if (sender) {
-    tx.prevOwner = Address.UmarshalPB(sender).local.toString()
+    tx.prevOwner = Address.UnmarshalPB(sender).local.toString()
   }
   return tx
 }

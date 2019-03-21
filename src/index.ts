@@ -4,13 +4,22 @@ export {
   IClientEventArgs,
   IChainEventArgs,
   IClientErrorEventArgs,
-  ITxMiddlewareHandler
+  ITxMiddlewareHandler,
+  ITxHandlerResult,
+  ITxResults,
+  isTxAlreadyInCacheError
 } from './client'
 export { Contract } from './contract'
 export { EvmContract } from './evm-contract'
 export { Address, LocalAddress } from './address'
 export { unmarshalBigUIntPB, marshalBigUIntPB } from './big-uint'
-export { SignedTxMiddleware, NonceTxMiddleware } from './middleware'
+export {
+  SignedTxMiddleware,
+  NonceTxMiddleware,
+  CachedNonceTxMiddleware,
+  SpeculativeNonceTxMiddleware,
+  isInvalidTxNonceError
+} from './middleware'
 export { createDefaultTxMiddleware } from './helpers'
 export { LoomProvider } from './loom-provider'
 
@@ -30,18 +39,20 @@ export {
   IPlasmaCoin,
   PlasmaCoinState,
   IPlasmaDeposit,
-  marshalDepositEvent,
   IPlasmaChallenge,
   marshalChallengeEvent
 } from './plasma-cash/ethereum-client'
 export { PlasmaCashTx } from './plasma-cash/plasma-cash-tx'
-export { IEthereumSigner, Web3Signer, OfflineWeb3Signer, soliditySha3 } from './solidity-helpers'
-export { EthErc721Contract } from './plasma-cash/eth-erc721-contract'
+export {
+  IEthereumSigner,
+  OfflineWeb3Signer,
+  Web3Signer,
+  EthersSigner,
+  soliditySha3
+} from './solidity-helpers'
 export { Entity, IEntityParams } from './plasma-cash/entity'
 export { User as PlasmaUser } from './plasma-cash/user'
+export { DPOSUser } from './dpos-user'
 export { SparseMerkleTree, ISparseMerkleTreeLevel } from './plasma-cash/sparse-merkle-tree'
-
-import SignedContract from './plasma-cash/signed-contract'
-export { SignedContract }
 
 export { PlasmaDB, IDatabaseCoin } from './plasma-cash/db'

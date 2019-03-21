@@ -153,6 +153,17 @@ export class EventData extends jspb.Message {
   getTxHash_asB64(): string;
   setTxHash(value: Uint8Array | string): void;
 
+  getTransactionIndex(): number;
+  setTransactionIndex(value: number): void;
+
+  getBlockHash(): Uint8Array | string;
+  getBlockHash_asU8(): Uint8Array;
+  getBlockHash_asB64(): string;
+  setBlockHash(value: Uint8Array | string): void;
+
+  getBlockTime(): number;
+  setBlockTime(value: number): void;
+
   serializeBinary(): Uint8Array;
   toObject(includeInstance?: boolean): EventData.AsObject;
   static toObject(includeInstance: boolean, msg: EventData): EventData.AsObject;
@@ -173,6 +184,9 @@ export namespace EventData {
     encodedBody: Uint8Array | string,
     originalRequest: Uint8Array | string,
     txHash: Uint8Array | string,
+    transactionIndex: number,
+    blockHash: Uint8Array | string,
+    blockTime: number,
   }
 }
 
@@ -516,6 +530,9 @@ export class EthFilterLog extends jspb.Message {
   setTopicsList(value: Array<Uint8Array | string>): void;
   addTopics(value: Uint8Array | string, index?: number): Uint8Array | string;
 
+  getBlockTime(): number;
+  setBlockTime(value: number): void;
+
   serializeBinary(): Uint8Array;
   toObject(includeInstance?: boolean): EthFilterLog.AsObject;
   static toObject(includeInstance: boolean, msg: EthFilterLog): EthFilterLog.AsObject;
@@ -537,6 +554,7 @@ export namespace EthFilterLog {
     address: Uint8Array | string,
     data: Uint8Array | string,
     topicsList: Array<Uint8Array | string>,
+    blockTime: number,
   }
 }
 

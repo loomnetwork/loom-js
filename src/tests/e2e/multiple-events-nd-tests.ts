@@ -6,13 +6,9 @@ import { createTestClient, waitForMillisecondsAsync } from '../helpers'
 import { LoomProvider } from '../../loom-provider'
 import { deployContract } from '../evm-helpers'
 
-// import Web3 from 'web3'
 const Web3 = require('web3')
 
 /**
- * Requires the SimpleStore solidity contract deployed on a loomchain.
- * go-loom/examples/plugins/evmexample/contract/SimpleStore.sol
- *
  *  pragma solidity ^0.4.24;
  *
  *  import "openzeppelin-solidity/contracts/token/ERC721/ERC721Token.sol";
@@ -271,12 +267,10 @@ test('LoomProvider + Web3', async t => {
 
   try {
     contract.events.Transfer({}, (err: any, event: any) => {
-      console.log('Transfer after mint')
       t.assert(!err)
     })
 
     contract.events.CreateCard({}, (err: any, event: any) => {
-      console.log('Created card running')
       t.assert(!err)
     })
 
@@ -284,9 +278,9 @@ test('LoomProvider + Web3', async t => {
 
     const totalSupply = await contract.methods.totalSupply().call()
 
-    t.assert(totalSupply == 1, 'Total Supply eq 1')
+    t.assert(totalSupply === '1', 'Total Supply eq 1')
 
-    await waitForMillisecondsAsync(2000)
+    await waitForMillisecondsAsync(3000)
   } catch (err) {
     console.log(err)
   }

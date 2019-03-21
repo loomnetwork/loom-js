@@ -14,7 +14,8 @@ const protoFiles = [
   'transfer_gateway.proto',
   'address_mapper.proto',
   'coin.proto',
-  'dpos.proto'
+  'dpos.proto',
+  'dposv2.proto'
 ]
 
 // copy the proto so end users can import it from node_modules in their own proto files
@@ -42,8 +43,10 @@ try {
       --ts_out=\".\" ${protoFilesWithPath} ./tests/tests.proto`
   )
 
-  shell.cp('./proto/loom_pb.d.ts', '../dist/proto/loom_pb.d.ts')
-  shell.cp('./proto/plasma_cash_pb.d.ts', '../dist/proto/plasma_cash_pb.d.ts')
+  protoFiles.forEach(protoFiles => {
+    const prefix = protoFiles.split('.').shift()
+    shell.cp(`./proto/${prefix}_pb.d.ts`, `../dist/proto/${prefix}_pb.d.ts`)
+  })
 } catch (err) {
   throw err
 } finally {

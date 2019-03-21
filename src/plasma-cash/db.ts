@@ -1,3 +1,4 @@
+import debug from 'debug'
 import low from 'lowdb'
 import { PlasmaCashTx } from './plasma-cash-tx'
 import BN from 'bn.js'
@@ -11,11 +12,14 @@ export interface IDatabaseCoin {
   tx: PlasmaCashTx
 }
 
+const debugLog = debug('plasma-cash:db')
+const errorLog = debug('plasma-cash:db:error')
+
 export class PlasmaDB {
   dbPath: string
   db: any
 
-  constructor(ethereum: String, dappchain: String, plasmaAddress: String, privateKey: String) {
+  constructor(dbPath?: string) {
     // TODO: the db path shouldn't be hardcoded
     // If we're on node.js
     let adapter
@@ -23,10 +27,16 @@ export class PlasmaDB {
       const FileSync = require('lowdb/adapters/FileSync')
       const shelljs = require('shelljs')
 
-      this.dbPath = `./db/db_${privateKey}.json`
+      if (dbPath) {
+        this.dbPath = dbPath
+      } else {
+        this.dbPath = `./db/db.json`
+      }
+
       if (!fs.existsSync(this.dbPath)) {
         shelljs.mkdir('-p', path.dirname(this.dbPath))
       }
+
       adapter = new FileSync(this.dbPath)
     } else {
       const LocalStorage = require('lowdb/adapters/LocalStorage')
@@ -37,16 +47,12 @@ export class PlasmaDB {
     // Initialize the database
     this.db
       .defaults({
-        ethereum: ethereum,
-        dappchain: dappchain,
-        plasma: plasmaAddress,
-        privatekey: privateKey,
         coins: [],
         blocks: {},
         lastBlock: new BN(0)
       })
       .write()
-    // console.log('Initialized database', this.db.value())
+    debugLog('Initialized database', this.db.value())
   }
 
   receiveCoin(coinId: BN, block: BN, included: boolean, tx: PlasmaCashTx) {
@@ -70,7 +76,7 @@ export class PlasmaDB {
         tx: tx
       })
       .write()
-    // console.log('State updated', result)
+    debugLog('State updated', result)
   }
 
   saveLastBlock(block: BN) {
@@ -115,7 +121,7 @@ export class PlasmaDB {
       .filter((c: any) => new BN(c.slot, 16).eq(coinId) && new BN(c.block, 16).eq(block))
       .value()
     if (result.length > 0) {
-      // console.log(`Transaction: ${coinId} at Block: ${block} already exists in local state`)
+      debugLog(`Transaction: ${coinId} at Block: ${block} already exists in local state`)
       return true
     } else {
       return false
@@ -127,7 +133,7 @@ export class PlasmaDB {
       .get('coins')
       .remove((c: any) => new BN(c.slot, 16).eq(coinId))
       .write()
-    // console.log(`Coin ${coinId} removed`)
+    debugLog(`Coin ${coinId} removed`)
   }
 
   getCoin(coinId: BN): IDatabaseCoin[] {
@@ -184,7 +190,9 @@ export class PlasmaDB {
         try {
           // this will throw an error if the directory isn't empty
           fs.rmdirSync(path.dirname(this.dbPath))
-        } catch (err) {}
+        } catch (err) {
+          errorLog(err)
+        }
       }
     } else {
       localStorage.removeItem(this.dbPath)
