@@ -35,7 +35,7 @@ import {
 import { soliditySha3 } from './solidity-helpers'
 import { marshalBigUIntPB } from './big-uint'
 
-// Based on https://github.com/ethereum/wiki/wiki/JSON-RPC#eth_gettransactionreceipt
+// Based on https://en.ethereum.wiki/json-rpc#eth-get-transaction-receipt
 export interface IEthReceipt {
   transactionHash: string
   transactionIndex: string
@@ -52,7 +52,7 @@ export interface IEthReceipt {
   status: string
 }
 
-// Based on https://github.com/ethereum/wiki/wiki/JSON-RPC#eth_gettransactionbyhash
+// Based on https://en.ethereum.wiki/json-rpc#eth-get-transaction-by-hash
 export interface IEthTransaction {
   blockHash: string
   blockNumber: string
@@ -70,7 +70,7 @@ export interface IEthTransaction {
   s?: string
 }
 
-// Based on https://github.com/ethereum/wiki/wiki/JSON-RPC#eth_getblockbyhash
+// Based on https://en.ethereum.wiki/json-rpc#eth-get-block-by-hash
 export interface IEthBlock {
   number: string | null
   hash: string
@@ -136,7 +136,7 @@ export interface IEthPubLogs {
   }
 }
 
-// Based on https://github.com/ethereum/wiki/wiki/JSON-RPC#eth_getfilterchanges
+// Based on https://en.ethereum.wiki/json-rpc#eth-get-filter-changes
 export interface IEthFilterLog {
   removed: boolean
   logIndex: string
@@ -215,9 +215,14 @@ export class LoomProvider {
   private _setupMiddlewares: SetupMiddlewareFunction
   private _netVersionFromChainId: number
   private _ethRPCMethods: Map<string, EthRPCMethod>
-  private _strict: boolean = false
   protected notificationCallbacks: Array<Function>
   readonly accounts: Map<string, Uint8Array>
+
+  /**
+   * Strict mode true remove any param on JSON RPC that isn't compliant with the
+   * official Ethereum RPC docs https://en.ethereum.wiki/json-rpc
+   */
+  private _strict: boolean = false
 
   /**
    * The retry strategy that should be used to retry some web3 requests.
@@ -287,10 +292,14 @@ export class LoomProvider {
     })
   }
 
+  // Get strict
   get strict() {
     return this._strict
   }
 
+  /**
+   * Setter to the strict mode
+   */
   set strict(v: boolean) {
     this._strict = v
   }
