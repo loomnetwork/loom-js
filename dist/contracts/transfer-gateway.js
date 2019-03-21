@@ -36,8 +36,8 @@ var TransferGateway = /** @class */ (function (_super) {
                         break;
                 }
                 _this.emit(TransferGateway.EVENT_TOKEN_WITHDRAWAL, {
-                    tokenOwner: address_1.Address.UmarshalPB(eventData.getTokenOwner()),
-                    tokenContract: address_1.Address.UmarshalPB(eventData.getTokenContract()),
+                    tokenOwner: address_1.Address.UnmarshalPB(eventData.getTokenOwner()),
+                    tokenContract: address_1.Address.UnmarshalPB(eventData.getTokenContract()),
                     tokenKind: tokenKind,
                     tokenId: tokenId,
                     tokenAmount: tokenAmount,
@@ -48,8 +48,8 @@ var TransferGateway = /** @class */ (function (_super) {
             else if (event.topics[0] === TransferGateway.contractMappingConfirmedEventTopic) {
                 var contractMappingConfirmed = transfer_gateway_pb_1.TransferGatewayContractMappingConfirmed.deserializeBinary(crypto_utils_1.B64ToUint8Array(event.data));
                 _this.emit(TransferGateway.EVENT_CONTRACT_MAPPING_CONFIRMED, {
-                    foreignContract: address_1.Address.UmarshalPB(contractMappingConfirmed.getForeignContract()),
-                    localContract: address_1.Address.UmarshalPB(contractMappingConfirmed.getLocalContract())
+                    foreignContract: address_1.Address.UnmarshalPB(contractMappingConfirmed.getForeignContract()),
+                    localContract: address_1.Address.UnmarshalPB(contractMappingConfirmed.getLocalContract())
                 });
             }
         });
@@ -70,6 +70,17 @@ var TransferGateway = /** @class */ (function (_super) {
                 }
             });
         });
+    };
+    /**
+    * Adds a contract mapping to the DAppChain Gateway using gatway owner signature.
+    * A contract mapping associates a token contract on the DAppChain with it's counterpart on Ethereum.
+    */
+    TransferGateway.prototype.addAuthorizedContractMappingAsync = function (params) {
+        var foreignContract = params.foreignContract, localContract = params.localContract;
+        var mappingContractRequest = new transfer_gateway_pb_1.TransferGatewayAddContractMappingRequest();
+        mappingContractRequest.setForeignContract(foreignContract.MarshalPB());
+        mappingContractRequest.setLocalContract(localContract.MarshalPB());
+        return this.callAsync('AddAuthorizedContractMapping', mappingContractRequest);
     };
     /**
      * Adds a contract mapping to the DAppChain Gateway.
@@ -150,7 +161,7 @@ var TransferGateway = /** @class */ (function (_super) {
         return this.callAsync('WithdrawToken', req);
     };
     /**
-     * Sends a request to the DAppChain Gateway to begin withdrawal ERC20 tokens from the current
+     * Sends a request to the DAppChain Gateway to begin withdrawal of ETH from the current
      * DAppChain account to an Ethereum account.
      * @param amount Amount to withdraw.
      * @param ethereumGateway Ethereum address of Ethereum Gateway.
@@ -209,8 +220,8 @@ var TransferGateway = /** @class */ (function (_super) {
                                     break;
                             }
                             return [2 /*return*/, {
-                                    tokenOwner: address_1.Address.UmarshalPB(receipt.getTokenOwner()),
-                                    tokenContract: address_1.Address.UmarshalPB(receipt.getTokenContract()),
+                                    tokenOwner: address_1.Address.UnmarshalPB(receipt.getTokenOwner()),
+                                    tokenContract: address_1.Address.UnmarshalPB(receipt.getTokenContract()),
                                     tokenKind: tokenKind,
                                     tokenId: tokenId,
                                     tokenAmount: tokenAmount,
@@ -221,6 +232,97 @@ var TransferGateway = /** @class */ (function (_super) {
                         }
                         return [2 /*return*/, null];
                 }
+            });
+        });
+    };
+    /**
+     * Attempt to transfer tokens that originated from the specified Ethereum contract, and that have
+     * been deposited to the Ethereum Gateway, but haven't yet been received by the depositors on the
+     * DAppChain because of a missing identity or contract mapping. This method can only be called by
+     * the creator of the specified token contract, or the Gateway owner.
+     *
+     * @param tokenContract token contract to reclaim the tokens
+     */
+    TransferGateway.prototype.reclaimContractTokensAsync = function (tokenContract) {
+        return tslib_1.__awaiter(this, void 0, void 0, function () {
+            var req;
+            return tslib_1.__generator(this, function (_a) {
+                req = new transfer_gateway_pb_1.TransferGatewayReclaimContractTokensRequest();
+                req.setTokenContract(tokenContract.MarshalPB());
+                return [2 /*return*/, this.callAsync('ReclaimContractTokens', req)];
+            });
+        });
+    };
+    TransferGateway.prototype.getUnclaimedTokensAsync = function (owner) {
+        return tslib_1.__awaiter(this, void 0, void 0, function () {
+            var req, result, unclaimedTokens, tokens, _i, unclaimedTokens_1, token, tokenKind, tokenIds, tokenAmounts, _a, _b, amt, _c, _d, amt, _e, _f, amt;
+            return tslib_1.__generator(this, function (_g) {
+                switch (_g.label) {
+                    case 0:
+                        req = new transfer_gateway_pb_1.TransferGatewayGetUnclaimedTokensRequest();
+                        req.setOwner(owner.MarshalPB());
+                        return [4 /*yield*/, this.staticCallAsync('GetUnclaimedTokens', req, new transfer_gateway_pb_1.TransferGatewayGetUnclaimedTokensResponse())];
+                    case 1:
+                        result = _g.sent();
+                        unclaimedTokens = result.getUnclaimedTokensList();
+                        tokens = [];
+                        for (_i = 0, unclaimedTokens_1 = unclaimedTokens; _i < unclaimedTokens_1.length; _i++) {
+                            token = unclaimedTokens_1[_i];
+                            tokenKind = token.getTokenKind();
+                            tokenIds = [];
+                            tokenAmounts = [];
+                            if (tokenKind === transfer_gateway_pb_1.TransferGatewayTokenKind.ERC721) {
+                                // Set only the tokenId for ERC721
+                                for (_a = 0, _b = token.getAmountsList(); _a < _b.length; _a++) {
+                                    amt = _b[_a];
+                                    tokenIds.push(big_uint_1.unmarshalBigUIntPB(amt.getTokenId()));
+                                }
+                            }
+                            else if (tokenKind === transfer_gateway_pb_1.TransferGatewayTokenKind.ERC721X) {
+                                // Set both the tokenId and the tokenAmounts for ERC721x
+                                for (_c = 0, _d = token.getAmountsList(); _c < _d.length; _c++) {
+                                    amt = _d[_c];
+                                    tokenIds.push(big_uint_1.unmarshalBigUIntPB(amt.getTokenId()));
+                                    tokenAmounts.push(big_uint_1.unmarshalBigUIntPB(amt.getTokenAmount()));
+                                }
+                            }
+                            else {
+                                // Set only amount for all other cases
+                                for (_e = 0, _f = token.getAmountsList(); _e < _f.length; _e++) {
+                                    amt = _f[_e];
+                                    tokenAmounts.push(big_uint_1.unmarshalBigUIntPB(amt.getTokenAmount()));
+                                }
+                            }
+                            tokens.push({
+                                tokenContract: address_1.Address.UnmarshalPB(token.getTokenContract()),
+                                tokenKind: tokenKind,
+                                tokenAmounts: tokenAmounts,
+                                tokenIds: tokenIds
+                            });
+                        }
+                        return [2 /*return*/, tokens];
+                }
+            });
+        });
+    };
+    /**
+     * Attempt to transfer any tokens that the caller may have deposited into the Ethereum Gateway
+     * but hasn't yet received from the DAppChain Gateway because of a missing identity or contract
+     * mapping.
+     *
+     * @param depositors Optional list of DAppChain accounts to reclaim tokens for, when set tokens
+     *                   will be reclaimed for the specified accounts instead of the caller's account.
+     *                   NOTE: Only the Gateway owner is authorized to provide a list of accounts.
+     */
+    TransferGateway.prototype.reclaimDepositorTokensAsync = function (depositors) {
+        return tslib_1.__awaiter(this, void 0, void 0, function () {
+            var req;
+            return tslib_1.__generator(this, function (_a) {
+                req = new transfer_gateway_pb_1.TransferGatewayReclaimDepositorTokensRequest();
+                if (depositors && depositors.length > 0) {
+                    req.setDepositorsList(depositors.map(function (address) { return address.MarshalPB(); }));
+                }
+                return [2 /*return*/, this.callAsync('ReclaimDepositorTokens', req)];
             });
         });
     };

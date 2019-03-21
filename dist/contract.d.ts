@@ -1,4 +1,3 @@
-/// <reference types="node" />
 import { Message } from 'google-protobuf';
 import EventEmitter from 'events';
 import { Client } from './client';

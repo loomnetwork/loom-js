@@ -26,7 +26,7 @@ var AddressMapper = /** @class */ (function (_super) {
             });
         });
     };
-    AddressMapper.prototype.addIdentityMappingAsync = function (from, to, web3Signer) {
+    AddressMapper.prototype.addIdentityMappingAsync = function (from, to, ethersSigner) {
         return tslib_1.__awaiter(this, void 0, void 0, function () {
             var mappingIdentityRequest, hash, sign;
             return tslib_1.__generator(this, function (_a) {
@@ -39,11 +39,27 @@ var AddressMapper = /** @class */ (function (_super) {
                             type: 'address',
                             value: from.local.toString().slice(2)
                         }, { type: 'address', value: to.local.toString().slice(2) });
-                        return [4 /*yield*/, web3Signer.signAsync(hash)];
+                        return [4 /*yield*/, ethersSigner.signAsync(hash)];
                     case 1:
                         sign = _a.sent();
                         mappingIdentityRequest.setSignature(sign);
                         return [2 /*return*/, this.callAsync('AddIdentityMapping', mappingIdentityRequest)];
+                }
+            });
+        });
+    };
+    AddressMapper.prototype.hasMappingAsync = function (from) {
+        return tslib_1.__awaiter(this, void 0, void 0, function () {
+            var hasMappingRequest, result;
+            return tslib_1.__generator(this, function (_a) {
+                switch (_a.label) {
+                    case 0:
+                        hasMappingRequest = new address_mapper_pb_1.AddressMapperHasMappingRequest();
+                        hasMappingRequest.setFrom(from.MarshalPB());
+                        return [4 /*yield*/, this.staticCallAsync('HasMapping', hasMappingRequest, new address_mapper_pb_1.AddressMapperHasMappingResponse())];
+                    case 1:
+                        result = _a.sent();
+                        return [2 /*return*/, result.getHasMapping()];
                 }
             });
         });
@@ -60,8 +76,8 @@ var AddressMapper = /** @class */ (function (_super) {
                     case 1:
                         result = _a.sent();
                         return [2 /*return*/, {
-                                from: address_1.Address.UmarshalPB(result.getFrom()),
-                                to: address_1.Address.UmarshalPB(result.getTo())
+                                from: address_1.Address.UnmarshalPB(result.getFrom()),
+                                to: address_1.Address.UnmarshalPB(result.getTo())
                             }];
                 }
             });

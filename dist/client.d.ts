@@ -1,4 +1,3 @@
-/// <reference types="node" />
 import { Message } from 'google-protobuf';
 import EventEmitter from 'events';
 import retry from 'retry';
@@ -6,12 +5,32 @@ import { VMType } from './proto/loom_pb';
 import { EvmTxReceipt, EvmTxObject, EthBlockInfo, EthBlockHashList, EthFilterLogList, EthTxHashList } from './proto/evm_pb';
 import { Address } from './address';
 import { IJSONRPCClient } from './internal/json-rpc-client';
+export interface ITxHandlerResult {
+    code?: number;
+    log?: string;
+    data?: string;
+}
+interface IBroadcastTxCommitResult {
+    check_tx: ITxHandlerResult;
+    deliver_tx: ITxHandlerResult;
+    hash: string;
+    height?: string;
+}
+export interface ITxBroadcastResult extends ITxHandlerResult {
+    hash: string;
+}
+export interface ITxResults {
+    validation: ITxHandlerResult;
+    commit: ITxHandlerResult;
+}
 /**
- * Middleware handlers are expected to transform the input data and return the result.
+ * Middleware handlers are expected to transform the tx data and check tx results.
  * Handlers should not modify the original input data in any way.
  */
 export interface ITxMiddlewareHandler {
     Handle(txData: Readonly<Uint8Array>): Promise<Uint8Array>;
+    handleError?(err: any): void;
+    HandleResults?(results: ITxResults): ITxResults;
 }
 export declare enum ClientEvent {
     /**
@@ -19,6 +38,10 @@ export declare enum ClientEvent {
      * Listener will receive IChainEventArgs.
      */
     Contract = "contractEvent",
+    /**
+     * Exclusively used by loom-provider
+     */
+    EVMEvent = "evmEvent",
     /**
      * Emitted when an error occurs that can't be relayed by other means.
      * Listener will receive IClientErrorEventArgs.
@@ -53,7 +76,7 @@ export interface IClientErrorEventArgs extends IClientEventArgs {
 export interface IChainEventArgs extends IClientEventArgs {
     /** Identifier (currently only used by EVM events). */
     id: string;
-    kind: ClientEvent.Contract;
+    kind: ClientEvent.Contract | ClientEvent.EVMEvent;
     /** Address of the contract that emitted the event. */
     contractAddress: Address;
     /** Address of the caller that caused the event to be emitted. */
@@ -72,7 +95,18 @@ export interface IChainEventArgs extends IClientEventArgs {
     /** Topics subscribed on events */
     topics: Array<string>;
 }
-export declare function isInvalidTxNonceError(err: any): boolean;
+export declare const TX_ALREADY_EXISTS_ERROR = "Tx already exists in cache";
+export declare function isTxAlreadyInCacheError(err: any): boolean;
+export interface ITxBroadcaster {
+    broadcast(client: IJSONRPCClient, txBytes: Uint8Array): Promise<IBroadcastTxCommitResult>;
+}
+export declare class TxCommitBroadcaster implements ITxBroadcaster {
+    broadcast(client: IJSONRPCClient, txBytes: Uint8Array): Promise<IBroadcastTxCommitResult>;
+}
+export declare class TxSyncBroadcaster implements ITxBroadcaster {
+    resultPollingStrategy: retry.OperationOptions;
+    broadcast(client: IJSONRPCClient, txBytes: Uint8Array): Promise<IBroadcastTxCommitResult>;
+}
 /**
  * Writes to & reads from a Loom DAppChain.
  *
@@ -90,15 +124,10 @@ export declare class Client extends EventEmitter {
     readonly chainId: string;
     private _writeClient;
     private _readClient;
+    /** Broadcaster to use to send txs & receive results. */
+    txBroadcaster: ITxBroadcaster;
     /** Middleware to apply to transactions before they are transmitted to the DAppChain. */
     txMiddleware: ITxMiddlewareHandler[];
-    /**
-     * The retry strategy that should be used to resend a tx when it's rejected because of a bad nonce.
-     * Default is a binary exponential retry strategy with 5 retries.
-     * To understand how to tweak the retry strategy see
-     * https://github.com/tim-kos/node-retry#retrytimeoutsoptions
-     */
-    nonceRetryStrategy: retry.OperationOptions;
     readonly readUrl: string;
     readonly writeUrl: string;
     /**
@@ -137,7 +166,10 @@ export declare class Client extends EventEmitter {
     commitTxAsync<T extends Message>(tx: T, opts?: {
         middleware?: ITxMiddlewareHandler[];
     }): Promise<Uint8Array | void>;
-    private _commitTxAsync;
+    /**
+     * addListenerForTopics
+     */
+    addListenerForTopics(): Promise<void>;
     /**
      * Queries the current state of a contract.
      *
@@ -150,7 +182,7 @@ export declare class Client extends EventEmitter {
      * @param txHash Transaction hash returned by call transaction.
      * @return EvmTxReceipt The corresponding transaction receipt.
      */
-    getEvmTxReceiptAsync(txHash: Uint8Array): Promise<EvmTxReceipt | null>;
+    getEvmTxReceiptAsync(txHashArr: Uint8Array): Promise<EvmTxReceipt | null>;
     /**
      * Returns the information about a transaction requested by transaction hash
      *
@@ -283,3 +315,5 @@ export declare class Client extends EventEmitter {
     private _emitContractEvent;
     private _emitNetEvent;
 }
+export declare function overrideReadUrl(readUrl: string): string;
+export {};

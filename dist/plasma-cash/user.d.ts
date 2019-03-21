@@ -1,5 +1,6 @@
 import BN from 'bn.js';
 import Web3 from 'web3';
+import { ethers } from 'ethers';
 import { Entity, IEntityParams } from '..';
 import { IPlasmaCoin } from './ethereum-client';
 export declare class User extends Entity {
@@ -7,9 +8,11 @@ export declare class User extends Entity {
     private static _contractName;
     private buffers;
     private newBlocks;
-    constructor(web3: Web3, params: IEntityParams, startBlock?: BN);
+    constructor(web3: ethers.Signer, params: IEntityParams, startBlock?: BN);
     static contractName: string;
-    static createUser(web3Endpoint: string, plasmaAddress: string, dappchainEndpoint: string, ethPrivateKey: string, startBlock?: BN, chainId?: string): User;
+    static createMetamaskUser(web3: Web3, dappchainPrivateKey: string | null, plasmaAddress: string, dappchainEndpoint: string, eventsEndpoint: string, startBlock?: BN, chainId?: string): Promise<User>;
+    static createOfflineUser(privateKey: string, dappchainPrivateKey: string | null, endpoint: string, plasmaAddress: string, dappchainEndpoint: string, eventsEndpoint: string, dbPath?: string, startBlock?: BN, chainId?: string): Promise<User>;
+    static createUser(wallet: ethers.Signer, dappchainPrivateKey: string | null, plasmaAddress: string, dappchainEndpoint: string, eventsEndpoint: string, dbPath?: string, startBlock?: BN, chainId?: string): Promise<User>;
     depositETHAsync(amount: BN): Promise<IPlasmaCoin>;
     depositERC721Async(uid: BN, address: string): Promise<IPlasmaCoin>;
     depositERC20Async(amount: BN, address: string): Promise<IPlasmaCoin>;
@@ -21,11 +24,10 @@ export declare class User extends Entity {
     receiveCoinAsync(slot: BN): Promise<boolean>;
     verifyInclusionAsync(slot: BN, block: BN): Promise<boolean>;
     exitAsync(slot: BN): Promise<any>;
-    deposits(): Promise<any[]>;
+    deposits(): Promise<IPlasmaCoin[]>;
     allDeposits(): Promise<any[]>;
     disconnect(): void;
-    debug(i: number): Promise<void>;
     private findBlocks;
     private getCoinHistoryFromDBAsync;
-    private pollForBlockChange;
+    pollForBlockChange(currentBlock: BN, maxIters: number, sleepTime: number): Promise<BN>;
 }

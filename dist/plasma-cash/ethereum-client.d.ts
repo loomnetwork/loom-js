@@ -1,7 +1,7 @@
 import BN from 'bn.js';
 import Web3 from 'web3';
-import { PlasmaCashBlock } from './plasma-cash-block';
 import { PlasmaCashTx } from './plasma-cash-tx';
+import { ethers } from 'ethers';
 export declare enum PlasmaCoinMode {
     ETH = 0,
     ERC20 = 1,
@@ -38,6 +38,7 @@ export interface IPlasmaExitData {
     /** Plasma block number at which the exit's transaction was included. */
     exitBlock: BN;
     state: PlasmaCoinState;
+    timestamp: BN;
 }
 export interface IPlasmaChallenge {
     slot: BN;
@@ -76,6 +77,18 @@ export interface IPlasmaExitParams extends ISendTxOptions {
     prevTx?: PlasmaCashTx;
     prevBlockNum?: BN;
 }
+export interface IPlasmaFinalizeExitsParams extends ISendTxOptions {
+    slots: BN[];
+}
+export interface IPlasmaCancelExitsParams extends ISendTxOptions {
+    slots: BN[];
+}
+export interface IPlasmaFinalizeExitParams extends ISendTxOptions {
+    slot: BN;
+}
+export interface IPlasmaCancelExitParams extends ISendTxOptions {
+    slot: BN;
+}
 export interface IPlasmaWithdrawParams extends ISendTxOptions {
     slot: BN;
 }
@@ -98,13 +111,20 @@ export interface IPlasmaRspondChallengeBeforeParams extends ISendTxOptions {
     respondingTx: PlasmaCashTx;
 }
 export declare class EthereumPlasmaClient {
+    private _ethers;
     private _web3;
     private _plasmaContract;
+    private _plasmaEventListener;
     /**
      * Web3 contract instance of the Plasma Cash contract on Ethereum.
      */
-    readonly plasmaCashContract: any;
-    constructor(web3: Web3, ethAccount: any, plasmaContractAddr: string);
+    readonly plasmaCashContract: ethers.Contract;
+    /**
+     * Web3 contract instance of the Plasma Cash contract linked to a wss enabled endpoint for listening to events
+     */
+    readonly plasmaEvents: any;
+    readonly web3: Web3;
+    constructor(_ethers: ethers.Signer, plasmaContractAddr: string, eventsEndpoint: string);
     getExitAsync(params: {
         slot: BN;
         from: string;
@@ -127,56 +147,60 @@ export declare class EthereumPlasmaClient {
     /**
      * @returns Web3 tx receipt object.
      */
-    startExitAsync(params: IPlasmaExitParams): Promise<object>;
+    startExitAsync(params: IPlasmaExitParams): Promise<ethers.ContractTransaction>;
     /**
      *
      * @returns Web3 tx receipt object.
      */
-    finalizeExitsAsync(params: ISendTxOptions): Promise<object>;
+    cancelExitAsync(params: IPlasmaCancelExitParams): Promise<ethers.ContractTransaction>;
     /**
      *
      * @returns Web3 tx receipt object.
      */
-    withdrawAsync(params: IPlasmaWithdrawParams): Promise<object>;
+    cancelExitsAsync(params: IPlasmaCancelExitsParams): Promise<ethers.ContractTransaction>;
     /**
      *
      * @returns Web3 tx receipt object.
      */
-    withdrawBondsAsync(params: ISendTxOptions): Promise<object>;
+    finalizeExitAsync(params: IPlasmaFinalizeExitParams): Promise<ethers.ContractTransaction>;
+    /**
+     *
+     * @returns Web3 tx receipt object.
+     */
+    finalizeExitsAsync(params: IPlasmaFinalizeExitsParams): Promise<ethers.ContractTransaction>;
+    /**
+     *
+     * @returns Web3 tx receipt object.
+     */
+    withdrawAsync(params: IPlasmaWithdrawParams): Promise<ethers.ContractTransaction>;
+    /**
+     *
+     * @returns Web3 tx receipt object.
+     */
+    withdrawBondsAsync(params: ISendTxOptions): Promise<ethers.ContractTransaction>;
     /**
      * `Exit Spent Coin Challenge`: Challenge an exit with a spend after the exit's blocks.
      *
      * @returns Web3 tx receipt object.
      */
-    challengeAfterAsync(params: IPlasmaChallengeParams): Promise<object>;
+    challengeAfterAsync(params: IPlasmaChallengeParams): Promise<ethers.ContractTransaction>;
     /**
      * `Double Spend Challenge`: Challenge a double spend of a coin with a spend between the exit's blocks.
      *
      * @returns Web3 tx receipt object.
      */
-    challengeBetweenAsync(params: IPlasmaChallengeParams): Promise<object>;
+    challengeBetweenAsync(params: IPlasmaChallengeParams): Promise<ethers.ContractTransaction>;
     /**
      * `Invalid History Challenge`: Challenge a coin with invalid history.
      *
      * @returns Web3 tx receipt object.
      */
-    challengeBeforeAsync(params: IPlasmaChallengeBeforeParams): Promise<object>;
+    challengeBeforeAsync(params: IPlasmaChallengeBeforeParams): Promise<ethers.ContractTransaction>;
     /**
      * `Response to invalid history challenge`: Respond to an invalid challenge with a later tx
      *
      * @returns Web3 tx receipt object.
      */
-    respondChallengeBeforeAsync(params: IPlasmaRspondChallengeBeforeParams): Promise<object>;
-    /**
-     * Submits a Plasma block to the Plasma Cash Solidity contract on Ethereum.
-     *
-     * @returns Web3 tx receipt object.
-     *
-     * This method is only provided for debugging & testing, in practice only DAppChain Plasma Oracles
-     * will be permitted to make this request.
-     */
-    debugSubmitBlockAsync(params: {
-        block: PlasmaCashBlock;
-        from: string;
-    }): Promise<object>;
+    respondChallengeBeforeAsync(params: IPlasmaRspondChallengeBeforeParams): Promise<ethers.ContractTransaction>;
+    marshalDepositEvent(log: ethers.providers.Log): IPlasmaDeposit;
 }

@@ -9,8 +9,7 @@ tape_1.default('Database', function (t) {
     var db = null;
     var db2 = null;
     try {
-        var uid = "" + Math.random() * 10e16;
-        db = new db_1.PlasmaDB('0x', '0x', '0x', uid);
+        db = new db_1.PlasmaDB('test');
         var slot = new bn_js_1.default('9fe41685a061deda', 16);
         var blkNumber = new bn_js_1.default('7d0', 16); // 2000
         var prevBlk = new bn_js_1.default('3e8', 16); // 1000
@@ -21,7 +20,7 @@ tape_1.default('Database', function (t) {
         t.equal(coinData.length, 1, 'should receive the coin correctly');
         t.ok(coinData[0].slot.eq(slot), 'slots should be equal');
         // Simulate disconnecting and reconnecting
-        db2 = new db_1.PlasmaDB('0x', '0x', '0x', uid);
+        db2 = new db_1.PlasmaDB('test');
         db2.receiveCoin(slot, blkNumber, true, tx);
         coinData = db2.getCoin(slot);
         t.equal(coinData.length, 1, 'should not add a duplicate coin');

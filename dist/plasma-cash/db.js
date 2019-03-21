@@ -1,20 +1,28 @@
 "use strict";
 Object.defineProperty(exports, "__esModule", { value: true });
 var tslib_1 = require("tslib");
+var debug_1 = tslib_1.__importDefault(require("debug"));
 var lowdb_1 = tslib_1.__importDefault(require("lowdb"));
 var plasma_cash_tx_1 = require("./plasma-cash-tx");
 var bn_js_1 = tslib_1.__importDefault(require("bn.js"));
 var fs_1 = tslib_1.__importDefault(require("fs"));
 var path_1 = tslib_1.__importDefault(require("path"));
+var debugLog = debug_1.default('plasma-cash:db');
+var errorLog = debug_1.default('plasma-cash:db:error');
 var PlasmaDB = /** @class */ (function () {
-    function PlasmaDB(ethereum, dappchain, plasmaAddress, privateKey) {
+    function PlasmaDB(dbPath) {
         // TODO: the db path shouldn't be hardcoded
         // If we're on node.js
         var adapter;
         if (typeof localStorage === 'undefined' || localStorage === null) {
             var FileSync = require('lowdb/adapters/FileSync');
             var shelljs = require('shelljs');
-            this.dbPath = "./db/db_" + privateKey + ".json";
+            if (dbPath) {
+                this.dbPath = dbPath;
+            }
+            else {
+                this.dbPath = "./db/db.json";
+            }
             if (!fs_1.default.existsSync(this.dbPath)) {
                 shelljs.mkdir('-p', path_1.default.dirname(this.dbPath));
             }
@@ -29,16 +37,12 @@ var PlasmaDB = /** @class */ (function () {
         // Initialize the database
         this.db
             .defaults({
-            ethereum: ethereum,
-            dappchain: dappchain,
-            plasma: plasmaAddress,
-            privatekey: privateKey,
             coins: [],
             blocks: {},
             lastBlock: new bn_js_1.default(0)
         })
             .write();
-        // console.log('Initialized database', this.db.value())
+        debugLog('Initialized database', this.db.value());
     }
     PlasmaDB.prototype.receiveCoin = function (coinId, block, included, tx) {
         // Find the coin in the database and add the block/proof.
@@ -60,7 +64,7 @@ var PlasmaDB = /** @class */ (function () {
             tx: tx
         })
             .write();
-        // console.log('State updated', result)
+        debugLog('State updated', result);
     };
     PlasmaDB.prototype.saveLastBlock = function (block) {
         var result = this.db.set("lastBlock", block).write();
@@ -99,7 +103,7 @@ var PlasmaDB = /** @class */ (function () {
             .filter(function (c) { return new bn_js_1.default(c.slot, 16).eq(coinId) && new bn_js_1.default(c.block, 16).eq(block); })
             .value();
         if (result.length > 0) {
-            // console.log(`Transaction: ${coinId} at Block: ${block} already exists in local state`)
+            debugLog("Transaction: " + coinId + " at Block: " + block + " already exists in local state");
             return true;
         }
         else {
@@ -111,7 +115,7 @@ var PlasmaDB = /** @class */ (function () {
             .get('coins')
             .remove(function (c) { return new bn_js_1.default(c.slot, 16).eq(coinId); })
             .write();
-        // console.log(`Coin ${coinId} removed`)
+        debugLog("Coin " + coinId + " removed");
     };
     PlasmaDB.prototype.getCoin = function (coinId) {
         var _this = this;
@@ -166,7 +170,9 @@ var PlasmaDB = /** @class */ (function () {
                     // this will throw an error if the directory isn't empty
                     fs_1.default.rmdirSync(path_1.default.dirname(this.dbPath));
                 }
-                catch (err) { }
+                catch (err) {
+                    errorLog(err);
+                }
             }
         }
         else {

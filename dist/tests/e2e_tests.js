@@ -9,17 +9,19 @@ require("./e2e/loom-provider-eth-filters");
 require("./e2e/loom-provider-eth-filters-2");
 require("./e2e/loom-provider-subscribe");
 require("./e2e/loom-provider-web3-tests");
+require("./e2e/loom-provider-web3-middlewares-tests");
+require("./e2e/loom-provider-web3-child-events");
 // EVM
 require("./e2e/client-evm-tests");
 require("./e2e/client-evm-event-tests");
 require("./e2e/client-evm-event-tests-2");
+require("./e2e/client-test-tx-cache");
 require("./e2e/multiple-events-nd-tests");
 // Contracts
 require("./e2e/coin-tests");
 require("./e2e/address-mapper-tests");
 require("./e2e/dpos-tests");
 // Weave Blueprint Contract
-require("./e2e/client-tests");
 require("./e2e/contract-tests");
 // Simple Store Contract
 require("./e2e/evm-contract-tests");

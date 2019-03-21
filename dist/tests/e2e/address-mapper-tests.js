@@ -6,10 +6,11 @@ var tape_1 = tslib_1.__importDefault(require("tape"));
 var index_1 = require("../../index");
 var helpers_1 = require("../helpers");
 var solidity_helpers_1 = require("../../solidity-helpers");
-var Web3 = require('web3');
+var ethers_1 = require("ethers");
 // TODO: Need a factory to create connection properly likes plasma-cash test
-function getWeb3Connection() {
-    return new Web3('http://127.0.0.1:8545');
+function getEthersConnection() {
+    var provider = new ethers_1.ethers.providers.JsonRpcProvider('http://localhost:8545');
+    return provider.getSigner();
 }
 function getClientAndContract(createClient) {
     return tslib_1.__awaiter(this, void 0, void 0, function () {
@@ -17,7 +18,7 @@ function getClientAndContract(createClient) {
         return tslib_1.__generator(this, function (_a) {
             switch (_a.label) {
                 case 0:
-                    privKey = index_1.CryptoUtils.generatePrivateKey();
+                    privKey = index_1.CryptoUtils.B64ToUint8Array('D6XCGyCcDZ5TE22h66AlU+Bn6JqL4RnSl4a09RGU9LfM53JFG/T5GAnC0uiuIIiw9Dl0TwEAmdGb+WE0Bochkg==');
                     pubKey = index_1.CryptoUtils.publicKeyFromPrivateKey(privKey);
                     client = createClient();
                     client.txMiddleware = index_1.createDefaultTxMiddleware(client, privKey);
@@ -31,7 +32,7 @@ function getClientAndContract(createClient) {
 }
 function testAddIdentity(t, createClient) {
     return tslib_1.__awaiter(this, void 0, void 0, function () {
-        var _a, client, addressMapper, pubKey, ethAddress, from, to, web3, web3Signer, result;
+        var _a, client, addressMapper, pubKey, ethAddress, from, to, ethers, ethersSigner, result;
         return tslib_1.__generator(this, function (_b) {
             switch (_b.label) {
                 case 0: return [4 /*yield*/, getClientAndContract(createClient)];
@@ -40,9 +41,9 @@ function testAddIdentity(t, createClient) {
                     ethAddress = '0x90f8bf6a479f320ead074411a4b0e7944ea8c9c1';
                     from = new index_1.Address('eth', index_1.LocalAddress.fromHexString(ethAddress));
                     to = new index_1.Address(client.chainId, index_1.LocalAddress.fromPublicKey(pubKey));
-                    web3 = getWeb3Connection();
-                    web3Signer = new solidity_helpers_1.Web3Signer(web3, ethAddress);
-                    return [4 /*yield*/, addressMapper.addIdentityMappingAsync(from, to, web3Signer)];
+                    ethers = getEthersConnection();
+                    ethersSigner = new solidity_helpers_1.EthersSigner(ethers);
+                    return [4 /*yield*/, addressMapper.addIdentityMappingAsync(from, to, ethersSigner)];
                 case 2:
                     _b.sent();
                     return [4 /*yield*/, addressMapper.getMappingAsync(from)];

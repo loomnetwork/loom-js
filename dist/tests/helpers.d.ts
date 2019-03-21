@@ -6,7 +6,7 @@ export declare function getTestUrls(): {
     httpReadUrl: string;
 };
 /**
- * Creates a client for tests, the default read/write URLs can be overriden by setting the env vars
+ * Creates a client for tests, the default read/write URLs can be overridden by setting the env vars
  * TEST_LOOM_DAPP_WRITE_URL and TEST_LOOM_DAPP_READ_URL. These env vars can be set by modifying
  * the .env.test (see .env.test.example for default values).
  */

@@ -31,10 +31,16 @@ var WSRPCClient = /** @class */ (function (_super) {
             var msgStr = message instanceof ArrayBuffer ? Buffer.from(message).toString() : message;
             var msg = JSON.parse(msgStr);
             // Events from native loomchain have the id equals 0
-            // Events from EVM have the id from the evmsubscribe command
-            if (msg.id === '0' || /^0x.+$/.test(msg.id)) {
+            if (msg.id === '0') {
+                log('Loom Event arrived', msg);
                 _this.emit(json_rpc_client_1.RPCClientEvent.Message, _this.url, msg);
             }
+            // Events from EVM have the id from the evmsubscribe command
+            if (/^0x.+$/.test(msg.id)) {
+                log('EVM Event arrived', msg);
+                _this.emit(json_rpc_client_1.RPCClientEvent.EVMMessage, _this.url, msg);
+            }
+            log('Non-Loom and Non-EVM event', msg);
         };
         var _a = opts.autoConnect, autoConnect = _a === void 0 ? true : _a, _b = opts.requestTimeout, requestTimeout = _b === void 0 ? 15000 : _b, // 15s
         reconnectInterval = opts.reconnectInterval, _c = opts.maxReconnects, maxReconnects = _c === void 0 ? 0 : _c, // 0 means there is no limit
@@ -55,7 +61,7 @@ var WSRPCClient = /** @class */ (function (_super) {
                 ;
                 _this._client.socket.on('message', _this._onEventMessage);
                 if (_this._client.ready) {
-                    log('Subscribe for events');
+                    log('Subscribe for events without topics');
                     _this._client
                         .call('subevents', { topics: null }, _this.requestTimeout)
                         .then(function () {
@@ -64,6 +70,10 @@ var WSRPCClient = /** @class */ (function (_super) {
                     })
                         .catch(function (err) { return _this.emit(json_rpc_client_1.RPCClientEvent.Error, _this.url, err); });
                 }
+            }
+            if (event === json_rpc_client_1.RPCClientEvent.EVMMessage && _this.listenerCount(event) === 0) {
+                ;
+                _this._client.socket.on('message', _this._onEventMessage);
             }
         });
         _this.on('removeListener', function (event) {
@@ -83,10 +93,15 @@ var WSRPCClient = /** @class */ (function (_super) {
                     });
                 }
             }
+            if (event === json_rpc_client_1.RPCClientEvent.EVMMessage && _this.listenerCount(event) === 0) {
+                ;
+                _this._client.socket.removeListener('message', _this._onEventMessage);
+            }
         });
         _this._client.on('open', function () {
             _this.emit(json_rpc_client_1.RPCClientEvent.Connected, _this.url);
             if (_this.listenerCount(json_rpc_client_1.RPCClientEvent.Message) > 0) {
+                log('Subscribe for events without topics');
                 _this._client
                     .call('subevents', { topics: null }, _this.requestTimeout)
                     .then(function () {
@@ -154,7 +169,7 @@ var WSRPCClient = /** @class */ (function (_super) {
                     case 0: return [4 /*yield*/, this.ensureConnectionAsync()];
                     case 1:
                         _a.sent();
-                        log("Sending RPC msg to " + this.url + ", method " + method);
+                        log("Sending RPC msg to " + this.url + ", method " + method + " with params " + JSON.stringify(params));
                         return [2 /*return*/, this._client.call(method, params, this.requestTimeout)];
                 }
             });

@@ -1,4 +1,4 @@
-import { IJSONRPCClient } from './internal/json-rpc-client';
+import { JSONRPCProtocol, IJSONRPCClient } from './internal/json-rpc-client';
 export interface IJSONRPCProtocolOptions {
     url: string;
     reconnectInterval?: number;
@@ -20,3 +20,4 @@ export declare function createJSONRPCClient(opts: {
     requestTimeout?: number;
     generateRequestId?: (method: string, params: object | any[]) => string;
 }): IJSONRPCClient;
+export declare function selectProtocol(url: string): JSONRPCProtocol;

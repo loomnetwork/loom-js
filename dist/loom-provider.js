@@ -21,6 +21,32 @@ var bytesToHexAddrLC = function (bytes) {
 var numberToHexLC = function (num) {
     return crypto_utils_1.numberToHex(num).toLowerCase();
 };
+var ZEROED_HEX_256 = '0x00000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000';
+var ZEROED_HEX_32 = '0x0000000000000000000000000000000000000000000000000000000000000000';
+var ZEROED_HEX_20 = '0x0000000000000000000000000000000000000000';
+var ZEROED_HEX_8 = '0x0000000000000000';
+var ZEROED_HEX = '0x0';
+var BLOCK_ZERO = {
+    number: ZEROED_HEX,
+    hash: '0x0000000000000000000000000000000000000000000000000000000000000001',
+    parentHash: ZEROED_HEX_32,
+    nonce: ZEROED_HEX_8,
+    sha3Uncles: ZEROED_HEX_32,
+    logsBloom: ZEROED_HEX_256,
+    transactionsRoot: ZEROED_HEX_32,
+    stateRoot: ZEROED_HEX_32,
+    receiptsRoot: ZEROED_HEX_32,
+    miner: ZEROED_HEX_20,
+    difficulty: ZEROED_HEX,
+    totalDifficulty: ZEROED_HEX,
+    extraData: ZEROED_HEX,
+    size: ZEROED_HEX,
+    gasLimit: ZEROED_HEX,
+    gasUsed: ZEROED_HEX,
+    timestamp: '0x5af97a40',
+    transactions: [],
+    uncles: []
+};
 /**
  * Web3 provider that interacts with EVM contracts deployed on Loom DAppChains.
  */
@@ -31,27 +57,43 @@ var LoomProvider = /** @class */ (function () {
      * @param client Client from LoomJS
      * @param privateKey Account private key
      */
-    function LoomProvider(client, privateKey) {
+    function LoomProvider(client, privateKey, setupMiddlewaresFunction) {
         var _this = this;
+        this._subscribed = false;
+        /**
+         * Strict mode true remove any param on JSON RPC that isn't compliant with the
+         * official Ethereum RPC docs https://en.ethereum.wiki/json-rpc
+         */
+        this._strict = false;
         /**
          * The retry strategy that should be used to retry some web3 requests.
-         * Default is a binary exponential retry strategy with 5 retries.
+         * By default failed requested won't be resent.
          * To understand how to tweak the retry strategy see
          * https://github.com/tim-kos/node-retry#retrytimeoutsoptions
          */
         this.retryStrategy = {
-            retries: 3,
+            retries: 0,
             minTimeout: 1000,
             maxTimeout: 30000,
             randomize: true
         };
         this._client = client;
+        this._netVersionFromChainId = LoomProvider.chainIdToNetVersion(this._client.chainId);
+        this._setupMiddlewares = setupMiddlewaresFunction;
         this._accountMiddlewares = new Map();
+        this._ethRPCMethods = new Map();
         this.notificationCallbacks = new Array();
         this.accounts = new Map();
-        this._client.addListener(client_1.ClientEvent.Contract, function (msg) {
+        // Only subscribe for event emitter do not call subevents
+        this._client.addListener(client_1.ClientEvent.EVMEvent, function (msg) {
             return _this._onWebSocketMessage(msg);
         });
+        if (!this._setupMiddlewares) {
+            this._setupMiddlewares = function (client, privateKey) {
+                return helpers_1.createDefaultTxMiddleware(client, privateKey);
+            };
+        }
+        this.addDefaultMethods();
         this.addDefaultEvents();
         this.addAccounts([privateKey]);
     }
@@ -68,10 +110,24 @@ var LoomProvider = /** @class */ (function () {
             var publicKey = crypto_utils_1.publicKeyFromPrivateKey(accountPrivateKey);
             var accountAddress = address_1.LocalAddress.fromPublicKey(publicKey).toString();
             _this.accounts.set(accountAddress, accountPrivateKey);
-            _this._accountMiddlewares.set(accountAddress, helpers_1.createDefaultTxMiddleware(_this._client, accountPrivateKey));
+            _this._accountMiddlewares.set(accountAddress, _this._setupMiddlewares(_this._client, accountPrivateKey));
             log("New account added " + accountAddress);
         });
     };
+    Object.defineProperty(LoomProvider.prototype, "strict", {
+        // Get strict
+        get: function () {
+            return this._strict;
+        },
+        /**
+         * Setter to the strict mode
+         */
+        set: function (v) {
+            this._strict = v;
+        },
+        enumerable: true,
+        configurable: true
+    });
     // PUBLIC FUNCTION TO SUPPORT WEB3
     LoomProvider.prototype.on = function (type, callback) {
         switch (type) {
@@ -95,6 +151,70 @@ var LoomProvider = /** @class */ (function () {
             // reset all requests and callbacks
             _this.reset();
         });
+    };
+    LoomProvider.prototype.addDefaultMethods = function () {
+        this._ethRPCMethods.set('eth_accounts', this._ethAccounts);
+        this._ethRPCMethods.set('eth_blockNumber', this._ethBlockNumber);
+        this._ethRPCMethods.set('eth_call', this._ethCall);
+        this._ethRPCMethods.set('eth_estimateGas', this._ethEstimateGas);
+        this._ethRPCMethods.set('eth_gasPrice', this._ethGasPrice);
+        this._ethRPCMethods.set('eth_getBalance', this._ethGetBalance);
+        this._ethRPCMethods.set('eth_getBlockByHash', this._ethGetBlockByHash);
+        this._ethRPCMethods.set('eth_getBlockByNumber', this._ethGetBlockByNumber);
+        this._ethRPCMethods.set('eth_getCode', this._ethGetCode);
+        this._ethRPCMethods.set('eth_getFilterChanges', this._ethGetFilterChanges);
+        this._ethRPCMethods.set('eth_getLogs', this._ethGetLogs);
+        this._ethRPCMethods.set('eth_getTransactionByHash', this._ethGetTransactionByHash);
+        this._ethRPCMethods.set('eth_getTransactionReceipt', this._ethGetTransactionReceipt);
+        this._ethRPCMethods.set('eth_newBlockFilter', this._ethNewBlockFilter);
+        this._ethRPCMethods.set('eth_newFilter', this._ethNewFilter);
+        this._ethRPCMethods.set('eth_newPendingTransactionFilter', this._ethNewPendingTransactionFilter);
+        this._ethRPCMethods.set('eth_sendTransaction', this._ethSendTransaction);
+        this._ethRPCMethods.set('eth_sign', this._ethSign);
+        this._ethRPCMethods.set('eth_subscribe', this._ethSubscribe);
+        this._ethRPCMethods.set('eth_uninstallFilter', this._ethUninstallFilter);
+        this._ethRPCMethods.set('eth_unsubscribe', this._ethUnsubscribe);
+        this._ethRPCMethods.set('net_version', this._netVersion);
+    };
+    /**
+     * Adds custom methods to the provider when a particular method isn't supported
+     *
+     * Throws if the added method already exists
+     *
+     * @param method name of the method to be added
+     * @param customMethodFn function that will implement the method
+     */
+    LoomProvider.prototype.addCustomMethod = function (method, customMethodFn) {
+        if (this._ethRPCMethods.has(method)) {
+            throw Error('Method already exists');
+        }
+        this._ethRPCMethods.set(method, customMethodFn);
+    };
+    /**
+     * Overwrites existing method on the provider
+     *
+     * Throws if the overwritten method doesn't exists
+     *
+     * @param method name of the method to be overwritten
+     * @param customMethodFn function that will implement the method
+     */
+    LoomProvider.prototype.overwriteMethod = function (method, customMethodFn) {
+        if (!this._ethRPCMethods.has(method)) {
+            throw Error('Method to overwrite do not exists');
+        }
+        this._ethRPCMethods.set(method, customMethodFn);
+    };
+    /**
+     * Return the numerical representation of the ChainId
+     * More details at: https://github.com/loomnetwork/loom-js/issues/110
+     */
+    LoomProvider.chainIdToNetVersion = function (chainId) {
+        // Avoids the error "Number can only safely store up to 53 bits" on Web3
+        // Ensures the value less than 9007199254740991 (Number.MAX_SAFE_INTEGER)
+        var chainIdHash = solidity_helpers_1.soliditySha3(chainId)
+            .slice(2) // Removes 0x
+            .slice(0, 13); // Produces safe Number less than 9007199254740991
+        return new bn_js_1.default(chainIdHash).toNumber();
     };
     LoomProvider.prototype.removeListener = function (type, callback) {
         switch (type) {
@@ -162,7 +282,7 @@ var LoomProvider = /** @class */ (function () {
      */
     LoomProvider.prototype.send = function (payload, callback) {
         return tslib_1.__awaiter(this, void 0, void 0, function () {
-            var isArray, functionToExecute, f, result, err_1;
+            var isArray, prepareMethodToCall, f, result, err_1;
             var _this = this;
             return tslib_1.__generator(this, function (_a) {
                 switch (_a.label) {
@@ -172,58 +292,17 @@ var LoomProvider = /** @class */ (function () {
                         if (isArray) {
                             payload = payload[0];
                         }
-                        functionToExecute = function (method) {
-                            switch (method) {
-                                case 'eth_accounts':
-                                    return _this._ethAccounts;
-                                case 'eth_blockNumber':
-                                    return _this._ethBlockNumber;
-                                case 'eth_call':
-                                    return _this._ethCall;
-                                case 'eth_estimateGas':
-                                    return _this._ethEstimateGas;
-                                case 'eth_gasPrice':
-                                    return _this._ethGasPrice;
-                                case 'eth_getBlockByHash':
-                                    return _this._ethGetBlockByHash;
-                                case 'eth_getBlockByNumber':
-                                    return _this._ethGetBlockByNumber;
-                                case 'eth_getCode':
-                                    return _this._ethGetCode;
-                                case 'eth_getFilterChanges':
-                                    return _this._ethGetFilterChanges;
-                                case 'eth_getLogs':
-                                    return _this._ethGetLogs;
-                                case 'eth_getTransactionByHash':
-                                    return _this._ethGetTransactionByHash;
-                                case 'eth_getTransactionReceipt':
-                                    return _this._ethGetTransactionReceipt;
-                                case 'eth_newBlockFilter':
-                                    return _this._ethNewBlockFilter;
-                                case 'eth_newFilter':
-                                    return _this._ethNewFilter;
-                                case 'eth_newPendingTransactionFilter':
-                                    return _this._ethNewPendingTransactionFilter;
-                                case 'eth_sendTransaction':
-                                    return _this._ethSendTransaction;
-                                case 'eth_sign':
-                                    return _this._ethSign;
-                                case 'eth_subscribe':
-                                    return _this._ethSubscribe;
-                                case 'eth_uninstallFilter':
-                                    return _this._ethUninstallFilter;
-                                case 'eth_unsubscribe':
-                                    return _this._ethUnsubscribe;
-                                case 'net_version':
-                                    return _this._netVersion;
-                                default:
-                                    throw Error("Method \"" + payload.method + "\" not supported on this provider");
+                        prepareMethodToCall = function (method) {
+                            var methodToCall = _this._ethRPCMethods.get(method);
+                            if (!methodToCall) {
+                                throw Error("Method \"" + payload.method + "\" not supported on this provider");
                             }
+                            return methodToCall;
                         };
                         _a.label = 1;
                     case 1:
                         _a.trys.push([1, 3, , 4]);
-                        f = functionToExecute(payload.method).bind(this);
+                        f = prepareMethodToCall(payload.method).bind(this);
                         return [4 /*yield*/, f(payload)];
                     case 2:
                         result = _a.sent();
@@ -258,7 +337,7 @@ var LoomProvider = /** @class */ (function () {
                     case 0: return [4 /*yield*/, this._client.getBlockHeightAsync()];
                     case 1:
                         blockNumber = _a.sent();
-                        return [2 /*return*/, crypto_utils_1.numberToHex(blockNumber)];
+                        return [2 /*return*/, numberToHexLC(+blockNumber)];
                 }
             });
         });
@@ -277,11 +356,18 @@ var LoomProvider = /** @class */ (function () {
         });
     };
     LoomProvider.prototype._ethEstimateGas = function () {
-        // Loom DAppChain doesn't estimate gas, because gas isn't necessary
+        // Loom DAppChain doesn't estimate gas
+        // This method can be overwritten if necessary
         return null; // Returns null to afford with Web3 calls
     };
+    LoomProvider.prototype._ethGetBalance = function () {
+        // Loom DAppChain doesn't have ETH balance by default
+        // This method can be overwritten if necessary
+        return '0x0'; // Returns 0x0 to afford with Web3 calls
+    };
     LoomProvider.prototype._ethGasPrice = function () {
-        // Loom DAppChain doesn't use gas price, because gas isn't necessary
+        // Loom DAppChain doesn't use gas price
+        // This method can be overwritten if necessary
         return null; // Returns null to afford with Web3 calls
     };
     LoomProvider.prototype._ethGetBlockByHash = function (payload) {
@@ -292,6 +378,9 @@ var LoomProvider = /** @class */ (function () {
                     case 0:
                         blockHash = payload.params[0];
                         isFull = payload.params[1] || true;
+                        if (blockHash === ZEROED_HEX_32) {
+                            return [2 /*return*/, Promise.resolve(BLOCK_ZERO)];
+                        }
                         return [4 /*yield*/, this._client.getEvmBlockByHashAsync(blockHash, isFull)];
                     case 1:
                         result = _a.sent();
@@ -309,9 +398,12 @@ var LoomProvider = /** @class */ (function () {
             return tslib_1.__generator(this, function (_a) {
                 switch (_a.label) {
                     case 0:
-                        blockNumberToSearch = payload.params[0];
+                        blockNumberToSearch = payload.params[0] === 'latest' ? payload.params[0] : crypto_utils_1.hexToNumber(payload.params[0]);
                         isFull = payload.params[1] || true;
-                        return [4 /*yield*/, this._client.getEvmBlockByNumberAsync(blockNumberToSearch, isFull)];
+                        if (blockNumberToSearch === 0) {
+                            return [2 /*return*/, Promise.resolve(BLOCK_ZERO)];
+                        }
+                        return [4 /*yield*/, this._client.getEvmBlockByNumberAsync("" + blockNumberToSearch, isFull)];
                     case 1:
                         result = _a.sent();
                         if (!result) {
@@ -332,10 +424,7 @@ var LoomProvider = /** @class */ (function () {
                         return [4 /*yield*/, this._client.getEvmCodeAsync(address)];
                     case 1:
                         result = _a.sent();
-                        if (!result) {
-                            throw Error('No code returned on eth_getCode');
-                        }
-                        return [2 /*return*/, bytesToHexAddrLC(result)];
+                        return [2 /*return*/, result ? bytesToHexAddrLC(result) : '0x0'];
                 }
             });
         });
@@ -398,6 +487,7 @@ var LoomProvider = /** @class */ (function () {
                         op = retry_1.default.operation(this.retryStrategy);
                         return [4 /*yield*/, new Promise(function (resolve, reject) {
                                 op.attempt(function (currentAttempt) {
+                                    log("Current attempt " + currentAttempt);
                                     _this._client
                                         .getEvmTxReceiptAsync(crypto_utils_1.bufferToProtobufBytes(data))
                                         .then(function (receipt) {
@@ -520,6 +610,10 @@ var LoomProvider = /** @class */ (function () {
             return tslib_1.__generator(this, function (_a) {
                 switch (_a.label) {
                     case 0:
+                        if (!this._subscribed) {
+                            this._subscribed = true;
+                            this._client.addListenerForTopics();
+                        }
                         method = payload.params[0];
                         filterObject = payload.params[1] || {};
                         return [4 /*yield*/, this._client.evmSubscribeAsync(method, filterObject)];
@@ -540,7 +634,7 @@ var LoomProvider = /** @class */ (function () {
         return this._client.evmUnsubscribeAsync(payload.params[0]);
     };
     LoomProvider.prototype._netVersion = function () {
-        return this._client.chainId;
+        return this._netVersionFromChainId;
     };
     // PRIVATE FUNCTIONS IMPLEMENTATIONS
     LoomProvider.prototype._deployAsync = function (payload) {
@@ -599,41 +693,93 @@ var LoomProvider = /** @class */ (function () {
     };
     LoomProvider.prototype._createBlockInfo = function (blockInfo, isFull) {
         var _this = this;
-        var blockNumber = numberToHexLC(blockInfo.getNumber());
-        var transactionHash = bytesToHexAddrLC(blockInfo.getHash_asU8());
+        // tslint:disable-next-line:variable-name
+        var number = numberToHexLC(blockInfo.getNumber());
+        var hash = bytesToHexAddrLC(blockInfo.getHash_asU8());
         var parentHash = bytesToHexAddrLC(blockInfo.getParentHash_asU8());
         var logsBloom = bytesToHexAddrLC(blockInfo.getLogsBloom_asU8());
-        var timestamp = blockInfo.getTimestamp();
+        var timestamp = numberToHexLC(blockInfo.getTimestamp());
         var transactions = blockInfo.getTransactionsList_asU8().map(function (transaction) {
             if (isFull) {
-                return _this._createReceiptResult(evm_pb_1.EvmTxReceipt.deserializeBinary(crypto_utils_1.bufferToProtobufBytes(transaction)));
+                return _this._createTransactionResult(evm_pb_1.EvmTxObject.deserializeBinary(crypto_utils_1.bufferToProtobufBytes(transaction)));
             }
             else {
                 return bytesToHexAddrLC(transaction);
             }
         });
+        // Parent hash is empty for the block 0x1 so this fix it
+        if (parentHash === '0x' && number === '0x1') {
+            parentHash = '0x0000000000000000000000000000000000000000000000000000000000000001';
+        }
+        // Some ZEROED values aren't at the moment
         return {
-            blockNumber: blockNumber,
-            transactionHash: transactionHash,
+            number: number,
+            hash: hash,
             parentHash: parentHash,
+            nonce: ZEROED_HEX_8,
+            sha3Uncles: ZEROED_HEX_32,
             logsBloom: logsBloom,
+            transactionsRoot: ZEROED_HEX_32,
+            stateRoot: ZEROED_HEX_32,
+            receiptsRoot: ZEROED_HEX_32,
+            miner: ZEROED_HEX_20,
+            difficulty: ZEROED_HEX,
+            totalDifficulty: ZEROED_HEX,
+            extraData: ZEROED_HEX,
+            size: ZEROED_HEX,
+            gasLimit: ZEROED_HEX,
+            gasUsed: ZEROED_HEX,
             timestamp: timestamp,
-            transactions: transactions
+            transactions: transactions,
+            uncles: []
+        };
+    };
+    LoomProvider.prototype._createTransactionResult = function (txObject) {
+        var hash = bytesToHexAddrLC(txObject.getHash_asU8());
+        var nonce = numberToHexLC(txObject.getNonce());
+        var blockHash = bytesToHexAddrLC(txObject.getBlockHash_asU8());
+        var blockNumber = numberToHexLC(txObject.getBlockNumber());
+        var transactionIndex = numberToHexLC(txObject.getTransactionIndex());
+        var from = bytesToHexAddrLC(txObject.getFrom_asU8());
+        var to = bytesToHexAddrLC(txObject.getTo_asU8());
+        var value = numberToHexLC(txObject.getValue());
+        var gas = numberToHexLC(txObject.getGas());
+        var gasPrice = numberToHexLC(txObject.getGasPrice());
+        var input = bytesToHexAddrLC(txObject.getInput_asU8());
+        if (input === '0x') {
+            input = ZEROED_HEX;
+        }
+        return {
+            blockHash: blockHash,
+            blockNumber: blockNumber,
+            from: from,
+            gas: gas,
+            gasPrice: gasPrice,
+            hash: hash,
+            input: input,
+            nonce: nonce,
+            to: to,
+            transactionIndex: transactionIndex,
+            value: value
         };
     };
     LoomProvider.prototype._createReceiptResult = function (receipt) {
+        var _this = this;
         var transactionHash = bytesToHexAddrLC(receipt.getTxHash_asU8());
         var transactionIndex = numberToHexLC(receipt.getTransactionIndex());
         var blockHash = bytesToHexAddrLC(receipt.getBlockHash_asU8());
         var blockNumber = numberToHexLC(receipt.getBlockNumber());
+        var cumulativeGasUsed = numberToHexLC(receipt.getCumulativeGasUsed());
+        var gasUsed = numberToHexLC(receipt.getGasUsed());
         var contractAddress = bytesToHexAddrLC(receipt.getContractAddress_asU8());
         var logs = receipt.getLogsList().map(function (logEvent, index) {
             var logIndex = numberToHexLC(index);
             var data = bytesToHexAddrLC(logEvent.getEncodedBody_asU8());
             if (data === '0x') {
-                data = '0x0';
+                data = ZEROED_HEX_32;
             }
-            return {
+            var blockHash = bytesToHexAddrLC(receipt.getBlockHash_asU8());
+            var log = {
                 logIndex: logIndex,
                 address: contractAddress,
                 blockHash: blockHash,
@@ -644,17 +790,24 @@ var LoomProvider = /** @class */ (function () {
                 data: data,
                 topics: logEvent.getTopicsList().map(function (topic) { return topic.toLowerCase(); })
             };
+            return _this._strict ? log : Object.assign({}, log, { blockTime: logEvent.getBlockTime() });
         });
+        var status = numberToHexLC(receipt.getStatus());
+        // Commented properties aren't supported at the current version
         return {
             transactionHash: transactionHash,
             transactionIndex: transactionIndex,
             blockHash: blockHash,
             blockNumber: blockNumber,
+            // from,
+            // to,
+            cumulativeGasUsed: cumulativeGasUsed,
+            gasUsed: gasUsed,
             contractAddress: contractAddress,
-            gasUsed: numberToHexLC(receipt.getGasUsed()),
-            cumulativeGasUsed: numberToHexLC(receipt.getCumulativeGasUsed()),
             logs: logs,
-            status: numberToHexLC(receipt.getStatus())
+            // logsBloom,
+            // root,
+            status: status
         };
     };
     LoomProvider.prototype._getTransaction = function (txHash) {
@@ -680,7 +833,7 @@ var LoomProvider = /** @class */ (function () {
                         value = numberToHexLC(transaction.getValue());
                         gasPrice = numberToHexLC(transaction.getGasPrice());
                         gas = numberToHexLC(transaction.getGas());
-                        input = '0x0';
+                        input = ZEROED_HEX;
                         return [2 /*return*/, {
                                 hash: hash,
                                 nonce: nonce,
@@ -699,16 +852,27 @@ var LoomProvider = /** @class */ (function () {
         });
     };
     LoomProvider.prototype._createLogResult = function (log) {
+        var removed = log.getRemoved();
+        var blockTime = numberToHexLC(log.getBlockTime());
+        var logIndex = numberToHexLC(log.getLogIndex());
+        var transactionIndex = crypto_utils_1.numberToHex(log.getTransactionIndex());
+        var transactionHash = bytesToHexAddrLC(log.getTransactionHash_asU8());
+        var blockHash = bytesToHexAddrLC(log.getBlockHash_asU8());
+        var blockNumber = crypto_utils_1.numberToHex(log.getBlockNumber());
+        var address = bytesToHexAddrLC(log.getAddress_asU8());
+        var data = bytesToHexAddrLC(log.getData_asU8());
+        var topics = log.getTopicsList().map(function (topic) { return String.fromCharCode.apply(null, topic); });
         return {
-            removed: log.getRemoved(),
-            logIndex: numberToHexLC(log.getLogIndex()),
-            transactionIndex: crypto_utils_1.numberToHex(log.getTransactionIndex()),
-            transactionHash: bytesToHexAddrLC(log.getTransactionHash_asU8()),
-            blockHash: bytesToHexAddrLC(log.getBlockHash_asU8()),
-            blockNumber: crypto_utils_1.numberToHex(log.getBlockNumber()),
-            address: bytesToHexAddrLC(log.getAddress_asU8()),
-            data: bytesToHexAddrLC(log.getData_asU8()),
-            topics: log.getTopicsList().map(function (topic) { return String.fromCharCode.apply(null, topic); })
+            removed: removed,
+            logIndex: logIndex,
+            transactionIndex: transactionIndex,
+            transactionHash: transactionHash,
+            blockHash: blockHash,
+            blockNumber: blockNumber,
+            address: address,
+            data: data,
+            topics: topics,
+            blockTime: blockTime
         };
     };
     LoomProvider.prototype._getLogs = function (filterObject) {
@@ -732,23 +896,27 @@ var LoomProvider = /** @class */ (function () {
         });
     };
     LoomProvider.prototype._onWebSocketMessage = function (msgEvent) {
-        if (msgEvent.data && msgEvent.id !== '0') {
+        if (msgEvent.kind === client_1.ClientEvent.EVMEvent) {
             log("Socket message arrived " + JSON.stringify(msgEvent));
             this.notificationCallbacks.forEach(function (callback) {
+                var transactionHash = bytesToHexAddrLC(msgEvent.transactionHashBytes);
+                var blockNumber = numberToHexLC(+msgEvent.blockHeight);
+                var data = bytesToHexAddrLC(msgEvent.data);
+                // Some 0x0 values aren't at the moment
                 var JSONRPCResult = {
                     jsonrpc: '2.0',
                     method: 'eth_subscription',
                     params: {
                         subscription: msgEvent.id,
                         result: {
-                            transactionHash: bytesToHexAddrLC(msgEvent.transactionHashBytes),
-                            logIndex: '0x0',
-                            transactionIndex: '0x0',
-                            blockHash: '0x0',
-                            blockNumber: '0x0',
+                            transactionHash: transactionHash,
+                            logIndex: ZEROED_HEX,
+                            transactionIndex: ZEROED_HEX,
+                            blockHash: ZEROED_HEX,
+                            blockNumber: blockNumber,
                             address: msgEvent.contractAddress.local.toString(),
                             type: 'mined',
-                            data: bytesToHexAddrLC(msgEvent.data),
+                            data: data,
                             topics: msgEvent.topics
                         }
                     }

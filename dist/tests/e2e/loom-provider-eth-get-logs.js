@@ -7,6 +7,7 @@ var index_1 = require("../../index");
 var helpers_1 = require("../helpers");
 var loom_provider_1 = require("../../loom-provider");
 var evm_helpers_1 = require("../evm-helpers");
+var crypto_utils_1 = require("../../crypto-utils");
 /**
  * Requires the SimpleStore solidity contract deployed on a loomchain.
  * go-loom/examples/plugins/evmexample/contract/SimpleStore.sol
@@ -135,20 +136,25 @@ function testGetLogsLatest(t, loomProvider, fromAddr) {
 }
 function testGetLogsAny(t, loomProvider, fromAddr) {
     return tslib_1.__awaiter(this, void 0, void 0, function () {
-        var ethGetLogs;
+        var curBlock, fromBlock, ethGetLogs;
         return tslib_1.__generator(this, function (_a) {
             switch (_a.label) {
-                case 0: return [4 /*yield*/, newTransactionToSetState(loomProvider, fromAddr)
-                    // Filtering to get logs
-                ];
+                case 0: return [4 /*yield*/, loomProvider._client.getBlockHeightAsync()];
                 case 1:
+                    curBlock = _a.sent();
+                    console.log("current block: " + curBlock);
+                    fromBlock = crypto_utils_1.numberToHex(parseInt(curBlock, 10) + 1);
+                    return [4 /*yield*/, newTransactionToSetState(loomProvider, fromAddr)
+                        // Filtering to get logs
+                    ];
+                case 2:
                     _a.sent();
                     return [4 /*yield*/, loomProvider.sendAsync({
                             id: 5,
                             method: 'eth_getLogs',
-                            params: []
+                            params: [{ fromBlock: fromBlock }]
                         })];
-                case 2:
+                case 3:
                     ethGetLogs = _a.sent();
                     t.equal(ethGetLogs.result.length, 1, 'Should return one log for anything filter');
                     return [2 /*return*/];
@@ -158,20 +164,25 @@ function testGetLogsAny(t, loomProvider, fromAddr) {
 }
 function testGetLogsAnyPending(t, loomProvider, fromAddr) {
     return tslib_1.__awaiter(this, void 0, void 0, function () {
-        var ethGetLogs;
+        var curBlock, fromBlock, ethGetLogs;
         return tslib_1.__generator(this, function (_a) {
             switch (_a.label) {
-                case 0: return [4 /*yield*/, newTransactionToSetState(loomProvider, fromAddr)
-                    // Filtering to get logs
-                ];
+                case 0: return [4 /*yield*/, loomProvider._client.getBlockHeightAsync()];
                 case 1:
+                    curBlock = _a.sent();
+                    console.log("current block: " + curBlock);
+                    fromBlock = crypto_utils_1.numberToHex(parseInt(curBlock, 10) + 1);
+                    return [4 /*yield*/, newTransactionToSetState(loomProvider, fromAddr)
+                        // Filtering to get logs
+                    ];
+                case 2:
                     _a.sent();
                     return [4 /*yield*/, loomProvider.sendAsync({
                             id: 6,
                             method: 'eth_getLogs',
-                            params: [{ toBlock: 'pending' }]
+                            params: [{ fromBlock: fromBlock, toBlock: 'pending' }]
                         })];
-                case 2:
+                case 3:
                     ethGetLogs = _a.sent();
                     t.equal(ethGetLogs.result.length, 1, 'Should return one log for anything pending filter');
                     return [2 /*return*/];

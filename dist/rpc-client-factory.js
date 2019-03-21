@@ -71,4 +71,5 @@ function selectProtocol(url) {
         throw new Error('Invalid URL');
     }
 }
+exports.selectProtocol = selectProtocol;
 //# sourceMappingURL=rpc-client-factory.js.map

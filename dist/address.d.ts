@@ -22,7 +22,11 @@ export declare class Address {
     toString(): string;
     MarshalPB(): pb.Address;
     equals(other: Address): boolean;
+    /**
+     * @deprecated Use the function UnmarshalPB instead
+     */
     static UmarshalPB(pb: pb.Address): Address;
+    static UnmarshalPB(pb: pb.Address): Address;
     /**
      * Converts a string to an address.
      * @param address String representation of an address, in the format "chain:0x...".

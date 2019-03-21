@@ -3,6 +3,12 @@ import { Client } from '../client';
 import { Contract } from '../contract';
 import { Address } from '../address';
 import { TransferGatewayTokenKind } from '../proto/transfer_gateway_pb';
+export interface IUnclaimedToken {
+    tokenContract: Address;
+    tokenKind: TransferGatewayTokenKind;
+    tokenIds?: Array<BN>;
+    tokenAmounts?: Array<BN>;
+}
 export interface IWithdrawalReceipt {
     tokenOwner: Address;
     tokenContract: Address;
@@ -37,6 +43,14 @@ export declare class TransferGateway extends Contract {
         callerAddr: Address;
         client: Client;
     });
+    /**
+    * Adds a contract mapping to the DAppChain Gateway using gatway owner signature.
+    * A contract mapping associates a token contract on the DAppChain with it's counterpart on Ethereum.
+    */
+    addAuthorizedContractMappingAsync(params: {
+        foreignContract: Address;
+        localContract: Address;
+    }): Promise<void>;
     /**
      * Adds a contract mapping to the DAppChain Gateway.
      * A contract mapping associates a token contract on the DAppChain with it's counterpart on Ethereum.
@@ -85,7 +99,7 @@ export declare class TransferGateway extends Contract {
      */
     withdrawERC20Async(amount: BN, tokenContract: Address, recipient?: Address): Promise<void>;
     /**
-     * Sends a request to the DAppChain Gateway to begin withdrawal ERC20 tokens from the current
+     * Sends a request to the DAppChain Gateway to begin withdrawal of ETH from the current
      * DAppChain account to an Ethereum account.
      * @param amount Amount to withdraw.
      * @param ethereumGateway Ethereum address of Ethereum Gateway.
@@ -105,4 +119,24 @@ export declare class TransferGateway extends Contract {
      *          currently in progress).
      */
     withdrawalReceiptAsync(owner: Address): Promise<IWithdrawalReceipt | null>;
+    /**
+     * Attempt to transfer tokens that originated from the specified Ethereum contract, and that have
+     * been deposited to the Ethereum Gateway, but haven't yet been received by the depositors on the
+     * DAppChain because of a missing identity or contract mapping. This method can only be called by
+     * the creator of the specified token contract, or the Gateway owner.
+     *
+     * @param tokenContract token contract to reclaim the tokens
+     */
+    reclaimContractTokensAsync(tokenContract: Address): Promise<void>;
+    getUnclaimedTokensAsync(owner: Address): Promise<Array<IUnclaimedToken>>;
+    /**
+     * Attempt to transfer any tokens that the caller may have deposited into the Ethereum Gateway
+     * but hasn't yet received from the DAppChain Gateway because of a missing identity or contract
+     * mapping.
+     *
+     * @param depositors Optional list of DAppChain accounts to reclaim tokens for, when set tokens
+     *                   will be reclaimed for the specified accounts instead of the caller's account.
+     *                   NOTE: Only the Gateway owner is authorized to provide a list of accounts.
+     */
+    reclaimDepositorTokensAsync(depositors?: Array<Address>): Promise<void>;
 }

@@ -57,7 +57,7 @@ var DPOS = /** @class */ (function (_super) {
                         result = _a.sent();
                         return [2 /*return*/, result.getCandidatesList().map(function (canditate) {
                                 return {
-                                    address: address_1.Address.UmarshalPB(canditate.getAddress()),
+                                    address: address_1.Address.UnmarshalPB(canditate.getAddress()),
                                     pubKey: canditate.getPubKey_asU8()
                                 };
                             })];

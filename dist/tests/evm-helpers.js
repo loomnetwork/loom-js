@@ -15,7 +15,7 @@ function deployContract(loomProvider, contractData) {
                     }
                     fromAddr = address_1.LocalAddress.fromPublicKey(__1.CryptoUtils.publicKeyFromPrivateKey(privKey)).toString();
                     return [4 /*yield*/, loomProvider.sendAsync({
-                            id: 1,
+                            id: 100,
                             method: 'eth_sendTransaction',
                             params: [
                                 {
@@ -30,7 +30,7 @@ function deployContract(loomProvider, contractData) {
                 case 1:
                     ethSendTransactionDeployResult = _a.sent();
                     return [4 /*yield*/, loomProvider.sendAsync({
-                            id: 2,
+                            id: 200,
                             method: 'eth_getTransactionReceipt',
                             params: [ethSendTransactionDeployResult.result]
                         })];

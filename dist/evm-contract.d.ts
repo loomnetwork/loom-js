@@ -1,4 +1,3 @@
-/// <reference types="node" />
 import EventEmitter from 'events';
 import { Client } from './client';
 import { Address } from './address';

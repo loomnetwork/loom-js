@@ -1,5 +1,5 @@
 import BN from 'bn.js';
-import { OfflineWeb3Signer } from '../solidity-helpers';
+import { EthersSigner } from '../solidity-helpers';
 import { PlasmaTx } from '../proto/plasma_cash_pb';
 export declare class PlasmaCashTx {
     slot: BN;
@@ -41,7 +41,7 @@ export declare class PlasmaCashTx {
      * Signs the tx.
      * @param signer Signer to use for signing the tx.
      */
-    signAsync(signer: OfflineWeb3Signer): Promise<void>;
+    signAsync(signer: EthersSigner): Promise<void>;
 }
 export declare function unmarshalPlasmaTxPB(rawTx: PlasmaTx): PlasmaCashTx;
 export declare function marshalPlasmaTxPB(tx: PlasmaCashTx): PlasmaTx;

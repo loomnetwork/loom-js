@@ -70,7 +70,14 @@ var Address = /** @class */ (function () {
     Address.prototype.equals = function (other) {
         return this.chainId === other.chainId && this.local.equals(other.local);
     };
+    /**
+     * @deprecated Use the function UnmarshalPB instead
+     */
     Address.UmarshalPB = function (pb) {
+        console.warn('Function UmarshalPB is deprecated and should be replaced by UnmarshalPB');
+        return Address.UnmarshalPB(pb);
+    };
+    Address.UnmarshalPB = function (pb) {
         return new Address(pb.getChainId(), new LocalAddress(pb.getLocal_asU8()));
     };
     /**

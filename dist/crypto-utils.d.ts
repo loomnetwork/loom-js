@@ -1,4 +1,3 @@
-/// <reference types="node" />
 export declare function bytesToHex(bytes: Uint8Array): string;
 export declare function numberToHex(num: number): string;
 export declare function hexToNumber(hex: string): number;

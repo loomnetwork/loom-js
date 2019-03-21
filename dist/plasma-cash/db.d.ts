@@ -9,7 +9,7 @@ export interface IDatabaseCoin {
 export declare class PlasmaDB {
     dbPath: string;
     db: any;
-    constructor(ethereum: String, dappchain: String, plasmaAddress: String, privateKey: String);
+    constructor(dbPath?: string);
     receiveCoin(coinId: BN, block: BN, included: boolean, tx: PlasmaCashTx): void;
     saveLastBlock(block: BN): void;
     getLastBlock(): BN;

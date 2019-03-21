@@ -94,13 +94,13 @@ function unmarshalPlasmaTxPB(rawTx) {
         denomination: rawTx.hasDenomination()
             ? big_uint_1.unmarshalBigUIntPB(rawTx.getDenomination())
             : new bn_js_1.default(0),
-        newOwner: address_1.Address.UmarshalPB(rawTx.getNewOwner()).local.toString(),
+        newOwner: address_1.Address.UnmarshalPB(rawTx.getNewOwner()).local.toString(),
         sig: rawTx.getSignature_asU8(),
         proof: rawTx.getProof_asU8()
     });
     var sender = rawTx.getSender();
     if (sender) {
-        tx.prevOwner = address_1.Address.UmarshalPB(sender).local.toString();
+        tx.prevOwner = address_1.Address.UnmarshalPB(sender).local.toString();
     }
     return tx;
 }

@@ -5,14 +5,14 @@ var tslib_1 = require("tslib");
 var tape_1 = tslib_1.__importDefault(require("tape"));
 var mock_entity_1 = require("./mock-entity");
 var bn_js_1 = tslib_1.__importDefault(require("bn.js"));
-var web3_1 = tslib_1.__importDefault(require("web3"));
+var ethers_1 = require("ethers");
 tape_1.default('Entity', function (t) { return tslib_1.__awaiter(_this, void 0, void 0, function () {
     var web3, params, entity, blks, expected, startBlock, err_1;
     return tslib_1.__generator(this, function (_a) {
         switch (_a.label) {
             case 0:
                 _a.trys.push([0, 7, , 8]);
-                web3 = new web3_1.default();
+                web3 = new ethers_1.ethers.Wallet(ethers_1.ethers.utils.sha256('0x1'));
                 params = { childBlockInterval: 1000 };
                 entity = new mock_entity_1.MockEntity(web3, params);
                 blks = void 0, expected = void 0, startBlock = void 0;

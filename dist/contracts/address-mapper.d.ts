@@ -13,6 +13,7 @@ export declare class AddressMapper extends Contract {
         callerAddr: Address;
         client: Client;
     });
-    addIdentityMappingAsync(from: Address, to: Address, web3Signer: IEthereumSigner): Promise<Uint8Array | void>;
+    addIdentityMappingAsync(from: Address, to: Address, ethersSigner: IEthereumSigner): Promise<Uint8Array | void>;
+    hasMappingAsync(from: Address): Promise<boolean>;
     getMappingAsync(from: Address): Promise<IAddressMapping>;
 }

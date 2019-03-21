@@ -22,7 +22,7 @@ var helpers_1 = require("../helpers");
  *
  */
 tape_1.default('EVM Contract Calls', function (t) { return tslib_1.__awaiter(_this, void 0, void 0, function () {
-    var privKey, pubKey, client, contractAddr, callerAddr, evmContract, inputSet987Array, inputGetArray, numRepeats, results, rtv, i, _i, results_1, result, receipt, staticCallRtv, err_1;
+    var privKey, pubKey, client, contractAddr, callerAddr, evmContract, inputSet987Array, inputGetArray, numRepeats, results, rtv, i, sameHash, _i, results_1, result, receipt, staticCallRtv, err_1;
     return tslib_1.__generator(this, function (_a) {
         switch (_a.label) {
             case 0:
@@ -95,10 +95,14 @@ tape_1.default('EVM Contract Calls', function (t) { return tslib_1.__awaiter(_th
             case 3:
                 rtv = _a.sent();
                 if (rtv) {
+                    sameHash = false;
                     for (_i = 0, results_1 = results; _i < results_1.length; _i++) {
                         result = results_1[_i];
-                        t.notDeepEqual(result, rtv, 'A different tx hash sould be returned' + ' each time');
+                        if (Buffer.compare(result, rtv) === 0) {
+                            sameHash = true;
+                        }
                     }
+                    t.false(sameHash, 'A different tx hash sould be returned each time');
                     results.push(rtv);
                 }
                 else {

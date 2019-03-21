@@ -3,6 +3,7 @@ var _this = this;
 Object.defineProperty(exports, "__esModule", { value: true });
 var tslib_1 = require("tslib");
 var tape_1 = tslib_1.__importDefault(require("tape"));
+var bn_js_1 = tslib_1.__importDefault(require("bn.js"));
 var index_1 = require("../../index");
 var helpers_1 = require("../helpers");
 var loom_provider_1 = require("../../loom-provider");
@@ -85,7 +86,7 @@ var newContractAndClient = function () { return tslib_1.__awaiter(_this, void 0,
         }
     });
 }); };
-tape_1.default('LoomProvider + Web3 not matching topic', function (t) { return tslib_1.__awaiter(_this, void 0, void 0, function () {
+tape_1.default('LoomProvider + Web3 + Event with not matching topic', function (t) { return tslib_1.__awaiter(_this, void 0, void 0, function () {
     var _a, contract, client, newValue, tx, resultOfGet, err_1;
     return tslib_1.__generator(this, function (_b) {
         switch (_b.label) {
@@ -109,7 +110,7 @@ tape_1.default('LoomProvider + Web3 not matching topic', function (t) { return t
                 return [4 /*yield*/, contract.methods.set(newValue).send()];
             case 3:
                 tx = _b.sent();
-                t.equal(tx.status, true, 'SimpleStore.set should return correct status');
+                t.equal(tx.status, '0x1', 'SimpleStore.set should return correct status');
                 return [4 /*yield*/, contract.methods.get().call()];
             case 4:
                 resultOfGet = _b.sent();
@@ -130,7 +131,7 @@ tape_1.default('LoomProvider + Web3 not matching topic', function (t) { return t
         }
     });
 }); });
-tape_1.default('LoomProvider + Web3 multiple topics', function (t) { return tslib_1.__awaiter(_this, void 0, void 0, function () {
+tape_1.default('LoomProvider + Web3 + Multiple event topics', function (t) { return tslib_1.__awaiter(_this, void 0, void 0, function () {
     var _a, contract, client, newValue_1, tx, resultOfGet, err_2;
     return tslib_1.__generator(this, function (_b) {
         switch (_b.label) {
@@ -153,7 +154,7 @@ tape_1.default('LoomProvider + Web3 multiple topics', function (t) { return tsli
                 return [4 /*yield*/, contract.methods.set(newValue_1).send()];
             case 3:
                 tx = _b.sent();
-                t.equal(tx.status, true, 'SimpleStore.set should return correct status');
+                t.equal(tx.status, '0x1', 'SimpleStore.set should return correct status');
                 return [4 /*yield*/, contract.methods.get().call()];
             case 4:
                 resultOfGet = _b.sent();
@@ -175,7 +176,7 @@ tape_1.default('LoomProvider + Web3 multiple topics', function (t) { return tsli
         }
     });
 }); });
-tape_1.default('LoomProvider + Eth Sign', function (t) { return tslib_1.__awaiter(_this, void 0, void 0, function () {
+tape_1.default('LoomProvider + Web3 + Eth Sign', function (t) { return tslib_1.__awaiter(_this, void 0, void 0, function () {
     var _a, client, web3, from, privKey, msg, result, hash, _b, r, s, v, pubKey, privateHash, err_3;
     return tslib_1.__generator(this, function (_c) {
         switch (_c.label) {
@@ -202,6 +203,265 @@ tape_1.default('LoomProvider + Eth Sign', function (t) { return tslib_1.__awaite
                 console.log(err_3);
                 return [3 /*break*/, 5];
             case 5:
+                if (client) {
+                    client.disconnect();
+                }
+                t.end();
+                return [2 /*return*/];
+        }
+    });
+}); });
+tape_1.default('LoomProvider + Web3 + Get version', function (t) { return tslib_1.__awaiter(_this, void 0, void 0, function () {
+    var _a, client, web3, chainIdHash, netVersionFromChainId, result, err_4;
+    return tslib_1.__generator(this, function (_b) {
+        switch (_b.label) {
+            case 0: return [4 /*yield*/, newContractAndClient()];
+            case 1:
+                _a = _b.sent(), client = _a.client, web3 = _a.web3;
+                _b.label = 2;
+            case 2:
+                _b.trys.push([2, 4, , 5]);
+                chainIdHash = solidity_helpers_1.soliditySha3(client.chainId)
+                    .slice(2)
+                    .slice(0, 13);
+                netVersionFromChainId = new bn_js_1.default(chainIdHash).toNumber();
+                return [4 /*yield*/, web3.eth.net.getId()];
+            case 3:
+                result = _b.sent();
+                t.equal("" + netVersionFromChainId, "" + result, 'Should version match');
+                return [3 /*break*/, 5];
+            case 4:
+                err_4 = _b.sent();
+                console.log(err_4);
+                return [3 /*break*/, 5];
+            case 5:
+                if (client) {
+                    client.disconnect();
+                }
+                t.end();
+                return [2 /*return*/];
+        }
+    });
+}); });
+tape_1.default('LoomProvider + Web3 + getBlockNumber', function (t) { return tslib_1.__awaiter(_this, void 0, void 0, function () {
+    var _a, client, web3, blockNumber, err_5;
+    return tslib_1.__generator(this, function (_b) {
+        switch (_b.label) {
+            case 0: return [4 /*yield*/, newContractAndClient()];
+            case 1:
+                _a = _b.sent(), client = _a.client, web3 = _a.web3;
+                _b.label = 2;
+            case 2:
+                _b.trys.push([2, 4, , 5]);
+                return [4 /*yield*/, web3.eth.getBlockNumber()];
+            case 3:
+                blockNumber = _b.sent();
+                t.assert(typeof blockNumber === 'number', 'Block number should be a number');
+                return [3 /*break*/, 5];
+            case 4:
+                err_5 = _b.sent();
+                console.log(err_5);
+                return [3 /*break*/, 5];
+            case 5:
+                if (client) {
+                    client.disconnect();
+                }
+                t.end();
+                return [2 /*return*/];
+        }
+    });
+}); });
+tape_1.default('LoomProvider + Web3 + getBlockByNumber', function (t) { return tslib_1.__awaiter(_this, void 0, void 0, function () {
+    var _a, client, web3, blockNumber, blockInfo, err_6;
+    return tslib_1.__generator(this, function (_b) {
+        switch (_b.label) {
+            case 0: return [4 /*yield*/, newContractAndClient()];
+            case 1:
+                _a = _b.sent(), client = _a.client, web3 = _a.web3;
+                _b.label = 2;
+            case 2:
+                _b.trys.push([2, 5, , 6]);
+                return [4 /*yield*/, web3.eth.getBlockNumber()];
+            case 3:
+                blockNumber = _b.sent();
+                return [4 /*yield*/, web3.eth.getBlock(blockNumber, false)];
+            case 4:
+                blockInfo = _b.sent();
+                t.equal(parseInt(blockInfo.blockNumber, 16), blockNumber, 'Block number should be equal');
+                return [3 /*break*/, 6];
+            case 5:
+                err_6 = _b.sent();
+                console.log(err_6);
+                return [3 /*break*/, 6];
+            case 6:
+                if (client) {
+                    client.disconnect();
+                }
+                t.end();
+                return [2 /*return*/];
+        }
+    });
+}); });
+tape_1.default('LoomProvider + Web3 + getBlockHash', function (t) { return tslib_1.__awaiter(_this, void 0, void 0, function () {
+    var _a, client, web3, blockNumber, blockInfo, blockInfoByHash, err_7;
+    return tslib_1.__generator(this, function (_b) {
+        switch (_b.label) {
+            case 0: return [4 /*yield*/, newContractAndClient()];
+            case 1:
+                _a = _b.sent(), client = _a.client, web3 = _a.web3;
+                _b.label = 2;
+            case 2:
+                _b.trys.push([2, 6, , 7]);
+                return [4 /*yield*/, web3.eth.getBlockNumber()];
+            case 3:
+                blockNumber = _b.sent();
+                return [4 /*yield*/, web3.eth.getBlock(blockNumber, false)];
+            case 4:
+                blockInfo = _b.sent();
+                return [4 /*yield*/, web3.eth.getBlock(blockInfo.transactionHash, false)];
+            case 5:
+                blockInfoByHash = _b.sent();
+                t.assert(blockInfoByHash, 'Should return block info by hash');
+                return [3 /*break*/, 7];
+            case 6:
+                err_7 = _b.sent();
+                console.log(err_7);
+                return [3 /*break*/, 7];
+            case 7:
+                if (client) {
+                    client.disconnect();
+                }
+                t.end();
+                return [2 /*return*/];
+        }
+    });
+}); });
+tape_1.default('LoomProvider + Web3 + getGasPrice', function (t) { return tslib_1.__awaiter(_this, void 0, void 0, function () {
+    var _a, client, web3, gasPrice, err_8;
+    return tslib_1.__generator(this, function (_b) {
+        switch (_b.label) {
+            case 0: return [4 /*yield*/, newContractAndClient()];
+            case 1:
+                _a = _b.sent(), client = _a.client, web3 = _a.web3;
+                _b.label = 2;
+            case 2:
+                _b.trys.push([2, 4, , 5]);
+                return [4 /*yield*/, web3.eth.getGasPrice()];
+            case 3:
+                gasPrice = _b.sent();
+                t.equal(gasPrice, null, "Gas price isn't used on Loomchain");
+                return [3 /*break*/, 5];
+            case 4:
+                err_8 = _b.sent();
+                console.log(err_8);
+                return [3 /*break*/, 5];
+            case 5:
+                if (client) {
+                    client.disconnect();
+                }
+                t.end();
+                return [2 /*return*/];
+        }
+    });
+}); });
+tape_1.default('LoomProvider + Web3 + getBalance', function (t) { return tslib_1.__awaiter(_this, void 0, void 0, function () {
+    var _a, client, web3, from, balance, err_9;
+    return tslib_1.__generator(this, function (_b) {
+        switch (_b.label) {
+            case 0: return [4 /*yield*/, newContractAndClient()];
+            case 1:
+                _a = _b.sent(), client = _a.client, web3 = _a.web3, from = _a.from;
+                _b.label = 2;
+            case 2:
+                _b.trys.push([2, 4, , 5]);
+                return [4 /*yield*/, web3.eth.getBalance(from)];
+            case 3:
+                balance = _b.sent();
+                t.equal(balance, '0', 'Default balance is 0');
+                return [3 /*break*/, 5];
+            case 4:
+                err_9 = _b.sent();
+                console.log(err_9);
+                return [3 /*break*/, 5];
+            case 5:
+                if (client) {
+                    client.disconnect();
+                }
+                t.end();
+                return [2 /*return*/];
+        }
+    });
+}); });
+tape_1.default('LoomProvider + Web3 + getTransactionReceipt', function (t) { return tslib_1.__awaiter(_this, void 0, void 0, function () {
+    var _a, contract, client, newValue, tx, err_10;
+    return tslib_1.__generator(this, function (_b) {
+        switch (_b.label) {
+            case 0: return [4 /*yield*/, newContractAndClient()];
+            case 1:
+                _a = _b.sent(), contract = _a.contract, client = _a.client;
+                _b.label = 2;
+            case 2:
+                _b.trys.push([2, 5, , 6]);
+                newValue = 1;
+                return [4 /*yield*/, contract.methods.set(newValue).send()];
+            case 3:
+                tx = _b.sent();
+                console.log('tx', tx);
+                t.assert(tx.events.NewValueSet.blockTime > 0, 'blockTime should be greater than 0');
+                t.assert(tx.events.NewValueSet.blockHash > 0, 'blockHash should be greater than 0');
+                t.equal(tx.status, '0x1', 'SimpleStore.set should return correct status');
+                return [4 /*yield*/, helpers_1.waitForMillisecondsAsync(1000)];
+            case 4:
+                _b.sent();
+                return [3 /*break*/, 6];
+            case 5:
+                err_10 = _b.sent();
+                console.log(err_10);
+                return [3 /*break*/, 6];
+            case 6:
+                if (client) {
+                    client.disconnect();
+                }
+                t.end();
+                return [2 /*return*/];
+        }
+    });
+}); });
+tape_1.default('LoomProvider + Web3 + Logs', function (t) { return tslib_1.__awaiter(_this, void 0, void 0, function () {
+    var _a, contract, client, web3, newValue, blockNum, tx, events, err_11;
+    return tslib_1.__generator(this, function (_b) {
+        switch (_b.label) {
+            case 0: return [4 /*yield*/, newContractAndClient()];
+            case 1:
+                _a = _b.sent(), contract = _a.contract, client = _a.client, web3 = _a.web3;
+                _b.label = 2;
+            case 2:
+                _b.trys.push([2, 7, , 8]);
+                newValue = 1;
+                return [4 /*yield*/, web3.eth.getBlockNumber()];
+            case 3:
+                blockNum = _b.sent();
+                return [4 /*yield*/, contract.methods.set(newValue).send()];
+            case 4:
+                tx = _b.sent();
+                t.equal(tx.status, '0x1', 'SimpleStore.set should return correct status');
+                return [4 /*yield*/, contract.getPastEvents('NewValueSet', {
+                        fromBlock: blockNum
+                    })];
+            case 5:
+                events = _b.sent();
+                console.log('events', events);
+                t.assert(events.length > 0, 'Should have more than 0 events');
+                t.assert(events[0].blockTime > 0, 'blockTime should be greater than 0');
+                return [4 /*yield*/, helpers_1.waitForMillisecondsAsync(1000)];
+            case 6:
+                _b.sent();
+                return [3 /*break*/, 8];
+            case 7:
+                err_11 = _b.sent();
+                console.log(err_11);
+                return [3 /*break*/, 8];
+            case 8:
                 if (client) {
                     client.disconnect();
                 }

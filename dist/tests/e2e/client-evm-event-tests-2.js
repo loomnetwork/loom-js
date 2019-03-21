@@ -10,6 +10,7 @@ var loom_provider_1 = require("../../loom-provider");
 var evm_helpers_1 = require("../evm-helpers");
 var crypto_utils_1 = require("../../crypto-utils");
 var address_1 = require("../../address");
+var helpers_2 = require("../../helpers");
 /**
  * Requires the SimpleStore solidity contract deployed on a loomchain.
  * go-loom/examples/plugins/evmexample/contract/SimpleStore.sol
@@ -82,10 +83,7 @@ tape_1.default('Client EVM Event test (two filters)', function (t) { return tsli
             case 1:
                 result = _a.sent();
                 // Middleware used for client
-                client.txMiddleware = [
-                    new index_1.NonceTxMiddleware(publicKey, client),
-                    new index_1.SignedTxMiddleware(privateKey)
-                ];
+                client.txMiddleware = helpers_2.createDefaultTxMiddleware(client, privateKey);
                 filter1 = {
                     topics: ['0xb922f092a64f1a076de6f21e4d7c6400b6e55791cc935e7bb8e7e90f7652f15b'],
                     address: result.contractAddress

@@ -6,20 +6,17 @@ var tape_1 = tslib_1.__importDefault(require("tape"));
 var index_1 = require("../../index");
 var helpers_1 = require("../helpers");
 var crypto_utils_1 = require("../../crypto-utils");
+var helpers_2 = require("../../helpers");
 tape_1.default('Client EVM test (newBlockEvmFilterAsync)', function (t) { return tslib_1.__awaiter(_this, void 0, void 0, function () {
-    var client, privateKey, publicKey, filterId, hash, blockList, block, err_1;
+    var client, privateKey, filterId, hash, blockList, block, err_1;
     return tslib_1.__generator(this, function (_a) {
         switch (_a.label) {
             case 0:
                 _a.trys.push([0, 4, , 5]);
                 privateKey = index_1.CryptoUtils.generatePrivateKey();
-                publicKey = index_1.CryptoUtils.publicKeyFromPrivateKey(privateKey);
                 client = helpers_1.createTestClient();
                 client.on('error', function (err) { return t.error(err); });
-                client.txMiddleware = [
-                    new index_1.NonceTxMiddleware(publicKey, client),
-                    new index_1.SignedTxMiddleware(privateKey)
-                ];
+                client.txMiddleware = helpers_2.createDefaultTxMiddleware(client, privateKey);
                 return [4 /*yield*/, helpers_1.execAndWaitForMillisecondsAsync(client.newBlockEvmFilterAsync())];
             case 1:
                 filterId = _a.sent();
@@ -65,10 +62,7 @@ tape_1.default('Client EVM test (newPendingTransactionEvmFilterAsync)', function
                 publicKey = index_1.CryptoUtils.publicKeyFromPrivateKey(privateKey);
                 client = helpers_1.createTestClient();
                 client.on('error', function (err) { return t.error(err); });
-                client.txMiddleware = [
-                    new index_1.NonceTxMiddleware(publicKey, client),
-                    new index_1.SignedTxMiddleware(privateKey)
-                ];
+                client.txMiddleware = helpers_2.createDefaultTxMiddleware(client, privateKey);
                 return [4 /*yield*/, helpers_1.execAndWaitForMillisecondsAsync(client.newPendingTransactionEvmFilterAsync())];
             case 1:
                 filterId = _a.sent();

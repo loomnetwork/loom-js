@@ -7,12 +7,8 @@ var index_1 = require("../../index");
 var helpers_1 = require("../helpers");
 var loom_provider_1 = require("../../loom-provider");
 var evm_helpers_1 = require("../evm-helpers");
-// import Web3 from 'web3'
 var Web3 = require('web3');
 /**
- * Requires the SimpleStore solidity contract deployed on a loomchain.
- * go-loom/examples/plugins/evmexample/contract/SimpleStore.sol
- *
  *  pragma solidity ^0.4.24;
  *
  *  import "openzeppelin-solidity/contracts/token/ERC721/ERC721Token.sol";
@@ -278,11 +274,9 @@ tape_1.default('LoomProvider + Web3', function (t) { return tslib_1.__awaiter(_t
             case 2:
                 _b.trys.push([2, 6, , 7]);
                 contract.events.Transfer({}, function (err, event) {
-                    console.log('Transfer after mint');
                     t.assert(!err);
                 });
                 contract.events.CreateCard({}, function (err, event) {
-                    console.log('Created card running');
                     t.assert(!err);
                 });
                 return [4 /*yield*/, contract.methods.mint().send()];
@@ -291,8 +285,8 @@ tape_1.default('LoomProvider + Web3', function (t) { return tslib_1.__awaiter(_t
                 return [4 /*yield*/, contract.methods.totalSupply().call()];
             case 4:
                 totalSupply = _b.sent();
-                t.assert(totalSupply == 1, 'Total Supply eq 1');
-                return [4 /*yield*/, helpers_1.waitForMillisecondsAsync(2000)];
+                t.assert(totalSupply === '1', 'Total Supply eq 1');
+                return [4 /*yield*/, helpers_1.waitForMillisecondsAsync(3000)];
             case 5:
                 _b.sent();
                 return [3 /*break*/, 7];

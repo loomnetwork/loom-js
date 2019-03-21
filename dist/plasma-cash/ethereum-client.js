@@ -1,9 +1,12 @@
 "use strict";
 Object.defineProperty(exports, "__esModule", { value: true });
 var tslib_1 = require("tslib");
+var debug_1 = tslib_1.__importDefault(require("debug"));
 var bn_js_1 = tslib_1.__importDefault(require("bn.js"));
-var crypto_utils_1 = require("../crypto-utils");
-var signed_contract_1 = tslib_1.__importDefault(require("./signed-contract"));
+var web3_1 = tslib_1.__importDefault(require("web3"));
+var ethers_1 = require("ethers");
+var helpers_1 = require("../helpers");
+var debugLog = debug_1.default('plasma-cash:ethereum-client');
 var PlasmaCoinMode;
 (function (PlasmaCoinMode) {
     PlasmaCoinMode[PlasmaCoinMode["ETH"] = 0] = "ETH";
@@ -38,10 +41,15 @@ function marshalDepositEvent(data) {
 }
 exports.marshalDepositEvent = marshalDepositEvent;
 var EthereumPlasmaClient = /** @class */ (function () {
-    function EthereumPlasmaClient(web3, ethAccount, plasmaContractAddr) {
-        this._web3 = web3;
+    function EthereumPlasmaClient(_ethers, plasmaContractAddr, eventsEndpoint) {
+        this._ethers = _ethers;
         var plasmaABI = require("./contracts/plasma-cash-abi.json");
-        this._plasmaContract = new signed_contract_1.default(web3, plasmaABI, plasmaContractAddr, ethAccount).instance;
+        this._plasmaContract = new ethers_1.ethers.Contract(plasmaContractAddr, plasmaABI, this._ethers);
+        // Setup a second instance of the contract because Metamask does not support filtering events
+        // Use ethers here for listening to events
+        var web3 = new web3_1.default(new web3_1.default.providers.WebsocketProvider(eventsEndpoint));
+        this._web3 = web3;
+        this._plasmaEventListener = new web3.eth.Contract(plasmaABI, plasmaContractAddr);
     }
     Object.defineProperty(EthereumPlasmaClient.prototype, "plasmaCashContract", {
         /**
@@ -53,6 +61,23 @@ var EthereumPlasmaClient = /** @class */ (function () {
         enumerable: true,
         configurable: true
     });
+    Object.defineProperty(EthereumPlasmaClient.prototype, "plasmaEvents", {
+        /**
+         * Web3 contract instance of the Plasma Cash contract linked to a wss enabled endpoint for listening to events
+         */
+        get: function () {
+            return this._plasmaEventListener;
+        },
+        enumerable: true,
+        configurable: true
+    });
+    Object.defineProperty(EthereumPlasmaClient.prototype, "web3", {
+        get: function () {
+            return this._web3;
+        },
+        enumerable: true,
+        configurable: true
+    });
     EthereumPlasmaClient.prototype.getExitAsync = function (params) {
         return tslib_1.__awaiter(this, void 0, void 0, function () {
             var slot, from, exit;
@@ -60,15 +85,16 @@ var EthereumPlasmaClient = /** @class */ (function () {
                 switch (_a.label) {
                     case 0:
                         slot = params.slot, from = params.from;
-                        return [4 /*yield*/, this._plasmaContract.getExit(slot.toString())];
+                        return [4 /*yield*/, this._plasmaContract.getExit('0x' + slot.toString(16))];
                     case 1:
                         exit = _a.sent();
                         return [2 /*return*/, {
                                 slot: slot,
                                 owner: exit[0],
-                                prevBlock: new bn_js_1.default(exit[1]),
-                                exitBlock: new bn_js_1.default(exit[2]),
-                                state: parseInt(exit[3], 10)
+                                prevBlock: helpers_1.hexBN(exit[1]),
+                                exitBlock: helpers_1.hexBN(exit[2]),
+                                state: parseInt(exit[3], 10),
+                                timestamp: helpers_1.hexBN(exit[4])
                             }];
                 }
             });
@@ -81,7 +107,7 @@ var EthereumPlasmaClient = /** @class */ (function () {
                 switch (_a.label) {
                     case 0:
                         leaf = params.leaf, root = params.root, slot = params.slot, proof = params.proof, from = params.from;
-                        return [4 /*yield*/, this._plasmaContract.checkMembership(leaf, root, slot.toString(), proof)];
+                        return [4 /*yield*/, this._plasmaContract.checkMembership(leaf, root, '0x' + slot.toString(16), proof)];
                     case 1:
                         isIncluded = _a.sent();
                         return [2 /*return*/, isIncluded];
@@ -96,7 +122,7 @@ var EthereumPlasmaClient = /** @class */ (function () {
                 switch (_a.label) {
                     case 0:
                         blockNumber = params.blockNumber, from = params.from;
-                        return [4 /*yield*/, this._plasmaContract.getBlockRoot(blockNumber.toString())];
+                        return [4 /*yield*/, this._plasmaContract.getBlockRoot('0x' + blockNumber.toString(16))];
                     case 1:
                         root = _a.sent();
                         return [2 /*return*/, root];
@@ -111,14 +137,14 @@ var EthereumPlasmaClient = /** @class */ (function () {
                 switch (_a.label) {
                     case 0:
                         slot = params.slot, from = params.from;
-                        return [4 /*yield*/, this._plasmaContract.getPlasmaCoin(slot.toString())];
+                        return [4 /*yield*/, this._plasmaContract.getPlasmaCoin('0x' + slot.toString(16))];
                     case 1:
                         coin = _a.sent();
                         return [2 /*return*/, {
                                 slot: slot,
-                                uid: new bn_js_1.default(coin[0]),
-                                depositBlockNum: new bn_js_1.default(coin[1]),
-                                denomination: new bn_js_1.default(coin[2]),
+                                uid: helpers_1.hexBN(coin[0]),
+                                depositBlockNum: helpers_1.hexBN(coin[1]),
+                                denomination: helpers_1.hexBN(coin[2]),
                                 owner: coin[3],
                                 state: parseInt(coin[4], 10),
                                 mode: parseInt(coin[5], 10),
@@ -135,38 +161,68 @@ var EthereumPlasmaClient = /** @class */ (function () {
         var slot = params.slot, exitTx = params.exitTx, exitBlockNum = params.exitBlockNum, prevTx = params.prevTx, prevBlockNum = params.prevBlockNum, from = params.from, gas = params.gas, gasPrice = params.gasPrice;
         var prevTxBytes = prevTx ? prevTx.rlpEncode() : '0x';
         var exitTxBytes = exitTx.rlpEncode();
-        var bond = this._web3.utils.toWei('0.1', 'ether');
-        return this._plasmaContract.startExit([
-            slot.toString(),
-            prevTxBytes,
-            exitTxBytes,
-            prevTx ? prevTx.proof : '0x',
-            exitTx.proof,
-            exitTx.sig,
-            [prevBlockNum ? prevBlockNum.toString() : 0, exitBlockNum.toString()]
-        ], bond);
+        // @ts-ignore
+        var bond = ethers_1.ethers.utils.parseEther('0.1')._hex;
+        var prevBlk;
+        if (prevBlockNum !== undefined) {
+            prevBlk = '0x' + prevBlockNum.toString(16);
+        }
+        else {
+            prevBlk = 0;
+        }
+        return this._plasmaContract.startExit('0x' + slot.toString(16), prevTxBytes, exitTxBytes, prevTx ? prevTx.proof : '0x', exitTx.proof, exitTx.sig, [prevBlk, '0x' + exitBlockNum.toString(16)], { value: bond, gasLimit: gas });
+    };
+    /**
+     *
+     * @returns Web3 tx receipt object.
+     */
+    EthereumPlasmaClient.prototype.cancelExitAsync = function (params) {
+        var slot = params.slot, gas = params.gas;
+        return this._plasmaContract.cancelExit('0x' + slot.toString(16), { gasLimit: gas });
+    };
+    /**
+     *
+     * @returns Web3 tx receipt object.
+     */
+    EthereumPlasmaClient.prototype.cancelExitsAsync = function (params) {
+        var slots = params.slots, gas = params.gas;
+        return this._plasmaContract.cancelExits(slots.map(function (s) { return '0x' + s.toString(16); }), {
+            gasLimit: gas
+        });
+    };
+    /**
+     *
+     * @returns Web3 tx receipt object.
+     */
+    EthereumPlasmaClient.prototype.finalizeExitAsync = function (params) {
+        var slot = params.slot, gas = params.gas;
+        return this._plasmaContract.finalizeExit('0x' + slot.toString(16), { gasLimit: gas });
     };
     /**
      *
      * @returns Web3 tx receipt object.
      */
     EthereumPlasmaClient.prototype.finalizeExitsAsync = function (params) {
-        return this._plasmaContract.finalizeExits([]);
+        var slots = params.slots, gas = params.gas;
+        return this._plasmaContract.finalizeExits(slots.map(function (s) { return '0x' + s.toString(16); }), {
+            gasLimit: gas
+        });
     };
     /**
      *
      * @returns Web3 tx receipt object.
      */
     EthereumPlasmaClient.prototype.withdrawAsync = function (params) {
-        var slot = params.slot, rest = tslib_1.__rest(params, ["slot"]);
-        return this._plasmaContract.withdraw([slot.toString()]);
+        var slot = params.slot, gas = params.gas;
+        return this._plasmaContract.withdraw('0x' + slot.toString(16), { gasLimit: gas });
     };
     /**
      *
      * @returns Web3 tx receipt object.
      */
     EthereumPlasmaClient.prototype.withdrawBondsAsync = function (params) {
-        return this._plasmaContract.withdrawBonds([]);
+        var gas = params.gas;
+        return this._plasmaContract.withdrawBonds({ gasLimit: gas });
     };
     /**
      * `Exit Spent Coin Challenge`: Challenge an exit with a spend after the exit's blocks.
@@ -174,15 +230,10 @@ var EthereumPlasmaClient = /** @class */ (function () {
      * @returns Web3 tx receipt object.
      */
     EthereumPlasmaClient.prototype.challengeAfterAsync = function (params) {
-        var slot = params.slot, challengingBlockNum = params.challengingBlockNum, challengingTx = params.challengingTx, rest = tslib_1.__rest(params, ["slot", "challengingBlockNum", "challengingTx"]);
+        var slot = params.slot, challengingBlockNum = params.challengingBlockNum, challengingTx = params.challengingTx, from = params.from, gas = params.gas, gasPrice = params.gasPrice;
+        debugLog('Challenging with', params);
         var txBytes = challengingTx.rlpEncode();
-        return this._plasmaContract.challengeAfter([
-            slot.toString(),
-            challengingBlockNum.toString(),
-            txBytes,
-            challengingTx.proof,
-            challengingTx.sig
-        ]);
+        return this._plasmaContract.challengeAfter('0x' + slot.toString(16), '0x' + challengingBlockNum.toString(16), txBytes, challengingTx.proof, challengingTx.sig, { gasLimit: gas });
     };
     /**
      * `Double Spend Challenge`: Challenge a double spend of a coin with a spend between the exit's blocks.
@@ -190,15 +241,9 @@ var EthereumPlasmaClient = /** @class */ (function () {
      * @returns Web3 tx receipt object.
      */
     EthereumPlasmaClient.prototype.challengeBetweenAsync = function (params) {
-        var slot = params.slot, challengingBlockNum = params.challengingBlockNum, challengingTx = params.challengingTx, rest = tslib_1.__rest(params, ["slot", "challengingBlockNum", "challengingTx"]);
+        var slot = params.slot, challengingBlockNum = params.challengingBlockNum, challengingTx = params.challengingTx, from = params.from, gas = params.gas, gasPrice = params.gasPrice;
         var txBytes = challengingTx.rlpEncode();
-        return this._plasmaContract.challengeBetween([
-            slot.toString(),
-            challengingBlockNum.toString(),
-            txBytes,
-            challengingTx.proof,
-            challengingTx.sig
-        ]);
+        return this._plasmaContract.challengeBetween('0x' + slot.toString(16), '0x' + challengingBlockNum.toString(16), txBytes, challengingTx.proof, challengingTx.sig, { gasLimit: gas });
     };
     /**
      * `Invalid History Challenge`: Challenge a coin with invalid history.
@@ -206,19 +251,10 @@ var EthereumPlasmaClient = /** @class */ (function () {
      * @returns Web3 tx receipt object.
      */
     EthereumPlasmaClient.prototype.challengeBeforeAsync = function (params) {
-        var slot = params.slot, challengingTx = params.challengingTx, challengingBlockNum = params.challengingBlockNum, prevTx = params.prevTx, prevBlockNum = params.prevBlockNum, from = params.from, gas = params.gas, gasPrice = params.gasPrice;
-        var prevTxBytes = prevTx ? prevTx.rlpEncode() : '0x';
+        var slot = params.slot, challengingTx = params.challengingTx, challengingBlockNum = params.challengingBlockNum, from = params.from, gas = params.gas, gasPrice = params.gasPrice;
         var challengingTxBytes = challengingTx.rlpEncode();
-        var bond = this._web3.utils.toWei('0.1', 'ether');
-        return this._plasmaContract.challengeBefore([
-            slot.toString(),
-            prevTxBytes,
-            challengingTxBytes,
-            prevTx ? prevTx.proof : '0x',
-            challengingTx.proof,
-            challengingTx.sig,
-            [prevBlockNum ? prevBlockNum.toString() : 0, challengingBlockNum.toString()]
-        ], bond);
+        var bond = ethers_1.ethers.utils.parseEther('0.1');
+        return this._plasmaContract.challengeBefore('0x' + slot.toString(16), challengingTxBytes, challengingTx.proof, challengingTx.sig, '0x' + challengingBlockNum.toString(16), { value: bond, gasLimit: gas });
     };
     /**
      * `Response to invalid history challenge`: Respond to an invalid challenge with a later tx
@@ -226,28 +262,19 @@ var EthereumPlasmaClient = /** @class */ (function () {
      * @returns Web3 tx receipt object.
      */
     EthereumPlasmaClient.prototype.respondChallengeBeforeAsync = function (params) {
-        var slot = params.slot, challengingTxHash = params.challengingTxHash, respondingBlockNum = params.respondingBlockNum, respondingTx = params.respondingTx, rest = tslib_1.__rest(params, ["slot", "challengingTxHash", "respondingBlockNum", "respondingTx"]);
+        var slot = params.slot, challengingTxHash = params.challengingTxHash, respondingBlockNum = params.respondingBlockNum, respondingTx = params.respondingTx, from = params.from, gas = params.gas, gasPrice = params.gasPrice;
         var respondingTxBytes = respondingTx.rlpEncode();
-        return this._plasmaContract.respondChallengeBefore([
-            slot.toString(),
-            challengingTxHash,
-            respondingBlockNum.toString(),
-            respondingTxBytes,
-            respondingTx.proof,
-            respondingTx.sig
-        ]);
+        return this._plasmaContract.respondChallengeBefore('0x' + slot.toString(16), challengingTxHash, '0x' + respondingBlockNum.toString(16), respondingTxBytes, respondingTx.proof, respondingTx.sig, { gasLimit: gas });
     };
-    /**
-     * Submits a Plasma block to the Plasma Cash Solidity contract on Ethereum.
-     *
-     * @returns Web3 tx receipt object.
-     *
-     * This method is only provided for debugging & testing, in practice only DAppChain Plasma Oracles
-     * will be permitted to make this request.
-     */
-    EthereumPlasmaClient.prototype.debugSubmitBlockAsync = function (params) {
-        var block = params.block, from = params.from;
-        return this._plasmaContract.submitBlock([crypto_utils_1.bytesToHexAddr(block.merkleHash)]);
+    EthereumPlasmaClient.prototype.marshalDepositEvent = function (log) {
+        var decoded = this.plasmaCashContract.interface.parseLog(log).values;
+        return {
+            slot: helpers_1.hexBN(decoded.slot),
+            blockNumber: helpers_1.hexBN(decoded.blockNumber),
+            denomination: helpers_1.hexBN(decoded.denomination),
+            from: decoded.from,
+            contractAddress: decoded.contractAddress
+        };
     };
     return EthereumPlasmaClient;
 }());

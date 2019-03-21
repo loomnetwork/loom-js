@@ -1,4 +1,3 @@
-/// <reference types="node" />
 import EventEmitter from 'events';
 import { IJSONRPCClient } from './json-rpc-client';
 /**
