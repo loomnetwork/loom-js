@@ -855,7 +855,7 @@ export class LoomProvider {
     let input = bytesToHexAddrLC(txObject.getInput_asU8())
 
     if (input === '0x') {
-      input = '0x0'
+      input = ZEROED_HEX
     }
 
     return {
@@ -943,7 +943,7 @@ export class LoomProvider {
     const value = numberToHexLC(transaction.getValue())
     const gasPrice = numberToHexLC(transaction.getGasPrice())
     const gas = numberToHexLC(transaction.getGas())
-    const input = '0x0'
+    const input = ZEROED_HEX
 
     return {
       hash,
