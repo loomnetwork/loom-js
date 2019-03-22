@@ -75,7 +75,7 @@ export class DPOSUser {
     )
   }
 
-  static async createMetamaskUserAsync(
+  static createMetamaskUserAsync(
     web3: Web3,
     dappchainEndpoint: string,
     dappchainKey: string,

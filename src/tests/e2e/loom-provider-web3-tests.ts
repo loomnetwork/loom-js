@@ -217,7 +217,6 @@ test('LoomProvider + Web3 + getBlockNumber', async t => {
   t.end()
 })
 
-
 test('LoomProvider + Web3 + getBlockByNumber', async t => {
   const { client, web3 } = await newContractAndClient()
   try {
