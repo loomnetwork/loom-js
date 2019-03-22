@@ -16,8 +16,11 @@ import './e2e/client-evm-tests'
 import './e2e/client-evm-event-tests'
 import './e2e/client-evm-event-tests-2'
 
+// Middlewares
 import './e2e/client-test-tx-cache'
+import './e2e/client-test-tx-middleware'
 
+// Events
 import './e2e/multiple-events-nd-tests'
 
 // Contracts

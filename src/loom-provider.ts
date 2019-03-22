@@ -34,6 +34,7 @@ import {
 } from './crypto-utils'
 import { soliditySha3 } from './solidity-helpers'
 import { marshalBigUIntPB } from './big-uint'
+import { SignedEthTxMiddleware } from './middleware'
 
 export interface IEthReceipt {
   transactionHash: string
@@ -117,7 +118,7 @@ export class LoomProvider {
   private _netVersionFromChainId: number
   private _ethRPCMethods: Map<string, EthRPCMethod>
   protected notificationCallbacks: Array<Function>
-  readonly accounts: Map<string, Uint8Array>
+  readonly accounts: Map<string, Uint8Array | null>
 
   /**
    * The retry strategy that should be used to retry some web3 requests.
@@ -131,6 +132,12 @@ export class LoomProvider {
     maxTimeout: 30000, // 30s
     randomize: true
   }
+
+  /**
+   * Overrides the chain ID of the caller, when this is `null` the caller chain ID defaults
+   * to the client chain ID.
+   */
+  callerChainId: string | null = null
 
   /**
    * Constructs the LoomProvider to bridges communication between Web3 and Loom DappChains
@@ -158,7 +165,7 @@ export class LoomProvider {
 
     if (!this._setupMiddlewares) {
       this._setupMiddlewares = (client: Client, privateKey: Uint8Array) => {
-        return createDefaultTxMiddleware(client, privateKey)
+        return createDefaultTxMiddleware(client, privateKey as Uint8Array)
       }
     }
 
@@ -185,6 +192,21 @@ export class LoomProvider {
       )
       log(`New account added ${accountAddress}`)
     })
+  }
+
+  /**
+   * Set an array of middlewares for a given account
+   *
+   * @param address Address to be register the middleware
+   * @param middlewares Array of middlewares for the address
+   */
+  setMiddlewaresForAddress(address: string, middlewares: Array<ITxMiddlewareHandler>) {
+    this.accounts.set(address.toLowerCase(), null)
+    this._accountMiddlewares.set(address.toLowerCase(), middlewares)
+  }
+
+  get accountMiddlewares(): Map<string, Array<ITxMiddlewareHandler>> {
+    return this._accountMiddlewares
   }
 
   // PUBLIC FUNCTION TO SUPPORT WEB3
@@ -378,7 +400,7 @@ export class LoomProvider {
 
     const accounts = new Array()
 
-    this.accounts.forEach((value: Uint8Array, key: string) => {
+    this.accounts.forEach((_value: Uint8Array | null, key: string) => {
       accounts.push(key)
     })
 
@@ -643,7 +665,9 @@ export class LoomProvider {
     data: string
     value: string
   }): Promise<any> {
-    const caller = new Address(this._client.chainId, LocalAddress.fromHexString(payload.from))
+    const chainId = this.callerChainId === null ? this._client.chainId : this.callerChainId
+    const caller = new Address(chainId, LocalAddress.fromHexString(payload.from))
+    log('caller', caller.toString())
     const address = new Address(this._client.chainId, LocalAddress.fromHexString(payload.to))
     const data = Buffer.from(payload.data.slice(2), 'hex')
     const value = new BN((payload.value || '0x0').slice(2), 16)

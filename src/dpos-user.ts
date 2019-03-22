@@ -6,7 +6,7 @@ import Web3 from 'web3'
 import { CryptoUtils, Address, Client, Contracts, EthersSigner } from '.'
 import { DPOS2, Coin, LoomCoinTransferGateway, AddressMapper } from './contracts'
 import { IWithdrawalReceipt } from './contracts/transfer-gateway'
-import { sleep, createDefaultClient, parseSigs } from './helpers'
+import { sleep, createDefaultClient, parseSigs, createDefaultEthSignClientAsync } from './helpers'
 import {
   IValidator,
   ICandidate,
@@ -30,6 +30,8 @@ const ERC20GatewayABI_v2 = require('./mainnet-contracts/ERC20Gateway_v2.json')
 import { ERC20 } from './mainnet-contracts/ERC20'
 import { ValidatorManagerContract } from './mainnet-contracts/ValidatorManagerContract'
 import { ERC20Gateway_v2 } from './mainnet-contracts/ERC20Gateway_v2'
+import { LocalAddress } from './address'
+import { getMetamaskSigner } from './solidity-helpers'
 
 enum GatewayVersion {
   SINGLESIG = 1,
@@ -75,7 +77,7 @@ export class DPOSUser {
     )
   }
 
-  static async createMetamaskUserAsync(
+  static createMetamaskUserAsync(
     web3: Web3,
     dappchainEndpoint: string,
     dappchainKey: string,
@@ -85,8 +87,7 @@ export class DPOSUser {
     vmcAddress?: string,
     version?: GatewayVersion
   ): Promise<DPOSUser> {
-    const provider = new ethers.providers.Web3Provider(web3.currentProvider)
-    const wallet = provider.getSigner()
+    const wallet = getMetamaskSigner(web3.currentProvider)
     return DPOSUser.createUserAsync(
       wallet,
       dappchainEndpoint,
@@ -96,6 +97,52 @@ export class DPOSUser {
       loomAddress,
       vmcAddress,
       version
+    )
+  }
+
+  static async createEthSignMetamaskUserAsync(
+    web3: Web3,
+    dappchainEndpoint: string,
+    dappchainKey: string,
+    chainId: string,
+    gatewayAddress: string,
+    loomAddress: string
+  ): Promise<DPOSUser> {
+    const wallet = getMetamaskSigner(web3.currentProvider)
+
+    const { client, address } = await createDefaultEthSignClientAsync(
+      dappchainKey,
+      dappchainEndpoint,
+      chainId,
+      wallet
+    )
+
+    const ethAddress = await wallet.getAddress()
+
+    const dappchainLoom = await Coin.createAsync(
+      client,
+      new Address('eth', LocalAddress.fromHexString(ethAddress))
+    )
+
+    const dappchainDPOS = await DPOS2.createAsync(
+      client,
+      new Address('eth', LocalAddress.fromHexString(ethAddress))
+    )
+
+    const dappchainGateway = await LoomCoinTransferGateway.createAsync(client, address)
+    const dappchainMapper = await AddressMapper.createAsync(client, address)
+
+    return new DPOSUser(
+      wallet,
+      client,
+      address,
+      ethAddress,
+      gatewayAddress,
+      loomAddress,
+      dappchainGateway,
+      dappchainLoom,
+      dappchainDPOS,
+      dappchainMapper
     )
   }
 

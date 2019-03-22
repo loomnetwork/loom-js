@@ -13,7 +13,12 @@ import {
   EthFilterLogList,
   EthTxHashList
 } from './proto/evm_pb'
-import { Uint8ArrayToB64, B64ToUint8Array, bufferToProtobufBytes } from './crypto-utils'
+import {
+  Uint8ArrayToB64,
+  B64ToUint8Array,
+  bufferToProtobufBytes,
+  hexToBytes
+} from './crypto-utils'
 import { Address, LocalAddress } from './address'
 import { WSRPCClient, IJSONRPCEvent } from './internal/ws-rpc-client'
 import { RPCClientEvent, IJSONRPCClient } from './internal/json-rpc-client'
@@ -701,15 +706,29 @@ export class Client extends EventEmitter {
   }
 
   /**
-   * Gets a nonce for the given public key.
+   * Gets a nonce for the account identified by the given public key.
    *
-   * This should only be called by NonceTxMiddleware.
+   * This should only be called by middleware.
    *
    * @param key A hex encoded public key.
    * @return The nonce.
    */
   async getNonceAsync(key: string): Promise<number> {
-    return parseInt(await this._writeClient.sendAsync<string>('nonce', { key }), 10)
+    return this.getAccountNonceAsync({ key })
+  }
+
+  /**
+   * Gets a nonce for the account identified by the given public key or address.
+   *
+   * Only the key or the account needs to be provided, if both are provided the key is ignored.
+   * This should only be called by middleware.
+   *
+   * @param key A hex encoded public key.
+   * @parma account Account address prefixed by the chain ID, in the form chainID:0xdeadbeef
+   * @return The nonce.
+   */
+  async getAccountNonceAsync(params: { key?: string; account?: string }): Promise<number> {
+    return parseInt(await this._writeClient.sendAsync<string>('nonce', params), 10)
   }
 
   /**
@@ -723,6 +742,8 @@ export class Client extends EventEmitter {
     if (!addrStr) {
       return null
     }
+
+    debugLog(`Found contract ${contractName} with address ${Address.fromString(addrStr)}`)
     return Address.fromString(addrStr)
   }
 

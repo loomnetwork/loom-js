@@ -1,6 +1,6 @@
 import test from 'tape'
 
-import { NonceTxMiddleware, SignedTxMiddleware, CryptoUtils, Client } from '../../index'
+import { CryptoUtils, Client } from '../../index'
 import { createTestClient, waitForMillisecondsAsync } from '../helpers'
 import { CallTx, VMType, MessageTx, Transaction } from '../../proto/loom_pb'
 import { LoomProvider } from '../../loom-provider'
