@@ -16,18 +16,42 @@ export interface IEthereumSigner {
 }
 
 /**
+ * Returns the Metamask signer from web3 current provider
+ */
+export function getMetamaskSigner(provider: any): ethers.Signer {
+  // HACK: force personal sign by pretending to be metamask no matter what the web3 provider is
+  provider.isMetaMask = true
+  return new ethers.providers.Web3Provider(provider).getSigner()
+}
+
+/**
+ * Returns json rpc signer, ex: http://localhost:8545
+ *
+ * @param urlString url string to connect to provider
+ * @param accountIndex index of the account on providers list
+ */
+export async function getJsonRPCSignerAsync(
+  urlString: string,
+  accountIndex: number = 0
+): Promise<ethers.Signer> {
+  const provider = new ethers.providers.JsonRpcProvider(urlString)
+  const signers = (await provider.listAccounts()).map((acc: any) => provider.getSigner(acc))
+  return signers[accountIndex]
+}
+
+/**
  * Signs message using a Web3 account.
  * This signer should be used for interactive signing in the browser with MetaMask.
  */
 export class EthersSigner implements IEthereumSigner {
-  private _wallet: ethers.Signer
+  private _signer: ethers.Signer
 
   /**
    * @param web3 Web3 instance to use for signing.
    * @param accountAddress Address of web3 account to sign with.
    */
-  constructor(wallet: ethers.Signer) {
-    this._wallet = wallet
+  constructor(signer: ethers.Signer) {
+    this._signer = signer
   }
 
   /**
@@ -36,7 +60,7 @@ export class EthersSigner implements IEthereumSigner {
    * @returns Promise that will be resolved with the signature bytes.
    */
   async signAsync(msg: string): Promise<Uint8Array> {
-    let flatSig = await this._wallet.signMessage(ethers.utils.arrayify(msg))
+    let flatSig = await this._signer.signMessage(ethers.utils.arrayify(msg))
     const sig = ethers.utils.splitSignature(flatSig)
     let v = sig.v!
     if (v === 0 || v === 1) {

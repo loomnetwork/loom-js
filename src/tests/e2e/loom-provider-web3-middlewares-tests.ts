@@ -66,9 +66,9 @@ test('LoomProvider + Web3 + Middleware', async t => {
   // Middlewares available on path "loom-js/src/middleware"
   const setupMiddlewareFn = function(
     client: Client, // Unused
-    privateKey: Uint8Array
+    privateKey: Uint8Array | null
   ): ITxMiddlewareHandler[] {
-    return [new SuperSimpleMiddlware(), new SignedTxMiddleware(privateKey)]
+    return [new SuperSimpleMiddlware(), new SignedTxMiddleware(privateKey!)]
   }
 
   // Passing custom middleware on third parameter

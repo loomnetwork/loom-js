@@ -103,12 +103,14 @@ message DelegateRequestV2 {
     Address validator_address = 1;
     BigUInt amount = 2;
     uint64 locktime_tier = 3;
+    string referrer = 4; //optional wallet that sent the delegation
 }
 
 message RedelegateRequestV2 {
     Address validator_address = 1;
     Address former_validator_address = 2;
     BigUInt amount = 3;
+    string referrer = 4; //optional wallet that sent the delegation
 }
 
 message CheckDelegationRequestV2 {

@@ -1,5 +1,5 @@
 import { Client, ITxMiddlewareHandler, overrideReadUrl } from './client'
-import { NonceTxMiddleware, SignedTxMiddleware } from './middleware'
+import { NonceTxMiddleware, SignedTxMiddleware, SignedEthTxMiddleware } from './middleware'
 import { publicKeyFromPrivateKey, B64ToUint8Array } from './crypto-utils'
 import BN from 'bn.js'
 import { selectProtocol } from './rpc-client-factory'
@@ -7,6 +7,7 @@ import { JSONRPCProtocol } from './internal/json-rpc-client'
 import { createJSONRPCClient, LocalAddress } from '.'
 import { Address } from './address'
 import debug from 'debug'
+import { ethers } from 'ethers'
 
 const log = debug('helpers')
 
@@ -86,4 +87,24 @@ export function createDefaultClient(
   const address = new Address(chainId, LocalAddress.fromPublicKey(publicKey))
 
   return { client, publicKey, address }
+}
+
+export async function createDefaultEthSignClientAsync(
+  dappchainKey: string,
+  dappchainEndpoint: string,
+  chainId: string,
+  wallet: ethers.Signer
+): Promise<{ client: Client; publicKey: Uint8Array; address: Address }> {
+  const defaultClientObj = createDefaultClient(dappchainKey, dappchainEndpoint, chainId)
+  const ethAddress = await wallet.getAddress()
+
+  defaultClientObj.client.txMiddleware = [
+    new NonceTxMiddleware(
+      new Address('eth', LocalAddress.fromHexString(ethAddress)),
+      defaultClientObj.client
+    ),
+    new SignedEthTxMiddleware(wallet)
+  ]
+
+  return { ...defaultClientObj }
 }
