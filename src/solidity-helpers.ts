@@ -18,11 +18,10 @@ export interface IEthereumSigner {
 /**
  * Returns the Metamask signer from web3 current provider
  */
-export function getMetamaskSigner(): ethers.Signer {
+export function getMetamaskSigner(provider: any): ethers.Signer {
   // HACK: force personal sign by pretending to be metamask no matter what the web3 provider is
-  ;(web3.currentProvider as any).isMetaMask = true
-  const provider = new ethers.providers.Web3Provider(web3.currentProvider)
-  return provider.getSigner()
+  provider.isMetaMask = true
+  return new ethers.providers.Web3Provider(provider).getSigner()
 }
 
 /**

@@ -84,7 +84,7 @@ export class DPOSUser {
     loomAddress: string,
     version?: GatewayVersion
   ): Promise<DPOSUser> {
-    const wallet = getMetamaskSigner()
+    const wallet = getMetamaskSigner(web3.currentProvider)
     return DPOSUser.createUserAsync(
       wallet,
       dappchainEndpoint,
@@ -104,7 +104,7 @@ export class DPOSUser {
     gatewayAddress: string,
     loomAddress: string
   ): Promise<DPOSUser> {
-    const wallet = getMetamaskSigner()
+    const wallet = getMetamaskSigner(web3.currentProvider)
 
     const { client, address } = await createDefaultEthSignClientAsync(
       dappchainKey,
