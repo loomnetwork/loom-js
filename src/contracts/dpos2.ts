@@ -295,39 +295,35 @@ export class DPOS2 extends Contract {
     return this.callAsync<void>('UnregisterCandidate', unregisterCandidateRequest)
   }
 
-  delegateAsync(validator: Address, amount: BN, tier: LockTimeTier): Promise<void> {
+  delegateAsync(
+    validator: Address,
+    amount: BN,
+    tier: LockTimeTier,
+    referrer?: string
+  ): Promise<void> {
     const delegateRequest = new DelegateRequestV2()
     delegateRequest.setValidatorAddress(validator.MarshalPB())
     delegateRequest.setAmount(marshalBigUIntPB(amount))
     delegateRequest.setLocktimeTier(tier)
-    delegateRequest.setReferrer("")
+    if (referrer) {
+      delegateRequest.setReferrer(referrer)
+    }
     return this.callAsync<void>('Delegate2', delegateRequest)
   }
 
-  delegateWithWalletReferrerAsync(validator: Address, amount: BN, tier: LockTimeTier, referrer: string): Promise<void> {
-    const delegateRequest = new DelegateRequestV2()
-    delegateRequest.setValidatorAddress(validator.MarshalPB())
-    delegateRequest.setAmount(marshalBigUIntPB(amount))
-    delegateRequest.setLocktimeTier(tier)
-    delegateRequest.setReferrer(referrer)
-    return this.callAsync<void>('Delegate2', delegateRequest)
-  }
-  
-  redelegateWithWalletReferrerAsync(oldValidator: Address, validator: Address, amount: BN, referrer: string): Promise<void> {
+  redelegateAsync(
+    oldValidator: Address,
+    validator: Address,
+    amount: BN,
+    referrer?: string
+  ): Promise<void> {
     const redelegateRequest = new RedelegateRequestV2()
     redelegateRequest.setFormerValidatorAddress(oldValidator.MarshalPB())
     redelegateRequest.setValidatorAddress(validator.MarshalPB())
     redelegateRequest.setAmount(marshalBigUIntPB(amount))
-    redelegateRequest.setReferrer(referrer)
-    return this.callAsync<void>('Redelegate', redelegateRequest)
-  }
-
-  redelegateAsync(oldValidator: Address, validator: Address, amount: BN): Promise<void> {
-    const redelegateRequest = new RedelegateRequestV2()
-    redelegateRequest.setFormerValidatorAddress(oldValidator.MarshalPB())
-    redelegateRequest.setValidatorAddress(validator.MarshalPB())
-    redelegateRequest.setAmount(marshalBigUIntPB(amount))
-    redelegateRequest.setReferrer("")
+    if (referrer) {
+      redelegateRequest.setReferrer(referrer)
+    }
     return this.callAsync<void>('Redelegate', redelegateRequest)
   }
 
