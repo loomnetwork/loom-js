@@ -217,7 +217,7 @@ test('LoomProvider + Web3 + getBlockNumber', async t => {
   t.end()
 })
 
-test.only('LoomProvider + Web3 + getBlockByNumber', async t => {
+test('LoomProvider + Web3 + getBlockByNumber', async t => {
   const { client, web3 } = await newContractAndClient()
   try {
     const blockNumber = await web3.eth.getBlockNumber()
