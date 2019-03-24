@@ -19,6 +19,18 @@ export interface IParsedSigsArray {
 export const ORACLE_SIG_SIZE_WITH_MODE = 134 // '0x'.length + (65 + 1) * 2
 export const ORACLE_SIG_SIZE = 132 // '0x'.length + 65 * 2
 
+/**
+ * Given a list of signatures as a concatenated string, it splits the string in an array
+ * of signatures, recovers the v/r/s values of each signature, and returns arrays of v, r, s triples
+ * which are ordered based on the validators array which was passed in as an argument.
+ * The returned values are to be passed as arguments to pass the multisignature check of the
+ * functions of the Validator Manager Contract .
+ *
+ * @param sig Signature (prefixed or not) or list of concatenated signatures
+ * @param hash The hash of the message that was s igned
+ * @param validators The list of validators which signed on the message
+ * @returns Sorted array of v/r/s split signatures to be passed in the Gateway multisig
+ */
 export function parseSigs(sig: string, hash: string, validators: string[]): IParsedSigsArray {
   let vs: Array<number> = []
   let rs: Array<string> = []
@@ -147,7 +159,12 @@ export function createDefaultClient(
   return { client, publicKey, address }
 }
 
-function mapOrder(array: Array<any>, order: Array<number>): Array<any> {
+/**
+ * Orders an array of elements based on the order dictated by another array
+ * @param array The array of elements to sort
+ * @param order Array of indexes based on which the passed array will be sorted
+ */
+function mapOrder<T>(array: Array<T>, order: Array<number>): Array<T> {
   if (array.length === 1) {
     return array
   }

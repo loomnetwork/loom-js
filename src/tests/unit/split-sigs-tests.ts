@@ -3,6 +3,13 @@ import { ethers } from 'ethers'
 
 import { parseSigs } from '../../helpers'
 
+/**
+ * Given a single mode prefixed signature (notice the 0x00 at the start), a single non-prefixed signature,
+ * and a list of concatenated signatures, it splits them with the helper function and verifies that the
+ * v,r,s are generated and ordered correctly.
+ * The test parameters are taken based on a real transaction that was successful on Rinkeby.
+ * ref: https://github.com/loomnetwork/transfer-gateway-v2/pull/83/files#diff-f64fd39bd403b4a6814683c3013027dfR66
+ */
 test('Split sigs', t => {
   try {
     const singleSigWithMode =
