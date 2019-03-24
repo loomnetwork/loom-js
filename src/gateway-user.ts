@@ -5,8 +5,9 @@ import Web3 from 'web3'
 
 import { CryptoUtils, Address, LocalAddress, Client, Contracts } from '.'
 import { Coin, LoomCoinTransferGateway } from './contracts'
-import { IWithdrawalReceipt, Signature } from './contracts/transfer-gateway'
-import { sleep } from './helpers'
+import { IWithdrawalReceipt } from './contracts/transfer-gateway'
+import { sleep, parseSigs } from './helpers'
+import { getMetamaskSigner } from './solidity-helpers'
 
 import { CrossChain } from './crosschain'
 
@@ -14,17 +15,27 @@ const log = debug('dpos-user')
 
 const coinMultiplier = new BN(10).pow(new BN(18))
 
-import { ERC20Gateway } from './mainnet-contracts/ERC20Gateway'
 import { ERC20 } from './mainnet-contracts/ERC20'
+import { ValidatorManagerContract } from './mainnet-contracts/ValidatorManagerContract'
+import { ERC20Gateway_v2 } from './mainnet-contracts/ERC20Gateway_v2'
 
-const ERC20GatewayABI = require('./mainnet-contracts/ERC20.json')
+const ValidatorManagerContractABI = require('./mainnet-contracts/ValidatorManagerContract.json')
+const ERC20GatewayABI = require('./mainnet-contracts/ERC20Gateway.json')
+const ERC20GatewayABI_v2 = require('./mainnet-contracts/ERC20Gateway_v2.json')
 const ERC20ABI = require('./mainnet-contracts/ERC20.json')
 
+enum GatewayVersion {
+  SINGLESIG = 1,
+  MULTISIG = 2
+}
+
 export class GatewayUser extends CrossChain {
-  private _ethereumGateway: ERC20Gateway
+  private _ethereumGateway: ERC20Gateway_v2
   private _ethereumLoom: ERC20
+  private _ethereumVMC?: ValidatorManagerContract
   private _dappchainGateway: Contracts.LoomCoinTransferGateway
   private _dappchainLoom: Contracts.Coin
+  private _version: GatewayVersion
 
   static async createGatewayOfflineUserAsync(
     endpoint: string,
@@ -33,7 +44,9 @@ export class GatewayUser extends CrossChain {
     dappchainKey: string,
     chainId: string,
     gatewayAddress: string,
-    loomAddress: string
+    loomAddress: string,
+    vmcAddress?: string,
+    version?: number
   ): Promise<GatewayUser> {
     const provider = new ethers.providers.JsonRpcProvider(endpoint)
     const wallet = new ethers.Wallet(privateKey, provider)
@@ -43,7 +56,9 @@ export class GatewayUser extends CrossChain {
       dappchainKey,
       chainId,
       gatewayAddress,
-      loomAddress
+      loomAddress,
+      vmcAddress,
+      version
     )
   }
 
@@ -53,17 +68,20 @@ export class GatewayUser extends CrossChain {
     dappchainKey: string,
     chainId: string,
     gatewayAddress: string,
-    loomAddress: string
+    loomAddress: string,
+    vmcAddress?: string,
+    version?: GatewayVersion
   ): Promise<GatewayUser> {
-    const provider = new ethers.providers.Web3Provider(web3.currentProvider)
-    const wallet = provider.getSigner()
+    const wallet = getMetamaskSigner(web3.currentProvider)
     return GatewayUser.createGatewayUserAsync(
       wallet,
       dappchainEndpoint,
       dappchainKey,
       chainId,
       gatewayAddress,
-      loomAddress
+      loomAddress,
+      vmcAddress,
+      version
     )
   }
 
@@ -73,7 +91,9 @@ export class GatewayUser extends CrossChain {
     dappchainKey: string,
     chainId: string,
     gatewayAddress: string,
-    loomAddress: string
+    loomAddress: string,
+    vmcAddress?: string,
+    version?: GatewayVersion
   ): Promise<GatewayUser> {
     let crosschain = await CrossChain.createUserAsync(
       wallet,
@@ -96,7 +116,9 @@ export class GatewayUser extends CrossChain {
       loomAddress,
       dappchainGateway,
       dappchainLoom,
-      crosschain.addressMapper
+      crosschain.addressMapper,
+      vmcAddress,
+      version
     )
   }
 
@@ -109,22 +131,41 @@ export class GatewayUser extends CrossChain {
     loomAddress: string,
     dappchainGateway: Contracts.LoomCoinTransferGateway,
     dappchainLoom: Contracts.Coin,
-    dappchainMapper: Contracts.AddressMapper
+    dappchainMapper: Contracts.AddressMapper,
+    vmcAddress?: string,
+    version: GatewayVersion = GatewayVersion.SINGLESIG
   ) {
     super(wallet, client, address, ethAddress, dappchainMapper)
 
-    this._ethereumGateway = new ERC20Gateway(gatewayAddress, ERC20GatewayABI, wallet)
-    this._ethereumLoom = new ERC20(loomAddress, ERC20ABI, wallet)
+    this._version = version
+
+    // Set ethereum contracts
+
+    const gatewayABI = version == GatewayVersion.MULTISIG ? ERC20GatewayABI_v2 : ERC20GatewayABI
+    // @ts-ignore
+    this._ethereumGateway = new ethers.Contract(gatewayAddress, gatewayABI, wallet)
+    // @ts-ignore
+    this._ethereumLoom = new ethers.Contract(loomAddress, ERC20ABI, wallet)
+    if (version === GatewayVersion.MULTISIG && vmcAddress !== undefined) {
+      // @ts-ignore
+      this._ethereumVMC = new ethers.Contract(vmcAddress, ValidatorManagerContractABI, wallet)
+    }
+
+    // Set dappchain contracts
     this._dappchainGateway = dappchainGateway
     this._dappchainLoom = dappchainLoom
     this._dappchainGateway = dappchainGateway
   }
 
-  get ethereumGateway(): ERC20Gateway {
+  get ethereumVMC(): ethers.Contract | undefined {
+    return this._ethereumVMC
+  }
+
+  get ethereumGateway(): ethers.Contract {
     return this._ethereumGateway
   }
 
-  get ethereumLoom(): ERC20 {
+  get ethereumLoom(): ethers.Contract {
     return this._ethereumLoom
   }
 
@@ -167,7 +208,7 @@ export class GatewayUser extends CrossChain {
    */
   async withdrawAsync(amount: BN): Promise<ethers.ContractTransaction> {
     const sig = await this.depositCoinToDAppChainGatewayAsync(amount)
-    return this.withdrawCoinFromRinkebyGatewayAsync(amount, sig)
+    return this.withdrawCoinFromDAppChainGatewayAsync(amount, sig)
   }
 
   async resumeWithdrawalAsync() {
@@ -176,8 +217,9 @@ export class GatewayUser extends CrossChain {
       log('No pending receipt')
       return
     }
+    const signature = CryptoUtils.bytesToHexAddr(receipt.oracleSignature)
     const amount = receipt.tokenAmount!
-    return this.withdrawCoinFromRinkebyGatewayAsync(amount, receipt.sig)
+    return this.withdrawCoinFromDAppChainGatewayAsync(amount, signature)
   }
 
   async getPendingWithdrawalReceiptAsync(): Promise<IWithdrawalReceipt | null> {
@@ -208,9 +250,9 @@ export class GatewayUser extends CrossChain {
    *
    * @param amount The amount that will be deposited to the DAppChain Gateway (and will be possible to withdraw from the mainnet)
    */
-  private async depositCoinToDAppChainGatewayAsync(amount: BN) {
+  private async depositCoinToDAppChainGatewayAsync(amount: BN): Promise<string> {
     let pendingReceipt = await this.getPendingWithdrawalReceiptAsync()
-    let signature: Signature
+    let signature: Uint8Array
     if (pendingReceipt === null) {
       await this._dappchainLoom.approveAsync(this._dappchainGateway.address, amount)
       const ethereumAddressStr = await this.ethAddress
@@ -222,28 +264,56 @@ export class GatewayUser extends CrossChain {
         ethereumAddress
       )
       log(`${amount.div(coinMultiplier).toString()} tokens deposited to DAppChain Gateway...`)
-      while (pendingReceipt === null || pendingReceipt.sig === null) {
+      while (pendingReceipt === null || pendingReceipt.oracleSignature === null) {
         pendingReceipt = await this.getPendingWithdrawalReceiptAsync()
         await sleep(2000)
       }
     }
-    signature = pendingReceipt.sig
+    signature = pendingReceipt.oracleSignature
 
-    return signature
+    return CryptoUtils.bytesToHexAddr(signature)
   }
 
-  private async withdrawCoinFromRinkebyGatewayAsync(
+  private async withdrawCoinFromDAppChainGatewayAsync(
     amount: BN,
-    sig: Signature
+    sig: string
   ): Promise<ethers.ContractTransaction> {
+    if (this._version === GatewayVersion.MULTISIG && this._ethereumVMC !== undefined) {
+      const hash = await this.createWithdrawalHash(amount)
+      const validators = await this._ethereumVMC!.functions.getValidators()
+      const { vs, rs, ss, valIndexes } = parseSigs(sig, hash, validators)
+
+      return this._ethereumGateway.functions.withdrawERC20(
+        amount.toString(),
+        this._ethereumLoom.address,
+        valIndexes,
+        vs,
+        rs,
+        ss
+      )
+    }
+
+    // @ts-ignore
     return this._ethereumGateway.functions.withdrawERC20(
       amount.toString(),
-      this._ethereumLoom.address,
-      // @ts-ignore
-      sig.validatorIndexes,
-      sig.v,
-      sig.r,
-      sig.s
+      sig,
+      this._ethereumLoom.address
     )
   }
+
+  private async createWithdrawalHash(amount: BN): Promise<string> {
+    let nonce = await this.ethereumGateway.functions.nonces(this.ethAddress)
+    let amountHashed = ethers.utils.solidityKeccak256(
+      ['uint256', 'address'],
+      [amount.toString(), this.ethereumLoom.address]
+    )
+
+    const msg = ethers.utils.solidityKeccak256(
+      ['address', 'uint256', 'address', 'bytes32'],
+      [this.ethAddress, nonce, this.ethereumGateway.address, amountHashed]
+    )
+
+    return msg
+  }
+
 }
