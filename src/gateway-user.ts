@@ -24,7 +24,10 @@ const ERC20GatewayABI = require('./mainnet-contracts/ERC20Gateway.json')
 const ERC20GatewayABI_v2 = require('./mainnet-contracts/ERC20Gateway_v2.json')
 const ERC20ABI = require('./mainnet-contracts/ERC20.json')
 
-enum GatewayVersion {
+const V2_GATEWAYS = ['oracle-dev', 'asia1']
+
+
+export enum GatewayVersion {
   SINGLESIG = 1,
   MULTISIG = 2
 }
@@ -95,7 +98,17 @@ export class GatewayUser extends CrossChain {
     vmcAddress?: string,
     version?: GatewayVersion
   ): Promise<GatewayUser> {
-    let crosschain = await CrossChain.createUserAsync(
+    // If no gateway version is provided, pick based on the chain URL prefix
+    if (version === undefined) {
+      const chainName = dappchainEndpoint.split('.')[0]
+      for (let chainPrefix of V2_GATEWAYS) {
+        if (chainName.indexOf(chainPrefix) != -1) {
+          version = GatewayVersion.MULTISIG
+        }
+      }
+    }
+
+    let crosschain = await CrossChain.createCrossChainUserAsync(
       wallet,
       dappchainEndpoint,
       dappchainKey,
@@ -107,6 +120,7 @@ export class GatewayUser extends CrossChain {
       crosschain.client,
       crosschain.loomAddress
     )
+
     return new GatewayUser(
       wallet,
       crosschain.client,
@@ -225,6 +239,7 @@ export class GatewayUser extends CrossChain {
   async getPendingWithdrawalReceiptAsync(): Promise<IWithdrawalReceipt | null> {
     return this._dappchainGateway.withdrawalReceiptAsync(this.loomAddress)
   }
+
   /**
    * Retrieves the  DAppChain LoomCoin balance of a user
    * @param address The address to check the balance of. If not provided, it will check the user's balance
@@ -234,16 +249,11 @@ export class GatewayUser extends CrossChain {
     if (address === undefined) {
       return this._dappchainLoom.getBalanceOfAsync(this.loomAddress)
     }
-
-    const pubKey = CryptoUtils.B64ToUint8Array(address)
-    const callerAddress = new Address(this.client.chainId, LocalAddress.fromPublicKey(pubKey))
-    const balance = await this._dappchainLoom.getBalanceOfAsync(callerAddress)
+    const addr = this.prefixAddress(address)
+    const balance = await this._dappchainLoom.getBalanceOfAsync(addr)
     return balance
   }
 
-  disconnect() {
-    this.client.disconnect()
-  }
 
   /**
    * Deposits an amount of LOOM tokens to the dappchain gateway and return a signature which can be used to withdraw the same amount from the mainnet gateway.
@@ -272,6 +282,31 @@ export class GatewayUser extends CrossChain {
     signature = pendingReceipt.oracleSignature
 
     return CryptoUtils.bytesToHexAddr(signature)
+  }
+
+  async getUnclaimedLoomTokensAsync(owner?: string): Promise<BN> {
+    const address = owner
+      ? Address.fromString(`eth:${owner}`)
+      : Address.fromString(`eth:${this.ethAddress}`)
+    const tokens = await this._dappchainGateway.getUnclaimedTokensAsync(address)
+
+    const unclaimedLoomTokens = tokens.filter(
+      t => t.tokenContract.local.toString() === this.ethereumLoom.address
+    )
+
+    // There is only 1 LOOM token and there's only 1 balance for it:
+    // All other parameters of UnclaimedToken are for ERC721(x) tokens.
+    let amount
+    if (unclaimedLoomTokens.length === 0) {
+      // no unclaimed tokens
+      amount = new BN(0)
+    } else {
+      // if the amounts array was set
+      const amounts = unclaimedLoomTokens[0].tokenAmounts!
+      amount = amounts ? amounts[0] : new BN(0)
+    }
+
+    return amount
   }
 
   private async withdrawCoinFromDAppChainGatewayAsync(
@@ -314,6 +349,13 @@ export class GatewayUser extends CrossChain {
     )
 
     return msg
+  }
+
+  /**
+   * Helper function to prefix an address with the chainId to get chainId:address format
+   */
+  prefixAddress(address: string) {
+    return Address.fromString(`${this.client.chainId}:${address}`)
   }
 
 }

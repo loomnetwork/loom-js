@@ -2,7 +2,7 @@ import debug from 'debug'
 import { ethers } from 'ethers'
 import Web3 from 'web3'
 
-import { createClient } from './helpers'
+import { createDefaultClient } from './helpers'
 import { Address, LocalAddress, Client, Contracts, EthersSigner } from '.'
 
 import { AddressMapper } from './contracts/address-mapper'
@@ -16,7 +16,7 @@ export class CrossChain {
   private _ethAddress: string
   private _dappchainMapper: Contracts.AddressMapper
 
-  static async createOfflineUserAsync(
+  static async createOfflineCrossChainUserAsync(
     endpoint: string,
     privateKey: string,
     dappchainEndpoint: string,
@@ -25,10 +25,10 @@ export class CrossChain {
   ): Promise<CrossChain> {
     const provider = new ethers.providers.JsonRpcProvider(endpoint)
     const wallet = new ethers.Wallet(privateKey, provider)
-    return CrossChain.createUserAsync(wallet, dappchainEndpoint, dappchainKey, chainId)
+    return CrossChain.createCrossChainUserAsync(wallet, dappchainEndpoint, dappchainKey, chainId)
   }
 
-  static async createMetamaskUserAsync(
+  static async createMetamaskCrossChainUserAsync(
     web3: Web3,
     dappchainEndpoint: string,
     dappchainKey: string,
@@ -36,16 +36,16 @@ export class CrossChain {
   ): Promise<CrossChain> {
     const provider = new ethers.providers.Web3Provider(web3.currentProvider)
     const wallet = provider.getSigner()
-    return CrossChain.createUserAsync(wallet, dappchainEndpoint, dappchainKey, chainId)
+    return CrossChain.createCrossChainUserAsync(wallet, dappchainEndpoint, dappchainKey, chainId)
   }
 
-  static async createUserAsync(
+  static async createCrossChainUserAsync(
     wallet: ethers.Signer,
     dappchainEndpoint: string,
     dappchainKey: string,
     chainId: string
   ): Promise<CrossChain> {
-    const { client, publicKey } = createClient(dappchainKey, dappchainEndpoint, chainId)
+    const { client, publicKey } = createDefaultClient(dappchainKey, dappchainEndpoint, chainId)
 
     const address = new Address(chainId, LocalAddress.fromPublicKey(publicKey))
     const ethAddress = await wallet.getAddress()
@@ -86,6 +86,10 @@ export class CrossChain {
 
   get loomAddress(): Address {
     return this._address
+  }
+
+  disconnect() {
+    this.client.disconnect()
   }
 
   /**
