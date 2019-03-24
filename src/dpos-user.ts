@@ -98,7 +98,12 @@ export class DPOSUser extends GatewayUser {
       version
     )
 
-    const { client, address } = await createDefaultEthSignClientAsync(dappchainKey, dappchainEndpoint, chainId, wallet)
+    const { client, address } = await createDefaultEthSignClientAsync(
+      dappchainKey,
+      dappchainEndpoint,
+      chainId,
+      wallet
+    )
     const dappchainDPOS = await DPOS2.createAsync(client, address)
     log('Connected to dappchain DPOS Contract')
     return new DPOSUser(
@@ -171,7 +176,19 @@ export class DPOSUser extends GatewayUser {
     vmcAddress?: string,
     version: GatewayVersion = GatewayVersion.SINGLESIG
   ) {
-    super(wallet, client, address, ethAddress, gatewayAddress, loomAddress, dappchainGateway, dappchainLoom, dappchainMapper, vmcAddress, version)
+    super(
+      wallet,
+      client,
+      address,
+      ethAddress,
+      gatewayAddress,
+      loomAddress,
+      dappchainGateway,
+      dappchainLoom,
+      dappchainMapper,
+      vmcAddress,
+      version
+    )
     this._dappchainDPOS = dappchainDPOS
   }
 
@@ -271,5 +288,4 @@ export class DPOSUser extends GatewayUser {
   checkRewardsAsync(): Promise<BN> {
     return this._dappchainDPOS.checkDistributionAsync()
   }
-
 }

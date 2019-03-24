@@ -26,7 +26,6 @@ const ERC20ABI = require('./mainnet-contracts/ERC20.json')
 
 const V2_GATEWAYS = ['oracle-dev', 'asia1']
 
-
 export enum GatewayVersion {
   SINGLESIG = 1,
   MULTISIG = 2
@@ -254,7 +253,6 @@ export class GatewayUser extends CrossChain {
     return balance
   }
 
-
   /**
    * Deposits an amount of LOOM tokens to the dappchain gateway and return a signature which can be used to withdraw the same amount from the mainnet gateway.
    *
@@ -357,5 +355,4 @@ export class GatewayUser extends CrossChain {
   prefixAddress(address: string) {
     return Address.fromString(`${this.client.chainId}:${address}`)
   }
-
 }
