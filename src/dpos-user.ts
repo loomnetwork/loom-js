@@ -49,7 +49,7 @@ export class DPOSUser {
   private _dappchainGateway: Contracts.LoomCoinTransferGateway
   private _dappchainLoom: Contracts.Coin
   private _dappchainDPOS: Contracts.DPOS2
-  private _dappchainMapper: Contracts.AddressMapper
+  private _dappchainMapper: Contracts.AddressMapper | null
   private _version: GatewayVersion
 
   static async createOfflineUserAsync(
@@ -199,7 +199,7 @@ export class DPOSUser {
     this._dappchainGateway = dappchainGateway
     this._dappchainLoom = dappchainLoom
     this._dappchainDPOS = dappchainDPOS
-    this._dappchainMapper = dappchainMapper!
+    this._dappchainMapper = dappchainMapper
   }
 
   get ethereumGateway(): ethers.Contract {
@@ -222,7 +222,7 @@ export class DPOSUser {
     return this._dappchainDPOS
   }
 
-  get addressMapper(): Contracts.AddressMapper {
+  get addressMapper(): Contracts.AddressMapper | null {
     return this._dappchainMapper
   }
 
