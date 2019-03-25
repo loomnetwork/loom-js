@@ -46,6 +46,28 @@
     {
       "vm": "plugin",
       "format": "plugin",
+      "name": "chainconfig",
+      "location": "chainconfig:1.0.0",
+      "init": {
+        "owner": {
+            "chainId":"default",
+            "local":"1iDFloNUN+KiipnzQpOeXAmLQUk="
+        },
+        "features": [
+          {
+            "name":"auth:sigtx:eth",
+            "status":"WAITING"
+          },
+          {
+            "name":"auth:sigtx:eth1",
+            "status":"WAITING"
+          }
+        ]
+      }
+    },
+    {
+      "vm": "plugin",
+      "format": "plugin",
       "name": "ethcoin",
       "location": "ethcoin:1.0.0",
       "init": null

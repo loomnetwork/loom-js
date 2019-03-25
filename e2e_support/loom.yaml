@@ -31,8 +31,6 @@ TransferGateway:
   OracleReconnectInterval: 5
 Auth:
   Chains:
-    default:
-      TxType: "loom"
     eth:
       TxType: "eth"
       AccountType: 1
