@@ -108,24 +108,23 @@ export class DPOSUser {
     const { client } = await createDefaultEthSignClientAsync(dappchainEndpoint, chainId, wallet)
 
     const ethAddress = await wallet.getAddress()
-    const address = new Address('eth', LocalAddress.fromHexString(ethAddress))
+    const callerAddress = new Address('eth', LocalAddress.fromHexString(ethAddress))
 
-    const dappchainLoom = await Coin.createAsync(client, address)
-    const dappchainDPOS = await DPOS2.createAsync(client, address)
-    const dappchainGateway = await LoomCoinTransferGateway.createAsync(client, address)
-    const dappchainMapper = await AddressMapper.createAsync(client, address)
+    const dappchainLoom = await Coin.createAsync(client, callerAddress)
+    const dappchainDPOS = await DPOS2.createAsync(client, callerAddress)
+    const dappchainGateway = await LoomCoinTransferGateway.createAsync(client, callerAddress)
 
     return new DPOSUser(
       wallet,
       client,
-      address,
+      callerAddress,
       ethAddress,
       gatewayAddress,
       loomAddress,
       dappchainGateway,
       dappchainLoom,
       dappchainDPOS,
-      dappchainMapper
+      null // Address Mapper isn't used
     )
   }
 
@@ -184,7 +183,7 @@ export class DPOSUser {
     dappchainGateway: Contracts.LoomCoinTransferGateway,
     dappchainLoom: Contracts.Coin,
     dappchainDPOS: Contracts.DPOS2,
-    dappchainMapper: Contracts.AddressMapper,
+    dappchainMapper: Contracts.AddressMapper | null,
     version: GatewayVersion = GatewayVersion.SINGLESIG
   ) {
     this._version = version
@@ -200,7 +199,7 @@ export class DPOSUser {
     this._dappchainGateway = dappchainGateway
     this._dappchainLoom = dappchainLoom
     this._dappchainDPOS = dappchainDPOS
-    this._dappchainMapper = dappchainMapper
+    this._dappchainMapper = dappchainMapper!
   }
 
   get ethereumGateway(): ethers.Contract {
@@ -242,6 +241,10 @@ export class DPOSUser {
    * @param wallet The User's ethers wallet
    */
   async mapAccountsAsync() {
+    if (!this._dappchainMapper) {
+      throw Error("AddressMapper isn't available")
+    }
+
     const walletAddress = await this._wallet.getAddress()
     const ethereumAddress = Address.fromString(`eth:${walletAddress}`)
     if (await this._dappchainMapper.hasMappingAsync(this._address)) {
