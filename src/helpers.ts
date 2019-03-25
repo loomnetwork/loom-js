@@ -102,7 +102,7 @@ export async function createDefaultEthSignClientAsync(
   dappchainEndpoint: string,
   chainId: string,
   wallet: ethers.Signer
-): Promise<Client> {
+): Promise<{ client: Client; callerAddress: Address }> {
   const { writer, reader } = setupProtocolsFromEndpoint(dappchainEndpoint)
 
   const client = new Client(chainId, writer, reader)
@@ -120,5 +120,5 @@ export async function createDefaultEthSignClientAsync(
     new SignedEthTxMiddleware(wallet)
   ]
 
-  return client
+  return { client, callerAddress }
 }
