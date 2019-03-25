@@ -18,7 +18,6 @@ import {
 } from './contracts/dpos2'
 
 const log = debug('dpos-user')
-
 const coinMultiplier = new BN(10).pow(new BN(18))
 const V2_GATEWAYS = ['oracle-dev', 'asia1']
 
