@@ -690,7 +690,9 @@ export class LoomProvider {
   }
 
   private _callStaticAsync(payload: { to: string; from: string; data: string }): Promise<any> {
-    const caller = new Address(this._client.chainId, LocalAddress.fromHexString(payload.from))
+    const chainId = this.callerChainId === null ? this._client.chainId : this.callerChainId
+    const caller = new Address(chainId, LocalAddress.fromHexString(payload.from))
+    log('caller', caller.toString())
     const address = new Address(this._client.chainId, LocalAddress.fromHexString(payload.to))
     const data = Buffer.from(payload.data.slice(2), 'hex')
     return this._client.queryAsync(address, data, VMType.EVM, caller)
