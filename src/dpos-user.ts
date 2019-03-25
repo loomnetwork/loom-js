@@ -404,8 +404,9 @@ export class DPOSUser {
     return this._dappchainGateway.withdrawalReceiptAsync(this._address)
   }
 
-  checkRewardsAsync(): Promise<BN> {
-    return this._dappchainDPOS.checkDistributionAsync()
+  checkRewardsAsync(owner?: string): Promise<BN> {
+    const address = owner ? this.prefixAddress(owner) : this._address
+    return this._dappchainDPOS.checkDistributionAsync(address)
   }
 
   /**
