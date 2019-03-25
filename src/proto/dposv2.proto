@@ -214,6 +214,7 @@ message TotalDelegationResponse {
 }
 
 message CheckDistributionRequest {
+    Address address = 1;
 }
 
 message CheckDistributionResponse {
