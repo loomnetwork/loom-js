@@ -3,7 +3,7 @@ import { NonceTxMiddleware, SignedTxMiddleware, SignedEthTxMiddleware } from './
 import { publicKeyFromPrivateKey, B64ToUint8Array, Uint8ArrayToB64 } from './crypto-utils'
 import BN from 'bn.js'
 import { selectProtocol } from './rpc-client-factory'
-import { JSONRPCProtocol } from './internal/json-rpc-client'
+import { JSONRPCProtocol, IJSONRPCClient } from './internal/json-rpc-client'
 import { createJSONRPCClient, LocalAddress, CryptoUtils } from '.'
 import { Address } from './address'
 import debug from 'debug'
@@ -56,6 +56,24 @@ export function parseUrl(rawUrl: string): URL {
   return new URL(rawUrl)
 }
 
+export function setupProtocolsFromEndpoint(
+  endpoint: string
+): { writer: IJSONRPCClient; reader: IJSONRPCClient } {
+  const protocol = selectProtocol(endpoint)
+  const writerSuffix = protocol === JSONRPCProtocol.HTTP ? '/rpc' : '/websocket'
+  const readerSuffix = protocol === JSONRPCProtocol.HTTP ? '/query' : '/queryws'
+
+  const writer = createJSONRPCClient({
+    protocols: [{ url: endpoint + writerSuffix }]
+  })
+
+  const reader = createJSONRPCClient({
+    protocols: [{ url: overrideReadUrl(endpoint + readerSuffix) }]
+  })
+
+  return { writer, reader }
+}
+
 export function createDefaultClient(
   dappchainKey: string,
   dappchainEndpoint: string,
@@ -64,16 +82,7 @@ export function createDefaultClient(
   const privateKey = B64ToUint8Array(dappchainKey)
   const publicKey = publicKeyFromPrivateKey(privateKey)
 
-  const protocol = selectProtocol(dappchainEndpoint)
-  const writerSuffix = protocol == JSONRPCProtocol.HTTP ? '/rpc' : '/websocket'
-  const readerSuffix = protocol == JSONRPCProtocol.HTTP ? '/query' : '/queryws'
-
-  const writer = createJSONRPCClient({
-    protocols: [{ url: dappchainEndpoint + writerSuffix }]
-  })
-  const reader = createJSONRPCClient({
-    protocols: [{ url: overrideReadUrl(dappchainEndpoint + readerSuffix) }]
-  })
+  const { writer, reader } = setupProtocolsFromEndpoint(dappchainEndpoint)
 
   const client = new Client(chainId, writer, reader)
   log('Initialized', dappchainEndpoint)
@@ -93,24 +102,23 @@ export async function createDefaultEthSignClientAsync(
   dappchainEndpoint: string,
   chainId: string,
   wallet: ethers.Signer
-): Promise<{ client: Client; publicKey: Uint8Array; address: Address }> {
-  const privKey = CryptoUtils.generatePrivateKey()
+): Promise<Client> {
+  const { writer, reader } = setupProtocolsFromEndpoint(dappchainEndpoint)
 
-  const defaultClientObj = createDefaultClient(
-    Uint8ArrayToB64(privKey),
-    dappchainEndpoint,
-    chainId
-  )
+  const client = new Client(chainId, writer, reader)
+  log('Initialized', dappchainEndpoint)
+
+  client.on('error', (msg: any) => {
+    log('PlasmaChain connection error', msg)
+  })
 
   const ethAddress = await wallet.getAddress()
+  const callerAddress = new Address('eth', LocalAddress.fromHexString(ethAddress))
 
-  defaultClientObj.client.txMiddleware = [
-    new NonceTxMiddleware(
-      new Address('eth', LocalAddress.fromHexString(ethAddress)),
-      defaultClientObj.client
-    ),
+  client.txMiddleware = [
+    new NonceTxMiddleware(callerAddress, client),
     new SignedEthTxMiddleware(wallet)
   ]
 
-  return { ...defaultClientObj }
+  return client
 }

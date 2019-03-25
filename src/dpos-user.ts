@@ -105,7 +105,7 @@ export class DPOSUser {
   ): Promise<DPOSUser> {
     const wallet = getMetamaskSigner(web3.currentProvider)
 
-    const { client } = await createDefaultEthSignClientAsync(dappchainEndpoint, chainId, wallet)
+    const client = await createDefaultEthSignClientAsync(dappchainEndpoint, chainId, wallet)
 
     const ethAddress = await wallet.getAddress()
     const callerAddress = new Address('eth', LocalAddress.fromHexString(ethAddress))
