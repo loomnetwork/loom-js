@@ -1069,6 +1069,11 @@ export namespace TotalDelegationResponse {
 }
 
 export class CheckDistributionRequest extends jspb.Message {
+  hasAddress(): boolean;
+  clearAddress(): void;
+  getAddress(): proto_loom_pb.Address | undefined;
+  setAddress(value?: proto_loom_pb.Address): void;
+
   serializeBinary(): Uint8Array;
   toObject(includeInstance?: boolean): CheckDistributionRequest.AsObject;
   static toObject(includeInstance: boolean, msg: CheckDistributionRequest): CheckDistributionRequest.AsObject;
@@ -1081,6 +1086,7 @@ export class CheckDistributionRequest extends jspb.Message {
 
 export namespace CheckDistributionRequest {
   export type AsObject = {
+    address?: proto_loom_pb.Address.AsObject,
   }
 }
 
