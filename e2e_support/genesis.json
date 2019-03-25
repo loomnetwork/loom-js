@@ -27,17 +27,16 @@
     {
       "vm": "plugin",
       "format": "plugin",
-      "name": "dpos",
-      "location": "dpos:1.0.0",
+      "name": "dposV2",
+      "location": "dposV2:2.0.0",
       "init": {
         "params": {
-          "witnessCount": "100",
-          "electionCycleLength": "0",
-          "minPowerFraction": "5"
+          "validatorCount": "1",
+          "electionCycleLength": "604800"
         },
         "validators": [
           {
-            "pubKey": "dHVZ95Bqnn3dsget6tyq72cJS3E=",
+            "pubKey": "Ezl6knhnn1nZKFrGzsomWFzMnQDNC2Q0OyF6Jz8Jf/Y=",
             "power": "10"
           }
         ]
@@ -50,8 +49,8 @@
       "location": "chainconfig:1.0.0",
       "init": {
         "owner": {
-            "chainId":"default",
-            "local":"1iDFloNUN+KiipnzQpOeXAmLQUk="
+          "chainId": "default",
+          "local": "Shas8xA3mAG/7I/3/5VQ0Dj/B3k="
         },
         "features": [
           {
