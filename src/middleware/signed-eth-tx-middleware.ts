@@ -14,7 +14,7 @@ const log = debug('signed-eth-tx-middleware')
  */
 export class SignedEthTxMiddleware implements ITxMiddlewareHandler {
   signer: ethers.Signer
-  fromAddress!: string
+  signerAddress?: string
 
   /**
    * @param signer ethers.js signer to use for signing txs.
@@ -24,9 +24,9 @@ export class SignedEthTxMiddleware implements ITxMiddlewareHandler {
   }
 
   async Handle(txData: Readonly<Uint8Array>): Promise<Uint8Array> {
-    if (!this.fromAddress) {
+    if (!this.signerAddress) {
       // Getting the public key address
-      this.fromAddress = await this.signer.getAddress()
+      this.signerAddress = await this.signer.getAddress()
     }
 
     // Get hash to be signed
@@ -39,7 +39,7 @@ export class SignedEthTxMiddleware implements ITxMiddlewareHandler {
     const etherSigner = new EthersSigner(this.signer)
     const sig = await etherSigner.signAsync(hash)
 
-    log('Signature without first byte', `0x${bytesToHex(sig.slice(1))}`)
+    log(`signer: ${this.signerAddress}, signature: 0x${bytesToHex(sig.slice(1))}`)
 
     const signedTx = new SignedTx()
     signedTx.setInner(txData as Uint8Array)
