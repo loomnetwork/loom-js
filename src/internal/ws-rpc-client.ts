@@ -217,7 +217,5 @@ export class WSRPCClient extends EventEmitter {
       log('EVM Event arrived', msg)
       this.emit(RPCClientEvent.EVMMessage, this.url, msg)
     }
-
-    log('Non-Loom and Non-EVM event', msg)
   }
 }
