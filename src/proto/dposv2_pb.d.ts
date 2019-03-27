@@ -478,6 +478,9 @@ export class DelegateRequestV2 extends jspb.Message {
   getLocktimeTier(): number;
   setLocktimeTier(value: number): void;
 
+  getReferrer(): string;
+  setReferrer(value: string): void;
+
   serializeBinary(): Uint8Array;
   toObject(includeInstance?: boolean): DelegateRequestV2.AsObject;
   static toObject(includeInstance: boolean, msg: DelegateRequestV2): DelegateRequestV2.AsObject;
@@ -493,6 +496,7 @@ export namespace DelegateRequestV2 {
     validatorAddress?: proto_loom_pb.Address.AsObject,
     amount?: proto_loom_pb.BigUInt.AsObject,
     locktimeTier: number,
+    referrer: string,
   }
 }
 
@@ -512,6 +516,9 @@ export class RedelegateRequestV2 extends jspb.Message {
   getAmount(): proto_loom_pb.BigUInt | undefined;
   setAmount(value?: proto_loom_pb.BigUInt): void;
 
+  getReferrer(): string;
+  setReferrer(value: string): void;
+
   serializeBinary(): Uint8Array;
   toObject(includeInstance?: boolean): RedelegateRequestV2.AsObject;
   static toObject(includeInstance: boolean, msg: RedelegateRequestV2): RedelegateRequestV2.AsObject;
@@ -527,6 +534,7 @@ export namespace RedelegateRequestV2 {
     validatorAddress?: proto_loom_pb.Address.AsObject,
     formerValidatorAddress?: proto_loom_pb.Address.AsObject,
     amount?: proto_loom_pb.BigUInt.AsObject,
+    referrer: string,
   }
 }
 
@@ -1061,6 +1069,11 @@ export namespace TotalDelegationResponse {
 }
 
 export class CheckDistributionRequest extends jspb.Message {
+  hasAddress(): boolean;
+  clearAddress(): void;
+  getAddress(): proto_loom_pb.Address | undefined;
+  setAddress(value?: proto_loom_pb.Address): void;
+
   serializeBinary(): Uint8Array;
   toObject(includeInstance?: boolean): CheckDistributionRequest.AsObject;
   static toObject(includeInstance: boolean, msg: CheckDistributionRequest): CheckDistributionRequest.AsObject;
@@ -1073,6 +1086,7 @@ export class CheckDistributionRequest extends jspb.Message {
 
 export namespace CheckDistributionRequest {
   export type AsObject = {
+    address?: proto_loom_pb.Address.AsObject,
   }
 }
 

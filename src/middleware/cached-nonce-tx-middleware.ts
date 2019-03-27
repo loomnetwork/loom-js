@@ -3,6 +3,7 @@ import { NonceTx } from '../proto/loom_pb'
 import { ITxMiddlewareHandler, Client, ITxResults, isTxAlreadyInCacheError } from '../client'
 import { bytesToHex } from '../crypto-utils'
 import { INVALID_TX_NONCE_ERROR } from './nonce-tx-middleware'
+import { Address } from '../address'
 
 const log = debug('cached-nonce-tx-middleware')
 
@@ -13,12 +14,20 @@ const log = debug('cached-nonce-tx-middleware')
  * latest nonce.
  */
 export class CachedNonceTxMiddleware implements ITxMiddlewareHandler {
-  private _publicKey: Uint8Array
+  private _publicKey: Uint8Array | null = null
+  private _account: Address | null = null
   private _client: Client
   private _lastNonce: number
 
-  constructor(publicKey: Uint8Array, client: Client) {
-    this._publicKey = publicKey
+  constructor(publicKey: Uint8Array, client: Client)
+  constructor(account: Address, client: Client)
+  constructor(publicKeyOrAccount: Uint8Array | Address, client: Client) {
+    if (publicKeyOrAccount instanceof Address) {
+      this._account = publicKeyOrAccount
+    } else {
+      this._publicKey = publicKeyOrAccount
+    }
+
     this._client = client
     this._lastNonce = -1
   }
@@ -27,8 +36,9 @@ export class CachedNonceTxMiddleware implements ITxMiddlewareHandler {
     if (this._lastNonce === -1) {
       log('Nonce not cached')
       try {
-        const key = bytesToHex(this._publicKey)
-        this._lastNonce = await this._client.getNonceAsync(key)
+        const key = this._publicKey ? bytesToHex(this._publicKey) : undefined
+        const account = this._account ? this._account.toString() : undefined
+        this._lastNonce = await this._client.getAccountNonceAsync({ key, account })
       } catch (err) {
         throw Error('Failed to obtain latest nonce')
       }

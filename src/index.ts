@@ -15,6 +15,7 @@ export { Address, LocalAddress } from './address'
 export { unmarshalBigUIntPB, marshalBigUIntPB } from './big-uint'
 export {
   SignedTxMiddleware,
+  SignedEthTxMiddleware,
   NonceTxMiddleware,
   CachedNonceTxMiddleware,
   SpeculativeNonceTxMiddleware,
@@ -48,7 +49,9 @@ export {
   OfflineWeb3Signer,
   Web3Signer,
   EthersSigner,
-  soliditySha3
+  soliditySha3,
+  getJsonRPCSignerAsync,
+  getMetamaskSigner
 } from './solidity-helpers'
 export { Entity, IEntityParams } from './plasma-cash/entity'
 export { User as PlasmaUser } from './plasma-cash/user'

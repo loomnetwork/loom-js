@@ -1,8 +1,8 @@
-ChainID: "default"
+ChainID: 'default'
 QueryServerHost: "tcp://0.0.0.0:9999"
 RegistryVersion: 2
 ReceiptsVersion: 2
-LogDestination: "file://loom2.log"
+LogDestination: 'file://loom2.log'
 EVMAccountsEnabled: true
 TransferGateway:
   # Enables the Transfer Gateway Go contract, must be the same on all nodes.
@@ -13,20 +13,31 @@ TransferGateway:
   #       running the tests with the Oracle running out of process the Ganache websocket connection
   #       often times out while the tests are waiting for the Oracle to do something. So better to
   #       use the HTTP endpoint for testing.
-  EthereumURI: "http://127.0.0.1:8545"
-  MainnetContractHexAddress: "0xf5cad0db6415a71a5bc67403c87b56b629b4ddaa"
-  MainnetPrivateKeyPath: "oracle_eth_priv.key"
-  DAppChainPrivateKeyPath: "oracle_priv.key"
-  DAppChainReadURI: "http://localhost:46658/query"
-  DAppChainWriteURI: "http://localhost:46658/rpc"
+  EthereumURI: 'http://127.0.0.1:8545'
+  MainnetContractHexAddress: '0xf5cad0db6415a71a5bc67403c87b56b629b4ddaa'
+  MainnetPrivateKeyPath: 'oracle_eth_priv.key'
+  DAppChainPrivateKeyPath: 'oracle_priv.key'
+  DAppChainReadURI: 'http://localhost:46658/query'
+  DAppChainWriteURI: 'http://localhost:46658/rpc'
   # Websocket URI that should be used to subscribe to DAppChain events (only used for tests atm).
-  DAppChainEventsURI: "ws://localhost:46658/queryws"
+  DAppChainEventsURI: 'ws://localhost:46658/queryws'
   # These control how often the Oracle will poll the blockchains for events.
   DAppChainPollInterval: 1 # seconds
   MainnetPollInterval: 1 # seconds
-  OracleLogLevel: "debug"
-  OracleLogDestination: "file://oracle.log"
+  OracleLogLevel: 'debug'
+  OracleLogDestination: 'file://oracle.log'
   # Number of seconds to wait before starting the Oracle.
   OracleStartupDelay: 5
   # Number of seconds to wait between reconnection attempts.
   OracleReconnectInterval: 5
+DPOSVersion: 2
+ChainConfig:
+  ContractEnabled: true
+Auth:
+  Chains:
+    eth:
+      TxType: "eth"
+      AccountType: 1
+    eth1:
+      TxType: "eth"
+      AccountType: 0

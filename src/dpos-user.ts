@@ -6,7 +6,7 @@ import Web3 from 'web3'
 import { CryptoUtils, Address, Client, Contracts, EthersSigner } from '.'
 import { DPOS2, Coin, LoomCoinTransferGateway, AddressMapper } from './contracts'
 import { IWithdrawalReceipt } from './contracts/transfer-gateway'
-import { sleep, createDefaultClient } from './helpers'
+import { sleep, createDefaultClient, createDefaultEthSignClientAsync } from './helpers'
 import {
   IValidator,
   ICandidate,
@@ -18,7 +18,6 @@ import {
 } from './contracts/dpos2'
 
 const log = debug('dpos-user')
-
 const coinMultiplier = new BN(10).pow(new BN(18))
 const V2_GATEWAYS = ['oracle-dev', 'asia1']
 
@@ -27,7 +26,12 @@ const ERC20GatewayABI = require('./mainnet-contracts/ERC20Gateway.json')
 const ERC20GatewayABI_v2 = require('./mainnet-contracts/ERC20Gateway_v2.json')
 
 import { ERC20 } from './mainnet-contracts/ERC20'
+import { ERC20Gateway } from './mainnet-contracts/ERC20Gateway'
+import { NonceTxMiddleware, SignedEthTxMiddleware } from './middleware'
+import { B64ToUint8Array, publicKeyFromPrivateKey } from './crypto-utils'
 import { ERC20Gateway_v2 } from './mainnet-contracts/ERC20Gateway_v2'
+import { LocalAddress } from './address'
+import { getMetamaskSigner } from './solidity-helpers'
 
 enum GatewayVersion {
   SINGLESIG = 1,
@@ -44,7 +48,7 @@ export class DPOSUser {
   private _dappchainGateway: Contracts.LoomCoinTransferGateway
   private _dappchainLoom: Contracts.Coin
   private _dappchainDPOS: Contracts.DPOS2
-  private _dappchainMapper: Contracts.AddressMapper
+  private _dappchainMapper: Contracts.AddressMapper | null
   private _version: GatewayVersion
 
   static async createOfflineUserAsync(
@@ -70,7 +74,7 @@ export class DPOSUser {
     )
   }
 
-  static async createMetamaskUserAsync(
+  static createMetamaskUserAsync(
     web3: Web3,
     dappchainEndpoint: string,
     dappchainKey: string,
@@ -79,8 +83,7 @@ export class DPOSUser {
     loomAddress: string,
     version?: GatewayVersion
   ): Promise<DPOSUser> {
-    const provider = new ethers.providers.Web3Provider(web3.currentProvider)
-    const wallet = provider.getSigner()
+    const wallet = getMetamaskSigner(web3.currentProvider)
     return DPOSUser.createUserAsync(
       wallet,
       dappchainEndpoint,
@@ -89,6 +92,40 @@ export class DPOSUser {
       gatewayAddress,
       loomAddress,
       version
+    )
+  }
+
+  static async createEthSignMetamaskUserAsync(
+    web3: Web3,
+    dappchainEndpoint: string,
+    chainId: string,
+    gatewayAddress: string,
+    loomAddress: string
+  ): Promise<DPOSUser> {
+    const wallet = getMetamaskSigner(web3.currentProvider)
+
+    const { client, callerAddress } = await createDefaultEthSignClientAsync(
+      dappchainEndpoint,
+      chainId,
+      wallet
+    )
+
+    const ethAddress = callerAddress.local.toString()
+    const dappchainLoom = await Coin.createAsync(client, callerAddress)
+    const dappchainDPOS = await DPOS2.createAsync(client, callerAddress)
+    const dappchainGateway = await LoomCoinTransferGateway.createAsync(client, callerAddress)
+
+    return new DPOSUser(
+      wallet,
+      client,
+      callerAddress,
+      ethAddress,
+      gatewayAddress,
+      loomAddress,
+      dappchainGateway,
+      dappchainLoom,
+      dappchainDPOS,
+      null // Address Mapper isn't used
     )
   }
 
@@ -147,7 +184,7 @@ export class DPOSUser {
     dappchainGateway: Contracts.LoomCoinTransferGateway,
     dappchainLoom: Contracts.Coin,
     dappchainDPOS: Contracts.DPOS2,
-    dappchainMapper: Contracts.AddressMapper,
+    dappchainMapper: Contracts.AddressMapper | null,
     version: GatewayVersion = GatewayVersion.SINGLESIG
   ) {
     this._version = version
@@ -186,7 +223,7 @@ export class DPOSUser {
     return this._dappchainDPOS
   }
 
-  get addressMapper(): Contracts.AddressMapper {
+  get addressMapper(): Contracts.AddressMapper | null {
     return this._dappchainMapper
   }
 
@@ -205,6 +242,10 @@ export class DPOSUser {
    * @param wallet The User's ethers wallet
    */
   async mapAccountsAsync() {
+    if (!this._dappchainMapper) {
+      throw Error("AddressMapper isn't available")
+    }
+
     const walletAddress = await this._wallet.getAddress()
     const ethereumAddress = Address.fromString(`eth:${walletAddress}`)
     if (await this._dappchainMapper.hasMappingAsync(this._address)) {
@@ -354,8 +395,9 @@ export class DPOSUser {
     return this._dappchainGateway.withdrawalReceiptAsync(this._address)
   }
 
-  checkRewardsAsync(): Promise<BN> {
-    return this._dappchainDPOS.checkDistributionAsync()
+  checkRewardsAsync(owner?: string): Promise<BN> {
+    const address = owner ? this.prefixAddress(owner) : this._address
+    return this._dappchainDPOS.checkDistributionAsync(address)
   }
 
   /**
@@ -377,7 +419,9 @@ export class DPOSUser {
   }
 
   async getUnclaimedLoomTokensAsync(owner?: string): Promise<BN> {
-    const address = owner ? Address.fromString(`eth:${owner}`) : Address.fromString(`eth:${this.ethAddress}`)
+    const address = owner
+      ? Address.fromString(`eth:${owner}`)
+      : Address.fromString(`eth:${this.ethAddress}`)
     const tokens = await this._dappchainGateway.getUnclaimedTokensAsync(address)
 
     const unclaimedLoomTokens = tokens.filter(
@@ -433,7 +477,6 @@ export class DPOSUser {
     amount: BN,
     sig: string
   ): Promise<ethers.ContractTransaction> {
-
     if (this._version === GatewayVersion.MULTISIG) {
       const hash = await this.createWithdrawalHash(amount)
       log('Receipt hash:', hash)

@@ -225,8 +225,9 @@ export class DPOS2 extends Contract {
     }
   }
 
-  async checkDistributionAsync(): Promise<BN> {
+  async checkDistributionAsync(owner: Address): Promise<BN> {
     const checkDistributionReq = new CheckDistributionRequest()
+    checkDistributionReq.setAddress(owner.MarshalPB())
     const result = await this.staticCallAsync(
       'CheckDistribution',
       checkDistributionReq,
@@ -295,19 +296,35 @@ export class DPOS2 extends Contract {
     return this.callAsync<void>('UnregisterCandidate', unregisterCandidateRequest)
   }
 
-  delegateAsync(validator: Address, amount: BN, tier: LockTimeTier): Promise<void> {
+  delegateAsync(
+    validator: Address,
+    amount: BN,
+    tier: LockTimeTier,
+    referrer?: string
+  ): Promise<void> {
     const delegateRequest = new DelegateRequestV2()
     delegateRequest.setValidatorAddress(validator.MarshalPB())
     delegateRequest.setAmount(marshalBigUIntPB(amount))
     delegateRequest.setLocktimeTier(tier)
+    if (referrer) {
+      delegateRequest.setReferrer(referrer)
+    }
     return this.callAsync<void>('Delegate2', delegateRequest)
   }
 
-  redelegateAsync(oldValidator: Address, validator: Address, amount: BN): Promise<void> {
+  redelegateAsync(
+    oldValidator: Address,
+    validator: Address,
+    amount: BN,
+    referrer?: string
+  ): Promise<void> {
     const redelegateRequest = new RedelegateRequestV2()
     redelegateRequest.setFormerValidatorAddress(oldValidator.MarshalPB())
     redelegateRequest.setValidatorAddress(validator.MarshalPB())
     redelegateRequest.setAmount(marshalBigUIntPB(amount))
+    if (referrer) {
+      redelegateRequest.setReferrer(referrer)
+    }
     return this.callAsync<void>('Redelegate', redelegateRequest)
   }
 

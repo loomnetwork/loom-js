@@ -35,14 +35,17 @@ import {
 import { soliditySha3 } from './solidity-helpers'
 import { marshalBigUIntPB } from './big-uint'
 
-// Based on https://en.ethereum.wiki/json-rpc#eth-get-transaction-receipt
+// Based on https://github.com/ethereum/wiki/wiki/JSON-RPC#eth_gettransactionreceipt
 export interface IEthReceipt {
   transactionHash: string
   transactionIndex: string
   blockHash: string
   blockNumber: string
+
+  // From and To sometimes aren't available
   from?: string
   to?: string
+
   cumulativeGasUsed: string
   gasUsed: string
   contractAddress: string
@@ -52,7 +55,7 @@ export interface IEthReceipt {
   status: string
 }
 
-// Based on https://en.ethereum.wiki/json-rpc#eth-get-transaction-by-hash
+// Based on https://github.com/ethereum/wiki/wiki/JSON-RPC#eth_gettransactionbyhash
 export interface IEthTransaction {
   blockHash: string
   blockNumber: string
@@ -70,7 +73,7 @@ export interface IEthTransaction {
   s?: string
 }
 
-// Based on https://en.ethereum.wiki/json-rpc#eth-get-block-by-hash
+// Based on https://github.com/ethereum/wiki/wiki/JSON-RPC#eth_getblockbyhash
 export interface IEthBlock {
   number: string | null
   hash: string
@@ -88,9 +91,13 @@ export interface IEthBlock {
   size: string
   gasLimit: string
   gasUsed: string
-  timestamp: string
+  timestamp: string | number
   transactions: Array<IEthTransaction | string>
   uncles: Array<string>
+
+  // Non strict
+  blockNumber?: string
+  transactionHash?: string
 }
 
 // Based on https://github.com/ethereum/go-ethereum/wiki/RPC-PUB-SUB#newheads
@@ -136,7 +143,7 @@ export interface IEthPubLogs {
   }
 }
 
-// Based on https://en.ethereum.wiki/json-rpc#eth-get-filter-changes
+// Based on https://github.com/ethereum/wiki/wiki/JSON-RPC#eth_getfilterchanges
 export interface IEthFilterLog {
   removed: boolean
   logIndex: string
@@ -148,7 +155,7 @@ export interface IEthFilterLog {
   data: string
   topics: Array<string>
   // blockTime is an addition isn't part of the specification
-  blockTime: string
+  blockTime?: number
 }
 
 // JSON RPC payload
@@ -175,6 +182,8 @@ const bytesToHexAddrLC = (bytes: Uint8Array): string => {
 const numberToHexLC = (num: number): string => {
   return numberToHex(num).toLowerCase()
 }
+
+const MINED = 'mined'
 
 const ZEROED_HEX_256 =
   '0x00000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000'
@@ -216,7 +225,7 @@ export class LoomProvider {
   private _netVersionFromChainId: number
   private _ethRPCMethods: Map<string, EthRPCMethod>
   protected notificationCallbacks: Array<Function>
-  readonly accounts: Map<string, Uint8Array>
+  readonly accounts: Map<string, Uint8Array | null>
 
   /**
    * Strict mode true remove any param on JSON RPC that isn't compliant with the
@@ -236,6 +245,12 @@ export class LoomProvider {
     maxTimeout: 30000, // 30s
     randomize: true
   }
+
+  /**
+   * Overrides the chain ID of the caller, when this is `null` the caller chain ID defaults
+   * to the client chain ID.
+   */
+  callerChainId: string | null = null
 
   /**
    * Constructs the LoomProvider to bridges communication between Web3 and Loom DappChains
@@ -263,13 +278,29 @@ export class LoomProvider {
 
     if (!this._setupMiddlewares) {
       this._setupMiddlewares = (client: Client, privateKey: Uint8Array) => {
-        return createDefaultTxMiddleware(client, privateKey)
+        return createDefaultTxMiddleware(client, privateKey as Uint8Array)
       }
     }
 
     this.addDefaultMethods()
     this.addDefaultEvents()
     this.addAccounts([privateKey])
+  }
+
+  // Get strict
+  get strict() {
+    return this._strict
+  }
+
+  /**
+   * Setter to the strict mode
+   */
+  set strict(v: boolean) {
+    this._strict = v
+  }
+
+  get accountMiddlewares(): Map<string, Array<ITxMiddlewareHandler>> {
+    return this._accountMiddlewares
   }
 
   /**
@@ -292,16 +323,15 @@ export class LoomProvider {
     })
   }
 
-  // Get strict
-  get strict() {
-    return this._strict
-  }
-
   /**
-   * Setter to the strict mode
+   * Set an array of middlewares for a given account
+   *
+   * @param address Address to be register the middleware
+   * @param middlewares Array of middlewares for the address
    */
-  set strict(v: boolean) {
-    this._strict = v
+  setMiddlewaresForAddress(address: string, middlewares: Array<ITxMiddlewareHandler>) {
+    this.accounts.set(address.toLowerCase(), null)
+    this._accountMiddlewares.set(address.toLowerCase(), middlewares)
   }
 
   // PUBLIC FUNCTION TO SUPPORT WEB3
@@ -495,7 +525,7 @@ export class LoomProvider {
 
     const accounts = new Array()
 
-    this.accounts.forEach((value: Uint8Array, key: string) => {
+    this.accounts.forEach((_value: Uint8Array | null, key: string) => {
       accounts.push(key)
     })
 
@@ -766,7 +796,9 @@ export class LoomProvider {
     data: string
     value: string
   }): Promise<any> {
-    const caller = new Address(this._client.chainId, LocalAddress.fromHexString(payload.from))
+    const chainId = this.callerChainId === null ? this._client.chainId : this.callerChainId
+    const caller = new Address(chainId, LocalAddress.fromHexString(payload.from))
+    log('caller', caller.toString())
     const address = new Address(this._client.chainId, LocalAddress.fromHexString(payload.to))
     const data = Buffer.from(payload.data.slice(2), 'hex')
     const value = new BN((payload.value || '0x0').slice(2), 16)
@@ -789,7 +821,9 @@ export class LoomProvider {
   }
 
   private _callStaticAsync(payload: { to: string; from: string; data: string }): Promise<any> {
-    const caller = new Address(this._client.chainId, LocalAddress.fromHexString(payload.from))
+    const chainId = this.callerChainId === null ? this._client.chainId : this.callerChainId
+    const caller = new Address(chainId, LocalAddress.fromHexString(payload.from))
+    log('caller', caller.toString())
     const address = new Address(this._client.chainId, LocalAddress.fromHexString(payload.to))
     const data = Buffer.from(payload.data.slice(2), 'hex')
     return this._client.queryAsync(address, data, VMType.EVM, caller)
@@ -817,8 +851,8 @@ export class LoomProvider {
       parentHash = '0x0000000000000000000000000000000000000000000000000000000000000001'
     }
 
-    // Some ZEROED values aren't at the moment
-    return {
+    // Some ZEROED values aren't available at the moment
+    const logResult = {
       number,
       hash,
       parentHash,
@@ -839,6 +873,19 @@ export class LoomProvider {
       transactions,
       uncles: []
     } as IEthBlock
+
+    if (this._strict) {
+      return logResult
+    } else {
+      return {
+        ...logResult,
+        ...{
+          blockNumber: numberToHexLC(blockInfo.getNumber()),
+          transactionHash: bytesToHexAddrLC(blockInfo.getHash_asU8()),
+          timestamp: blockInfo.getTimestamp()
+        }
+      }
+    }
   }
 
   private _createTransactionResult(txObject: EvmTxObject): IEthTransaction {
@@ -858,7 +905,7 @@ export class LoomProvider {
       input = ZEROED_HEX
     }
 
-    return {
+    const logResult = {
       blockHash,
       blockNumber,
       from,
@@ -871,6 +918,17 @@ export class LoomProvider {
       transactionIndex,
       value
     } as IEthTransaction
+
+    if (this._strict) {
+      return logResult
+    } else {
+      return {
+        ...logResult,
+        ...{
+          value: `${txObject.getValue()}`
+        }
+      }
+    }
   }
 
   private _createReceiptResult(receipt: EvmTxReceipt): IEthReceipt {
@@ -898,7 +956,7 @@ export class LoomProvider {
         blockNumber,
         transactionHash: bytesToHexAddrLC(logEvent.getTxHash_asU8()),
         transactionIndex,
-        type: 'mined',
+        type: MINED,
         data,
         topics: logEvent.getTopicsList().map((topic: string) => topic.toLowerCase())
       }
@@ -962,7 +1020,6 @@ export class LoomProvider {
 
   private _createLogResult(log: EthFilterLog): IEthFilterLog {
     const removed = log.getRemoved()
-    const blockTime = numberToHexLC(log.getBlockTime())
     const logIndex = numberToHexLC(log.getLogIndex())
     const transactionIndex = numberToHex(log.getTransactionIndex())
     const transactionHash = bytesToHexAddrLC(log.getTransactionHash_asU8())
@@ -972,7 +1029,7 @@ export class LoomProvider {
     const data = bytesToHexAddrLC(log.getData_asU8())
     const topics = log.getTopicsList().map((topic: any) => String.fromCharCode.apply(null, topic))
 
-    return {
+    const logResult = {
       removed,
       logIndex,
       transactionIndex,
@@ -981,9 +1038,19 @@ export class LoomProvider {
       blockNumber,
       address,
       data,
-      topics,
-      blockTime
+      topics
     } as IEthFilterLog
+
+    if (this._strict) {
+      return logResult
+    } else {
+      return {
+        ...logResult,
+        ...{
+          blockTime: log.getBlockTime()
+        }
+      }
+    }
   }
 
   private async _getLogs(filterObject: Object): Promise<Array<IEthFilterLog>> {
@@ -1020,12 +1087,12 @@ export class LoomProvider {
               blockHash: ZEROED_HEX,
               blockNumber,
               address: msgEvent.contractAddress.local.toString(),
-              type: 'mined',
+              type: MINED,
               data,
               topics: msgEvent.topics
             }
           }
-        } as IEthPubLogs | IEthPubSubNewHeads
+        } as IEthPubLogs
 
         callback(JSONRPCResult)
       })
