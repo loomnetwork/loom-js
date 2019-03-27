@@ -115,10 +115,15 @@ export class DPOSUser {
     const dappchainDPOS = await DPOS2.createAsync(client, callerAddress)
     const dappchainGateway = await LoomCoinTransferGateway.createAsync(client, callerAddress)
 
+    // Create mapper
+    const mapper = await AddressMapper.createAsync(client, callerAddress)
+    const mapping = await mapper.getMappingAsync(callerAddress)
+    const dappchainAddress = mapping.to
+
     return new DPOSUser(
       wallet,
       client,
-      callerAddress,
+      dappchainAddress,
       ethAddress,
       gatewayAddress,
       loomAddress,
