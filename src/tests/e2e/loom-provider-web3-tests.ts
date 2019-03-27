@@ -222,7 +222,11 @@ test('LoomProvider + Web3 + getBlockByNumber', async t => {
   try {
     const blockNumber = await web3.eth.getBlockNumber()
     const blockInfo = await web3.eth.getBlock(blockNumber, false)
-    t.equal(parseInt(blockInfo.blockNumber, 16), blockNumber, 'Block number should be equal')
+    t.equal(
+      parseInt(blockInfo.number, 16),
+      parseInt(blockNumber, 16),
+      'Block number should be equal'
+    )
   } catch (err) {
     console.log(err)
   }

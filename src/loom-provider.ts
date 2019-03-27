@@ -34,49 +34,116 @@ import {
 } from './crypto-utils'
 import { soliditySha3 } from './solidity-helpers'
 import { marshalBigUIntPB } from './big-uint'
-import { SignedEthTxMiddleware } from './middleware'
 
+// Based on https://github.com/ethereum/wiki/wiki/JSON-RPC#eth_gettransactionreceipt
 export interface IEthReceipt {
   transactionHash: string
   transactionIndex: string
   blockHash: string
   blockNumber: string
-  gasUsed: string
+
+  // From and To sometimes aren't available
+  from?: string
+  to?: string
+
   cumulativeGasUsed: string
+  gasUsed: string
   contractAddress: string
   logs: Array<any>
+  logsBloom?: string
+  root?: string
   status: string
 }
 
+// Based on https://github.com/ethereum/wiki/wiki/JSON-RPC#eth_gettransactionbyhash
 export interface IEthTransaction {
-  hash: string
-  nonce: string
   blockHash: string
   blockNumber: string
-  transactionIndex: string
   from: string
-  to: string
-  value: string
-  gasPrice: string
   gas: string
+  gasPrice: string
+  hash: string
   input: string
+  nonce: string
+  to: string
+  transactionIndex: string
+  value: string
+  v?: string
+  r?: string
+  s?: string
 }
 
+// Based on https://github.com/ethereum/wiki/wiki/JSON-RPC#eth_getblockbyhash
 export interface IEthBlock {
-  blockNumber: string
-  transactionHash: string
+  number: string | null
+  hash: string
   parentHash: string
+  nonce: string
+  sha3Uncles: string
   logsBloom: string
-  timestamp: number
-  transactions: Array<IEthReceipt | string>
+  transactionsRoot: string
+  stateRoot: string
+  receiptsRoot: string
+  miner: string
+  difficulty: string
+  totalDifficulty: string
+  extraData: string
+  size: string
+  gasLimit: string
+  gasUsed: string
+  timestamp: string | number
+  transactions: Array<IEthTransaction | string>
+  uncles: Array<string>
+
+  // Non strict
+  blockNumber?: string
+  transactionHash?: string
 }
 
-export interface IEthRPCPayload {
-  id: number
-  method: string
-  params: Array<any>
+// Based on https://github.com/ethereum/go-ethereum/wiki/RPC-PUB-SUB#newheads
+export interface IEthPubSubNewHeads {
+  jsonrpc: '2.0'
+  method: 'eth_subscription'
+  params: {
+    subscription: string
+    result: {
+      difficulty: string
+      extraData: string
+      gasLimit: string
+      gasUsed: string
+      logsBloom: string
+      miner: string
+      nonce: string
+      number: string
+      parentHash: string
+      receiptRoot: string
+      sha3Uncles: string
+      timestamp: string
+      transactionsRoot: string
+    }
+  }
 }
 
+// Based on https://github.com/ethereum/go-ethereum/wiki/RPC-PUB-SUB#logs
+export interface IEthPubLogs {
+  jsonrpc: '2.0'
+  method: 'eth_subscription'
+  params: {
+    subscription: string
+    result: {
+      address: string
+      blockHash: string
+      blockNumber: string
+      data: string
+      logIndex: string
+      topics: Array<string>
+      transactionHash: string
+      transactionIndex: string
+    }
+  }
+}
+
+// Based on https://github.com/ethereum/wiki/wiki/JSON-RPC#eth_getfilterchanges
 export interface IEthFilterLog {
   removed: boolean
   logIndex: string
@@ -87,6 +154,15 @@ export interface IEthFilterLog {
   address: string
   data: string
   topics: Array<string>
+  // blockTime is an addition isn't part of the specification
+  blockTime?: number
+}
+
+// JSON RPC payload
+export interface IEthRPCPayload {
+  id: number
+  method: string
+  params: Array<any>
 }
 
 export type SetupMiddlewareFunction = (
@@ -107,6 +183,37 @@ const numberToHexLC = (num: number): string => {
   return numberToHex(num).toLowerCase()
 }
 
+const MINED = 'mined'
+
+const ZEROED_HEX_256 =
+  '0x00000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000'
+const ZEROED_HEX_32 = '0x0000000000000000000000000000000000000000000000000000000000000000'
+const ZEROED_HEX_20 = '0x0000000000000000000000000000000000000000'
+const ZEROED_HEX_8 = '0x0000000000000000'
+const ZEROED_HEX = '0x0'
+
+const BLOCK_ZERO: IEthBlock = {
+  number: ZEROED_HEX,
+  hash: '0x0000000000000000000000000000000000000000000000000000000000000001',
+  parentHash: ZEROED_HEX_32,
+  nonce: ZEROED_HEX_8,
+  sha3Uncles: ZEROED_HEX_32,
+  logsBloom: ZEROED_HEX_256,
+  transactionsRoot: ZEROED_HEX_32,
+  stateRoot: ZEROED_HEX_32,
+  receiptsRoot: ZEROED_HEX_32,
+  miner: ZEROED_HEX_20,
+  difficulty: ZEROED_HEX,
+  totalDifficulty: ZEROED_HEX,
+  extraData: ZEROED_HEX,
+  size: ZEROED_HEX,
+  gasLimit: ZEROED_HEX,
+  gasUsed: ZEROED_HEX,
+  timestamp: '0x5af97a40',
+  transactions: [],
+  uncles: []
+}
+
 /**
  * Web3 provider that interacts with EVM contracts deployed on Loom DAppChains.
  */
@@ -119,6 +226,12 @@ export class LoomProvider {
   private _ethRPCMethods: Map<string, EthRPCMethod>
   protected notificationCallbacks: Array<Function>
   readonly accounts: Map<string, Uint8Array | null>
+
+  /**
+   * Strict mode true remove any param on JSON RPC that isn't compliant with the
+   * official Ethereum RPC docs https://en.ethereum.wiki/json-rpc
+   */
+  private _strict: boolean = false
 
   /**
    * The retry strategy that should be used to retry some web3 requests.
@@ -174,6 +287,22 @@ export class LoomProvider {
     this.addAccounts([privateKey])
   }
 
+  // Get strict
+  get strict() {
+    return this._strict
+  }
+
+  /**
+   * Setter to the strict mode
+   */
+  set strict(v: boolean) {
+    this._strict = v
+  }
+
+  get accountMiddlewares(): Map<string, Array<ITxMiddlewareHandler>> {
+    return this._accountMiddlewares
+  }
+
   /**
    * Creates new accounts by passing the private key array
    *
@@ -203,10 +332,6 @@ export class LoomProvider {
   setMiddlewaresForAddress(address: string, middlewares: Array<ITxMiddlewareHandler>) {
     this.accounts.set(address.toLowerCase(), null)
     this._accountMiddlewares.set(address.toLowerCase(), middlewares)
-  }
-
-  get accountMiddlewares(): Map<string, Array<ITxMiddlewareHandler>> {
-    return this._accountMiddlewares
   }
 
   // PUBLIC FUNCTION TO SUPPORT WEB3
@@ -440,6 +565,10 @@ export class LoomProvider {
     const blockHash = payload.params[0]
     const isFull = payload.params[1] || true
 
+    if (blockHash === ZEROED_HEX_32) {
+      return Promise.resolve(BLOCK_ZERO)
+    }
+
     const result = await this._client.getEvmBlockByHashAsync(blockHash, isFull)
 
     if (!result) {
@@ -453,6 +582,11 @@ export class LoomProvider {
     const blockNumberToSearch =
       payload.params[0] === 'latest' ? payload.params[0] : hexToNumber(payload.params[0])
     const isFull = payload.params[1] || true
+
+    if (blockNumberToSearch === 0) {
+      return Promise.resolve(BLOCK_ZERO)
+    }
+
     const result = await this._client.getEvmBlockByNumberAsync(`${blockNumberToSearch}`, isFull)
 
     if (!result) {
@@ -467,13 +601,9 @@ export class LoomProvider {
       this._client.chainId,
       LocalAddress.fromHexString(payload.params[0])
     )
+
     const result = await this._client.getEvmCodeAsync(address)
-
-    if (!result) {
-      throw Error('No code returned on eth_getCode')
-    }
-
-    return bytesToHexAddrLC(result)
+    return result ? bytesToHexAddrLC(result) : '0x0'
   }
 
   private async _ethGetFilterChanges(payload: IEthRPCPayload) {
@@ -535,6 +665,7 @@ export class LoomProvider {
           })
       })
     })
+
     return this._createReceiptResult(receipt!)
   }
 
@@ -698,12 +829,13 @@ export class LoomProvider {
     return this._client.queryAsync(address, data, VMType.EVM, caller)
   }
 
-  private _createBlockInfo(blockInfo: EthBlockInfo, isFull: boolean): any {
-    const blockNumber = numberToHexLC(blockInfo.getNumber())
-    const transactionHash = bytesToHexAddrLC(blockInfo.getHash_asU8())
-    const parentHash = bytesToHexAddrLC(blockInfo.getParentHash_asU8())
+  private _createBlockInfo(blockInfo: EthBlockInfo, isFull: boolean): IEthBlock {
+    // tslint:disable-next-line:variable-name
+    const number = numberToHexLC(blockInfo.getNumber())
+    const hash = bytesToHexAddrLC(blockInfo.getHash_asU8())
+    let parentHash = bytesToHexAddrLC(blockInfo.getParentHash_asU8())
     const logsBloom = bytesToHexAddrLC(blockInfo.getLogsBloom_asU8())
-    const timestamp = blockInfo.getTimestamp()
+    const timestamp = numberToHexLC(blockInfo.getTimestamp())
     const transactions = blockInfo.getTransactionsList_asU8().map((transaction: Uint8Array) => {
       if (isFull) {
         return this._createTransactionResult(
@@ -714,17 +846,45 @@ export class LoomProvider {
       }
     })
 
-    return {
-      blockNumber,
-      transactionHash,
+    // Parent hash is empty for the block 0x1 so this fix it
+    if (parentHash === '0x' && number === '0x1') {
+      parentHash = '0x0000000000000000000000000000000000000000000000000000000000000001'
+    }
+
+    // Some ZEROED values aren't available at the moment
+    const logResult = {
+      number,
+      hash,
       parentHash,
+      nonce: ZEROED_HEX_8,
+      sha3Uncles: ZEROED_HEX_32,
       logsBloom,
+      transactionsRoot: ZEROED_HEX_32,
+      stateRoot: ZEROED_HEX_32,
+      receiptsRoot: ZEROED_HEX_32,
+      miner: ZEROED_HEX_20,
+      difficulty: ZEROED_HEX,
+      totalDifficulty: ZEROED_HEX,
+      extraData: ZEROED_HEX,
+      size: ZEROED_HEX,
+      gasLimit: ZEROED_HEX,
+      gasUsed: ZEROED_HEX,
       timestamp,
       transactions,
-      gasLimit: '0x0',
-      gasUsed: '0x0',
-      size: '0x0',
-      number: '0x0'
+      uncles: []
+    } as IEthBlock
+
+    if (this._strict) {
+      return logResult
+    } else {
+      return {
+        ...logResult,
+        ...{
+          blockNumber: numberToHexLC(blockInfo.getNumber()),
+          transactionHash: bytesToHexAddrLC(blockInfo.getHash_asU8()),
+          timestamp: blockInfo.getTimestamp()
+        }
+      }
     }
   }
 
@@ -736,24 +896,39 @@ export class LoomProvider {
     const transactionIndex = numberToHexLC(txObject.getTransactionIndex())
     const from = bytesToHexAddrLC(txObject.getFrom_asU8())
     const to = bytesToHexAddrLC(txObject.getTo_asU8())
-    const value = `${txObject.getValue()}`
+    const value = numberToHexLC(txObject.getValue())
     const gas = numberToHexLC(txObject.getGas())
     const gasPrice = numberToHexLC(txObject.getGasPrice())
-    const input = bytesToHexAddrLC(txObject.getInput_asU8())
+    let input = bytesToHexAddrLC(txObject.getInput_asU8())
 
-    return {
-      hash,
-      nonce,
+    if (input === '0x') {
+      input = ZEROED_HEX
+    }
+
+    const logResult = {
       blockHash,
       blockNumber,
-      transactionIndex,
       from,
-      to,
-      value,
       gas,
       gasPrice,
-      input
+      hash,
+      input,
+      nonce,
+      to,
+      transactionIndex,
+      value
     } as IEthTransaction
+
+    if (this._strict) {
+      return logResult
+    } else {
+      return {
+        ...logResult,
+        ...{
+          value: `${txObject.getValue()}`
+        }
+      }
+    }
   }
 
   private _createReceiptResult(receipt: EvmTxReceipt): IEthReceipt {
@@ -761,39 +936,51 @@ export class LoomProvider {
     const transactionIndex = numberToHexLC(receipt.getTransactionIndex())
     const blockHash = bytesToHexAddrLC(receipt.getBlockHash_asU8())
     const blockNumber = numberToHexLC(receipt.getBlockNumber())
+    const cumulativeGasUsed = numberToHexLC(receipt.getCumulativeGasUsed())
+    const gasUsed = numberToHexLC(receipt.getGasUsed())
     const contractAddress = bytesToHexAddrLC(receipt.getContractAddress_asU8())
     const logs = receipt.getLogsList().map((logEvent: EventData, index: number) => {
       const logIndex = numberToHexLC(index)
       let data = bytesToHexAddrLC(logEvent.getEncodedBody_asU8())
 
       if (data === '0x') {
-        data = '0x0'
+        data = ZEROED_HEX_32
       }
 
-      return {
+      const blockHash = bytesToHexAddrLC(receipt.getBlockHash_asU8())
+
+      const log = {
         logIndex,
         address: contractAddress,
         blockHash,
         blockNumber,
-        blockTime: logEvent.getBlockTime(),
         transactionHash: bytesToHexAddrLC(logEvent.getTxHash_asU8()),
         transactionIndex,
-        type: 'mined',
+        type: MINED,
         data,
         topics: logEvent.getTopicsList().map((topic: string) => topic.toLowerCase())
       }
+
+      return this._strict ? log : Object.assign({}, log, { blockTime: logEvent.getBlockTime() })
     })
 
+    const status = numberToHexLC(receipt.getStatus())
+
+    // Commented properties aren't supported at the current version
     return {
       transactionHash,
       transactionIndex,
       blockHash,
       blockNumber,
+      // from,
+      // to,
+      cumulativeGasUsed,
+      gasUsed,
       contractAddress,
-      gasUsed: numberToHexLC(receipt.getGasUsed()),
-      cumulativeGasUsed: numberToHexLC(receipt.getCumulativeGasUsed()),
       logs,
-      status: numberToHexLC(receipt.getStatus())
+      // logsBloom,
+      // root,
+      status
     } as IEthReceipt
   }
 
@@ -814,7 +1001,7 @@ export class LoomProvider {
     const value = numberToHexLC(transaction.getValue())
     const gasPrice = numberToHexLC(transaction.getGasPrice())
     const gas = numberToHexLC(transaction.getGas())
-    const input = '0x0'
+    const input = ZEROED_HEX
 
     return {
       hash,
@@ -832,18 +1019,38 @@ export class LoomProvider {
   }
 
   private _createLogResult(log: EthFilterLog): IEthFilterLog {
-    return {
-      removed: log.getRemoved(),
-      blockTime: log.getBlockTime(),
-      logIndex: numberToHexLC(log.getLogIndex()),
-      transactionIndex: numberToHex(log.getTransactionIndex()),
-      transactionHash: bytesToHexAddrLC(log.getTransactionHash_asU8()),
-      blockHash: bytesToHexAddrLC(log.getBlockHash_asU8()),
-      blockNumber: numberToHex(log.getBlockNumber()),
-      address: bytesToHexAddrLC(log.getAddress_asU8()),
-      data: bytesToHexAddrLC(log.getData_asU8()),
-      topics: log.getTopicsList().map((topic: any) => String.fromCharCode.apply(null, topic))
+    const removed = log.getRemoved()
+    const logIndex = numberToHexLC(log.getLogIndex())
+    const transactionIndex = numberToHex(log.getTransactionIndex())
+    const transactionHash = bytesToHexAddrLC(log.getTransactionHash_asU8())
+    const blockHash = bytesToHexAddrLC(log.getBlockHash_asU8())
+    const blockNumber = numberToHex(log.getBlockNumber())
+    const address = bytesToHexAddrLC(log.getAddress_asU8())
+    const data = bytesToHexAddrLC(log.getData_asU8())
+    const topics = log.getTopicsList().map((topic: any) => String.fromCharCode.apply(null, topic))
+
+    const logResult = {
+      removed,
+      logIndex,
+      transactionIndex,
+      transactionHash,
+      blockHash,
+      blockNumber,
+      address,
+      data,
+      topics
     } as IEthFilterLog
+
+    if (this._strict) {
+      return logResult
+    } else {
+      return {
+        ...logResult,
+        ...{
+          blockTime: log.getBlockTime()
+        }
+      }
+    }
   }
 
   private async _getLogs(filterObject: Object): Promise<Array<IEthFilterLog>> {
@@ -863,24 +1070,29 @@ export class LoomProvider {
     if (msgEvent.kind === ClientEvent.EVMEvent) {
       log(`Socket message arrived ${JSON.stringify(msgEvent)}`)
       this.notificationCallbacks.forEach((callback: Function) => {
+        const transactionHash = bytesToHexAddrLC(msgEvent.transactionHashBytes)
+        const blockNumber = numberToHexLC(+msgEvent.blockHeight)
+        const data = bytesToHexAddrLC(msgEvent.data)
+
+        // Some 0x0 values aren't at the moment
         const JSONRPCResult = {
           jsonrpc: '2.0',
           method: 'eth_subscription',
           params: {
             subscription: msgEvent.id,
             result: {
-              transactionHash: bytesToHexAddrLC(msgEvent.transactionHashBytes),
-              logIndex: '0x0',
-              transactionIndex: '0x0',
-              blockHash: '0x0',
-              blockNumber: numberToHexLC(+msgEvent.blockHeight),
+              transactionHash,
+              logIndex: ZEROED_HEX,
+              transactionIndex: ZEROED_HEX,
+              blockHash: ZEROED_HEX,
+              blockNumber,
               address: msgEvent.contractAddress.local.toString(),
-              type: 'mined',
-              data: bytesToHexAddrLC(msgEvent.data),
+              type: MINED,
+              data,
               topics: msgEvent.topics
             }
           }
-        }
+        } as IEthPubLogs
 
         callback(JSONRPCResult)
       })

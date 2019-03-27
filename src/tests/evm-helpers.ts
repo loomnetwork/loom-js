@@ -14,7 +14,7 @@ export async function deployContract(loomProvider: LoomProvider, contractData: s
   ).toString()
 
   const ethSendTransactionDeployResult = await loomProvider.sendAsync({
-    id: 1,
+    id: 100,
     method: 'eth_sendTransaction',
     params: [
       {
@@ -28,7 +28,7 @@ export async function deployContract(loomProvider: LoomProvider, contractData: s
   })
 
   const ethGetTransactionReceiptResult = await loomProvider.sendAsync({
-    id: 2,
+    id: 200,
     method: 'eth_getTransactionReceipt',
     params: [ethSendTransactionDeployResult.result]
   })

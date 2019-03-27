@@ -448,9 +448,12 @@ export class Client extends EventEmitter {
    * @param txHash Transaction hash returned by call transaction.
    * @return EvmTxReceipt The corresponding transaction receipt.
    */
-  async getEvmTxReceiptAsync(txHash: Uint8Array): Promise<EvmTxReceipt | null> {
+  async getEvmTxReceiptAsync(txHashArr: Uint8Array): Promise<EvmTxReceipt | null> {
+    const txHash = Uint8ArrayToB64(txHashArr)
+    debugLog(`Get EVM receipt for ${txHash}`)
+
     const result = await this._readClient.sendAsync<string>('evmtxreceipt', {
-      txHash: Uint8ArrayToB64(txHash)
+      txHash
     })
     if (result) {
       return EvmTxReceipt.deserializeBinary(bufferToProtobufBytes(B64ToUint8Array(result)))
@@ -646,8 +649,11 @@ export class Client extends EventEmitter {
     hashHexStr: string,
     full: boolean = true
   ): Promise<EthBlockInfo | null> {
+    const hash = Buffer.from(hashHexStr.slice(2), 'hex').toString('base64')
+    debugLog(`Evm block by hash ${hash}`)
+
     const result = await this._readClient.sendAsync<string>('getevmblockbyhash', {
-      hash: Buffer.from(hashHexStr.slice(2), 'hex').toString('base64'),
+      hash,
       full
     })
     if (result) {

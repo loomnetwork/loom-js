@@ -1,6 +1,7 @@
 ChainID: 'default'
 QueryServerHost: "tcp://0.0.0.0:9999"
 RegistryVersion: 2
+ReceiptsVersion: 2
 LogDestination: 'file://loom2.log'
 EVMAccountsEnabled: true
 TransferGateway:
