@@ -15,6 +15,38 @@ function soliditySha3() {
 }
 exports.soliditySha3 = soliditySha3;
 /**
+ * Returns the Metamask signer from web3 current provider
+ */
+function getMetamaskSigner(provider) {
+    // HACK: force personal sign by pretending to be metamask no matter what the web3 provider is
+    provider.isMetaMask = true;
+    return new ethers_1.ethers.providers.Web3Provider(provider).getSigner();
+}
+exports.getMetamaskSigner = getMetamaskSigner;
+/**
+ * Returns json rpc signer, ex: http://localhost:8545
+ *
+ * @param urlString url string to connect to provider
+ * @param accountIndex index of the account on providers list
+ */
+function getJsonRPCSignerAsync(urlString, accountIndex) {
+    if (accountIndex === void 0) { accountIndex = 0; }
+    return tslib_1.__awaiter(this, void 0, void 0, function () {
+        var provider, signers;
+        return tslib_1.__generator(this, function (_a) {
+            switch (_a.label) {
+                case 0:
+                    provider = new ethers_1.ethers.providers.JsonRpcProvider(urlString);
+                    return [4 /*yield*/, provider.listAccounts()];
+                case 1:
+                    signers = (_a.sent()).map(function (acc) { return provider.getSigner(acc); });
+                    return [2 /*return*/, signers[accountIndex]];
+            }
+        });
+    });
+}
+exports.getJsonRPCSignerAsync = getJsonRPCSignerAsync;
+/**
  * Signs message using a Web3 account.
  * This signer should be used for interactive signing in the browser with MetaMask.
  */
@@ -23,8 +55,8 @@ var EthersSigner = /** @class */ (function () {
      * @param web3 Web3 instance to use for signing.
      * @param accountAddress Address of web3 account to sign with.
      */
-    function EthersSigner(wallet) {
-        this._wallet = wallet;
+    function EthersSigner(signer) {
+        this._signer = signer;
     }
     /**
      * Signs a message.
@@ -36,7 +68,7 @@ var EthersSigner = /** @class */ (function () {
             var flatSig, sig, v;
             return tslib_1.__generator(this, function (_a) {
                 switch (_a.label) {
-                    case 0: return [4 /*yield*/, this._wallet.signMessage(ethers_1.ethers.utils.arrayify(msg))];
+                    case 0: return [4 /*yield*/, this._signer.signMessage(ethers_1.ethers.utils.arrayify(msg))];
                     case 1:
                         flatSig = _a.sent();
                         sig = ethers_1.ethers.utils.splitSignature(flatSig);

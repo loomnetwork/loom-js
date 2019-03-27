@@ -44,9 +44,9 @@ export declare class TransferGateway extends Contract {
         client: Client;
     });
     /**
-    * Adds a contract mapping to the DAppChain Gateway using gatway owner signature.
-    * A contract mapping associates a token contract on the DAppChain with it's counterpart on Ethereum.
-    */
+     * Adds a contract mapping to the DAppChain Gateway using gatway owner signature.
+     * A contract mapping associates a token contract on the DAppChain with it's counterpart on Ethereum.
+     */
     addAuthorizedContractMappingAsync(params: {
         foreignContract: Address;
         localContract: Address;

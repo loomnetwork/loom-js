@@ -72,14 +72,14 @@ export declare class DPOS2 extends Contract {
     getDelegations(candidate: Address): Promise<ICandidateDelegations>;
     getAllDelegations(): Promise<Array<ICandidateDelegations>>;
     checkDelegatorDelegations(delegator: Address): Promise<IDelegatorDelegations>;
-    checkDistributionAsync(): Promise<BN>;
+    checkDistributionAsync(owner: Address): Promise<BN>;
     totalDelegationAsync(delegator: Address): Promise<ITotalDelegation | null>;
     checkDelegationAsync(validator: Address, delegator: Address): Promise<IDelegation | null>;
     claimDistributionAsync(withdrawalAddress: Address): Promise<void>;
     registerCandidateAsync(pubKey: string, fee: BN, name: string, description: string, website: string, tier: LockTimeTier): Promise<void>;
     unregisterCandidateAsync(): Promise<void>;
-    delegateAsync(validator: Address, amount: BN, tier: LockTimeTier): Promise<void>;
-    redelegateAsync(oldValidator: Address, validator: Address, amount: BN): Promise<void>;
+    delegateAsync(validator: Address, amount: BN, tier: LockTimeTier, referrer?: string): Promise<void>;
+    redelegateAsync(oldValidator: Address, validator: Address, amount: BN, referrer?: string): Promise<void>;
     unbondAsync(validator: Address, amount: BN | number | string): Promise<void>;
     private getDelegation;
 }

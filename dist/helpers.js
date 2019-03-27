@@ -53,18 +53,23 @@ function parseUrl(rawUrl) {
     return new URL(rawUrl);
 }
 exports.parseUrl = parseUrl;
+function setupProtocolsFromEndpoint(endpoint) {
+    var protocol = rpc_client_factory_1.selectProtocol(endpoint);
+    var writerSuffix = protocol === json_rpc_client_1.JSONRPCProtocol.HTTP ? '/rpc' : '/websocket';
+    var readerSuffix = protocol === json_rpc_client_1.JSONRPCProtocol.HTTP ? '/query' : '/queryws';
+    var writer = _1.createJSONRPCClient({
+        protocols: [{ url: endpoint + writerSuffix }]
+    });
+    var reader = _1.createJSONRPCClient({
+        protocols: [{ url: client_1.overrideReadUrl(endpoint + readerSuffix) }]
+    });
+    return { writer: writer, reader: reader };
+}
+exports.setupProtocolsFromEndpoint = setupProtocolsFromEndpoint;
 function createDefaultClient(dappchainKey, dappchainEndpoint, chainId) {
     var privateKey = crypto_utils_1.B64ToUint8Array(dappchainKey);
     var publicKey = crypto_utils_1.publicKeyFromPrivateKey(privateKey);
-    var protocol = rpc_client_factory_1.selectProtocol(dappchainEndpoint);
-    var writerSuffix = protocol == json_rpc_client_1.JSONRPCProtocol.HTTP ? '/rpc' : '/websocket';
-    var readerSuffix = protocol == json_rpc_client_1.JSONRPCProtocol.HTTP ? '/query' : '/queryws';
-    var writer = _1.createJSONRPCClient({
-        protocols: [{ url: dappchainEndpoint + writerSuffix }]
-    });
-    var reader = _1.createJSONRPCClient({
-        protocols: [{ url: client_1.overrideReadUrl(dappchainEndpoint + readerSuffix) }]
-    });
+    var _a = setupProtocolsFromEndpoint(dappchainEndpoint), writer = _a.writer, reader = _a.reader;
     var client = new client_1.Client(chainId, writer, reader);
     log('Initialized', dappchainEndpoint);
     client.txMiddleware = createDefaultTxMiddleware(client, privateKey);
@@ -75,4 +80,30 @@ function createDefaultClient(dappchainKey, dappchainEndpoint, chainId) {
     return { client: client, publicKey: publicKey, address: address };
 }
 exports.createDefaultClient = createDefaultClient;
+function createDefaultEthSignClientAsync(dappchainEndpoint, chainId, wallet) {
+    return tslib_1.__awaiter(this, void 0, void 0, function () {
+        var _a, writer, reader, client, ethAddress, callerAddress;
+        return tslib_1.__generator(this, function (_b) {
+            switch (_b.label) {
+                case 0:
+                    _a = setupProtocolsFromEndpoint(dappchainEndpoint), writer = _a.writer, reader = _a.reader;
+                    client = new client_1.Client(chainId, writer, reader);
+                    log('Initialized', dappchainEndpoint);
+                    client.on('error', function (msg) {
+                        log('PlasmaChain connection error', msg);
+                    });
+                    return [4 /*yield*/, wallet.getAddress()];
+                case 1:
+                    ethAddress = _b.sent();
+                    callerAddress = new address_1.Address('eth', _1.LocalAddress.fromHexString(ethAddress));
+                    client.txMiddleware = [
+                        new middleware_1.NonceTxMiddleware(callerAddress, client),
+                        new middleware_1.SignedEthTxMiddleware(wallet)
+                    ];
+                    return [2 /*return*/, { client: client, callerAddress: callerAddress }];
+            }
+        });
+    });
+}
+exports.createDefaultEthSignClientAsync = createDefaultEthSignClientAsync;
 //# sourceMappingURL=helpers.js.map

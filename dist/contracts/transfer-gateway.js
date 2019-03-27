@@ -72,9 +72,9 @@ var TransferGateway = /** @class */ (function (_super) {
         });
     };
     /**
-    * Adds a contract mapping to the DAppChain Gateway using gatway owner signature.
-    * A contract mapping associates a token contract on the DAppChain with it's counterpart on Ethereum.
-    */
+     * Adds a contract mapping to the DAppChain Gateway using gatway owner signature.
+     * A contract mapping associates a token contract on the DAppChain with it's counterpart on Ethereum.
+     */
     TransferGateway.prototype.addAuthorizedContractMappingAsync = function (params) {
         var foreignContract = params.foreignContract, localContract = params.localContract;
         var mappingContractRequest = new transfer_gateway_pb_1.TransferGatewayAddContractMappingRequest();

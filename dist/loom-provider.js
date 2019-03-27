@@ -21,6 +21,7 @@ var bytesToHexAddrLC = function (bytes) {
 var numberToHexLC = function (num) {
     return crypto_utils_1.numberToHex(num).toLowerCase();
 };
+var MINED = 'mined';
 var ZEROED_HEX_256 = '0x00000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000';
 var ZEROED_HEX_32 = '0x0000000000000000000000000000000000000000000000000000000000000000';
 var ZEROED_HEX_20 = '0x0000000000000000000000000000000000000000';
@@ -77,6 +78,11 @@ var LoomProvider = /** @class */ (function () {
             maxTimeout: 30000,
             randomize: true
         };
+        /**
+         * Overrides the chain ID of the caller, when this is `null` the caller chain ID defaults
+         * to the client chain ID.
+         */
+        this.callerChainId = null;
         this._client = client;
         this._netVersionFromChainId = LoomProvider.chainIdToNetVersion(this._client.chainId);
         this._setupMiddlewares = setupMiddlewaresFunction;
@@ -97,6 +103,27 @@ var LoomProvider = /** @class */ (function () {
         this.addDefaultEvents();
         this.addAccounts([privateKey]);
     }
+    Object.defineProperty(LoomProvider.prototype, "strict", {
+        // Get strict
+        get: function () {
+            return this._strict;
+        },
+        /**
+         * Setter to the strict mode
+         */
+        set: function (v) {
+            this._strict = v;
+        },
+        enumerable: true,
+        configurable: true
+    });
+    Object.defineProperty(LoomProvider.prototype, "accountMiddlewares", {
+        get: function () {
+            return this._accountMiddlewares;
+        },
+        enumerable: true,
+        configurable: true
+    });
     /**
      * Creates new accounts by passing the private key array
      *
@@ -114,20 +141,16 @@ var LoomProvider = /** @class */ (function () {
             log("New account added " + accountAddress);
         });
     };
-    Object.defineProperty(LoomProvider.prototype, "strict", {
-        // Get strict
-        get: function () {
-            return this._strict;
-        },
-        /**
-         * Setter to the strict mode
-         */
-        set: function (v) {
-            this._strict = v;
-        },
-        enumerable: true,
-        configurable: true
-    });
+    /**
+     * Set an array of middlewares for a given account
+     *
+     * @param address Address to be register the middleware
+     * @param middlewares Array of middlewares for the address
+     */
+    LoomProvider.prototype.setMiddlewaresForAddress = function (address, middlewares) {
+        this.accounts.set(address.toLowerCase(), null);
+        this._accountMiddlewares.set(address.toLowerCase(), middlewares);
+    };
     // PUBLIC FUNCTION TO SUPPORT WEB3
     LoomProvider.prototype.on = function (type, callback) {
         switch (type) {
@@ -324,7 +347,7 @@ var LoomProvider = /** @class */ (function () {
             throw Error('No account available');
         }
         var accounts = new Array();
-        this.accounts.forEach(function (value, key) {
+        this.accounts.forEach(function (_value, key) {
             accounts.push(key);
         });
         return accounts;
@@ -668,7 +691,9 @@ var LoomProvider = /** @class */ (function () {
         });
     };
     LoomProvider.prototype._callAsync = function (payload) {
-        var caller = new address_1.Address(this._client.chainId, address_1.LocalAddress.fromHexString(payload.from));
+        var chainId = this.callerChainId === null ? this._client.chainId : this.callerChainId;
+        var caller = new address_1.Address(chainId, address_1.LocalAddress.fromHexString(payload.from));
+        log('caller', caller.toString());
         var address = new address_1.Address(this._client.chainId, address_1.LocalAddress.fromHexString(payload.to));
         var data = Buffer.from(payload.data.slice(2), 'hex');
         var value = new bn_js_1.default((payload.value || '0x0').slice(2), 16);
@@ -686,7 +711,9 @@ var LoomProvider = /** @class */ (function () {
         return this._commitTransaction(payload.from, tx);
     };
     LoomProvider.prototype._callStaticAsync = function (payload) {
-        var caller = new address_1.Address(this._client.chainId, address_1.LocalAddress.fromHexString(payload.from));
+        var chainId = this.callerChainId === null ? this._client.chainId : this.callerChainId;
+        var caller = new address_1.Address(chainId, address_1.LocalAddress.fromHexString(payload.from));
+        log('caller', caller.toString());
         var address = new address_1.Address(this._client.chainId, address_1.LocalAddress.fromHexString(payload.to));
         var data = Buffer.from(payload.data.slice(2), 'hex');
         return this._client.queryAsync(address, data, loom_pb_1.VMType.EVM, caller);
@@ -711,8 +738,8 @@ var LoomProvider = /** @class */ (function () {
         if (parentHash === '0x' && number === '0x1') {
             parentHash = '0x0000000000000000000000000000000000000000000000000000000000000001';
         }
-        // Some ZEROED values aren't at the moment
-        return {
+        // Some ZEROED values aren't available at the moment
+        var logResult = {
             number: number,
             hash: hash,
             parentHash: parentHash,
@@ -733,6 +760,16 @@ var LoomProvider = /** @class */ (function () {
             transactions: transactions,
             uncles: []
         };
+        if (this._strict) {
+            return logResult;
+        }
+        else {
+            return tslib_1.__assign({}, logResult, {
+                blockNumber: numberToHexLC(blockInfo.getNumber()),
+                transactionHash: bytesToHexAddrLC(blockInfo.getHash_asU8()),
+                timestamp: blockInfo.getTimestamp()
+            });
+        }
     };
     LoomProvider.prototype._createTransactionResult = function (txObject) {
         var hash = bytesToHexAddrLC(txObject.getHash_asU8());
@@ -749,7 +786,7 @@ var LoomProvider = /** @class */ (function () {
         if (input === '0x') {
             input = ZEROED_HEX;
         }
-        return {
+        var logResult = {
             blockHash: blockHash,
             blockNumber: blockNumber,
             from: from,
@@ -762,6 +799,14 @@ var LoomProvider = /** @class */ (function () {
             transactionIndex: transactionIndex,
             value: value
         };
+        if (this._strict) {
+            return logResult;
+        }
+        else {
+            return tslib_1.__assign({}, logResult, {
+                value: "" + txObject.getValue()
+            });
+        }
     };
     LoomProvider.prototype._createReceiptResult = function (receipt) {
         var _this = this;
@@ -786,7 +831,7 @@ var LoomProvider = /** @class */ (function () {
                 blockNumber: blockNumber,
                 transactionHash: bytesToHexAddrLC(logEvent.getTxHash_asU8()),
                 transactionIndex: transactionIndex,
-                type: 'mined',
+                type: MINED,
                 data: data,
                 topics: logEvent.getTopicsList().map(function (topic) { return topic.toLowerCase(); })
             };
@@ -853,7 +898,6 @@ var LoomProvider = /** @class */ (function () {
     };
     LoomProvider.prototype._createLogResult = function (log) {
         var removed = log.getRemoved();
-        var blockTime = numberToHexLC(log.getBlockTime());
         var logIndex = numberToHexLC(log.getLogIndex());
         var transactionIndex = crypto_utils_1.numberToHex(log.getTransactionIndex());
         var transactionHash = bytesToHexAddrLC(log.getTransactionHash_asU8());
@@ -862,7 +906,7 @@ var LoomProvider = /** @class */ (function () {
         var address = bytesToHexAddrLC(log.getAddress_asU8());
         var data = bytesToHexAddrLC(log.getData_asU8());
         var topics = log.getTopicsList().map(function (topic) { return String.fromCharCode.apply(null, topic); });
-        return {
+        var logResult = {
             removed: removed,
             logIndex: logIndex,
             transactionIndex: transactionIndex,
@@ -871,9 +915,16 @@ var LoomProvider = /** @class */ (function () {
             blockNumber: blockNumber,
             address: address,
             data: data,
-            topics: topics,
-            blockTime: blockTime
+            topics: topics
         };
+        if (this._strict) {
+            return logResult;
+        }
+        else {
+            return tslib_1.__assign({}, logResult, {
+                blockTime: log.getBlockTime()
+            });
+        }
     };
     LoomProvider.prototype._getLogs = function (filterObject) {
         return tslib_1.__awaiter(this, void 0, void 0, function () {
@@ -915,7 +966,7 @@ var LoomProvider = /** @class */ (function () {
                             blockHash: ZEROED_HEX,
                             blockNumber: blockNumber,
                             address: msgEvent.contractAddress.local.toString(),
-                            type: 'mined',
+                            type: MINED,
                             data: data,
                             topics: msgEvent.topics
                         }

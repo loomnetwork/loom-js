@@ -6,19 +6,13 @@ var tape_1 = tslib_1.__importDefault(require("tape"));
 var index_1 = require("../../index");
 var helpers_1 = require("../helpers");
 var solidity_helpers_1 = require("../../solidity-helpers");
-var ethers_1 = require("ethers");
-// TODO: Need a factory to create connection properly likes plasma-cash test
-function getEthersConnection() {
-    var provider = new ethers_1.ethers.providers.JsonRpcProvider('http://localhost:8545');
-    return provider.getSigner();
-}
 function getClientAndContract(createClient) {
     return tslib_1.__awaiter(this, void 0, void 0, function () {
         var privKey, pubKey, client, addressMapper;
         return tslib_1.__generator(this, function (_a) {
             switch (_a.label) {
                 case 0:
-                    privKey = index_1.CryptoUtils.B64ToUint8Array('D6XCGyCcDZ5TE22h66AlU+Bn6JqL4RnSl4a09RGU9LfM53JFG/T5GAnC0uiuIIiw9Dl0TwEAmdGb+WE0Bochkg==');
+                    privKey = index_1.CryptoUtils.B64ToUint8Array('RkNvOsko0nQFrJnXXVbmjGyaVmjQyr+ecJG8qGiF1LisazmV44qDcpsVsYvQZ9jxx7mIWJuZumIzYyLL6FOb4A==');
                     pubKey = index_1.CryptoUtils.publicKeyFromPrivateKey(privKey);
                     client = createClient();
                     client.txMiddleware = index_1.createDefaultTxMiddleware(client, privKey);
@@ -38,16 +32,18 @@ function testAddIdentity(t, createClient) {
                 case 0: return [4 /*yield*/, getClientAndContract(createClient)];
                 case 1:
                     _a = _b.sent(), client = _a.client, addressMapper = _a.addressMapper, pubKey = _a.pubKey;
-                    ethAddress = '0x90f8bf6a479f320ead074411a4b0e7944ea8c9c1';
+                    ethAddress = '0xffcf8fdee72ac11b5c542428b35eef5769c409f0';
                     from = new index_1.Address('eth', index_1.LocalAddress.fromHexString(ethAddress));
                     to = new index_1.Address(client.chainId, index_1.LocalAddress.fromPublicKey(pubKey));
-                    ethers = getEthersConnection();
+                    return [4 /*yield*/, solidity_helpers_1.getJsonRPCSignerAsync('http://localhost:8545', 1)];
+                case 2:
+                    ethers = _b.sent();
                     ethersSigner = new solidity_helpers_1.EthersSigner(ethers);
                     return [4 /*yield*/, addressMapper.addIdentityMappingAsync(from, to, ethersSigner)];
-                case 2:
+                case 3:
                     _b.sent();
                     return [4 /*yield*/, addressMapper.getMappingAsync(from)];
-                case 3:
+                case 4:
                     result = _b.sent();
                     t.assert(from.equals(result.from), 'Identity "from" correctly returned');
                     t.assert(to.equals(result.to), 'Identity "to" correctly returned');

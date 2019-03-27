@@ -1,3 +1,4 @@
+import { Address } from '../proto/loom_pb';
 import { ITxMiddlewareHandler, Client, ITxResults } from '../client';
 /**
  * Wraps data in a NonceTx.
@@ -11,10 +12,12 @@ import { ITxMiddlewareHandler, Client, ITxResults } from '../client';
  */
 export declare class SpeculativeNonceTxMiddleware implements ITxMiddlewareHandler {
     private _publicKey;
+    private _account;
     private _client;
     private _lastNonce;
     private _fetchNoncePromise;
     constructor(publicKey: Uint8Array, client: Client);
+    constructor(account: Address, client: Client);
     Handle(txData: Readonly<Uint8Array>): Promise<Uint8Array>;
     HandleResults(results: ITxResults): ITxResults;
     handleError(err: any): void;

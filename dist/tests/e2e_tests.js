@@ -15,12 +15,16 @@ require("./e2e/loom-provider-web3-child-events");
 require("./e2e/client-evm-tests");
 require("./e2e/client-evm-event-tests");
 require("./e2e/client-evm-event-tests-2");
+// Middlewares
 require("./e2e/client-test-tx-cache");
+require("./e2e/client-test-tx-middleware");
+// Events
 require("./e2e/multiple-events-nd-tests");
 // Contracts
 require("./e2e/coin-tests");
 require("./e2e/address-mapper-tests");
-require("./e2e/dpos-tests");
+// TODO: Re-enable once this is updated to DPOSv2
+//import './e2e/dpos-tests'
 // Weave Blueprint Contract
 require("./e2e/contract-tests");
 // Simple Store Contract

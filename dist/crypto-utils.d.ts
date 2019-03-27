@@ -1,6 +1,7 @@
-export declare function bytesToHex(bytes: Uint8Array): string;
+export declare function bytesToHex(bytes: Readonly<Uint8Array>): string;
 export declare function numberToHex(num: number): string;
 export declare function hexToNumber(hex: string): number;
+export declare function hexToBytes(hex: string): Uint8Array;
 export declare function bytesToHexAddr(bytes: Uint8Array): string;
 export declare function getGUID(): string;
 export declare const SIGNATURE_LENGTH: number;

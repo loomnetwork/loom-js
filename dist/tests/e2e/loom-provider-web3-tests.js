@@ -287,7 +287,7 @@ tape_1.default('LoomProvider + Web3 + getBlockByNumber', function (t) { return t
                 return [4 /*yield*/, web3.eth.getBlock(blockNumber, false)];
             case 4:
                 blockInfo = _b.sent();
-                t.equal(parseInt(blockInfo.blockNumber, 16), blockNumber, 'Block number should be equal');
+                t.equal(parseInt(blockInfo.number, 16), parseInt(blockNumber, 16), 'Block number should be equal');
                 return [3 /*break*/, 6];
             case 5:
                 err_6 = _b.sent();

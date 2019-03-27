@@ -13,6 +13,7 @@ var V2_GATEWAYS = ['oracle-dev', 'asia1'];
 var ERC20ABI = require('./mainnet-contracts/ERC20.json');
 var ERC20GatewayABI = require('./mainnet-contracts/ERC20Gateway.json');
 var ERC20GatewayABI_v2 = require('./mainnet-contracts/ERC20Gateway_v2.json');
+var solidity_helpers_1 = require("./solidity-helpers");
 var GatewayVersion;
 (function (GatewayVersion) {
     GatewayVersion[GatewayVersion["SINGLESIG"] = 1] = "SINGLESIG";
@@ -47,12 +48,32 @@ var DPOSUser = /** @class */ (function () {
         });
     };
     DPOSUser.createMetamaskUserAsync = function (web3, dappchainEndpoint, dappchainKey, chainId, gatewayAddress, loomAddress, version) {
+        var wallet = solidity_helpers_1.getMetamaskSigner(web3.currentProvider);
+        return DPOSUser.createUserAsync(wallet, dappchainEndpoint, dappchainKey, chainId, gatewayAddress, loomAddress, version);
+    };
+    DPOSUser.createEthSignMetamaskUserAsync = function (web3, dappchainEndpoint, chainId, gatewayAddress, loomAddress) {
         return tslib_1.__awaiter(this, void 0, void 0, function () {
-            var provider, wallet;
-            return tslib_1.__generator(this, function (_a) {
-                provider = new ethers_1.ethers.providers.Web3Provider(web3.currentProvider);
-                wallet = provider.getSigner();
-                return [2 /*return*/, DPOSUser.createUserAsync(wallet, dappchainEndpoint, dappchainKey, chainId, gatewayAddress, loomAddress, version)];
+            var wallet, _a, client, callerAddress, ethAddress, dappchainLoom, dappchainDPOS, dappchainGateway;
+            return tslib_1.__generator(this, function (_b) {
+                switch (_b.label) {
+                    case 0:
+                        wallet = solidity_helpers_1.getMetamaskSigner(web3.currentProvider);
+                        return [4 /*yield*/, helpers_1.createDefaultEthSignClientAsync(dappchainEndpoint, chainId, wallet)];
+                    case 1:
+                        _a = _b.sent(), client = _a.client, callerAddress = _a.callerAddress;
+                        ethAddress = callerAddress.local.toString();
+                        return [4 /*yield*/, contracts_1.Coin.createAsync(client, callerAddress)];
+                    case 2:
+                        dappchainLoom = _b.sent();
+                        return [4 /*yield*/, contracts_1.DPOS2.createAsync(client, callerAddress)];
+                    case 3:
+                        dappchainDPOS = _b.sent();
+                        return [4 /*yield*/, contracts_1.LoomCoinTransferGateway.createAsync(client, callerAddress)];
+                    case 4:
+                        dappchainGateway = _b.sent();
+                        return [2 /*return*/, new DPOSUser(wallet, client, callerAddress, ethAddress, gatewayAddress, loomAddress, dappchainGateway, dappchainLoom, dappchainDPOS, null // Address Mapper isn't used
+                            )];
+                }
             });
         });
     };
@@ -164,7 +185,11 @@ var DPOSUser = /** @class */ (function () {
             var walletAddress, ethereumAddress, signer;
             return tslib_1.__generator(this, function (_a) {
                 switch (_a.label) {
-                    case 0: return [4 /*yield*/, this._wallet.getAddress()];
+                    case 0:
+                        if (!this._dappchainMapper) {
+                            throw Error("AddressMapper isn't available");
+                        }
+                        return [4 /*yield*/, this._wallet.getAddress()];
                     case 1:
                         walletAddress = _a.sent();
                         ethereumAddress = _1.Address.fromString("eth:" + walletAddress);
@@ -366,8 +391,9 @@ var DPOSUser = /** @class */ (function () {
             });
         });
     };
-    DPOSUser.prototype.checkRewardsAsync = function () {
-        return this._dappchainDPOS.checkDistributionAsync();
+    DPOSUser.prototype.checkRewardsAsync = function (owner) {
+        var address = owner ? this.prefixAddress(owner) : this._address;
+        return this._dappchainDPOS.checkDistributionAsync(address);
     };
     /**
      * Retrieves the  DAppChain LoomCoin balance of a user
@@ -402,7 +428,9 @@ var DPOSUser = /** @class */ (function () {
             return tslib_1.__generator(this, function (_a) {
                 switch (_a.label) {
                     case 0:
-                        address = owner ? _1.Address.fromString("eth:" + owner) : _1.Address.fromString("eth:" + this.ethAddress);
+                        address = owner
+                            ? _1.Address.fromString("eth:" + owner)
+                            : _1.Address.fromString("eth:" + this.ethAddress);
                         return [4 /*yield*/, this._dappchainGateway.getUnclaimedTokensAsync(address)];
                     case 1:
                         tokens = _a.sent();

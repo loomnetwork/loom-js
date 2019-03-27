@@ -22,14 +22,15 @@ export declare class DPOSUser {
     private _version;
     static createOfflineUserAsync(endpoint: string, privateKey: string, dappchainEndpoint: string, dappchainKey: string, chainId: string, gatewayAddress: string, loomAddress: string, version?: number): Promise<DPOSUser>;
     static createMetamaskUserAsync(web3: Web3, dappchainEndpoint: string, dappchainKey: string, chainId: string, gatewayAddress: string, loomAddress: string, version?: GatewayVersion): Promise<DPOSUser>;
+    static createEthSignMetamaskUserAsync(web3: Web3, dappchainEndpoint: string, chainId: string, gatewayAddress: string, loomAddress: string): Promise<DPOSUser>;
     static createUserAsync(wallet: ethers.Signer, dappchainEndpoint: string, dappchainKey: string, chainId: string, gatewayAddress: string, loomAddress: string, version?: GatewayVersion): Promise<DPOSUser>;
-    constructor(wallet: ethers.Signer, client: Client, address: Address, ethAddress: string, gatewayAddress: string, loomAddress: string, dappchainGateway: Contracts.LoomCoinTransferGateway, dappchainLoom: Contracts.Coin, dappchainDPOS: Contracts.DPOS2, dappchainMapper: Contracts.AddressMapper, version?: GatewayVersion);
+    constructor(wallet: ethers.Signer, client: Client, address: Address, ethAddress: string, gatewayAddress: string, loomAddress: string, dappchainGateway: Contracts.LoomCoinTransferGateway, dappchainLoom: Contracts.Coin, dappchainDPOS: Contracts.DPOS2, dappchainMapper: Contracts.AddressMapper | null, version?: GatewayVersion);
     readonly ethereumGateway: ethers.Contract;
     readonly ethereumLoom: ethers.Contract;
     readonly dappchainLoom: Contracts.Coin;
     readonly dappchainGateway: Contracts.LoomCoinTransferGateway;
     readonly dappchainDPOS: Contracts.DPOS2;
-    readonly addressMapper: Contracts.AddressMapper;
+    readonly addressMapper: Contracts.AddressMapper | null;
     readonly ethAddress: string;
     readonly loomAddress: Address;
     /**
@@ -91,7 +92,7 @@ export declare class DPOSUser {
      */
     getTotalDelegationAsync(delegator?: string): Promise<ITotalDelegation | null>;
     getPendingWithdrawalReceiptAsync(): Promise<IWithdrawalReceipt | null>;
-    checkRewardsAsync(): Promise<BN>;
+    checkRewardsAsync(owner?: string): Promise<BN>;
     /**
      * Retrieves the  DAppChain LoomCoin balance of a user
      * @param address The address to check the balance of. If not provided, it will check the user's balance

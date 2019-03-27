@@ -709,21 +709,38 @@ var Client = /** @class */ (function (_super) {
         return this._readClient.sendAsync('getblockheight', {});
     };
     /**
-     * Gets a nonce for the given public key.
+     * Gets a nonce for the account identified by the given public key.
      *
-     * This should only be called by NonceTxMiddleware.
+     * This should only be called by middleware.
      *
      * @param key A hex encoded public key.
      * @return The nonce.
      */
     Client.prototype.getNonceAsync = function (key) {
         return tslib_1.__awaiter(this, void 0, void 0, function () {
+            return tslib_1.__generator(this, function (_a) {
+                return [2 /*return*/, this.getAccountNonceAsync({ key: key })];
+            });
+        });
+    };
+    /**
+     * Gets a nonce for the account identified by the given public key or address.
+     *
+     * Only the key or the account needs to be provided, if both are provided the key is ignored.
+     * This should only be called by middleware.
+     *
+     * @param key A hex encoded public key.
+     * @parma account Account address prefixed by the chain ID, in the form chainID:0xdeadbeef
+     * @return The nonce.
+     */
+    Client.prototype.getAccountNonceAsync = function (params) {
+        return tslib_1.__awaiter(this, void 0, void 0, function () {
             var _a;
             return tslib_1.__generator(this, function (_b) {
                 switch (_b.label) {
                     case 0:
                         _a = parseInt;
-                        return [4 /*yield*/, this._writeClient.sendAsync('nonce', { key: key })];
+                        return [4 /*yield*/, this._writeClient.sendAsync('nonce', params)];
                     case 1: return [2 /*return*/, _a.apply(void 0, [_b.sent(), 10])];
                 }
             });
@@ -746,6 +763,7 @@ var Client = /** @class */ (function (_super) {
                         if (!addrStr) {
                             return [2 /*return*/, null];
                         }
+                        debugLog("Found contract " + contractName + " with address " + address_1.Address.fromString(addrStr));
                         return [2 /*return*/, address_1.Address.fromString(addrStr)];
                 }
             });

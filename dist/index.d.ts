@@ -3,7 +3,7 @@ export { Contract } from './contract';
 export { EvmContract } from './evm-contract';
 export { Address, LocalAddress } from './address';
 export { unmarshalBigUIntPB, marshalBigUIntPB } from './big-uint';
-export { SignedTxMiddleware, NonceTxMiddleware, CachedNonceTxMiddleware, SpeculativeNonceTxMiddleware, isInvalidTxNonceError } from './middleware';
+export { SignedTxMiddleware, SignedEthTxMiddleware, NonceTxMiddleware, CachedNonceTxMiddleware, SpeculativeNonceTxMiddleware, isInvalidTxNonceError } from './middleware';
 export { createDefaultTxMiddleware } from './helpers';
 export { LoomProvider } from './loom-provider';
 import * as Contracts from './contracts';
@@ -15,7 +15,7 @@ export { createJSONRPCClient, IJSONRPCProtocolOptions } from './rpc-client-facto
 export { DAppChainPlasmaClient } from './plasma-cash/dappchain-client';
 export { EthereumPlasmaClient, IPlasmaCoin, PlasmaCoinState, IPlasmaDeposit, IPlasmaChallenge, marshalChallengeEvent } from './plasma-cash/ethereum-client';
 export { PlasmaCashTx } from './plasma-cash/plasma-cash-tx';
-export { IEthereumSigner, OfflineWeb3Signer, Web3Signer, EthersSigner, soliditySha3 } from './solidity-helpers';
+export { IEthereumSigner, OfflineWeb3Signer, Web3Signer, EthersSigner, soliditySha3, getJsonRPCSignerAsync, getMetamaskSigner } from './solidity-helpers';
 export { Entity, IEntityParams } from './plasma-cash/entity';
 export { User as PlasmaUser } from './plasma-cash/user';
 export { DPOSUser } from './dpos-user';

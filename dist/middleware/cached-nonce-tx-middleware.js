@@ -6,6 +6,7 @@ var loom_pb_1 = require("../proto/loom_pb");
 var client_1 = require("../client");
 var crypto_utils_1 = require("../crypto-utils");
 var nonce_tx_middleware_1 = require("./nonce-tx-middleware");
+var address_1 = require("../address");
 var log = debug_1.default('cached-nonce-tx-middleware');
 /**
  * Wraps data in a NonceTx.
@@ -14,14 +15,21 @@ var log = debug_1.default('cached-nonce-tx-middleware');
  * latest nonce.
  */
 var CachedNonceTxMiddleware = /** @class */ (function () {
-    function CachedNonceTxMiddleware(publicKey, client) {
-        this._publicKey = publicKey;
+    function CachedNonceTxMiddleware(publicKeyOrAccount, client) {
+        this._publicKey = null;
+        this._account = null;
+        if (publicKeyOrAccount instanceof address_1.Address) {
+            this._account = publicKeyOrAccount;
+        }
+        else {
+            this._publicKey = publicKeyOrAccount;
+        }
         this._client = client;
         this._lastNonce = -1;
     }
     CachedNonceTxMiddleware.prototype.Handle = function (txData) {
         return tslib_1.__awaiter(this, void 0, void 0, function () {
-            var key, _a, err_1, tx;
+            var key, account, _a, err_1, tx;
             return tslib_1.__generator(this, function (_b) {
                 switch (_b.label) {
                     case 0:
@@ -30,9 +38,10 @@ var CachedNonceTxMiddleware = /** @class */ (function () {
                         _b.label = 1;
                     case 1:
                         _b.trys.push([1, 3, , 4]);
-                        key = crypto_utils_1.bytesToHex(this._publicKey);
+                        key = this._publicKey ? crypto_utils_1.bytesToHex(this._publicKey) : undefined;
+                        account = this._account ? this._account.toString() : undefined;
                         _a = this;
-                        return [4 /*yield*/, this._client.getNonceAsync(key)];
+                        return [4 /*yield*/, this._client.getAccountNonceAsync({ key: key, account: account })];
                     case 2:
                         _a._lastNonce = _b.sent();
                         return [3 /*break*/, 4];

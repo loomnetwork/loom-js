@@ -1,3 +1,4 @@
+import { Address } from '../address';
 import { ITxMiddlewareHandler, Client, ITxResults } from '../client';
 export declare const INVALID_TX_NONCE_ERROR = "Invalid tx nonce";
 export declare function isInvalidTxNonceError(err: any): boolean;
@@ -8,8 +9,10 @@ export declare function isInvalidTxNonceError(err: any): boolean;
  */
 export declare class NonceTxMiddleware implements ITxMiddlewareHandler {
     private _publicKey;
+    private _account;
     private _client;
     constructor(publicKey: Uint8Array, client: Client);
+    constructor(account: Address, client: Client);
     Handle(txData: Readonly<Uint8Array>): Promise<Uint8Array>;
     HandleResults(results: ITxResults): ITxResults;
 }

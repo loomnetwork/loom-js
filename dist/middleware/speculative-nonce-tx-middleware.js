@@ -18,8 +18,15 @@ var log = debug_1.default('speculative-nonce-tx-middleware');
  * sent to the chain - which makes it possible for a caller to rapidly submit a bunch of txs.
  */
 var SpeculativeNonceTxMiddleware = /** @class */ (function () {
-    function SpeculativeNonceTxMiddleware(publicKey, client) {
-        this._publicKey = publicKey;
+    function SpeculativeNonceTxMiddleware(publicKeyOrAccount, client) {
+        this._publicKey = null;
+        this._account = null;
+        if (publicKeyOrAccount instanceof loom_pb_1.Address) {
+            this._account = publicKeyOrAccount;
+        }
+        else {
+            this._publicKey = publicKeyOrAccount;
+        }
         this._client = client;
         this._lastNonce = -1;
         this._fetchNoncePromise = null;
@@ -96,15 +103,16 @@ var SpeculativeNonceTxMiddleware = /** @class */ (function () {
     };
     SpeculativeNonceTxMiddleware.prototype._fetchNonce = function () {
         return tslib_1.__awaiter(this, void 0, void 0, function () {
-            var key, _a, err_1;
+            var key, account, _a, err_1;
             return tslib_1.__generator(this, function (_b) {
                 switch (_b.label) {
                     case 0:
                         _b.trys.push([0, 2, , 3]);
                         log('Fetching nonce...');
-                        key = crypto_utils_1.bytesToHex(this._publicKey);
+                        key = this._publicKey ? crypto_utils_1.bytesToHex(this._publicKey) : undefined;
+                        account = this._account ? this._account.toString() : undefined;
                         _a = this;
-                        return [4 /*yield*/, this._client.getNonceAsync(key)];
+                        return [4 /*yield*/, this._client.getAccountNonceAsync({ key: key, account: account })];
                     case 1:
                         _a._lastNonce = _b.sent();
                         log("Fetched nonce " + this._lastNonce);

@@ -48,9 +48,11 @@ export interface IEthBlock {
     size: string;
     gasLimit: string;
     gasUsed: string;
-    timestamp: string;
+    timestamp: string | number;
     transactions: Array<IEthTransaction | string>;
     uncles: Array<string>;
+    blockNumber?: string;
+    transactionHash?: string;
 }
 export interface IEthPubSubNewHeads {
     jsonrpc: '2.0';
@@ -101,7 +103,7 @@ export interface IEthFilterLog {
     address: string;
     data: string;
     topics: Array<string>;
-    blockTime: string;
+    blockTime?: number;
 }
 export interface IEthRPCPayload {
     id: number;
@@ -121,7 +123,7 @@ export declare class LoomProvider {
     private _netVersionFromChainId;
     private _ethRPCMethods;
     protected notificationCallbacks: Array<Function>;
-    readonly accounts: Map<string, Uint8Array>;
+    readonly accounts: Map<string, Uint8Array | null>;
     /**
      * Strict mode true remove any param on JSON RPC that isn't compliant with the
      * official Ethereum RPC docs https://en.ethereum.wiki/json-rpc
@@ -135,12 +137,22 @@ export declare class LoomProvider {
      */
     retryStrategy: retry.OperationOptions;
     /**
+     * Overrides the chain ID of the caller, when this is `null` the caller chain ID defaults
+     * to the client chain ID.
+     */
+    callerChainId: string | null;
+    /**
      * Constructs the LoomProvider to bridges communication between Web3 and Loom DappChains
      *
      * @param client Client from LoomJS
      * @param privateKey Account private key
      */
     constructor(client: Client, privateKey: Uint8Array, setupMiddlewaresFunction?: SetupMiddlewareFunction);
+    /**
+    * Setter to the strict mode
+    */
+    strict: boolean;
+    readonly accountMiddlewares: Map<string, Array<ITxMiddlewareHandler>>;
     /**
      * Creates new accounts by passing the private key array
      *
@@ -150,9 +162,12 @@ export declare class LoomProvider {
      */
     addAccounts(accountsPrivateKey: Array<Uint8Array>): void;
     /**
-    * Setter to the strict mode
-    */
-    strict: boolean;
+     * Set an array of middlewares for a given account
+     *
+     * @param address Address to be register the middleware
+     * @param middlewares Array of middlewares for the address
+     */
+    setMiddlewaresForAddress(address: string, middlewares: Array<ITxMiddlewareHandler>): void;
     on(type: string, callback: any): void;
     addDefaultEvents(): void;
     addDefaultMethods(): void;

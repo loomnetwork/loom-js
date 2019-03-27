@@ -40,7 +40,6 @@ var WSRPCClient = /** @class */ (function (_super) {
                 log('EVM Event arrived', msg);
                 _this.emit(json_rpc_client_1.RPCClientEvent.EVMMessage, _this.url, msg);
             }
-            log('Non-Loom and Non-EVM event', msg);
         };
         var _a = opts.autoConnect, autoConnect = _a === void 0 ? true : _a, _b = opts.requestTimeout, requestTimeout = _b === void 0 ? 15000 : _b, // 15s
         reconnectInterval = opts.reconnectInterval, _c = opts.maxReconnects, maxReconnects = _c === void 0 ? 0 : _c, // 0 means there is no limit

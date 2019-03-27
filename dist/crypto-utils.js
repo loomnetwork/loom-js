@@ -16,6 +16,10 @@ function hexToNumber(hex) {
     return parseInt(hex, 16);
 }
 exports.hexToNumber = hexToNumber;
+function hexToBytes(hex) {
+    return Buffer.from(hex.startsWith('0x') ? hex.slice(2) : hex, 'hex');
+}
+exports.hexToBytes = hexToBytes;
 function bytesToHexAddr(bytes) {
     return '0x' + bytesToHex(bytes);
 }

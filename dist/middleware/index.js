@@ -9,4 +9,6 @@ var cached_nonce_tx_middleware_1 = require("./cached-nonce-tx-middleware");
 exports.CachedNonceTxMiddleware = cached_nonce_tx_middleware_1.CachedNonceTxMiddleware;
 var speculative_nonce_tx_middleware_1 = require("./speculative-nonce-tx-middleware");
 exports.SpeculativeNonceTxMiddleware = speculative_nonce_tx_middleware_1.SpeculativeNonceTxMiddleware;
+var signed_eth_tx_middleware_1 = require("./signed-eth-tx-middleware");
+exports.SignedEthTxMiddleware = signed_eth_tx_middleware_1.SignedEthTxMiddleware;
 //# sourceMappingURL=index.js.map

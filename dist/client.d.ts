@@ -297,14 +297,28 @@ export declare class Client extends EventEmitter {
      */
     getBlockHeightAsync(): Promise<number>;
     /**
-     * Gets a nonce for the given public key.
+     * Gets a nonce for the account identified by the given public key.
      *
-     * This should only be called by NonceTxMiddleware.
+     * This should only be called by middleware.
      *
      * @param key A hex encoded public key.
      * @return The nonce.
      */
     getNonceAsync(key: string): Promise<number>;
+    /**
+     * Gets a nonce for the account identified by the given public key or address.
+     *
+     * Only the key or the account needs to be provided, if both are provided the key is ignored.
+     * This should only be called by middleware.
+     *
+     * @param key A hex encoded public key.
+     * @parma account Account address prefixed by the chain ID, in the form chainID:0xdeadbeef
+     * @return The nonce.
+     */
+    getAccountNonceAsync(params: {
+        key?: string;
+        account?: string;
+    }): Promise<number>;
     /**
      * Tries to resolve a contract name to an address.
      *

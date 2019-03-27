@@ -179,13 +179,14 @@ var DPOS2 = /** @class */ (function (_super) {
             });
         });
     };
-    DPOS2.prototype.checkDistributionAsync = function () {
+    DPOS2.prototype.checkDistributionAsync = function (owner) {
         return tslib_1.__awaiter(this, void 0, void 0, function () {
             var checkDistributionReq, result;
             return tslib_1.__generator(this, function (_a) {
                 switch (_a.label) {
                     case 0:
                         checkDistributionReq = new dposv2_pb_1.CheckDistributionRequest();
+                        checkDistributionReq.setAddress(owner.MarshalPB());
                         return [4 /*yield*/, this.staticCallAsync('CheckDistribution', checkDistributionReq, new dposv2_pb_1.CheckDistributionResponse())];
                     case 1:
                         result = _a.sent();
@@ -252,18 +253,24 @@ var DPOS2 = /** @class */ (function (_super) {
         var unregisterCandidateRequest = new dposv2_pb_1.UnregisterCandidateRequestV2();
         return this.callAsync('UnregisterCandidate', unregisterCandidateRequest);
     };
-    DPOS2.prototype.delegateAsync = function (validator, amount, tier) {
+    DPOS2.prototype.delegateAsync = function (validator, amount, tier, referrer) {
         var delegateRequest = new dposv2_pb_1.DelegateRequestV2();
         delegateRequest.setValidatorAddress(validator.MarshalPB());
         delegateRequest.setAmount(big_uint_1.marshalBigUIntPB(amount));
         delegateRequest.setLocktimeTier(tier);
+        if (referrer) {
+            delegateRequest.setReferrer(referrer);
+        }
         return this.callAsync('Delegate2', delegateRequest);
     };
-    DPOS2.prototype.redelegateAsync = function (oldValidator, validator, amount) {
+    DPOS2.prototype.redelegateAsync = function (oldValidator, validator, amount, referrer) {
         var redelegateRequest = new dposv2_pb_1.RedelegateRequestV2();
         redelegateRequest.setFormerValidatorAddress(oldValidator.MarshalPB());
         redelegateRequest.setValidatorAddress(validator.MarshalPB());
         redelegateRequest.setAmount(big_uint_1.marshalBigUIntPB(amount));
+        if (referrer) {
+            redelegateRequest.setReferrer(referrer);
+        }
         return this.callAsync('Redelegate', redelegateRequest);
     };
     DPOS2.prototype.unbondAsync = function (validator, amount) {

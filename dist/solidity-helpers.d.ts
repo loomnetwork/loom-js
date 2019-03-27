@@ -8,16 +8,27 @@ export interface IEthereumSigner {
     signAsync(msg: string): Promise<Uint8Array>;
 }
 /**
+ * Returns the Metamask signer from web3 current provider
+ */
+export declare function getMetamaskSigner(provider: any): ethers.Signer;
+/**
+ * Returns json rpc signer, ex: http://localhost:8545
+ *
+ * @param urlString url string to connect to provider
+ * @param accountIndex index of the account on providers list
+ */
+export declare function getJsonRPCSignerAsync(urlString: string, accountIndex?: number): Promise<ethers.Signer>;
+/**
  * Signs message using a Web3 account.
  * This signer should be used for interactive signing in the browser with MetaMask.
  */
 export declare class EthersSigner implements IEthereumSigner {
-    private _wallet;
+    private _signer;
     /**
      * @param web3 Web3 instance to use for signing.
      * @param accountAddress Address of web3 account to sign with.
      */
-    constructor(wallet: ethers.Signer);
+    constructor(signer: ethers.Signer);
     /**
      * Signs a message.
      * @param msg Message to sign.
