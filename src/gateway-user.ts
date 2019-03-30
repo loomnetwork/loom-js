@@ -87,6 +87,23 @@ export class GatewayUser extends CrossChainUser {
     )
   }
 
+  private static getGatewayVersion(
+    endpoint: string,
+    version?: GatewayVersion
+  ): GatewayVersion | undefined {
+    // If no gateway version is provided, pick based on the chain URL prefix
+    if (version === undefined) {
+      const chainName = endpoint.split('.')[0]
+      for (let chainPrefix of V2_GATEWAYS) {
+        if (chainName.indexOf(chainPrefix) != -1) {
+          version = GatewayVersion.MULTISIG
+        }
+      }
+    }
+
+    return version
+  }
+
   static async createGatewayUserAsync(
     wallet: ethers.Signer,
     dappchainEndpoint: string,
@@ -97,15 +114,7 @@ export class GatewayUser extends CrossChainUser {
     vmcAddress?: string,
     version?: GatewayVersion
   ): Promise<GatewayUser> {
-    // If no gateway version is provided, pick based on the chain URL prefix
-    if (version === undefined) {
-      const chainName = dappchainEndpoint.split('.')[0]
-      for (let chainPrefix of V2_GATEWAYS) {
-        if (chainName.indexOf(chainPrefix) != -1) {
-          version = GatewayVersion.MULTISIG
-        }
-      }
-    }
+    const gwVersion = this.getGatewayVersion(dappchainEndpoint, version)
 
     let crosschain = await CrossChainUser.createCrossChainUserAsync(
       wallet,
@@ -131,7 +140,7 @@ export class GatewayUser extends CrossChainUser {
       dappchainLoom,
       crosschain.addressMapper,
       vmcAddress,
-      version
+      gwVersion
     )
   }
 
