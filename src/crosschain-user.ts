@@ -2,10 +2,11 @@ import debug from 'debug'
 import { ethers } from 'ethers'
 import Web3 from 'web3'
 
-import { createDefaultClient } from './helpers'
+import { createDefaultClient, createDefaultEthSignClientAsync } from './helpers'
 import { Address, LocalAddress, Client, Contracts, EthersSigner } from '.'
 
 import { AddressMapper } from './contracts/address-mapper'
+import { getMetamaskSigner } from './solidity-helpers';
 
 const log = debug('crosschain')
 
@@ -14,7 +15,7 @@ export class CrossChainUser {
   private _client: Client
   private _address: Address
   private _ethAddress: string
-  private _dappchainMapper: Contracts.AddressMapper
+  private _dappchainMapper: Contracts.AddressMapper | nulll
 
   static async createOfflineCrossChainUserAsync(
     endpoint: string,
@@ -49,6 +50,23 @@ export class CrossChainUser {
     )
   }
 
+
+  static async createEthSignMetamaskCrossChainUserAsync(
+    web3: Web3,
+    dappchainEndpoint: string,
+    chainId: string
+  ): Promise<CrossChainUser> {
+    const wallet = getMetamaskSigner(web3.currentProvider)
+
+    const { client, callerAddress } = await createDefaultEthSignClientAsync(dappchainEndpoint, chainId, wallet)
+    const ethAddress = callerAddress.local.toString()
+    const mapper = await AddressMapper.createAsync(client, callerAddress)
+    const mapping = await mapper.getMappingAsync(callerAddress)
+    const dappchainAddress = mapping.to
+
+    return new CrossChainUser(wallet, client, dappchainAddress, ethAddress, null)
+  }
+
   static async createCrossChainUserAsync(
     wallet: ethers.Signer,
     dappchainEndpoint: string,
@@ -69,7 +87,7 @@ export class CrossChainUser {
     client: Client,
     address: Address,
     ethAddress: string,
-    dappchainMapper: Contracts.AddressMapper
+    dappchainMapper: Contracts.AddressMapper | null
   ) {
     this._wallet = wallet
     this._address = address
