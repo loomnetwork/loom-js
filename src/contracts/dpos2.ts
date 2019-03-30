@@ -225,8 +225,9 @@ export class DPOS2 extends Contract {
     }
   }
 
-  async checkDistributionAsync(): Promise<BN> {
+  async checkDistributionAsync(owner: Address): Promise<BN> {
     const checkDistributionReq = new CheckDistributionRequest()
+    checkDistributionReq.setAddress(owner.MarshalPB())
     const result = await this.staticCallAsync(
       'CheckDistribution',
       checkDistributionReq,

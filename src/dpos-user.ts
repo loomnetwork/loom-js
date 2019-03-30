@@ -77,7 +77,6 @@ export class DPOSUser extends GatewayUser {
   static async createEthSignMetamaskUserAsync(
     web3: Web3,
     dappchainEndpoint: string,
-    dappchainKey: string,
     chainId: string,
     gatewayAddress: string,
     loomAddress: string,
@@ -85,10 +84,9 @@ export class DPOSUser extends GatewayUser {
     version?: GatewayVersion
   ): Promise<DPOSUser> {
     const wallet = getMetamaskSigner(web3.currentProvider)
-    const gatewayUser = await GatewayUser.createGatewayUserAsync(
+    const gatewayUser = await GatewayUser.createEthSignGatewayUserAsync(
       wallet,
       dappchainEndpoint,
-      dappchainKey,
       chainId,
       gatewayAddress,
       loomAddress,
@@ -96,25 +94,28 @@ export class DPOSUser extends GatewayUser {
       version
     )
 
-    const { client, address } = await createDefaultEthSignClientAsync(
-      dappchainKey,
+    const { client, callerAddress } = await createDefaultEthSignClientAsync(
       dappchainEndpoint,
       chainId,
       wallet
     )
+
     const dappchainDPOS = await DPOS2.createAsync(client, address)
     log('Connected to dappchain DPOS Contract')
+    
+    // Get the loom address from the address mapper
+    const loomAddress = (await gatewayUser.addressMapper.getMapping(gatewayUser.loomAddress)).to
     return new DPOSUser(
       gatewayUser.wallet,
       gatewayUser.client,
-      gatewayUser.loomAddress,
+      loomAddress,
       gatewayUser.ethAddress,
       gatewayAddress,
       loomAddress,
       gatewayUser.dappchainGateway,
       gatewayUser.dappchainLoom,
       dappchainDPOS,
-      gatewayUser.addressMapper,
+      null,
       vmcAddress,
       version
     )
@@ -170,7 +171,7 @@ export class DPOSUser extends GatewayUser {
     dappchainGateway: Contracts.LoomCoinTransferGateway,
     dappchainLoom: Contracts.Coin,
     dappchainDPOS: Contracts.DPOS2,
-    dappchainMapper: Contracts.AddressMapper,
+    dappchainMapper: Contracts.AddressMapper | null,
     vmcAddress?: string,
     version: GatewayVersion = GatewayVersion.SINGLESIG
   ) {
@@ -283,7 +284,8 @@ export class DPOSUser extends GatewayUser {
     return this._dappchainDPOS.totalDelegationAsync(delegatorAddress)
   }
 
-  checkRewardsAsync(): Promise<BN> {
-    return this._dappchainDPOS.checkDistributionAsync()
+  checkRewardsAsync(owner?: string): Promise<BN> {
+    const address = owner ? this.prefixAddress(owner) : this._address
+    return this._dappchainDPOS.checkDistributionAsync(address)
   }
 }
