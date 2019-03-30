@@ -21,8 +21,6 @@ import {
 import { LocalAddress } from './address'
 import { getMetamaskSigner } from './solidity-helpers'
 
-
-
 const log = debug('dpos-user')
 
 export class DPOSUser extends GatewayUser {

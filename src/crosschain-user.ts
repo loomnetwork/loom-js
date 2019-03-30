@@ -25,7 +25,12 @@ export class CrossChainUser {
   ): Promise<CrossChainUser> {
     const provider = new ethers.providers.JsonRpcProvider(endpoint)
     const wallet = new ethers.Wallet(privateKey, provider)
-    return CrossChainUser.createCrossChainUserAsync(wallet, dappchainEndpoint, dappchainKey, chainId)
+    return CrossChainUser.createCrossChainUserAsync(
+      wallet,
+      dappchainEndpoint,
+      dappchainKey,
+      chainId
+    )
   }
 
   static async createMetamaskCrossChainUserAsync(
@@ -36,7 +41,12 @@ export class CrossChainUser {
   ): Promise<CrossChainUser> {
     const provider = new ethers.providers.Web3Provider(web3.currentProvider)
     const wallet = provider.getSigner()
-    return CrossChainUser.createCrossChainUserAsync(wallet, dappchainEndpoint, dappchainKey, chainId)
+    return CrossChainUser.createCrossChainUserAsync(
+      wallet,
+      dappchainEndpoint,
+      dappchainKey,
+      chainId
+    )
   }
 
   static async createCrossChainUserAsync(
