@@ -3,7 +3,7 @@ import debug from 'debug'
 import { ethers } from 'ethers'
 import Web3 from 'web3'
 
-import { CryptoUtils, Address, LocalAddress, Client, Contracts } from '.'
+import { CryptoUtils, Address, Client, Contracts } from '.'
 import { Coin, LoomCoinTransferGateway } from './contracts'
 import { IWithdrawalReceipt } from './contracts/transfer-gateway'
 import { sleep, parseSigs } from './helpers'
@@ -11,7 +11,7 @@ import { getMetamaskSigner } from './solidity-helpers'
 
 import { CrossChainUser } from './crosschain-user'
 
-const log = debug('dpos-user')
+const log = debug('gateway-user')
 
 const coinMultiplier = new BN(10).pow(new BN(18))
 
@@ -103,9 +103,6 @@ export class GatewayUser extends CrossChainUser {
 
     return version
   }
-
-
-
 
   static async createEthSignMetamaskGatewayUserAsync(
     web3: Web3,

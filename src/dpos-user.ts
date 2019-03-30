@@ -1,11 +1,11 @@
 import BN from 'bn.js'
 import debug from 'debug'
-import { ethers, ContractTransaction } from 'ethers'
+import { ethers } from 'ethers'
 import Web3 from 'web3'
 
 import { Address, Client, Contracts } from '.'
-import { DPOS2, Coin, LoomCoinTransferGateway, AddressMapper } from './contracts'
-import { createDefaultClient, createDefaultEthSignClientAsync } from './helpers'
+import { DPOS2 } from './contracts'
+import { createDefaultClient } from './helpers'
 import { GatewayUser, GatewayVersion } from './gateway-user'
 
 import {
@@ -18,7 +18,6 @@ import {
   IDelegatorDelegations
 } from './contracts/dpos2'
 
-import { LocalAddress } from './address'
 import { getMetamaskSigner } from './solidity-helpers'
 
 const log = debug('dpos-user')
@@ -83,9 +82,8 @@ export class DPOSUser extends GatewayUser {
     vmcAddress?: string,
     version?: GatewayVersion
   ): Promise<DPOSUser> {
-    const wallet = getMetamaskSigner(web3.currentProvider)
-    const gatewayUser = await GatewayUser.createEthSignGatewayUserAsync(
-      wallet,
+    const gatewayUser = await GatewayUser.createEthSignMetamaskGatewayUserAsync(
+      web3,
       dappchainEndpoint,
       chainId,
       gatewayAddress,
@@ -94,24 +92,16 @@ export class DPOSUser extends GatewayUser {
       version
     )
 
-    const { client, callerAddress } = await createDefaultEthSignClientAsync(
-      dappchainEndpoint,
-      chainId,
-      wallet
-    )
-
-    const dappchainDPOS = await DPOS2.createAsync(client, address)
+    const dappchainDPOS = await DPOS2.createAsync(gatewayUser.client, gatewayUser.loomAddress)
     log('Connected to dappchain DPOS Contract')
-    
-    // Get the loom address from the address mapper
-    const loomAddress = (await gatewayUser.addressMapper.getMapping(gatewayUser.loomAddress)).to
+
     return new DPOSUser(
       gatewayUser.wallet,
       gatewayUser.client,
-      loomAddress,
+      gatewayUser.loomAddress,
       gatewayUser.ethAddress,
-      gatewayAddress,
-      loomAddress,
+      gatewayUser.ethereumGateway.address,
+      gatewayUser.ethereumLoom.address,
       gatewayUser.dappchainGateway,
       gatewayUser.dappchainLoom,
       dappchainDPOS,
@@ -285,7 +275,7 @@ export class DPOSUser extends GatewayUser {
   }
 
   checkRewardsAsync(owner?: string): Promise<BN> {
-    const address = owner ? this.prefixAddress(owner) : this._address
+    const address = owner ? this.prefixAddress(owner) : this.loomAddress
     return this._dappchainDPOS.checkDistributionAsync(address)
   }
 }

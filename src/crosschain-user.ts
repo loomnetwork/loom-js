@@ -77,12 +77,11 @@ export class CrossChainUser {
     chainId: string
   ): Promise<CrossChainUser> {
     const { client, publicKey } = createDefaultClient(dappchainKey, dappchainEndpoint, chainId)
-
-    const address = new Address(chainId, LocalAddress.fromPublicKey(publicKey))
+    const dappchainAddress = new Address(chainId, LocalAddress.fromPublicKey(publicKey))
     const ethAddress = await wallet.getAddress()
+    const dappchainMapper = await AddressMapper.createAsync(client, dappchainAddress)
 
-    const dappchainMapper = await AddressMapper.createAsync(client, address)
-    return new CrossChainUser(wallet, client, address, ethAddress, dappchainMapper)
+    return new CrossChainUser(wallet, client, dappchainAddress, ethAddress, dappchainMapper)
   }
 
   constructor(
