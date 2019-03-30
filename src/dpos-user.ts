@@ -6,7 +6,7 @@ import Web3 from 'web3'
 import { Address, Client, Contracts } from '.'
 import { DPOS2, Coin, LoomCoinTransferGateway, AddressMapper } from './contracts'
 import { createDefaultClient, createDefaultEthSignClientAsync } from './helpers'
-import { GatewayVersion } from './gateway-user'
+import { GatewayUser, GatewayVersion } from './gateway-user'
 
 import {
   IValidator,
@@ -18,12 +18,12 @@ import {
   IDelegatorDelegations
 } from './contracts/dpos2'
 
-const log = debug('dpos-user')
-
 import { LocalAddress } from './address'
 import { getMetamaskSigner } from './solidity-helpers'
 
-import { GatewayUser } from './gateway-user'
+
+
+const log = debug('dpos-user')
 
 export class DPOSUser extends GatewayUser {
   private _dappchainDPOS: Contracts.DPOS2

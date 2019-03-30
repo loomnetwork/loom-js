@@ -9,7 +9,7 @@ import { AddressMapper } from './contracts/address-mapper'
 
 const log = debug('crosschain')
 
-export class CrossChain {
+export class CrossChainUser {
   private _wallet: ethers.Signer
   private _client: Client
   private _address: Address
@@ -22,10 +22,10 @@ export class CrossChain {
     dappchainEndpoint: string,
     dappchainKey: string,
     chainId: string
-  ): Promise<CrossChain> {
+  ): Promise<CrossChainUser> {
     const provider = new ethers.providers.JsonRpcProvider(endpoint)
     const wallet = new ethers.Wallet(privateKey, provider)
-    return CrossChain.createCrossChainUserAsync(wallet, dappchainEndpoint, dappchainKey, chainId)
+    return CrossChainUser.createCrossChainUserAsync(wallet, dappchainEndpoint, dappchainKey, chainId)
   }
 
   static async createMetamaskCrossChainUserAsync(
@@ -33,10 +33,10 @@ export class CrossChain {
     dappchainEndpoint: string,
     dappchainKey: string,
     chainId: string
-  ): Promise<CrossChain> {
+  ): Promise<CrossChainUser> {
     const provider = new ethers.providers.Web3Provider(web3.currentProvider)
     const wallet = provider.getSigner()
-    return CrossChain.createCrossChainUserAsync(wallet, dappchainEndpoint, dappchainKey, chainId)
+    return CrossChainUser.createCrossChainUserAsync(wallet, dappchainEndpoint, dappchainKey, chainId)
   }
 
   static async createCrossChainUserAsync(
@@ -44,14 +44,14 @@ export class CrossChain {
     dappchainEndpoint: string,
     dappchainKey: string,
     chainId: string
-  ): Promise<CrossChain> {
+  ): Promise<CrossChainUser> {
     const { client, publicKey } = createDefaultClient(dappchainKey, dappchainEndpoint, chainId)
 
     const address = new Address(chainId, LocalAddress.fromPublicKey(publicKey))
     const ethAddress = await wallet.getAddress()
 
     const dappchainMapper = await AddressMapper.createAsync(client, address)
-    return new CrossChain(wallet, client, address, ethAddress, dappchainMapper)
+    return new CrossChainUser(wallet, client, address, ethAddress, dappchainMapper)
   }
 
   constructor(

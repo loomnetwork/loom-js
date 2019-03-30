@@ -9,7 +9,7 @@ import { IWithdrawalReceipt } from './contracts/transfer-gateway'
 import { sleep, parseSigs } from './helpers'
 import { getMetamaskSigner } from './solidity-helpers'
 
-import { CrossChain } from './crosschain'
+import { CrossChainUser } from './crosschain-user'
 
 const log = debug('dpos-user')
 
@@ -31,7 +31,7 @@ export enum GatewayVersion {
   MULTISIG = 2
 }
 
-export class GatewayUser extends CrossChain {
+export class GatewayUser extends CrossChainUser {
   private _ethereumGateway: ERC20Gateway_v2
   private _ethereumLoom: ERC20
   private _ethereumVMC?: ValidatorManagerContract
@@ -107,7 +107,7 @@ export class GatewayUser extends CrossChain {
       }
     }
 
-    let crosschain = await CrossChain.createCrossChainUserAsync(
+    let crosschain = await CrossChainUser.createCrossChainUserAsync(
       wallet,
       dappchainEndpoint,
       dappchainKey,
