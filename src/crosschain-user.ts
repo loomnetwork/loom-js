@@ -6,7 +6,7 @@ import { createDefaultClient, createDefaultEthSignClientAsync } from './helpers'
 import { Address, LocalAddress, Client, Contracts, EthersSigner } from '.'
 
 import { AddressMapper } from './contracts/address-mapper'
-import { getMetamaskSigner } from './solidity-helpers';
+import { getMetamaskSigner } from './solidity-helpers'
 
 const log = debug('crosschain')
 
@@ -15,7 +15,7 @@ export class CrossChainUser {
   private _client: Client
   private _address: Address
   private _ethAddress: string
-  private _dappchainMapper: Contracts.AddressMapper | nulll
+  private _dappchainMapper: Contracts.AddressMapper | null
 
   static async createOfflineCrossChainUserAsync(
     endpoint: string,
@@ -50,7 +50,6 @@ export class CrossChainUser {
     )
   }
 
-
   static async createEthSignMetamaskCrossChainUserAsync(
     web3: Web3,
     dappchainEndpoint: string,
@@ -58,7 +57,11 @@ export class CrossChainUser {
   ): Promise<CrossChainUser> {
     const wallet = getMetamaskSigner(web3.currentProvider)
 
-    const { client, callerAddress } = await createDefaultEthSignClientAsync(dappchainEndpoint, chainId, wallet)
+    const { client, callerAddress } = await createDefaultEthSignClientAsync(
+      dappchainEndpoint,
+      chainId,
+      wallet
+    )
     const ethAddress = callerAddress.local.toString()
     const mapper = await AddressMapper.createAsync(client, callerAddress)
     const mapping = await mapper.getMappingAsync(callerAddress)
@@ -104,7 +107,7 @@ export class CrossChainUser {
     return this._wallet
   }
 
-  get addressMapper(): Contracts.AddressMapper {
+  get addressMapper(): Contracts.AddressMapper | null {
     return this._dappchainMapper
   }
 
@@ -127,6 +130,9 @@ export class CrossChainUser {
    * @param wallet The User's ethers wallet
    */
   async mapAccountsAsync() {
+    if (this._dappchainMapper === null) {
+      throw new Error(`Tried to map accounts with nil address mapper`)
+    }
     const walletAddress = await this._wallet.getAddress()
     const ethereumAddress = Address.fromString(`eth:${walletAddress}`)
     if (await this._dappchainMapper.hasMappingAsync(this._address)) {

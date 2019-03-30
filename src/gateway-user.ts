@@ -104,6 +104,47 @@ export class GatewayUser extends CrossChainUser {
     return version
   }
 
+
+
+
+  static async createEthSignMetamaskGatewayUserAsync(
+    web3: Web3,
+    dappchainEndpoint: string,
+    chainId: string,
+    gatewayAddress: string,
+    loomAddress: string,
+    vmcAddress?: string,
+    version?: GatewayVersion
+  ): Promise<GatewayUser> {
+    const gwVersion = this.getGatewayVersion(dappchainEndpoint, version)
+
+    let crosschain = await CrossChainUser.createEthSignMetamaskCrossChainUserAsync(
+      web3,
+      dappchainEndpoint,
+      chainId
+    )
+
+    const dappchainLoom = await Coin.createAsync(crosschain.client, crosschain.loomAddress)
+    const dappchainGateway = await LoomCoinTransferGateway.createAsync(
+      crosschain.client,
+      crosschain.loomAddress
+    )
+
+    return new GatewayUser(
+      crosschain.wallet,
+      crosschain.client,
+      crosschain.loomAddress,
+      crosschain.ethAddress,
+      gatewayAddress,
+      loomAddress,
+      dappchainGateway,
+      dappchainLoom,
+      null,
+      vmcAddress,
+      gwVersion
+    )
+  }
+
   static async createGatewayUserAsync(
     wallet: ethers.Signer,
     dappchainEndpoint: string,
@@ -153,7 +194,7 @@ export class GatewayUser extends CrossChainUser {
     loomAddress: string,
     dappchainGateway: Contracts.LoomCoinTransferGateway,
     dappchainLoom: Contracts.Coin,
-    dappchainMapper: Contracts.AddressMapper,
+    dappchainMapper: Contracts.AddressMapper | null,
     vmcAddress?: string,
     version: GatewayVersion = GatewayVersion.SINGLESIG
   ) {
