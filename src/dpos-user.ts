@@ -2,12 +2,10 @@ import BN from 'bn.js'
 import debug from 'debug'
 import { ethers } from 'ethers'
 import Web3 from 'web3'
-
 import { Address, Client, Contracts } from '.'
 import { DPOS2 } from './contracts'
 import { createDefaultClient } from './helpers'
 import { GatewayUser, GatewayVersion } from './gateway-user'
-
 import {
   IValidator,
   ICandidate,
@@ -17,7 +15,6 @@ import {
   ICandidateDelegations,
   IDelegatorDelegations
 } from './contracts/dpos2'
-
 import { getMetamaskSigner } from './solidity-helpers'
 
 const log = debug('dpos-user')
