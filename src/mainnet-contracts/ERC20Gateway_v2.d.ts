@@ -15,7 +15,7 @@ export class ERC20Gateway_v2 extends Contract {
     withdrawERC20(
       amount: number | string | BigNumber,
       contractAddress: string,
-      _valIndexes: (number | string | BigNumber)[],
+      _signersIndexes: (number | string | BigNumber)[],
       _v: (number | string | BigNumber)[],
       _r: (string)[],
       _s: (string)[],
@@ -28,11 +28,10 @@ export class ERC20Gateway_v2 extends Contract {
       overrides?: TransactionOverrides
     ): Promise<ContractTransaction>;
 
+    vmc(): Promise<string>;
     loomAddress(): Promise<string>;
   };
   filters: {
-    ERC20Received(from: null, amount: null, contractAddress: null): EventFilter;
-
     TokenWithdrawn(
       owner: string | null,
       kind: null,
@@ -45,5 +44,7 @@ export class ERC20Gateway_v2 extends Contract {
       amount: null,
       loomCoinAddress: null
     ): EventFilter;
+
+    ERC20Received(from: null, amount: null, contractAddress: null): EventFilter;
   };
 }
