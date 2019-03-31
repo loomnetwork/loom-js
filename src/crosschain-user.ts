@@ -8,7 +8,7 @@ import { Address, LocalAddress, Client, Contracts, EthersSigner } from '.'
 import { AddressMapper } from './contracts/address-mapper'
 import { getMetamaskSigner } from './solidity-helpers'
 
-const log = debug('crosschain')
+const log = debug('crosschain-user')
 
 export class CrossChainUser {
   private _wallet: ethers.Signer

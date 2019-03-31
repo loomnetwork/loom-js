@@ -16,6 +16,7 @@ import {
   IDelegatorDelegations
 } from './contracts/dpos2'
 import { getMetamaskSigner } from './solidity-helpers'
+import { ERC20Gateway_v2 } from './mainnet-contracts/ERC20Gateway_v2';
 
 const log = debug('dpos-user')
 
@@ -29,8 +30,6 @@ export class DPOSUser extends GatewayUser {
     dappchainKey: string,
     chainId: string,
     gatewayAddress: string,
-    loomAddress: string,
-    vmcAddress?: string,
     version?: number
   ): Promise<DPOSUser> {
     const provider = new ethers.providers.JsonRpcProvider(endpoint)
@@ -41,8 +40,6 @@ export class DPOSUser extends GatewayUser {
       dappchainKey,
       chainId,
       gatewayAddress,
-      loomAddress,
-      vmcAddress,
       version
     )
   }
@@ -53,8 +50,6 @@ export class DPOSUser extends GatewayUser {
     dappchainKey: string,
     chainId: string,
     gatewayAddress: string,
-    loomAddress: string,
-    vmcAddress?: string,
     version?: GatewayVersion
   ): Promise<DPOSUser> {
     const wallet = getMetamaskSigner(web3.currentProvider)
@@ -64,8 +59,6 @@ export class DPOSUser extends GatewayUser {
       dappchainKey,
       chainId,
       gatewayAddress,
-      loomAddress,
-      vmcAddress,
       version
     )
   }
@@ -75,8 +68,6 @@ export class DPOSUser extends GatewayUser {
     dappchainEndpoint: string,
     chainId: string,
     gatewayAddress: string,
-    loomAddress: string,
-    vmcAddress?: string,
     version?: GatewayVersion
   ): Promise<DPOSUser> {
     const gatewayUser = await GatewayUser.createEthSignMetamaskGatewayUserAsync(
@@ -84,8 +75,6 @@ export class DPOSUser extends GatewayUser {
       dappchainEndpoint,
       chainId,
       gatewayAddress,
-      loomAddress,
-      vmcAddress,
       version
     )
 
@@ -97,13 +86,13 @@ export class DPOSUser extends GatewayUser {
       gatewayUser.client,
       gatewayUser.loomAddress,
       gatewayUser.ethAddress,
-      gatewayUser.ethereumGateway.address,
-      gatewayUser.ethereumLoom.address,
+      gatewayUser.ethereumGateway,
+      gatewayUser.ethereumLoom,
+      gatewayUser.ethereumVMC,
       gatewayUser.dappchainGateway,
       gatewayUser.dappchainLoom,
       dappchainDPOS,
       null,
-      vmcAddress,
       version
     )
   }
@@ -114,8 +103,6 @@ export class DPOSUser extends GatewayUser {
     dappchainKey: string,
     chainId: string,
     gatewayAddress: string,
-    loomAddress: string,
-    vmcAddress?: string,
     version?: GatewayVersion
   ): Promise<DPOSUser> {
     const gatewayUser = await GatewayUser.createGatewayUserAsync(
@@ -124,8 +111,6 @@ export class DPOSUser extends GatewayUser {
       dappchainKey,
       chainId,
       gatewayAddress,
-      loomAddress,
-      vmcAddress,
       version
     )
 
@@ -137,13 +122,13 @@ export class DPOSUser extends GatewayUser {
       gatewayUser.client,
       gatewayUser.loomAddress,
       gatewayUser.ethAddress,
-      gatewayAddress,
-      loomAddress,
+      gatewayUser.ethereumGateway,
+      gatewayUser.ethereumLoom,
+      gatewayUser.ethereumVMC,
       gatewayUser.dappchainGateway,
       gatewayUser.dappchainLoom,
       dappchainDPOS,
       gatewayUser.addressMapper,
-      vmcAddress,
       version
     )
   }
@@ -153,13 +138,16 @@ export class DPOSUser extends GatewayUser {
     client: Client,
     address: Address,
     ethAddress: string,
-    gatewayAddress: string,
-    loomAddress: string,
+
+    gateway: ethers.Contract,
+    loomToken: ethers.Contract,
+    vmc: ethers.Contract | undefined,
+
     dappchainGateway: Contracts.LoomCoinTransferGateway,
     dappchainLoom: Contracts.Coin,
     dappchainDPOS: Contracts.DPOS2,
     dappchainMapper: Contracts.AddressMapper | null,
-    vmcAddress?: string,
+
     version: GatewayVersion = GatewayVersion.SINGLESIG
   ) {
     super(
@@ -167,12 +155,12 @@ export class DPOSUser extends GatewayUser {
       client,
       address,
       ethAddress,
-      gatewayAddress,
-      loomAddress,
+      gateway,
+      loomToken,
+      vmc,
       dappchainGateway,
       dappchainLoom,
       dappchainMapper,
-      vmcAddress,
       version
     )
     this._dappchainDPOS = dappchainDPOS
