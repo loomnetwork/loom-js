@@ -30,7 +30,7 @@ export class DPOSUser extends GatewayUser {
     dappchainKey: string,
     chainId: string,
     gatewayAddress: string,
-    version?: number
+    version?: GatewayVersion
   ): Promise<DPOSUser> {
     const provider = new ethers.providers.JsonRpcProvider(endpoint)
     const wallet = new ethers.Wallet(privateKey, provider)
