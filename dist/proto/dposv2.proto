@@ -1,0 +1,255 @@
+syntax = "proto3";
+
+import "proto/loom.proto";
+
+message Validator {
+    bytes pub_key = 1;
+    int64 power = 2 [jstype = JS_STRING];
+}
+
+message ParamsV2 {
+    uint64 validator_count = 1;
+    int64 election_cycle_length = 2;
+    Address coin_contract_address = 3;
+    Address oracle_address = 4;
+    BigUInt max_yearly_reward = 5;
+    BigUInt registration_requirement = 6;
+    BigUInt crash_slashing_percentage = 7;
+    BigUInt byzantine_slashing_percentage = 8;
+}
+
+message StateV2 {
+    ParamsV2 params = 1;
+    repeated Validator validators = 2;
+    int64 last_election_time = 3 [jstype = JS_STRING];
+    BigUInt total_validator_delegations = 4;
+}
+
+message ValidatorStatisticV2 {
+    Address address = 1;
+    bytes pub_key = 2;
+    uint64 upblock_count = 3;
+    uint64 block_count = 4;
+    BigUInt slash_percentage = 5;
+    BigUInt distribution_total = 6;
+    BigUInt delegation_total = 7;
+    BigUInt whitelist_amount = 8;
+    uint64 whitelist_locktime = 9;
+}
+
+message ValidatorStatisticListV2 {
+    repeated ValidatorStatisticV2 statistics = 1;
+}
+
+message CandidateV2 {
+    Address address = 1;
+    bytes pub_key = 2;
+    uint64 fee = 3 [jstype = JS_STRING];
+    uint64 newFee = 4 [jstype = JS_STRING];
+    uint64 feeDelayCounter = 5 [jstype = JS_STRING];
+    string name = 6;
+    string description = 7;
+    string website = 8;
+}
+
+
+message CandidateListV2 {
+    repeated CandidateV2 candidates = 1;
+}
+
+message DelegationV2 {
+    Address validator = 1;
+    Address delegator = 2;
+    BigUInt amount = 3;
+    BigUInt update_amount = 4;
+    uint64 height = 5 [jstype = JS_STRING];
+    uint64 lock_time = 6 [jstype = JS_STRING];
+    enum LocktimeTier {
+        TIER_ZERO = 0;
+        TIER_ONE = 1;
+        TIER_TWO = 2;
+        TIER_THREE = 3;
+    }
+    LocktimeTier locktime_tier = 7;
+    enum DelegationState {
+        BONDING = 0;
+        BONDED = 1;
+        UNBONDING = 2;
+        REDELEGATING = 3;
+    }
+    DelegationState state = 8;
+    Address update_validator = 9;
+}
+
+message DelegationListV2 {
+    repeated DelegationV2 delegations = 1;
+}
+
+message DistributionV2 {
+    Address address = 1;
+    BigUInt amount = 2;
+}
+
+message DistributionListV2 {
+    repeated DistributionV2 distributions = 1;
+}
+
+message DPOSInitRequestV2 {
+    ParamsV2 params = 1;
+    repeated Validator validators = 2;
+}
+
+message DelegateRequestV2 {
+    Address validator_address = 1;
+    BigUInt amount = 2;
+    uint64 locktime_tier = 3;
+    string referrer = 4; //optional wallet that sent the delegation
+}
+
+message RedelegateRequestV2 {
+    Address validator_address = 1;
+    Address former_validator_address = 2;
+    BigUInt amount = 3;
+    string referrer = 4; //optional wallet that sent the delegation
+}
+
+message CheckDelegationRequestV2 {
+    Address validator_address = 1;
+    Address delegator_address = 2;
+}
+
+message CheckDelegationResponseV2 {
+	DelegationV2 delegation = 1;
+}
+
+message ClaimDistributionRequestV2 {
+    Address withdrawal_address = 1;
+}
+
+message ClaimDistributionResponseV2 {
+	BigUInt amount = 1;
+}
+
+message UnbondRequestV2 {
+    Address validator_address = 1;
+    BigUInt amount = 2;
+}
+
+message WhitelistCandidateRequestV2 {
+    Address candidate_address = 1;
+    BigUInt amount = 2;
+    uint64 lock_time = 3 [jstype = JS_STRING];
+}
+
+message RemoveWhitelistedCandidateRequestV2 {
+    Address candidate_address = 1;
+}
+
+
+message RegisterCandidateRequestV2 {
+    bytes pub_key = 1;
+    uint64 fee = 2 [jstype = JS_STRING];
+    string name = 3;
+    string description = 4;
+    string website = 5;
+    uint64 locktime_tier = 6 [jstype = JS_STRING];
+}
+
+message ChangeCandidateFeeRequest {
+    uint64 fee = 1 [jstype = JS_STRING];
+}
+
+message UnregisterCandidateRequestV2 {
+}
+
+message ElectDelegationRequestV2 {
+}
+
+message ListValidatorsRequestV2 {
+}
+
+message ListValidatorsResponseV2 {
+    repeated ValidatorStatisticV2 statistics = 1;
+}
+
+message ListCandidateRequestV2 {
+}
+
+message ListCandidateResponseV2 {
+    repeated CandidateV2 candidates = 1;
+}
+
+message SetElectionCycleRequestV2 {
+    int64 election_cycle = 1 [jstype = JS_STRING];
+}
+
+message SetMaxYearlyRewardRequestV2 {
+    BigUInt max_yearly_reward = 1;
+}
+
+message SetRegistrationRequirementRequestV2 {
+    BigUInt registration_requirement = 1;
+}
+
+message SetValidatorCountRequestV2 {
+    int64 validator_count = 1 [jstype = JS_STRING];
+}
+
+message SetOracleAddressRequestV2 {
+    Address oracle_address = 1;
+}
+
+message SetSlashingPercentagesRequestV2 {
+    BigUInt crash_slashing_percentage = 1;
+    BigUInt byzantine_slashing_percentage = 2;
+}
+
+message TotalDelegationRequest {
+    Address delegator_address = 1;
+}
+
+message TotalDelegationResponse {
+    BigUInt amount = 1;
+    BigUInt weighted_amount = 2;
+}
+
+message CheckDistributionRequest {
+    Address address = 1;
+}
+
+message CheckDistributionResponse {
+    BigUInt amount = 1;
+}
+
+message TimeUntilElectionRequest {
+}
+
+message TimeUntilElectionResponse {
+    int64 time_until_election = 1 [jstype = JS_STRING];
+}
+
+message ListDelegationsRequest {
+    Address candidate = 1;
+}
+
+message ListDelegationsResponse {
+    repeated DelegationV2 delegations = 1;
+    BigUInt delegation_total = 2;
+}
+
+message ListAllDelegationsRequest {
+}
+
+message ListAllDelegationsResponse {
+    repeated ListDelegationsResponse listResponses = 1;
+}
+
+message CheckAllDelegationsRequest {
+    Address delegator_address = 1;
+}
+
+message CheckAllDelegationsResponse {
+    BigUInt amount = 1;
+    BigUInt weighted_amount = 2;
+    repeated DelegationV2 delegations = 3;
+}
