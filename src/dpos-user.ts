@@ -464,7 +464,7 @@ export class DPOSUser {
       await this._dappchainGateway.withdrawLoomCoinAsync(
         amount,
         _ethereumLoomCoinAddress,
-        ethereumAddress
+        null
       )
       log(`${amount.div(coinMultiplier).toString()} tokens deposited to DAppChain Gateway...`)
       while (pendingReceipt === null || pendingReceipt.oracleSignature.length === 0) {
