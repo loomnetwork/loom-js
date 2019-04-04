@@ -1,17 +1,14 @@
 import BN from 'bn.js'
-import Web3 from 'web3'
-
-// TODO: web3 type defs aren't very good, need to clean them up
-const web3 = new Web3()
+import Web3Utils from 'web3-utils'
 
 // TODO: the hashing function should be passed into the constructor to avoid a direct dependency on web3
 function soliditySha3(...values: any[]): string {
-  return (web3.utils.soliditySha3 as any)(...values)
+  return (Web3Utils.soliditySha3 as any)(...values)
 }
 
 // TODO: can probably just use `new BN()` instead
 function toBigNumber(value: any): BN {
-  return web3.utils.toBN(value)
+  return Web3Utils.toBN(value)
 }
 
 /**

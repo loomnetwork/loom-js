@@ -23,6 +23,7 @@ export {
 } from './middleware'
 export { createDefaultTxMiddleware } from './helpers'
 export { LoomProvider } from './loom-provider'
+export { LoomProviderNext } from './loom-provider-next'
 
 import * as Contracts from './contracts'
 export { Contracts }

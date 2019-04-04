@@ -58,9 +58,9 @@ export class ValidatorManagerContract extends Contract {
     ): Promise<ContractTransaction>;
 
     loomAddress(): Promise<string>;
-    threshold_denom(): Promise<BigNumber>;
+    threshold_denom(): Promise<number>;
     nonce(): Promise<BigNumber>;
-    threshold_num(): Promise<BigNumber>;
+    threshold_num(): Promise<number>;
     totalPower(): Promise<BigNumber>;
     getPowers(): Promise<(BigNumber)[]>;
     getValidators(): Promise<(string)[]>;

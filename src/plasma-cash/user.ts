@@ -17,7 +17,8 @@ import {
 import { IPlasmaCoin } from './ethereum-client'
 import { sleep, createDefaultClient } from '../helpers'
 import { AddressMapper } from '../contracts/address-mapper'
-import { EthersSigner } from '../solidity-helpers'
+import { EthersSigner, getMetamaskSigner } from '../solidity-helpers'
+import { AsyncSendable } from 'ethers/providers'
 
 const debugLog = debug('plasma-cash:user')
 const errorLog = debug('plasma-cash:user:error')
@@ -53,8 +54,7 @@ export class User extends Entity {
     startBlock?: BN,
     chainId?: string
   ): Promise<User> {
-    const provider = new ethers.providers.Web3Provider(web3.currentProvider)
-    const signer = provider.getSigner()
+    const signer = getMetamaskSigner(web3.currentProvider)
     return this.createUser(
       signer,
       dappchainPrivateKey,

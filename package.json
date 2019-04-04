@@ -49,7 +49,7 @@
     "shelljs": "^0.8.2",
     "tslib": "^1.9.3",
     "tweetnacl": "^1.0.0",
-    "web3": "1.0.0-beta.33"
+    "web3": "^1.0.0-beta.51"
   },
   "devDependencies": {
     "@babel/core": "^7.0.0-beta.46",
@@ -58,7 +58,7 @@
     "@babel/runtime": "^7.0.0-beta.46",
     "@types/bn.js": "^4.11.1",
     "@types/debug": "^0.0.30",
-    "@types/ethereumjs-tx": "^1.0.0",
+    "@types/ethereumjs-tx": "^1.0.1",
     "@types/ethereumjs-util": "^5.2.0",
     "@types/google-protobuf": "^3.2.7",
     "@types/lowdb": "^1.0.5",
@@ -66,7 +66,6 @@
     "@types/retry": "^0.10.2",
     "@types/shelljs": "^0.8.0",
     "@types/tape": "^4.2.32",
-    "@types/web3": "^1.0.11",
     "babel-cli": "^6.26.0",
     "babel-loader": "^8.0.0-beta.2",
     "dotenv": "^5.0.1",

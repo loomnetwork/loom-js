@@ -1,11 +1,10 @@
 import ethutil from 'ethereumjs-util'
 import Web3 from 'web3'
+import Web3Utils from 'web3-utils'
 import { ethers } from 'ethers'
 
-const web3 = new Web3()
-
 export function soliditySha3(...values: any[]): string {
-  return (web3.utils.soliditySha3 as any)(...values)
+  return (Web3Utils.soliditySha3 as any)(...values)
 }
 
 /**

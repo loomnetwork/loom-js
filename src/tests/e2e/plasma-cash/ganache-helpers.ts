@@ -10,23 +10,7 @@ export async function latestBlockTime(web3: Web3): Promise<number> {
 }
 
 function sendAsync<T>(web3: Web3, method: string, id: number, params?: any): Promise<T> {
-  return new Promise((resolve, reject) => {
-    web3.currentProvider.send(
-      {
-        jsonrpc: '2.0',
-        method,
-        params,
-        id
-      },
-      (error, response) => {
-        if (error) {
-          reject(error)
-        } else {
-          resolve(response.result)
-        }
-      }
-    )
-  })
+  return web3.currentProvider.send(method, params)
 }
 
 export async function increaseTime(web3: Web3, duration: number): Promise<void> {
