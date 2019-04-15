@@ -158,13 +158,14 @@ async function bootstrapTest(
   return { client, contract, loomProvider, pubKey, privKey }
 }
 
-test('Test Signed Eth Tx Middleware Type 1', async t => {
+test('Test Signed Eth Tx Middleware Type 1', {timeout: 1000 * 60 * 10}, async t => {
+  t.timeoutAfter(1000 * 60 * 10)
   try {
     const { client, loomProvider, contract } = await bootstrapTest(createTestHttpClient)
 
     // Get address of the account 0 = 0x90f8bf6a479f320ead074411a4b0e7944ea8c9c1
     const { eosPrivateKey, eosAddress } = await eosKeys()
-    const offlineScatterSigner = new OfflineScatterEosSign(0)
+    const offlineScatterSigner = new OfflineScatterEosSign(0, eosPrivateKey)
     const callerChainId = 'eos'
     // Override the default caller chain ID
     loomProvider.callerChainId = callerChainId
@@ -174,7 +175,7 @@ test('Test Signed Eth Tx Middleware Type 1', async t => {
         new Address(callerChainId, new LocalAddress(Buffer.from(eosAddress))),
         client
       ),
-      new SignedEosTxMiddleware(offlineScatterSigner)
+      new SignedEosTxMiddleware(offlineScatterSigner, eosAddress)
     ])
 
     console.log(loomProvider.accounts)

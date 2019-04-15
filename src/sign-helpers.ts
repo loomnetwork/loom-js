@@ -19,13 +19,6 @@ export interface ISignerAsync {
 }
 
 /**
- * Signs messages using private keys
- */
-export interface ISigner {
-  sign(msg: string): Uint8Array
-}
-
-/**
  * Returns the Metamask signer from web3 current provider
  */
 export function getMetamaskSigner(provider: any): ethers.Signer {
@@ -116,21 +109,23 @@ export class ScatterSigner implements ISignerAsync {
  * Signs message using the Scatter internal way for EOS
  * This signer should be used for signing in NodeJS tests
  */
-export class OfflineScatterEosSign implements ISigner {
+export class OfflineScatterEosSign implements ISignerAsync {
   private _privateKey: any
   private _nonce: number = 0
 
-  constructor(nonce: number) {
+  constructor(nonce: number, privateKey: any) {
     this._nonce = nonce
+    this._privateKey = privateKey
   }
 
   get nonce(): number {
     return this._nonce
   }
 
-  sign(msg: string): Uint8Array {
-    const shaData = ecc.sha256(ecc.sha256(msg) + ecc.sha256(`${this._nonce}`))
-    return Buffer.from(ecc.sign(shaData, this._privateKey), 'hex')
+  signAsync(msg: string): Promise<Uint8Array> {
+    const shaData = ecc.sha256(ecc.sha256(msg))
+    const sig = ecc.sign(shaData, this._privateKey)
+    return Promise.resolve(Buffer.from(sig))
   }
 }
 

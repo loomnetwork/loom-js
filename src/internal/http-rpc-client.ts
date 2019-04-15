@@ -35,7 +35,7 @@ export class HTTPRPCClient extends EventEmitter implements IJSONRPCClient {
   ) {
     super()
     const {
-      requestTimeout = 15000, // 15s
+      requestTimeout = 1500000, // 15s
       generateRequestId = this._getNextRequestId
     } = opts
 
