@@ -10,7 +10,7 @@ import {
 import { LoomProvider } from '../../loom-provider'
 import { deployContract } from '../evm-helpers'
 import { ecrecover, privateToPublic, fromRpcSig, toBuffer } from 'ethereumjs-util'
-import { soliditySha3 } from '../../solidity-helpers'
+import { soliditySha3 } from '../../sign-helpers'
 import { bytesToHexAddr } from '../../crypto-utils'
 
 /**

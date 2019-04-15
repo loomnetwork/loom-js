@@ -1,6 +1,9 @@
 import ethutil from 'ethereumjs-util'
 import Web3 from 'web3'
 import { ethers } from 'ethers'
+import ScatterJS from 'scatterjs-core'
+import ScatterEOS from 'scatterjs-plugin-eosjs'
+import ecc from 'eosjs-ecc'
 
 const web3 = new Web3()
 
@@ -9,10 +12,17 @@ export function soliditySha3(...values: any[]): string {
 }
 
 /**
- * Signs messages using an Ethereum private key.
+ * Signs messages using private key async
  */
-export interface IEthereumSigner {
+export interface ISignerAsync {
   signAsync(msg: string): Promise<Uint8Array>
+}
+
+/**
+ * Signs messages using private keys
+ */
+export interface ISigner {
+  sign(msg: string): Uint8Array
 }
 
 /**
@@ -22,6 +32,28 @@ export function getMetamaskSigner(provider: any): ethers.Signer {
   // HACK: force personal sign by pretending to be metamask no matter what the web3 provider is
   provider.isMetaMask = true
   return new ethers.providers.Web3Provider(provider).getSigner()
+}
+
+export async function getScatterSigner() {
+  // const network = ScatterJS.Network.fromJson({
+  //   blockchain: 'eos',
+  //   chainId: 'aca376f206b8fc25a6ed44dbdc66547c36c6c33e3a119ffbeaef943642f0e906',
+  //   host: 'nodes.get-scatter.com',
+  //   port: 443,
+  //   protocol: 'https'
+  // })
+  //
+  // ScatterJS.connect('LOOM-JS-E2E', { network }).then((connected: boolean) => {
+  //   console.log('connected', connected)
+  // })
+  // ecc.randomKey().then((privateWif: any) =>  {
+  //   const pubkey = ecc.privateToPublic(privateWif)
+  //   console.log(pubkey)
+  // })
+
+  const privKey = await ecc.randomKey()
+  const pubKey = ecc.privateToPublic(privKey)
+  console.log(privKey, pubKey)
 }
 
 /**
@@ -43,12 +75,11 @@ export async function getJsonRPCSignerAsync(
  * Signs message using a Web3 account.
  * This signer should be used for interactive signing in the browser with MetaMask.
  */
-export class EthersSigner implements IEthereumSigner {
+export class EthersSigner implements ISignerAsync {
   private _signer: ethers.Signer
 
   /**
-   * @param web3 Web3 instance to use for signing.
-   * @param accountAddress Address of web3 account to sign with.
+   * @param signer Signer to sign with.
    */
   constructor(signer: ethers.Signer) {
     this._signer = signer
@@ -72,10 +103,42 @@ export class EthersSigner implements IEthereumSigner {
 }
 
 /**
+ * Signs message using the Scatter account
+ * This signer should be used for interactive signing with Scatter App
+ */
+export class ScatterSigner implements ISignerAsync {
+  signAsync(msg: string): Promise<Uint8Array> {
+    return Promise.resolve(new Uint8Array([]))
+  }
+}
+
+/**
+ * Signs message using the Scatter internal way for EOS
+ * This signer should be used for signing in NodeJS tests
+ */
+export class OfflineScatterEosSign implements ISigner {
+  private _privateKey: any
+  private _nonce: number = 0
+
+  constructor(nonce: number) {
+    this._nonce = nonce
+  }
+
+  get nonce(): number {
+    return this._nonce
+  }
+
+  sign(msg: string): Uint8Array {
+    const shaData = ecc.sha256(ecc.sha256(msg) + ecc.sha256(`${this._nonce}`))
+    return Buffer.from(ecc.sign(shaData, this._privateKey), 'hex')
+  }
+}
+
+/**
  * Signs message using a Web3 account.
  * This signer should be used for interactive signing in the browser with MetaMask.
  */
-export class Web3Signer implements IEthereumSigner {
+export class Web3Signer implements ISignerAsync {
   private _web3: Web3
   private _address: string
 
@@ -116,7 +179,7 @@ export class Web3Signer implements IEthereumSigner {
  * Signs message using a Web3 account.
  * This signer should be used for signing in NodeJS.
  */
-export class OfflineWeb3Signer implements IEthereumSigner {
+export class OfflineWeb3Signer implements ISignerAsync {
   private _web3: Web3
   private _account: any
 

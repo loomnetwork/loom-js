@@ -23,8 +23,6 @@ export class NonceTxMiddleware implements ITxMiddlewareHandler {
   private _account: Address | null = null
   private _client: Client
 
-  constructor(publicKey: Uint8Array, client: Client)
-  constructor(account: Address, client: Client)
   constructor(publicKeyOrAccount: Uint8Array | Address, client: Client) {
     if (publicKeyOrAccount instanceof Address) {
       this._account = publicKeyOrAccount
@@ -38,6 +36,8 @@ export class NonceTxMiddleware implements ITxMiddlewareHandler {
     const key = this._publicKey ? bytesToHex(this._publicKey) : undefined
     const account = this._account ? this._account.toString() : undefined
     const nonce = await this._client.getAccountNonceAsync({ key, account })
+
+    console.log('account', this._account)
 
     log(`Next nonce ${nonce + 1}`)
 

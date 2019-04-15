@@ -17,7 +17,7 @@ import {
 import { IPlasmaCoin } from './ethereum-client'
 import { sleep, createDefaultClient } from '../helpers'
 import { AddressMapper } from '../contracts/address-mapper'
-import { EthersSigner } from '../solidity-helpers'
+import { EthersSigner } from '../sign-helpers'
 
 const debugLog = debug('plasma-cash:user')
 const errorLog = debug('plasma-cash:user:error')

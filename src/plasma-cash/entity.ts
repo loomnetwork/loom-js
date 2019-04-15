@@ -12,7 +12,7 @@ import {
 import { Address, LocalAddress } from '../address'
 import { DAppChainPlasmaClient } from './dappchain-client'
 import { PlasmaCashTx } from './plasma-cash-tx'
-import { EthersSigner } from '../solidity-helpers'
+import { EthersSigner } from '../sign-helpers'
 import { PlasmaDB } from './db'
 
 const Plasma = require('./contracts/plasma-cash-abi.json')

@@ -32,7 +32,7 @@ import {
   publicKeyFromPrivateKey,
   hexToNumber
 } from './crypto-utils'
-import { soliditySha3 } from './solidity-helpers'
+import { soliditySha3 } from './sign-helpers'
 import { marshalBigUIntPB } from './big-uint'
 import { SignedEthTxMiddleware } from './middleware'
 
@@ -666,7 +666,10 @@ export class LoomProvider {
     value: string
   }): Promise<any> {
     const chainId = this.callerChainId === null ? this._client.chainId : this.callerChainId
-    const caller = new Address(chainId, LocalAddress.fromHexString(payload.from))
+    const caller = payload.from.startsWith('0x')
+      ? new Address(chainId, LocalAddress.fromHexString(payload.from))
+      : new Address(chainId, new LocalAddress(Buffer.from(payload.from)))
+
     log('caller', caller.toString())
     const address = new Address(this._client.chainId, LocalAddress.fromHexString(payload.to))
     const data = Buffer.from(payload.data.slice(2), 'hex')

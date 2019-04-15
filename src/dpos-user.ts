@@ -31,7 +31,7 @@ import { NonceTxMiddleware, SignedEthTxMiddleware } from './middleware'
 import { B64ToUint8Array, publicKeyFromPrivateKey } from './crypto-utils'
 import { ERC20Gateway_v2 } from './mainnet-contracts/ERC20Gateway_v2'
 import { LocalAddress } from './address'
-import { getMetamaskSigner } from './solidity-helpers'
+import { getMetamaskSigner } from './sign-helpers'
 
 enum GatewayVersion {
   SINGLESIG = 1,

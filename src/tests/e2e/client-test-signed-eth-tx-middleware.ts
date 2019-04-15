@@ -13,7 +13,7 @@ import { LoomProvider } from '../../loom-provider'
 import { deployContract } from '../evm-helpers'
 import { Address, LocalAddress } from '../../address'
 import { createDefaultTxMiddleware } from '../../helpers'
-import { EthersSigner, getJsonRPCSignerAsync } from '../../solidity-helpers'
+import { EthersSigner, getJsonRPCSignerAsync } from '../../sign-helpers'
 import { createTestHttpClient } from '../helpers'
 import { AddressMapper, Coin } from '../../contracts'
 

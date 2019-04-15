@@ -3,7 +3,7 @@ import { ethers } from 'ethers'
 
 import { SignedTx } from '../proto/loom_pb'
 import { ITxMiddlewareHandler } from '../client'
-import { EthersSigner, soliditySha3 } from '../solidity-helpers'
+import { EthersSigner, soliditySha3 } from '../sign-helpers'
 import { bytesToHex, hexToBytes } from '../crypto-utils'
 import { Address } from '../address'
 

@@ -45,14 +45,14 @@ export {
 } from './plasma-cash/ethereum-client'
 export { PlasmaCashTx } from './plasma-cash/plasma-cash-tx'
 export {
-  IEthereumSigner,
+  ISignerAsync,
   OfflineWeb3Signer,
   Web3Signer,
   EthersSigner,
   soliditySha3,
   getJsonRPCSignerAsync,
   getMetamaskSigner
-} from './solidity-helpers'
+} from './sign-helpers'
 export { Entity, IEntityParams } from './plasma-cash/entity'
 export { User as PlasmaUser } from './plasma-cash/user'
 export { DPOSUser } from './dpos-user'
