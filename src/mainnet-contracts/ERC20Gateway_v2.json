@@ -2,6 +2,20 @@
   {
     "constant": true,
     "inputs": [],
+    "name": "vmc",
+    "outputs": [
+      {
+        "name": "",
+        "type": "address"
+      }
+    ],
+    "payable": false,
+    "stateMutability": "view",
+    "type": "function"
+  },
+  {
+    "constant": true,
+    "inputs": [],
     "name": "loomAddress",
     "outputs": [
       {
@@ -11,8 +25,7 @@
     ],
     "payable": false,
     "stateMutability": "view",
-    "type": "function",
-    "signature": "0x37179db8"
+    "type": "function"
   },
   {
     "constant": true,
@@ -31,8 +44,7 @@
     ],
     "payable": false,
     "stateMutability": "view",
-    "type": "function",
-    "signature": "0x7ecebe00"
+    "type": "function"
   },
   {
     "inputs": [
@@ -43,31 +55,7 @@
     ],
     "payable": false,
     "stateMutability": "nonpayable",
-    "type": "constructor",
-    "signature": "constructor"
-  },
-  {
-    "anonymous": false,
-    "inputs": [
-      {
-        "indexed": false,
-        "name": "from",
-        "type": "address"
-      },
-      {
-        "indexed": false,
-        "name": "amount",
-        "type": "uint256"
-      },
-      {
-        "indexed": false,
-        "name": "contractAddress",
-        "type": "address"
-      }
-    ],
-    "name": "ERC20Received",
-    "type": "event",
-    "signature": "0xa13cf347fb36122550e414f6fd1a0c2e490cff76331c4dcc20f760891ecca12a"
+    "type": "constructor"
   },
   {
     "anonymous": false,
@@ -94,8 +82,7 @@
       }
     ],
     "name": "TokenWithdrawn",
-    "type": "event",
-    "signature": "0x591f2d33d85291e32c4067b5a497caf3ddb5b1830eba9909e66006ec3a0051b4"
+    "type": "event"
   },
   {
     "anonymous": false,
@@ -117,8 +104,29 @@
       }
     ],
     "name": "LoomCoinReceived",
-    "type": "event",
-    "signature": "0x91557346f7592c9279b67cc52709a00442f0597658ec38a5fe84568c016331d7"
+    "type": "event"
+  },
+  {
+    "anonymous": false,
+    "inputs": [
+      {
+        "indexed": false,
+        "name": "from",
+        "type": "address"
+      },
+      {
+        "indexed": false,
+        "name": "amount",
+        "type": "uint256"
+      },
+      {
+        "indexed": false,
+        "name": "contractAddress",
+        "type": "address"
+      }
+    ],
+    "name": "ERC20Received",
+    "type": "event"
   },
   {
     "constant": false,
@@ -132,7 +140,7 @@
         "type": "address"
       },
       {
-        "name": "_valIndexes",
+        "name": "_signersIndexes",
         "type": "uint256[]"
       },
       {
@@ -152,8 +160,7 @@
     "outputs": [],
     "payable": false,
     "stateMutability": "nonpayable",
-    "type": "function",
-    "signature": "0xb0116dc7"
+    "type": "function"
   },
   {
     "constant": false,
@@ -171,8 +178,7 @@
     "outputs": [],
     "payable": false,
     "stateMutability": "nonpayable",
-    "type": "function",
-    "signature": "0x392d661c"
+    "type": "function"
   },
   {
     "constant": true,
@@ -191,7 +197,6 @@
     ],
     "payable": false,
     "stateMutability": "view",
-    "type": "function",
-    "signature": "0x4e0dc557"
+    "type": "function"
   }
 ]
