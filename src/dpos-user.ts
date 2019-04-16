@@ -17,6 +17,8 @@ import {
 } from './contracts/dpos2'
 import { getMetamaskSigner } from './solidity-helpers'
 import { ERC20Gateway_v2 } from './mainnet-contracts/ERC20Gateway_v2'
+import { ERC20 } from './mainnet-contracts/ERC20'
+import { ValidatorManagerContract } from './mainnet-contracts/ValidatorManagerContract'
 
 const log = debug('dpos-user')
 
@@ -138,9 +140,9 @@ export class DPOSUser extends GatewayUser {
     client: Client,
     address: Address,
     ethAddress: string,
-    gateway: ethers.Contract,
-    loomToken: ethers.Contract,
-    vmc: ethers.Contract | undefined,
+    gateway: ERC20Gateway_v2,
+    loomToken: ERC20,
+    vmc: ValidatorManagerContract | undefined,
     dappchainGateway: Contracts.LoomCoinTransferGateway,
     dappchainLoom: Contracts.Coin,
     dappchainDPOS: Contracts.DPOS2,
