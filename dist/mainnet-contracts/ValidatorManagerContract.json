@@ -1,0 +1,392 @@
+[
+  {
+    "constant": true,
+    "inputs": [
+      {
+        "name": "",
+        "type": "uint256"
+      }
+    ],
+    "name": "validators",
+    "outputs": [
+      {
+        "name": "",
+        "type": "address"
+      }
+    ],
+    "payable": false,
+    "stateMutability": "view",
+    "type": "function",
+    "signature": "0x35aa2e44"
+  },
+  {
+    "constant": true,
+    "inputs": [],
+    "name": "loomAddress",
+    "outputs": [
+      {
+        "name": "",
+        "type": "address"
+      }
+    ],
+    "payable": false,
+    "stateMutability": "view",
+    "type": "function",
+    "signature": "0x37179db8"
+  },
+  {
+    "constant": true,
+    "inputs": [
+      {
+        "name": "",
+        "type": "uint256"
+      }
+    ],
+    "name": "powers",
+    "outputs": [
+      {
+        "name": "",
+        "type": "uint64"
+      }
+    ],
+    "payable": false,
+    "stateMutability": "view",
+    "type": "function",
+    "signature": "0x40c1bfab"
+  },
+  {
+    "constant": true,
+    "inputs": [],
+    "name": "threshold_denom",
+    "outputs": [
+      {
+        "name": "",
+        "type": "uint8"
+      }
+    ],
+    "payable": false,
+    "stateMutability": "view",
+    "type": "function",
+    "signature": "0x57d717d1"
+  },
+  {
+    "constant": true,
+    "inputs": [
+      {
+        "name": "",
+        "type": "address"
+      }
+    ],
+    "name": "nonces",
+    "outputs": [
+      {
+        "name": "",
+        "type": "uint256"
+      }
+    ],
+    "payable": false,
+    "stateMutability": "view",
+    "type": "function",
+    "signature": "0x7ecebe00"
+  },
+  {
+    "constant": true,
+    "inputs": [],
+    "name": "nonce",
+    "outputs": [
+      {
+        "name": "",
+        "type": "uint256"
+      }
+    ],
+    "payable": false,
+    "stateMutability": "view",
+    "type": "function",
+    "signature": "0xaffed0e0"
+  },
+  {
+    "constant": true,
+    "inputs": [],
+    "name": "threshold_num",
+    "outputs": [
+      {
+        "name": "",
+        "type": "uint8"
+      }
+    ],
+    "payable": false,
+    "stateMutability": "view",
+    "type": "function",
+    "signature": "0xc57829d2"
+  },
+  {
+    "constant": true,
+    "inputs": [],
+    "name": "totalPower",
+    "outputs": [
+      {
+        "name": "",
+        "type": "uint256"
+      }
+    ],
+    "payable": false,
+    "stateMutability": "view",
+    "type": "function",
+    "signature": "0xdb3ad22c"
+  },
+  {
+    "constant": true,
+    "inputs": [
+      {
+        "name": "",
+        "type": "address"
+      }
+    ],
+    "name": "allowedTokens",
+    "outputs": [
+      {
+        "name": "",
+        "type": "bool"
+      }
+    ],
+    "payable": false,
+    "stateMutability": "view",
+    "type": "function",
+    "signature": "0xe744092e"
+  },
+  {
+    "inputs": [
+      {
+        "name": "_validators",
+        "type": "address[]"
+      },
+      {
+        "name": "_powers",
+        "type": "uint64[]"
+      },
+      {
+        "name": "_threshold_num",
+        "type": "uint8"
+      },
+      {
+        "name": "_threshold_denom",
+        "type": "uint8"
+      },
+      {
+        "name": "_loomAddress",
+        "type": "address"
+      }
+    ],
+    "payable": false,
+    "stateMutability": "nonpayable",
+    "type": "constructor",
+    "signature": "constructor"
+  },
+  {
+    "anonymous": false,
+    "inputs": [
+      {
+        "indexed": false,
+        "name": "_validators",
+        "type": "address[]"
+      },
+      {
+        "indexed": false,
+        "name": "_powers",
+        "type": "uint64[]"
+      }
+    ],
+    "name": "ValidatorSetChanged",
+    "type": "event",
+    "signature": "0x323c51e0ad42c317ff3b00c6ce354d799a4b5eaf3a25cf3169cf2efd339d4d54"
+  },
+  {
+    "constant": true,
+    "inputs": [],
+    "name": "getPowers",
+    "outputs": [
+      {
+        "name": "",
+        "type": "uint64[]"
+      }
+    ],
+    "payable": false,
+    "stateMutability": "view",
+    "type": "function",
+    "signature": "0xff13a1ac"
+  },
+  {
+    "constant": true,
+    "inputs": [],
+    "name": "getValidators",
+    "outputs": [
+      {
+        "name": "",
+        "type": "address[]"
+      }
+    ],
+    "payable": false,
+    "stateMutability": "view",
+    "type": "function",
+    "signature": "0xb7ab4db5"
+  },
+  {
+    "constant": false,
+    "inputs": [
+      {
+        "name": "_newValidators",
+        "type": "address[]"
+      },
+      {
+        "name": "_newPowers",
+        "type": "uint64[]"
+      },
+      {
+        "name": "_signIndexes",
+        "type": "uint256[]"
+      },
+      {
+        "name": "_v",
+        "type": "uint8[]"
+      },
+      {
+        "name": "_r",
+        "type": "bytes32[]"
+      },
+      {
+        "name": "_s",
+        "type": "bytes32[]"
+      }
+    ],
+    "name": "rotateValidators",
+    "outputs": [],
+    "payable": false,
+    "stateMutability": "nonpayable",
+    "type": "function",
+    "signature": "0xeb2eb0ef"
+  },
+  {
+    "constant": true,
+    "inputs": [
+      {
+        "name": "_message",
+        "type": "bytes32"
+      },
+      {
+        "name": "signersIndex",
+        "type": "uint256"
+      },
+      {
+        "name": "_v",
+        "type": "uint8"
+      },
+      {
+        "name": "_r",
+        "type": "bytes32"
+      },
+      {
+        "name": "_s",
+        "type": "bytes32"
+      }
+    ],
+    "name": "signedByValidator",
+    "outputs": [],
+    "payable": false,
+    "stateMutability": "view",
+    "type": "function",
+    "signature": "0xc47c479a"
+  },
+  {
+    "constant": true,
+    "inputs": [
+      {
+        "name": "_message",
+        "type": "bytes32"
+      },
+      {
+        "name": "signersIndex",
+        "type": "uint256[]"
+      },
+      {
+        "name": "_v",
+        "type": "uint8[]"
+      },
+      {
+        "name": "_r",
+        "type": "bytes32[]"
+      },
+      {
+        "name": "_s",
+        "type": "bytes32[]"
+      }
+    ],
+    "name": "checkThreshold",
+    "outputs": [],
+    "payable": false,
+    "stateMutability": "view",
+    "type": "function",
+    "signature": "0x0fba29c3"
+  },
+  {
+    "constant": true,
+    "inputs": [
+      {
+        "name": "tokenAddress",
+        "type": "address"
+      }
+    ],
+    "name": "isTokenAllowed",
+    "outputs": [
+      {
+        "name": "",
+        "type": "bool"
+      }
+    ],
+    "payable": false,
+    "stateMutability": "view",
+    "type": "function",
+    "signature": "0xf9eaee0d"
+  },
+  {
+    "constant": false,
+    "inputs": [
+      {
+        "name": "allow",
+        "type": "bool"
+      },
+      {
+        "name": "validatorIndex",
+        "type": "uint256"
+      }
+    ],
+    "name": "toggleAllowAnyToken",
+    "outputs": [],
+    "payable": false,
+    "stateMutability": "nonpayable",
+    "type": "function",
+    "signature": "0x1a6be287"
+  },
+  {
+    "constant": false,
+    "inputs": [
+      {
+        "name": "tokenAddress",
+        "type": "address"
+      },
+      {
+        "name": "allow",
+        "type": "bool"
+      },
+      {
+        "name": "validatorIndex",
+        "type": "uint256"
+      }
+    ],
+    "name": "toggleAllowToken",
+    "outputs": [],
+    "payable": false,
+    "stateMutability": "nonpayable",
+    "type": "function",
+    "signature": "0xe3ece440"
+  }
+]
