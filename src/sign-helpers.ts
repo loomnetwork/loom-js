@@ -96,16 +96,10 @@ export class EthersSigner implements ISignerAsync {
 }
 
 /**
- * Signs message using the Scatter account
- * This signer should be used for interactive signing with Scatter App
+ * Abstract class for signing with Scatter
  */
-export abstract class ScatterSigner implements ISignerAsync {
-  protected _privateKey: any
+export abstract class BaseScatterSigner implements ISignerAsync {
   protected _nonce: string = ''
-
-  constructor(privateKey: any) {
-    this._privateKey = privateKey
-  }
 
   get nonce(): string {
     return this._nonce
@@ -119,12 +113,50 @@ export abstract class ScatterSigner implements ISignerAsync {
 }
 
 /**
+ * Signs message using the Scatter from the ScatterJS
+ * This signer needs to have the ScatterJS started and running
+ */
+export class ScatterSigner extends BaseScatterSigner {
+  private _scatter: any
+  private _publicKey: string
+
+  constructor(scatter: any, publicKey: string) {
+    super()
+    this._scatter = scatter
+    this._publicKey = publicKey
+  }
+
+  async signAsync(msg: string): Promise<Uint8Array> {
+    if (this.nonce === '') {
+      throw Error(`Nonce can't be empty`)
+    }
+
+    if (this._publicKey === '') {
+      throw Error(`Public Key can't be empty`)
+    }
+
+    const tx = await this._scatter.authenticate(this.nonce, msg, this._publicKey)
+    return Buffer.from(tx, 'hex')
+  }
+}
+
+/**
  * Signs message using the Scatter internal way for EOS
  * This signer should be used for signing in NodeJS tests
+ *
+ * Based on Scatter authenticate method:
+ * https://github.com/GetScatter/scatter-js/blob/master/mock-sites/vanilla-eos/index.html#L187
  */
-export class OfflineScatterEosSign extends ScatterSigner{
+export class OfflineScatterEosSign extends BaseScatterSigner{
+  private _privateKey: string
+
+  constructor (privateKey: string) {
+    super()
+    this._privateKey = privateKey
+  }
+
   signAsync(msg: string): Promise<Uint8Array> {
-    if (this._nonce === '') {
+    if (this.nonce === '') {
       throw Error(`Nonce can't be empty`)
     }
 

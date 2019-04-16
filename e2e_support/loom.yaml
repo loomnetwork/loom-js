@@ -40,3 +40,9 @@ Auth:
     eth1:
       TxType: "eth"
       AccountType: 0
+    eos:
+      TxType: "eos"
+      AccountType: 1
+    eos1:
+      TxType: "eos1"
+      AccountType: 0

@@ -3,7 +3,7 @@ import { ethers } from 'ethers'
 
 import { NonceTx, SignedTx } from '../proto/loom_pb'
 import { ITxMiddlewareHandler } from '../client'
-import { OfflineScatterEosSign, ScatterSigner, soliditySha3 } from '../sign-helpers'
+import { BaseScatterSigner, soliditySha3 } from '../sign-helpers'
 import { bytesToHex, hexToBytes } from '../crypto-utils'
 import { Address } from '../address'
 
@@ -13,10 +13,10 @@ const log = debug('signed-eos-tx-middleware')
  * Signs transactions using an Ethereum compatible (secp256k1) private key.
  */
 export class SignedEosTxMiddleware implements ITxMiddlewareHandler {
-  private _signer: OfflineScatterEosSign
+  private _signer: BaseScatterSigner
   private _signerAddress?: string
 
-  constructor(signer: OfflineScatterEosSign, signerAddress: string) {
+  constructor(signer: BaseScatterSigner, signerAddress: string) {
     this._signer = signer
     this._signerAddress = signerAddress
   }
