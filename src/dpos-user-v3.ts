@@ -128,7 +128,12 @@ export class DPOSUserV3 extends GatewayUser {
    * @param candidate The candidate's hex address
    * @param amount The amount delegated
    */
-  async delegateAsync(candidate: string, amount: BN, tier: LocktimeTier, referrer?: string): Promise<void> {
+  async delegateAsync(
+    candidate: string,
+    amount: BN,
+    tier: LocktimeTier,
+    referrer?: string
+  ): Promise<void> {
     const address = this.prefixAddress(candidate)
     await this.dappchainLoom.approveAsync(this._dappchainDPOS.address, amount)
     return this._dappchainDPOS.delegateAsync(address, amount, tier, referrer)
