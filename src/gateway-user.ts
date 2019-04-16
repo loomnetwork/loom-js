@@ -83,16 +83,20 @@ export class GatewayUser extends CrossChainUser {
     version?: GatewayVersion
   ): Promise<EthereumContracts> {
     const gatewayABI = version == GatewayVersion.MULTISIG ? ERC20GatewayABI_v2 : ERC20GatewayABI
-    const gateway = new ERC20Gateway_v2(gatewayAddress, gatewayABI, wallet)
+    const gateway = new ethers.Contract(gatewayAddress, gatewayABI, wallet)
     const loomAddress = await gateway.functions.loomAddress()
-    const loomToken = new ERC20(loomAddress, ERC20ABI, wallet)
-    let vmc 
+    const loomToken = new ethers.Contract(loomAddress, ERC20ABI, wallet)
+    let vmc
     if (version === GatewayVersion.MULTISIG) {
       const vmcAddress = await gateway.functions.vmc()
-      vmc = new ValidatorManagerContract(vmcAddress, ValidatorManagerContractABI, wallet)
+      vmc = new ethers.Contract(vmcAddress, ValidatorManagerContractABI, wallet)
     }
 
-    return { gateway, loomToken, vmc }
+    return {
+      gateway: gateway as ERC20Gateway_v2,
+      loomToken: loomToken as ERC20,
+      vmc: vmc as ValidatorManagerContract
+    }
   }
 
   private static getGatewayVersion(endpoint: string, version?: GatewayVersion): GatewayVersion {

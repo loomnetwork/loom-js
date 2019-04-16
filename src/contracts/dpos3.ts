@@ -127,9 +127,9 @@ export class DPOS3 extends Contract {
       address: Address.UnmarshalPB(candidate.getCandidate()!.getAddress()!),
       pubKey: candidate.getCandidate()!.getPubKey_asU8()!,
       delegationTotal: unmarshalBigUIntPB(candidate.getStatistic()!.getDelegationTotal()!),
-        slashPct: candidate.getStatistic()!.getSlashPercentage() ? 
-        unmarshalBigUIntPB(candidate.getStatistic()!.getSlashPercentage()!) : 
-        new BN(0),
+      slashPct: candidate.getStatistic()!.getSlashPercentage()
+        ? unmarshalBigUIntPB(candidate.getStatistic()!.getSlashPercentage()!)
+        : new BN(0),
       whitelistAmount: unmarshalBigUIntPB(candidate.getStatistic()!.getWhitelistAmount()!),
       whitelistLocktimeTier: candidate.getStatistic()!.getLocktimeTier(),
       maxReferralPercentage: candidate.getCandidate()!.getMaxReferralPercentage(),
