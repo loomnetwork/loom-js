@@ -46,7 +46,7 @@ export async function getScatterSigner() {
 
   const privKey = await ecc.randomKey()
   const pubKey = ecc.privateToPublic(privKey)
-  console.log(privKey, pubKey)
+  // console.log(privKey, pubKey)
 }
 
 /**
@@ -99,32 +99,37 @@ export class EthersSigner implements ISignerAsync {
  * Signs message using the Scatter account
  * This signer should be used for interactive signing with Scatter App
  */
-export class ScatterSigner implements ISignerAsync {
-  signAsync(msg: string): Promise<Uint8Array> {
-    return Promise.resolve(new Uint8Array([]))
+export abstract class ScatterSigner implements ISignerAsync {
+  protected _privateKey: any
+  protected _nonce: string = ''
+
+  constructor(privateKey: any) {
+    this._privateKey = privateKey
   }
+
+  get nonce(): string {
+    return this._nonce
+  }
+
+  set nonce(n: string) {
+    this._nonce = n
+  }
+
+  abstract signAsync(msg: string): Promise<Uint8Array>
 }
 
 /**
  * Signs message using the Scatter internal way for EOS
  * This signer should be used for signing in NodeJS tests
  */
-export class OfflineScatterEosSign implements ISignerAsync {
-  private _privateKey: any
-  private _nonce: number = 0
-
-  constructor(nonce: number, privateKey: any) {
-    this._nonce = nonce
-    this._privateKey = privateKey
-  }
-
-  get nonce(): number {
-    return this._nonce
-  }
-
+export class OfflineScatterEosSign extends ScatterSigner{
   signAsync(msg: string): Promise<Uint8Array> {
-    const shaData = ecc.sha256(ecc.sha256(msg))
-    const sig = ecc.sign(shaData, this._privateKey)
+    if (this._nonce === '') {
+      throw Error(`Nonce can't be empty`)
+    }
+
+    const shaData = ecc.sha256(ecc.sha256(msg) + ecc.sha256(this._nonce))
+    const sig = ecc.signHash(shaData, this._privateKey)
     return Promise.resolve(Buffer.from(sig))
   }
 }

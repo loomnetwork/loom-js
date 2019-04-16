@@ -1,9 +1,9 @@
 import debug from 'debug'
 import { ethers } from 'ethers'
 
-import { SignedTx } from '../proto/loom_pb'
+import { NonceTx, SignedTx } from '../proto/loom_pb'
 import { ITxMiddlewareHandler } from '../client'
-import { ISignerAsync, ScatterSigner, soliditySha3 } from '../sign-helpers'
+import { OfflineScatterEosSign, ScatterSigner, soliditySha3 } from '../sign-helpers'
 import { bytesToHex, hexToBytes } from '../crypto-utils'
 import { Address } from '../address'
 
@@ -13,19 +13,25 @@ const log = debug('signed-eos-tx-middleware')
  * Signs transactions using an Ethereum compatible (secp256k1) private key.
  */
 export class SignedEosTxMiddleware implements ITxMiddlewareHandler {
-  private _signer: ISignerAsync
+  private _signer: OfflineScatterEosSign
   private _signerAddress?: string
 
-  constructor(signer: ISignerAsync, signerAddress: string) {
+  constructor(signer: OfflineScatterEosSign, signerAddress: string) {
     this._signer = signer
     this._signerAddress = signerAddress
   }
 
-  async Handle(txData: Readonly<Uint8Array>): Promise<Uint8Array> {
-    const sig = await this._signer.signAsync(bytesToHex(txData))
-    console.log('signer', bytesToHex(sig))
+  getNonce(txData: Readonly<Uint8Array>) {
+    const tx = NonceTx.deserializeBinary(txData as Uint8Array)
+    return tx.getSequence()
+  }
 
-    log(`signer: ${this._signerAddress}, signature: 0x${bytesToHex(sig)}`)
+  async Handle(txData: Readonly<Uint8Array>): Promise<Uint8Array> {
+    const txDataHex = bytesToHex(txData)
+    this._signer.nonce = `${this.getNonce(txData)}`
+    const sig = await this._signer.signAsync(txDataHex)
+
+    log(`signer: ${this._signerAddress}, signature: ${sig}`, sig)
 
     const signedTx = new SignedTx()
     signedTx.setInner(txData as Uint8Array)

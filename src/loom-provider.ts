@@ -668,7 +668,7 @@ export class LoomProvider {
     const chainId = this.callerChainId === null ? this._client.chainId : this.callerChainId
     const caller = payload.from.startsWith('0x')
       ? new Address(chainId, LocalAddress.fromHexString(payload.from))
-      : new Address(chainId, new LocalAddress(Buffer.from(payload.from)))
+      : new Address(chainId, LocalAddress.fromHexString(`0x${Buffer.from(payload.from).toString('hex')}`))
 
     log('caller', caller.toString())
     const address = new Address(this._client.chainId, LocalAddress.fromHexString(payload.to))

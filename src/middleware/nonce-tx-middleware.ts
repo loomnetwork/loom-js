@@ -37,8 +37,6 @@ export class NonceTxMiddleware implements ITxMiddlewareHandler {
     const account = this._account ? this._account.toString() : undefined
     const nonce = await this._client.getAccountNonceAsync({ key, account })
 
-    console.log('account', this._account)
-
     log(`Next nonce ${nonce + 1}`)
 
     const tx = new NonceTx()

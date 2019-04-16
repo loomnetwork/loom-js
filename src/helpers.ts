@@ -8,8 +8,26 @@ import { createJSONRPCClient, LocalAddress, CryptoUtils } from '.'
 import { Address } from './address'
 import debug from 'debug'
 import { ethers } from 'ethers'
+import ecc from 'eosjs-ecc'
+import bs from 'bs58'
+import ethJsUtil = require('ethereumjs-util')
 
 const log = debug('helpers')
+
+/**
+ * Receives an EOS address and returns and Ethereum address based on ECC bytes
+ * @param eosAddress EOS address starting with EOS...
+ * @returns Returns the Eth address starting with 0x
+ */
+export function eosAddressToEthAddress(eosAddress: string): string {
+  if (!eosAddress.startsWith('EOS')) {
+    throw Error('Invalid EOS address')
+  }
+
+  const eosPubKey = ecc.PublicKey(eosAddress)
+  const ethPubKey = ethJsUtil.importPublic(eosPubKey.toBuffer())
+  return `0x${(ethJsUtil.pubToAddress(ethPubKey) as Buffer).toString('hex')}`
+}
 
 /**
  * Creates the default set of tx middleware required to successfully commit a tx to a Loom DAppChain.

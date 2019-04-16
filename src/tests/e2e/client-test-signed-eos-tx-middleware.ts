@@ -13,7 +13,7 @@ import {
 import { LoomProvider } from '../../loom-provider'
 import { deployContract } from '../evm-helpers'
 import { Address, LocalAddress } from '../../address'
-import { createDefaultTxMiddleware } from '../../helpers'
+import { createDefaultTxMiddleware, eosAddressToEthAddress } from '../../helpers'
 import {
   EthersSigner,
   getJsonRPCSignerAsync,
@@ -158,60 +158,46 @@ async function bootstrapTest(
   return { client, contract, loomProvider, pubKey, privKey }
 }
 
-test('Test Signed Eth Tx Middleware Type 1', {timeout: 1000 * 60 * 10}, async t => {
+test('Test Signed Eth Tx Middleware Type 1', { timeout: 1000 * 60 * 10 }, async t => {
   t.timeoutAfter(1000 * 60 * 10)
   try {
     const { client, loomProvider, contract } = await bootstrapTest(createTestHttpClient)
 
     // Get address of the account 0 = 0x90f8bf6a479f320ead074411a4b0e7944ea8c9c1
     const { eosPrivateKey, eosAddress } = await eosKeys()
-    const offlineScatterSigner = new OfflineScatterEosSign(0, eosPrivateKey)
+    const offlineScatterSigner = new OfflineScatterEosSign(eosPrivateKey)
     const callerChainId = 'eos'
+    const ethAddress = eosAddressToEthAddress(eosAddress).toLowerCase()
+
     // Override the default caller chain ID
     loomProvider.callerChainId = callerChainId
     // Ethereum account needs its own middleware
-    loomProvider.setMiddlewaresForAddress(eosAddress, [
+    loomProvider.setMiddlewaresForAddress(ethAddress, [
       new NonceTxMiddleware(
-        new Address(callerChainId, new LocalAddress(Buffer.from(eosAddress))),
+        new Address(callerChainId, LocalAddress.fromHexString(ethAddress)),
         client
       ),
-      new SignedEosTxMiddleware(offlineScatterSigner, eosAddress)
+      new SignedEosTxMiddleware(offlineScatterSigner, ethAddress)
     ])
 
-    console.log(loomProvider.accounts)
+    console.log('ethAddress', ethAddress, eosAddress)
 
-    const middlewaresUsed = loomProvider.accountMiddlewares.get(eosAddress.toLowerCase())
+    const middlewaresUsed = loomProvider.accountMiddlewares.get(ethAddress)
     t.assert(middlewaresUsed![0] instanceof NonceTxMiddleware, 'NonceTxMiddleware used')
     t.assert(middlewaresUsed![1] instanceof SignedEosTxMiddleware, 'SignedEosTxMiddleware used')
 
-    let txABI = await contract.methods.set(1).encodeABI()
+    let tx = await contract.methods.set(1).send({ from: ethAddress })
+    t.equal(
+      tx.status,
+      '0x1',
+      `SimpleStore.set should return correct status for address (to) ${ethAddress}`
+    )
 
-    const txResult = await loomProvider.sendAsync({
-      id: 0,
-      method: 'eth_sendTransaction',
-      params: [
-        {
-          from: eosAddress.toLowerCase(),
-          to: contract.options.address,
-          data: txABI,
-          value: 0
-        }
-      ]
-    })
-
-    console.log(txResult)
-
-    //   t.equal(
-    //     tx.status,
-    //     '0x1',
-    //     `SimpleStore.set should return correct status for address (to) ${ethAddress}`
-    //   )
-    //
-    //   t.equal(
-    //     tx.events.NewValueSet.returnValues.sender,
-    //     ethAddress,
-    //     `Sender should be same sender from eth ${ethAddress}`
-    //   )
+    t.equal(
+      tx.events.NewValueSet.returnValues.sender.toLowerCase(),
+      ethAddress,
+      `Sender should be same sender from eth ${ethAddress}`
+    )
   } catch (err) {
     console.error(err)
     t.fail(err.message)
