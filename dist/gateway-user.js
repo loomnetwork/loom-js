@@ -11,9 +11,6 @@ var solidity_helpers_1 = require("./solidity-helpers");
 var crosschain_user_1 = require("./crosschain-user");
 var log = debug_1.default('gateway-user');
 var coinMultiplier = new bn_js_1.default(10).pow(new bn_js_1.default(18));
-var ERC20_1 = require("./mainnet-contracts/ERC20");
-var ValidatorManagerContract_1 = require("./mainnet-contracts/ValidatorManagerContract");
-var ERC20Gateway_v2_1 = require("./mainnet-contracts/ERC20Gateway_v2");
 var ValidatorManagerContractABI = require('./mainnet-contracts/ValidatorManagerContract.json');
 var ERC20GatewayABI = require('./mainnet-contracts/ERC20Gateway.json');
 var ERC20GatewayABI_v2 = require('./mainnet-contracts/ERC20Gateway_v2.json');
@@ -68,18 +65,22 @@ var GatewayUser = /** @class */ (function (_super) {
                 switch (_a.label) {
                     case 0:
                         gatewayABI = version == GatewayVersion.MULTISIG ? ERC20GatewayABI_v2 : ERC20GatewayABI;
-                        gateway = new ERC20Gateway_v2_1.ERC20Gateway_v2(gatewayAddress, gatewayABI, wallet);
+                        gateway = new ethers_1.ethers.Contract(gatewayAddress, gatewayABI, wallet);
                         return [4 /*yield*/, gateway.functions.loomAddress()];
                     case 1:
                         loomAddress = _a.sent();
-                        loomToken = new ERC20_1.ERC20(loomAddress, ERC20ABI, wallet);
+                        loomToken = new ethers_1.ethers.Contract(loomAddress, ERC20ABI, wallet);
                         if (!(version === GatewayVersion.MULTISIG)) return [3 /*break*/, 3];
                         return [4 /*yield*/, gateway.functions.vmc()];
                     case 2:
                         vmcAddress = _a.sent();
-                        vmc = new ValidatorManagerContract_1.ValidatorManagerContract(vmcAddress, ValidatorManagerContractABI, wallet);
+                        vmc = new ethers_1.ethers.Contract(vmcAddress, ValidatorManagerContractABI, wallet);
                         _a.label = 3;
-                    case 3: return [2 /*return*/, { gateway: gateway, loomToken: loomToken, vmc: vmc }];
+                    case 3: return [2 /*return*/, {
+                            gateway: gateway,
+                            loomToken: loomToken,
+                            vmc: vmc
+                        }];
                 }
             });
         });

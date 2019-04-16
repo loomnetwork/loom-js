@@ -56,9 +56,9 @@ var DPOS3 = /** @class */ (function (_super) {
                                 address: address_1.Address.UnmarshalPB(candidate.getCandidate().getAddress()),
                                 pubKey: candidate.getCandidate().getPubKey_asU8(),
                                 delegationTotal: big_uint_1.unmarshalBigUIntPB(candidate.getStatistic().getDelegationTotal()),
-                                slashPct: candidate.getStatistic().getSlashPercentage() ?
-                                    big_uint_1.unmarshalBigUIntPB(candidate.getStatistic().getSlashPercentage()) :
-                                    new bn_js_1.default(0),
+                                slashPct: candidate.getStatistic().getSlashPercentage()
+                                    ? big_uint_1.unmarshalBigUIntPB(candidate.getStatistic().getSlashPercentage())
+                                    : new bn_js_1.default(0),
                                 whitelistAmount: big_uint_1.unmarshalBigUIntPB(candidate.getStatistic().getWhitelistAmount()),
                                 whitelistLocktimeTier: candidate.getStatistic().getLocktimeTier(),
                                 maxReferralPercentage: candidate.getCandidate().getMaxReferralPercentage(),
