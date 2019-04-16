@@ -20,7 +20,7 @@ import {
 import { getMetamaskSigner } from './solidity-helpers'
 import { LocktimeTier, DelegationState } from './proto/dposv3_pb'
 
-const log = debug('dpos-user')
+const log = debug('dpos3-user')
 
 export interface NewDPOSUserV3Params extends NewGatewayUserParams {
   dappchainDPOS: Contracts.DPOS3
@@ -128,10 +128,10 @@ export class DPOSUserV3 extends GatewayUser {
    * @param candidate The candidate's hex address
    * @param amount The amount delegated
    */
-  async delegateAsync(candidate: string, amount: BN, tier: LocktimeTier): Promise<void> {
+  async delegateAsync(candidate: string, amount: BN, tier: LocktimeTier, referrer?: string): Promise<void> {
     const address = this.prefixAddress(candidate)
     await this.dappchainLoom.approveAsync(this._dappchainDPOS.address, amount)
-    return this._dappchainDPOS.delegateAsync(address, amount, tier)
+    return this._dappchainDPOS.delegateAsync(address, amount, tier, referrer)
   }
 
   /**
@@ -168,12 +168,6 @@ export class DPOSUserV3 extends GatewayUser {
     await this._dappchainDPOS.unbondAsync(address, amount, index)
   }
 
-  claimDelegationsAsync(validatorAddress: string): Promise<void> {
-    const address = this.prefixAddress(validatorAddress)
-    // When unbonding 0 it unbonds the full amount, and the 0th delegation is the rewards delegation
-    return this._dappchainDPOS.unbondAsync(address, 0, 0)
-  }
-
   /**
    * Returns the stake a delegator has delegated to a candidate/validator
    *
@@ -190,16 +184,19 @@ export class DPOSUserV3 extends GatewayUser {
   }
 
   // Iterates over all the delegator's reward delegations and unbonds the ones it can unbond
-  async claimRewardsAsync(): Promise<void> {
+  async claimRewardsAsync(): Promise<BN> {
     // get all delegations
     const delegations = await this._dappchainDPOS.checkAllDelegationsAsync(this.loomAddress)
 
+    let total = new BN(0)
     for (const d of delegations.delegationsArray) {
       // if it's the rewards delegation and it's already bonded
       if (d.index === 0 && d.state == DelegationState.BONDED) {
         this.dappchainDPOS.unbondAsync(d.validator, 0, 0)
+        total = total.add(d.amount)
       }
     }
+    return total
   }
 
   // Iterates over all delegator delegations and returns 1 amount
@@ -214,7 +211,7 @@ export class DPOSUserV3 extends GatewayUser {
     for (const d of delegations.delegationsArray) {
       // if it's the rewards delegation and it's already bonded
       if (d.index === 0 && d.state == DelegationState.BONDED) {
-        total.add(d.amount)
+        total = total.add(d.amount)
       }
     }
 
