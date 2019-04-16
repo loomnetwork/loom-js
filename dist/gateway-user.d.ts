@@ -60,7 +60,7 @@ export declare class GatewayUser extends CrossChainUser {
      * Retrieves the  DAppChain LoomCoin balance of a user
      * @param address The address to check the balance of. If not provided, it will check the user's balance
      */
-    getDAppChainBalanceAsync(address: string | undefined): Promise<BN>;
+    getDAppChainBalanceAsync(address?: string): Promise<BN>;
     /**
      * Deposits an amount of LOOM tokens to the dappchain gateway and return a signature which can be used to withdraw the same amount from the mainnet gateway.
      *

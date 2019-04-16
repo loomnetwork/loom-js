@@ -26,7 +26,7 @@ export declare class DPOSUserV3 extends GatewayUser {
      * @param candidate The candidate's hex address
      * @param amount The amount delegated
      */
-    delegateAsync(candidate: string, amount: BN, tier: LocktimeTier): Promise<void>;
+    delegateAsync(candidate: string, amount: BN, tier: LocktimeTier, referrer?: string): Promise<void>;
     /**
      * Redelegates an amount of LOOM tokens from a validator to another
      *
@@ -42,7 +42,6 @@ export declare class DPOSUserV3 extends GatewayUser {
      * @param amount The amount to undelegate
      */
     undelegateAsync(candidate: string, amount: BN, index: number): Promise<void>;
-    claimDelegationsAsync(validatorAddress: string): Promise<void>;
     /**
      * Returns the stake a delegator has delegated to a candidate/validator
      *
@@ -50,6 +49,6 @@ export declare class DPOSUserV3 extends GatewayUser {
      * @param delegator The delegator's hex address
      */
     checkDelegationsAsync(validator: string, delegator?: string): Promise<IDelegatorDelegations | null>;
-    claimRewardsAsync(): Promise<void>;
+    claimRewardsAsync(): Promise<BN>;
     checkRewardsAsync(owner?: string): Promise<BN>;
 }

@@ -288,11 +288,7 @@ var GatewayUser = /** @class */ (function (_super) {
             return tslib_1.__generator(this, function (_a) {
                 switch (_a.label) {
                     case 0:
-                        // if no address is provided, return our balance
-                        if (address === undefined) {
-                            return [2 /*return*/, this._dappchainLoom.getBalanceOfAsync(this.loomAddress)];
-                        }
-                        addr = this.prefixAddress(address);
+                        addr = address ? this.prefixAddress(address) : this.loomAddress;
                         return [4 /*yield*/, this._dappchainLoom.getBalanceOfAsync(addr)];
                     case 1:
                         balance = _a.sent();

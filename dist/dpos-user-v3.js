@@ -8,7 +8,7 @@ var contracts_1 = require("./contracts");
 var gateway_user_1 = require("./gateway-user");
 var solidity_helpers_1 = require("./solidity-helpers");
 var dposv3_pb_1 = require("./proto/dposv3_pb");
-var log = debug_1.default('dpos-user');
+var log = debug_1.default('dpos3-user');
 var DPOSUserV3 = /** @class */ (function (_super) {
     tslib_1.__extends(DPOSUserV3, _super);
     function DPOSUserV3(params) {
@@ -122,7 +122,7 @@ var DPOSUserV3 = /** @class */ (function (_super) {
      * @param candidate The candidate's hex address
      * @param amount The amount delegated
      */
-    DPOSUserV3.prototype.delegateAsync = function (candidate, amount, tier) {
+    DPOSUserV3.prototype.delegateAsync = function (candidate, amount, tier, referrer) {
         return tslib_1.__awaiter(this, void 0, void 0, function () {
             var address;
             return tslib_1.__generator(this, function (_a) {
@@ -132,7 +132,7 @@ var DPOSUserV3 = /** @class */ (function (_super) {
                         return [4 /*yield*/, this.dappchainLoom.approveAsync(this._dappchainDPOS.address, amount)];
                     case 1:
                         _a.sent();
-                        return [2 /*return*/, this._dappchainDPOS.delegateAsync(address, amount, tier)];
+                        return [2 /*return*/, this._dappchainDPOS.delegateAsync(address, amount, tier, referrer)];
                 }
             });
         });
@@ -175,11 +175,6 @@ var DPOSUserV3 = /** @class */ (function (_super) {
             });
         });
     };
-    DPOSUserV3.prototype.claimDelegationsAsync = function (validatorAddress) {
-        var address = this.prefixAddress(validatorAddress);
-        // When unbonding 0 it unbonds the full amount, and the 0th delegation is the rewards delegation
-        return this._dappchainDPOS.unbondAsync(address, 0, 0);
-    };
     /**
      * Returns the stake a delegator has delegated to a candidate/validator
      *
@@ -194,20 +189,22 @@ var DPOSUserV3 = /** @class */ (function (_super) {
     // Iterates over all the delegator's reward delegations and unbonds the ones it can unbond
     DPOSUserV3.prototype.claimRewardsAsync = function () {
         return tslib_1.__awaiter(this, void 0, void 0, function () {
-            var delegations, _i, _a, d;
+            var delegations, total, _i, _a, d;
             return tslib_1.__generator(this, function (_b) {
                 switch (_b.label) {
                     case 0: return [4 /*yield*/, this._dappchainDPOS.checkAllDelegationsAsync(this.loomAddress)];
                     case 1:
                         delegations = _b.sent();
+                        total = new bn_js_1.default(0);
                         for (_i = 0, _a = delegations.delegationsArray; _i < _a.length; _i++) {
                             d = _a[_i];
                             // if it's the rewards delegation and it's already bonded
                             if (d.index === 0 && d.state == dposv3_pb_1.DelegationState.BONDED) {
                                 this.dappchainDPOS.unbondAsync(d.validator, 0, 0);
+                                total = total.add(d.amount);
                             }
                         }
-                        return [2 /*return*/];
+                        return [2 /*return*/, total];
                 }
             });
         });
@@ -230,7 +227,7 @@ var DPOSUserV3 = /** @class */ (function (_super) {
                             d = _a[_i];
                             // if it's the rewards delegation and it's already bonded
                             if (d.index === 0 && d.state == dposv3_pb_1.DelegationState.BONDED) {
-                                total.add(d.amount);
+                                total = total.add(d.amount);
                             }
                         }
                         return [2 /*return*/, total];
