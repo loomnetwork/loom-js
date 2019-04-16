@@ -158,7 +158,7 @@ async function bootstrapTest(
   return { client, contract, loomProvider, pubKey, privKey }
 }
 
-test('Test Signed Eth Tx Middleware Type 1', { timeout: 1000 * 60 * 10 }, async t => {
+test('Test Signed Eth Tx Middleware Type 1', async t => {
   t.timeoutAfter(1000 * 60 * 10)
   try {
     const { client, loomProvider, contract } = await bootstrapTest(createTestHttpClient)
@@ -179,8 +179,6 @@ test('Test Signed Eth Tx Middleware Type 1', { timeout: 1000 * 60 * 10 }, async 
       ),
       new SignedEosTxMiddleware(offlineScatterSigner, ethAddress)
     ])
-
-    console.log('ethAddress', ethAddress, eosAddress)
 
     const middlewaresUsed = loomProvider.accountMiddlewares.get(ethAddress)
     t.assert(middlewaresUsed![0] instanceof NonceTxMiddleware, 'NonceTxMiddleware used')

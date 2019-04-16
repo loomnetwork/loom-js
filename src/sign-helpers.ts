@@ -135,6 +135,10 @@ export class ScatterSigner extends BaseScatterSigner {
       throw Error(`Public Key can't be empty`)
     }
 
+    if (!this._publicKey.startsWith('EOS')) {
+      throw Error(`PublicKey isn't valid`)
+    }
+
     const tx = await this._scatter.authenticate(this.nonce, msg, this._publicKey)
     return Buffer.from(tx, 'hex')
   }
@@ -147,10 +151,10 @@ export class ScatterSigner extends BaseScatterSigner {
  * Based on Scatter authenticate method:
  * https://github.com/GetScatter/scatter-js/blob/master/mock-sites/vanilla-eos/index.html#L187
  */
-export class OfflineScatterEosSign extends BaseScatterSigner{
+export class OfflineScatterEosSign extends BaseScatterSigner {
   private _privateKey: string
 
-  constructor (privateKey: string) {
+  constructor(privateKey: string) {
     super()
     this._privateKey = privateKey
   }
