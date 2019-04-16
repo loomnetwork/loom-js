@@ -16,12 +16,13 @@ export { unmarshalBigUIntPB, marshalBigUIntPB } from './big-uint'
 export {
   SignedTxMiddleware,
   SignedEthTxMiddleware,
+  SignedEosTxMiddleware,
   NonceTxMiddleware,
   CachedNonceTxMiddleware,
   SpeculativeNonceTxMiddleware,
   isInvalidTxNonceError
 } from './middleware'
-export { createDefaultTxMiddleware } from './helpers'
+export { createDefaultTxMiddleware, eosAddressToEthAddress } from './helpers'
 export { LoomProvider } from './loom-provider'
 
 import * as Contracts from './contracts'
@@ -48,6 +49,7 @@ export {
   ISignerAsync,
   OfflineWeb3Signer,
   Web3Signer,
+  EosScatterSigner,
   EthersSigner,
   soliditySha3,
   getJsonRPCSignerAsync,

@@ -1,8 +1,6 @@
 import ethutil from 'ethereumjs-util'
 import Web3 from 'web3'
 import { ethers } from 'ethers'
-import ScatterJS from 'scatterjs-core'
-import ScatterEOS from 'scatterjs-plugin-eosjs'
 import ecc from 'eosjs-ecc'
 
 const web3 = new Web3()
@@ -25,28 +23,6 @@ export function getMetamaskSigner(provider: any): ethers.Signer {
   // HACK: force personal sign by pretending to be metamask no matter what the web3 provider is
   provider.isMetaMask = true
   return new ethers.providers.Web3Provider(provider).getSigner()
-}
-
-export async function getScatterSigner() {
-  // const network = ScatterJS.Network.fromJson({
-  //   blockchain: 'eos',
-  //   chainId: 'aca376f206b8fc25a6ed44dbdc66547c36c6c33e3a119ffbeaef943642f0e906',
-  //   host: 'nodes.get-scatter.com',
-  //   port: 443,
-  //   protocol: 'https'
-  // })
-  //
-  // ScatterJS.connect('LOOM-JS-E2E', { network }).then((connected: boolean) => {
-  //   console.log('connected', connected)
-  // })
-  // ecc.randomKey().then((privateWif: any) =>  {
-  //   const pubkey = ecc.privateToPublic(privateWif)
-  //   console.log(pubkey)
-  // })
-
-  const privKey = await ecc.randomKey()
-  const pubKey = ecc.privateToPublic(privKey)
-  // console.log(privKey, pubKey)
 }
 
 /**
@@ -98,11 +74,11 @@ export class EthersSigner implements ISignerAsync {
 /**
  * Abstract class for signing with Scatter
  */
-export abstract class BaseScatterSigner implements ISignerAsync {
-  protected _nonce: string = ''
+export abstract class BaseEosScatterSigner implements ISignerAsync {
+  protected _nonce: string = '0'
 
   get nonce(): string {
-    return this._nonce
+    return ecc.sha256(this._nonce).slice(0, 12)
   }
 
   set nonce(n: string) {
@@ -116,7 +92,7 @@ export abstract class BaseScatterSigner implements ISignerAsync {
  * Signs message using the Scatter from the ScatterJS
  * This signer needs to have the ScatterJS started and running
  */
-export class ScatterSigner extends BaseScatterSigner {
+export class EosScatterSigner extends BaseEosScatterSigner {
   private _scatter: any
   private _publicKey: string
 
@@ -139,8 +115,8 @@ export class ScatterSigner extends BaseScatterSigner {
       throw Error(`PublicKey isn't valid`)
     }
 
-    const tx = await this._scatter.authenticate(this.nonce, msg, this._publicKey)
-    return Buffer.from(tx, 'hex')
+    const sig = await this._scatter.authenticate(this.nonce, msg, this._publicKey)
+    return Buffer.from(sig)
   }
 }
 
@@ -151,7 +127,7 @@ export class ScatterSigner extends BaseScatterSigner {
  * Based on Scatter authenticate method:
  * https://github.com/GetScatter/scatter-js/blob/master/mock-sites/vanilla-eos/index.html#L187
  */
-export class OfflineScatterEosSign extends BaseScatterSigner {
+export class OfflineEosScatterEosSign extends BaseEosScatterSigner {
   private _privateKey: string
 
   constructor(privateKey: string) {
@@ -164,7 +140,7 @@ export class OfflineScatterEosSign extends BaseScatterSigner {
       throw Error(`Nonce can't be empty`)
     }
 
-    const shaData = ecc.sha256(ecc.sha256(msg) + ecc.sha256(this._nonce))
+    const shaData = ecc.sha256(ecc.sha256(msg) + ecc.sha256(this.nonce))
     const sig = ecc.signHash(shaData, this._privateKey)
     return Promise.resolve(Buffer.from(sig))
   }

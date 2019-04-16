@@ -32,7 +32,7 @@ export class AddressMapper extends Contract {
   async addIdentityMappingAsync(
     from: Address,
     to: Address,
-    ethersSigner: ISignerAsync
+    signer: ISignerAsync
   ): Promise<Uint8Array | void> {
     const mappingIdentityRequest = new AddressMapperAddIdentityMappingRequest()
     mappingIdentityRequest.setFrom(from.MarshalPB())
@@ -46,7 +46,7 @@ export class AddressMapper extends Contract {
       { type: 'address', value: to.local.toString().slice(2) }
     )
 
-    const sign = await ethersSigner.signAsync(hash)
+    const sign = await signer.signAsync(hash)
     mappingIdentityRequest.setSignature(sign)
 
     return this.callAsync<void>('AddIdentityMapping', mappingIdentityRequest)

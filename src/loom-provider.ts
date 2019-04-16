@@ -666,12 +666,7 @@ export class LoomProvider {
     value: string
   }): Promise<any> {
     const chainId = this.callerChainId === null ? this._client.chainId : this.callerChainId
-    const caller = payload.from.startsWith('0x')
-      ? new Address(chainId, LocalAddress.fromHexString(payload.from))
-      : new Address(
-          chainId,
-          LocalAddress.fromHexString(`0x${Buffer.from(payload.from).toString('hex')}`)
-        )
+    const caller = new Address(chainId, LocalAddress.fromHexString(payload.from))
 
     log('caller', caller.toString())
     const address = new Address(this._client.chainId, LocalAddress.fromHexString(payload.to))
@@ -898,6 +893,7 @@ export class LoomProvider {
     txTransaction: Transaction
   ): Promise<Uint8Array | void> {
     const middleware = this._accountMiddlewares.get(fromPublicAddr)
+    log('Middlewares used', middleware)
     return this._client.commitTxAsync<Transaction>(txTransaction, { middleware })
   }
 

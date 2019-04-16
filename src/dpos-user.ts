@@ -16,7 +16,7 @@ import {
   IDelegatorDelegations
 } from './contracts/dpos2'
 import { getMetamaskSigner } from './sign-helpers'
-import { ERC20Gateway_v2 } from './mainnet-contracts/ERC20Gateway_v2';
+import { ERC20Gateway_v2 } from './mainnet-contracts/ERC20Gateway_v2'
 
 const log = debug('dpos-user')
 
@@ -138,16 +138,13 @@ export class DPOSUser extends GatewayUser {
     client: Client,
     address: Address,
     ethAddress: string,
-
     gateway: ethers.Contract,
     loomToken: ethers.Contract,
     vmc: ethers.Contract | undefined,
-
     dappchainGateway: Contracts.LoomCoinTransferGateway,
     dappchainLoom: Contracts.Coin,
     dappchainDPOS: Contracts.DPOS2,
     dappchainMapper: Contracts.AddressMapper | null,
-
     version: GatewayVersion = GatewayVersion.SINGLESIG
   ) {
     super(

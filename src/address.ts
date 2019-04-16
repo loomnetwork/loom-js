@@ -37,7 +37,7 @@ export class LocalAddress {
       throw new Error('hexAddr argument has no 0x prefix')
     }
     const bytes = Buffer.from(hexAddr.slice(2), 'hex')
-    if (bytes.length !== 20 && bytes.length !== 53) {
+    if (bytes.length !== 20) {
       throw new Error(`Invalid local address, expected 20 bytes, got ${bytes.length}`)
     }
     return new LocalAddress(bytes)

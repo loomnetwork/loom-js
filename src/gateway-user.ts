@@ -85,7 +85,11 @@ export class GatewayUser extends CrossChainUser {
     )
   }
 
-  static async getContracts(wallet: ethers.Signer, gatewayAddress: string, version?: GatewayVersion) : Promise<EthereumContracts> {
+  static async getContracts(
+    wallet: ethers.Signer,
+    gatewayAddress: string,
+    version?: GatewayVersion
+  ): Promise<EthereumContracts> {
     const gatewayABI = version == GatewayVersion.MULTISIG ? ERC20GatewayABI_v2 : ERC20GatewayABI
     const gateway = new ethers.Contract(gatewayAddress, gatewayABI, wallet)
     const loomAddress = await gateway.functions.loomAddress()
@@ -137,7 +141,11 @@ export class GatewayUser extends CrossChainUser {
       crosschain.client,
       crosschain.loomAddress
     )
-    const { gateway, loomToken, vmc } = await GatewayUser.getContracts(crosschain.wallet, gatewayAddress, version)
+    const { gateway, loomToken, vmc } = await GatewayUser.getContracts(
+      crosschain.wallet,
+      gatewayAddress,
+      version
+    )
 
     return new GatewayUser(
       crosschain.wallet,
@@ -176,7 +184,11 @@ export class GatewayUser extends CrossChainUser {
       crosschain.client,
       crosschain.loomAddress
     )
-    const { gateway, loomToken, vmc } = await GatewayUser.getContracts(wallet, gatewayAddress, version)
+    const { gateway, loomToken, vmc } = await GatewayUser.getContracts(
+      wallet,
+      gatewayAddress,
+      version
+    )
 
     return new GatewayUser(
       wallet,

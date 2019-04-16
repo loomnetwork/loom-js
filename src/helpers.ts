@@ -8,7 +8,6 @@ import { createJSONRPCClient, LocalAddress } from '.'
 import { Address } from './address'
 import { ethers } from 'ethers'
 import ecc from 'eosjs-ecc'
-import bs from 'bs58'
 import ethJsUtil = require('ethereumjs-util')
 
 import debug from 'debug'
