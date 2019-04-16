@@ -269,12 +269,8 @@ export class GatewayUser extends CrossChainUser {
    * Retrieves the  DAppChain LoomCoin balance of a user
    * @param address The address to check the balance of. If not provided, it will check the user's balance
    */
-  async getDAppChainBalanceAsync(address: string | undefined): Promise<BN> {
-    // if no address is provided, return our balance
-    if (address === undefined) {
-      return this._dappchainLoom.getBalanceOfAsync(this.loomAddress)
-    }
-    const addr = this.prefixAddress(address)
+  async getDAppChainBalanceAsync(address?: string): Promise<BN> {
+    const addr = address ? this.prefixAddress(address) : this.loomAddress
     const balance = await this._dappchainLoom.getBalanceOfAsync(addr)
     return balance
   }
