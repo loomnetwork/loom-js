@@ -10,92 +10,101 @@ import { getMetamaskSigner } from './solidity-helpers'
 
 const log = debug('crosschain-user')
 
+export interface CrossChainUserParams {
+  // Dappchain endpoint settings
+  dappchainEndpoint: string
+  chainId: string
+
+  // Keys
+  dappchainPrivateKey?: string
+  ethereumPrivateKey?: string
+
+  // Ethereum endpoint settings
+  web3?: Web3
+  ethEndpoint?: string
+  wallet?: ethers.Signer
+}
+
+export interface NewCrossChainUserParams {
+  wallet: ethers.Signer
+  client: Client
+  address: Address
+  ethAddress: string
+  addressMapper?: Contracts.AddressMapper
+}
+
 export class CrossChainUser {
   private _wallet: ethers.Signer
   private _client: Client
   private _address: Address
   private _ethAddress: string
-  private _dappchainMapper: Contracts.AddressMapper | null
+  private _dappchainMapper?: Contracts.AddressMapper
 
   static async createOfflineCrossChainUserAsync(
-    endpoint: string,
-    privateKey: string,
-    dappchainEndpoint: string,
-    dappchainKey: string,
-    chainId: string
+    params: CrossChainUserParams
   ): Promise<CrossChainUser> {
-    const provider = new ethers.providers.JsonRpcProvider(endpoint)
-    const wallet = new ethers.Wallet(privateKey, provider)
-    return CrossChainUser.createCrossChainUserAsync(
+    const provider = new ethers.providers.JsonRpcProvider(params.ethEndpoint)
+    const wallet = new ethers.Wallet(params.ethereumPrivateKey!, provider)
+    return CrossChainUser.createCrossChainUserAsync({
       wallet,
-      dappchainEndpoint,
-      dappchainKey,
-      chainId
-    )
+      ...params
+    })
   }
 
   static async createMetamaskCrossChainUserAsync(
-    web3: Web3,
-    dappchainEndpoint: string,
-    dappchainKey: string,
-    chainId: string
+    params: CrossChainUserParams
   ): Promise<CrossChainUser> {
-    const provider = new ethers.providers.Web3Provider(web3.currentProvider)
+    const provider = new ethers.providers.Web3Provider(params.web3!.currentProvider)
     const wallet = provider.getSigner()
-    return CrossChainUser.createCrossChainUserAsync(
+    return CrossChainUser.createCrossChainUserAsync({
       wallet,
-      dappchainEndpoint,
-      dappchainKey,
-      chainId
-    )
+      ...params
+    })
   }
 
   static async createEthSignMetamaskCrossChainUserAsync(
-    web3: Web3,
-    dappchainEndpoint: string,
-    chainId: string
+    params: CrossChainUserParams
   ): Promise<CrossChainUser> {
-    const wallet = getMetamaskSigner(web3.currentProvider)
+    const wallet = getMetamaskSigner(params.web3!.currentProvider)
 
     const { client, callerAddress } = await createDefaultEthSignClientAsync(
-      dappchainEndpoint,
-      chainId,
+      params.dappchainEndpoint,
+      params.chainId,
       wallet
     )
     const ethAddress = callerAddress.local.toString()
     const mapper = await AddressMapper.createAsync(client, callerAddress)
     const mapping = await mapper.getMappingAsync(callerAddress)
-    const dappchainAddress = mapping.to
+    const address = mapping.to
 
-    return new CrossChainUser(wallet, client, dappchainAddress, ethAddress, null)
+    return new CrossChainUser({ wallet, client, address, ethAddress })
   }
 
-  static async createCrossChainUserAsync(
-    wallet: ethers.Signer,
-    dappchainEndpoint: string,
-    dappchainKey: string,
-    chainId: string
-  ): Promise<CrossChainUser> {
-    const { client, publicKey } = createDefaultClient(dappchainKey, dappchainEndpoint, chainId)
-    const dappchainAddress = new Address(chainId, LocalAddress.fromPublicKey(publicKey))
-    const ethAddress = await wallet.getAddress()
-    const dappchainMapper = await AddressMapper.createAsync(client, dappchainAddress)
+  static async createCrossChainUserAsync(params: CrossChainUserParams): Promise<CrossChainUser> {
+    const { client, publicKey } = createDefaultClient(
+      params.dappchainPrivateKey!,
+      params.dappchainEndpoint,
+      params.chainId
+    )
+    const address = new Address(client.chainId, LocalAddress.fromPublicKey(publicKey))
+    const ethAddress = await params.wallet!.getAddress()
+    const addressMapper = await AddressMapper.createAsync(client, address)
 
-    return new CrossChainUser(wallet, client, dappchainAddress, ethAddress, dappchainMapper)
+    return new CrossChainUser({
+      wallet: params.wallet!,
+      client,
+      address,
+      ethAddress,
+      addressMapper
+    })
   }
 
-  constructor(
-    wallet: ethers.Signer,
-    client: Client,
-    address: Address,
-    ethAddress: string,
-    dappchainMapper: Contracts.AddressMapper | null
-  ) {
-    this._wallet = wallet
-    this._address = address
-    this._ethAddress = ethAddress
-    this._client = client
-    this._dappchainMapper = dappchainMapper
+  constructor(params: NewCrossChainUserParams) {
+    this._wallet = params.wallet
+    this._address = params.address
+    this._ethAddress = params.ethAddress
+    this._client = params.client
+    this._dappchainMapper = params.addressMapper
   }
 
   get client(): Client {
@@ -106,7 +115,7 @@ export class CrossChainUser {
     return this._wallet
   }
 
-  get addressMapper(): Contracts.AddressMapper | null {
+  get addressMapper(): Contracts.AddressMapper | undefined {
     return this._dappchainMapper
   }
 
@@ -134,12 +143,12 @@ export class CrossChainUser {
     }
     const walletAddress = await this._wallet.getAddress()
     const ethereumAddress = Address.fromString(`eth:${walletAddress}`)
-    if (await this._dappchainMapper.hasMappingAsync(this._address)) {
+    if (await this._dappchainMapper!.hasMappingAsync(this._address)) {
       log(`${this._address.toString()} is already mapped`)
       return
     }
     const signer = new EthersSigner(this._wallet)
-    await this._dappchainMapper.addIdentityMappingAsync(this._address, ethereumAddress, signer)
+    await this._dappchainMapper!.addIdentityMappingAsync(this._address, ethereumAddress, signer)
     log(`Mapped ${this._address} to ${ethereumAddress}`)
   }
 }

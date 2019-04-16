@@ -16,7 +16,7 @@ import {
   IDelegatorDelegations
 } from './contracts/dpos2'
 import { getMetamaskSigner } from './solidity-helpers'
-import { ERC20Gateway_v2 } from './mainnet-contracts/ERC20Gateway_v2';
+import { ERC20Gateway_v2 } from './mainnet-contracts/ERC20Gateway_v2'
 
 const log = debug('dpos-user')
 
@@ -70,13 +70,13 @@ export class DPOSUser extends GatewayUser {
     gatewayAddress: string,
     version?: GatewayVersion
   ): Promise<DPOSUser> {
-    const gatewayUser = await GatewayUser.createEthSignMetamaskGatewayUserAsync(
+    const gatewayUser = await GatewayUser.createEthSignMetamaskGatewayUserAsync({
       web3,
       dappchainEndpoint,
       chainId,
       gatewayAddress,
-      version
-    )
+      version: version ? version : GatewayVersion.SINGLESIG
+    })
 
     const dappchainDPOS = await DPOS2.createAsync(gatewayUser.client, gatewayUser.loomAddress)
     log('Connected to dappchain DPOS Contract')
@@ -105,14 +105,14 @@ export class DPOSUser extends GatewayUser {
     gatewayAddress: string,
     version?: GatewayVersion
   ): Promise<DPOSUser> {
-    const gatewayUser = await GatewayUser.createGatewayUserAsync(
+    const gatewayUser = await GatewayUser.createGatewayUserAsync({
       wallet,
       dappchainEndpoint,
-      dappchainKey,
+      dappchainPrivateKey: dappchainKey,
       chainId,
       gatewayAddress,
-      version
-    )
+      version: version ? version : GatewayVersion.SINGLESIG
+    })
 
     const { client, address } = createDefaultClient(dappchainKey, dappchainEndpoint, chainId)
     const dappchainDPOS = await DPOS2.createAsync(client, address)
@@ -128,7 +128,7 @@ export class DPOSUser extends GatewayUser {
       gatewayUser.dappchainGateway,
       gatewayUser.dappchainLoom,
       dappchainDPOS,
-      gatewayUser.addressMapper,
+      gatewayUser.addressMapper!,
       version
     )
   }
@@ -138,19 +138,16 @@ export class DPOSUser extends GatewayUser {
     client: Client,
     address: Address,
     ethAddress: string,
-
     gateway: ethers.Contract,
     loomToken: ethers.Contract,
     vmc: ethers.Contract | undefined,
-
     dappchainGateway: Contracts.LoomCoinTransferGateway,
     dappchainLoom: Contracts.Coin,
     dappchainDPOS: Contracts.DPOS2,
     dappchainMapper: Contracts.AddressMapper | null,
-
     version: GatewayVersion = GatewayVersion.SINGLESIG
   ) {
-    super(
+    super({
       wallet,
       client,
       address,
@@ -160,9 +157,9 @@ export class DPOSUser extends GatewayUser {
       vmc,
       dappchainGateway,
       dappchainLoom,
-      dappchainMapper,
+      addressMapper: dappchainMapper!,
       version
-    )
+    })
     this._dappchainDPOS = dappchainDPOS
   }
 

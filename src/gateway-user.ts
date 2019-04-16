@@ -9,7 +9,7 @@ import { IWithdrawalReceipt } from './contracts/transfer-gateway'
 import { sleep, parseSigs } from './helpers'
 import { getMetamaskSigner } from './solidity-helpers'
 
-import { CrossChainUser } from './crosschain-user'
+import { CrossChainUser, CrossChainUserParams, NewCrossChainUserParams } from './crosschain-user'
 
 const log = debug('gateway-user')
 
@@ -37,6 +37,21 @@ export interface EthereumContracts {
   vmc?: ValidatorManagerContract
 }
 
+export interface GatewayUserParams extends CrossChainUserParams {
+  gatewayAddress: string
+  version: GatewayVersion
+}
+
+export interface NewGatewayUserParams extends NewCrossChainUserParams {
+  gateway: ERC20Gateway_v2
+  loomToken: ERC20
+  vmc?: ValidatorManagerContract
+
+  dappchainGateway: Contracts.LoomCoinTransferGateway
+  dappchainLoom: Contracts.Coin
+  version: GatewayVersion
+}
+
 export class GatewayUser extends CrossChainUser {
   private _ethereumGateway: ERC20Gateway_v2
   private _ethereumLoom: ERC20
@@ -45,194 +60,147 @@ export class GatewayUser extends CrossChainUser {
   private _dappchainLoom: Contracts.Coin
   private _version: GatewayVersion
 
-  static async createGatewayOfflineUserAsync(
-    endpoint: string,
-    privateKey: string,
-    dappchainEndpoint: string,
-    dappchainKey: string,
-    chainId: string,
-    gatewayAddress: string,
-    version?: number
-  ): Promise<GatewayUser> {
-    const provider = new ethers.providers.JsonRpcProvider(endpoint)
-    const wallet = new ethers.Wallet(privateKey, provider)
-    return GatewayUser.createGatewayUserAsync(
+  static async createGatewayOfflineUserAsync(params: GatewayUserParams): Promise<GatewayUser> {
+    const provider = new ethers.providers.JsonRpcProvider(params.ethEndpoint)
+    const wallet = new ethers.Wallet(params.ethereumPrivateKey!, provider)
+    return GatewayUser.createGatewayUserAsync({
       wallet,
-      dappchainEndpoint,
-      dappchainKey,
-      chainId,
-      gatewayAddress,
-      version
-    )
+      ...params
+    })
   }
 
-  static async createGatewayMetamaskUserAsync(
-    web3: Web3,
-    dappchainEndpoint: string,
-    dappchainKey: string,
-    chainId: string,
+  static async createGatewayMetamaskUserAsync(params: GatewayUserParams): Promise<GatewayUser> {
+    const wallet = getMetamaskSigner(params.web3!.currentProvider)
+    return GatewayUser.createGatewayUserAsync({
+      wallet,
+      ...params
+    })
+  }
+
+  static async getContracts(
+    wallet: ethers.Signer,
     gatewayAddress: string,
     version?: GatewayVersion
-  ): Promise<GatewayUser> {
-    const wallet = getMetamaskSigner(web3.currentProvider)
-    return GatewayUser.createGatewayUserAsync(
-      wallet,
-      dappchainEndpoint,
-      dappchainKey,
-      chainId,
-      gatewayAddress,
-      version
-    )
-  }
-
-  static async getContracts(wallet: ethers.Signer, gatewayAddress: string, version?: GatewayVersion) : Promise<EthereumContracts> {
+  ): Promise<EthereumContracts> {
     const gatewayABI = version == GatewayVersion.MULTISIG ? ERC20GatewayABI_v2 : ERC20GatewayABI
-    const gateway = new ethers.Contract(gatewayAddress, gatewayABI, wallet)
+    const gateway = new ERC20Gateway_v2(gatewayAddress, gatewayABI, wallet)
     const loomAddress = await gateway.functions.loomAddress()
-    const loomToken = new ethers.Contract(loomAddress, ERC20ABI, wallet)
-    let vmc: ethers.Contract
+    const loomToken = new ERC20(loomAddress, ERC20ABI, wallet)
+    let vmc 
     if (version === GatewayVersion.MULTISIG) {
       const vmcAddress = await gateway.functions.vmc()
-      vmc = new ethers.Contract(vmcAddress, ValidatorManagerContractABI, wallet)
+      vmc = new ValidatorManagerContract(vmcAddress, ValidatorManagerContractABI, wallet)
     }
 
-    // @ts-ignore
     return { gateway, loomToken, vmc }
   }
 
-  private static getGatewayVersion(
-    endpoint: string,
-    version?: GatewayVersion
-  ): GatewayVersion | undefined {
+  private static getGatewayVersion(endpoint: string, version?: GatewayVersion): GatewayVersion {
     // If no gateway version is provided, pick based on the chain URL prefix
-    if (version === undefined) {
+    let retVersion = GatewayVersion.SINGLESIG
+    if (typeof version === undefined) {
       const chainName = endpoint.split('.')[0]
       for (let chainPrefix of V2_GATEWAYS) {
         if (chainName.indexOf(chainPrefix) != -1) {
-          version = GatewayVersion.MULTISIG
+          retVersion = GatewayVersion.MULTISIG
         }
       }
     }
 
-    return version
+    return retVersion
   }
 
   static async createEthSignMetamaskGatewayUserAsync(
-    web3: Web3,
-    dappchainEndpoint: string,
-    chainId: string,
-    gatewayAddress: string,
-    version?: GatewayVersion
+    params: GatewayUserParams
   ): Promise<GatewayUser> {
-    const gwVersion = GatewayUser.getGatewayVersion(dappchainEndpoint, version)
+    const gwVersion = GatewayUser.getGatewayVersion(params.dappchainEndpoint, params.version)
 
-    let crosschain = await CrossChainUser.createEthSignMetamaskCrossChainUserAsync(
-      web3,
-      dappchainEndpoint,
-      chainId
-    )
+    let crosschain = await CrossChainUser.createEthSignMetamaskCrossChainUserAsync(params)
 
     const dappchainLoom = await Coin.createAsync(crosschain.client, crosschain.loomAddress)
     const dappchainGateway = await LoomCoinTransferGateway.createAsync(
       crosschain.client,
       crosschain.loomAddress
     )
-    const { gateway, loomToken, vmc } = await GatewayUser.getContracts(crosschain.wallet, gatewayAddress, version)
-
-    return new GatewayUser(
+    const { gateway, loomToken, vmc } = await GatewayUser.getContracts(
       crosschain.wallet,
-      crosschain.client,
-      crosschain.loomAddress,
-      crosschain.ethAddress,
+      params.gatewayAddress,
+      params.version
+    )
+
+    return new GatewayUser({
+      wallet: crosschain.wallet,
+      client: crosschain.client,
+      address: crosschain.loomAddress,
+      ethAddress: crosschain.ethAddress,
       gateway,
       loomToken,
       vmc,
       dappchainGateway,
       dappchainLoom,
-      null,
-      gwVersion
-    )
+      version: gwVersion!
+    })
   }
 
-  static async createGatewayUserAsync(
-    wallet: ethers.Signer,
-    dappchainEndpoint: string,
-    dappchainKey: string,
-    chainId: string,
-    gatewayAddress: string,
-    version?: GatewayVersion
-  ): Promise<GatewayUser> {
-    const gwVersion = GatewayUser.getGatewayVersion(dappchainEndpoint, version)
+  static async createGatewayUserAsync(params: GatewayUserParams): Promise<GatewayUser> {
+    const gwVersion = GatewayUser.getGatewayVersion(params.dappchainEndpoint, params.version)
 
-    let crosschain = await CrossChainUser.createCrossChainUserAsync(
-      wallet,
-      dappchainEndpoint,
-      dappchainKey,
-      chainId
-    )
+    let crosschain = await CrossChainUser.createCrossChainUserAsync(params)
 
     const dappchainLoom = await Coin.createAsync(crosschain.client, crosschain.loomAddress)
     const dappchainGateway = await LoomCoinTransferGateway.createAsync(
       crosschain.client,
       crosschain.loomAddress
     )
-    const { gateway, loomToken, vmc } = await GatewayUser.getContracts(wallet, gatewayAddress, version)
+    const { gateway, loomToken, vmc } = await GatewayUser.getContracts(
+      crosschain.wallet,
+      params.gatewayAddress,
+      params.version
+    )
 
-    return new GatewayUser(
-      wallet,
-      crosschain.client,
-      crosschain.loomAddress,
-      crosschain.ethAddress,
+    return new GatewayUser({
+      wallet: crosschain.wallet,
+      client: crosschain.client,
+      address: crosschain.loomAddress,
+      ethAddress: crosschain.ethAddress,
       gateway,
       loomToken,
       vmc,
       dappchainGateway,
       dappchainLoom,
-      crosschain.addressMapper,
-      gwVersion
-    )
+      addressMapper: crosschain.addressMapper,
+      version: gwVersion
+    })
   }
 
-  constructor(
-    wallet: ethers.Signer,
-    client: Client,
-    address: Address,
-    ethAddress: string,
-    gateway: ethers.Contract,
-    loomToken: ethers.Contract,
-    vmc: ethers.Contract | undefined,
-    dappchainGateway: Contracts.LoomCoinTransferGateway,
-    dappchainLoom: Contracts.Coin,
-    dappchainMapper: Contracts.AddressMapper | null,
-    version: GatewayVersion = GatewayVersion.SINGLESIG
-  ) {
-    super(wallet, client, address, ethAddress, dappchainMapper)
+  constructor(params: NewGatewayUserParams) {
+    super(params)
 
-    this._version = version
+    this._version = params.version
 
     // Set ethereum contracts
     // @ts-ignore
-    this._ethereumGateway = gateway
+    this._ethereumGateway = params.gateway
     // @ts-ignore
-    this._ethereumLoom = loomToken
+    this._ethereumLoom = params.loomToken
     // @ts-ignore
-    this._ethereumVMC = vmc
+    this._ethereumVMC = params.vmc
 
     // Set dappchain contracts
-    this._dappchainGateway = dappchainGateway
-    this._dappchainLoom = dappchainLoom
-    this._dappchainGateway = dappchainGateway
+    this._dappchainGateway = params.dappchainGateway
+    this._dappchainLoom = params.dappchainLoom
+    this._dappchainGateway = params.dappchainGateway
   }
 
-  get ethereumVMC(): ethers.Contract | undefined {
+  get ethereumVMC(): ValidatorManagerContract | undefined {
     return this._ethereumVMC
   }
 
-  get ethereumGateway(): ethers.Contract {
+  get ethereumGateway(): ERC20Gateway_v2 {
     return this._ethereumGateway
   }
 
-  get ethereumLoom(): ethers.Contract {
+  get ethereumLoom(): ERC20 {
     return this._ethereumLoom
   }
 
