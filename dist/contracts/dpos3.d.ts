@@ -7,7 +7,7 @@ export interface ICandidate {
     address: Address;
     pubKey: Uint8Array;
     delegationTotal: BN;
-    slashPct: BN;
+    slashPercentage: BN;
     whitelistAmount: BN;
     whitelistLocktimeTier: LocktimeTier;
     maxReferralPercentage?: number;
@@ -21,7 +21,7 @@ export interface ICandidate {
 export interface IValidator {
     address: Address;
     pubKey: Uint8Array;
-    slashPct: BN;
+    slashPercentage: BN;
     delegationTotal: BN;
     whitelistAmount: BN;
     whitelistLocktimeTier: LocktimeTier;
@@ -34,7 +34,7 @@ export interface IDelegation {
     amount: BN;
     updateAmount: BN;
     lockTime: number;
-    lockTimeTier: number;
+    lockTimeTier: LocktimeTier;
     state: DelegationState;
     referrer: string;
 }

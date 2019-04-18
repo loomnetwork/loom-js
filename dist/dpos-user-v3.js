@@ -45,7 +45,7 @@ var DPOSUserV3 = /** @class */ (function (_super) {
                         return [2 /*return*/, new DPOSUserV3({
                                 wallet: gatewayUser.wallet,
                                 client: gatewayUser.client,
-                                address: gatewayUser.loomAddress,
+                                loomAddress: gatewayUser.loomAddress,
                                 ethAddress: gatewayUser.ethAddress,
                                 gateway: gatewayUser.ethereumGateway,
                                 loomToken: gatewayUser.ethereumLoom,
@@ -74,7 +74,7 @@ var DPOSUserV3 = /** @class */ (function (_super) {
                         return [2 /*return*/, new DPOSUserV3({
                                 wallet: gatewayUser.wallet,
                                 client: gatewayUser.client,
-                                address: gatewayUser.loomAddress,
+                                loomAddress: gatewayUser.loomAddress,
                                 ethAddress: gatewayUser.ethAddress,
                                 gateway: gatewayUser.ethereumGateway,
                                 loomToken: gatewayUser.ethereumLoom,

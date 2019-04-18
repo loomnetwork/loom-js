@@ -11,10 +11,10 @@ var log = debug_1.default('crosschain-user');
 var CrossChainUser = /** @class */ (function () {
     function CrossChainUser(params) {
         this._wallet = params.wallet;
-        this._address = params.address;
+        this._loomAddress = params.loomAddress;
         this._ethAddress = params.ethAddress;
         this._client = params.client;
-        this._dappchainMapper = params.addressMapper;
+        this._addressMapper = params.addressMapper;
     }
     CrossChainUser.createOfflineCrossChainUserAsync = function (params) {
         return tslib_1.__awaiter(this, void 0, void 0, function () {
@@ -38,7 +38,7 @@ var CrossChainUser = /** @class */ (function () {
     };
     CrossChainUser.createEthSignMetamaskCrossChainUserAsync = function (params) {
         return tslib_1.__awaiter(this, void 0, void 0, function () {
-            var wallet, _a, client, callerAddress, ethAddress, mapper, mapping, address;
+            var wallet, _a, client, callerAddress, ethAddress, mapper, mapping, loomAddress;
             return tslib_1.__generator(this, function (_b) {
                 switch (_b.label) {
                     case 0:
@@ -53,30 +53,30 @@ var CrossChainUser = /** @class */ (function () {
                         return [4 /*yield*/, mapper.getMappingAsync(callerAddress)];
                     case 3:
                         mapping = _b.sent();
-                        address = mapping.to;
-                        return [2 /*return*/, new CrossChainUser({ wallet: wallet, client: client, address: address, ethAddress: ethAddress })];
+                        loomAddress = mapping.to;
+                        return [2 /*return*/, new CrossChainUser({ wallet: wallet, client: client, loomAddress: loomAddress, ethAddress: ethAddress })];
                 }
             });
         });
     };
     CrossChainUser.createCrossChainUserAsync = function (params) {
         return tslib_1.__awaiter(this, void 0, void 0, function () {
-            var _a, client, publicKey, address, ethAddress, addressMapper;
+            var _a, client, publicKey, loomAddress, ethAddress, addressMapper;
             return tslib_1.__generator(this, function (_b) {
                 switch (_b.label) {
                     case 0:
                         _a = helpers_1.createDefaultClient(params.dappchainPrivateKey, params.dappchainEndpoint, params.chainId), client = _a.client, publicKey = _a.publicKey;
-                        address = new _1.Address(client.chainId, _1.LocalAddress.fromPublicKey(publicKey));
+                        loomAddress = new _1.Address(client.chainId, _1.LocalAddress.fromPublicKey(publicKey));
                         return [4 /*yield*/, params.wallet.getAddress()];
                     case 1:
                         ethAddress = _b.sent();
-                        return [4 /*yield*/, address_mapper_1.AddressMapper.createAsync(client, address)];
+                        return [4 /*yield*/, address_mapper_1.AddressMapper.createAsync(client, loomAddress)];
                     case 2:
                         addressMapper = _b.sent();
                         return [2 /*return*/, new CrossChainUser({
                                 wallet: params.wallet,
                                 client: client,
-                                address: address,
+                                loomAddress: loomAddress,
                                 ethAddress: ethAddress,
                                 addressMapper: addressMapper
                             })];
@@ -100,7 +100,7 @@ var CrossChainUser = /** @class */ (function () {
     });
     Object.defineProperty(CrossChainUser.prototype, "addressMapper", {
         get: function () {
-            return this._dappchainMapper;
+            return this._addressMapper;
         },
         enumerable: true,
         configurable: true
@@ -114,7 +114,7 @@ var CrossChainUser = /** @class */ (function () {
     });
     Object.defineProperty(CrossChainUser.prototype, "loomAddress", {
         get: function () {
-            return this._address;
+            return this._loomAddress;
         },
         enumerable: true,
         configurable: true
@@ -134,24 +134,24 @@ var CrossChainUser = /** @class */ (function () {
             return tslib_1.__generator(this, function (_a) {
                 switch (_a.label) {
                     case 0:
-                        if (this._dappchainMapper === null) {
+                        if (this._addressMapper === null) {
                             throw new Error("Tried to map accounts with nil address mapper");
                         }
                         return [4 /*yield*/, this._wallet.getAddress()];
                     case 1:
                         walletAddress = _a.sent();
                         ethereumAddress = _1.Address.fromString("eth:" + walletAddress);
-                        return [4 /*yield*/, this._dappchainMapper.hasMappingAsync(this._address)];
+                        return [4 /*yield*/, this._addressMapper.hasMappingAsync(this._loomAddress)];
                     case 2:
                         if (_a.sent()) {
-                            log(this._address.toString() + " is already mapped");
+                            log(this._loomAddress.toString() + " is already mapped");
                             return [2 /*return*/];
                         }
                         signer = new _1.EthersSigner(this._wallet);
-                        return [4 /*yield*/, this._dappchainMapper.addIdentityMappingAsync(this._address, ethereumAddress, signer)];
+                        return [4 /*yield*/, this._addressMapper.addIdentityMappingAsync(this._loomAddress, ethereumAddress, signer)];
                     case 3:
                         _a.sent();
-                        log("Mapped " + this._address + " to " + ethereumAddress);
+                        log("Mapped " + this._loomAddress + " to " + ethereumAddress);
                         return [2 /*return*/];
                 }
             });

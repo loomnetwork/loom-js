@@ -2,7 +2,7 @@ import BN from 'bn.js';
 import { ethers } from 'ethers';
 import { Address, Contracts } from '.';
 import { IWithdrawalReceipt } from './contracts/transfer-gateway';
-import { CrossChainUser, CrossChainUserParams, NewCrossChainUserParams } from './crosschain-user';
+import { CrossChainUser, CrossChainUserParams, CrossChainUserConstructorParams } from './crosschain-user';
 import { ERC20 } from './mainnet-contracts/ERC20';
 import { ValidatorManagerContract } from './mainnet-contracts/ValidatorManagerContract';
 import { ERC20Gateway_v2 } from './mainnet-contracts/ERC20Gateway_v2';
@@ -19,7 +19,7 @@ export interface GatewayUserParams extends CrossChainUserParams {
     gatewayAddress: string;
     version: GatewayVersion;
 }
-export interface NewGatewayUserParams extends NewCrossChainUserParams {
+export interface GatewayUserConstructorParams extends CrossChainUserConstructorParams {
     gateway: ERC20Gateway_v2;
     loomToken: ERC20;
     vmc?: ValidatorManagerContract;
@@ -40,7 +40,7 @@ export declare class GatewayUser extends CrossChainUser {
     private static getGatewayVersion;
     static createEthSignMetamaskGatewayUserAsync(params: GatewayUserParams): Promise<GatewayUser>;
     static createGatewayUserAsync(params: GatewayUserParams): Promise<GatewayUser>;
-    constructor(params: NewGatewayUserParams);
+    constructor(params: GatewayUserConstructorParams);
     readonly ethereumVMC: ValidatorManagerContract | undefined;
     readonly ethereumGateway: ERC20Gateway_v2;
     readonly ethereumLoom: ERC20;

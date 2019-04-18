@@ -10,12 +10,12 @@ var solidity_helpers_1 = require("./solidity-helpers");
 var log = debug_1.default('dpos-user');
 var DPOSUser = /** @class */ (function (_super) {
     tslib_1.__extends(DPOSUser, _super);
-    function DPOSUser(wallet, client, address, ethAddress, gateway, loomToken, vmc, dappchainGateway, dappchainLoom, dappchainDPOS, dappchainMapper, version) {
+    function DPOSUser(wallet, client, loomAddress, ethAddress, gateway, loomToken, vmc, dappchainGateway, dappchainLoom, dappchainDPOS, dappchainMapper, version) {
         if (version === void 0) { version = gateway_user_1.GatewayVersion.SINGLESIG; }
         var _this = _super.call(this, {
             wallet: wallet,
             client: client,
-            address: address,
+            loomAddress: loomAddress,
             ethAddress: ethAddress,
             gateway: gateway,
             loomToken: loomToken,

@@ -13,7 +13,7 @@ export declare class DPOSUser extends GatewayUser {
     static createMetamaskUserAsync(web3: Web3, dappchainEndpoint: string, dappchainKey: string, chainId: string, gatewayAddress: string, version?: GatewayVersion): Promise<DPOSUser>;
     static createEthSignMetamaskUserAsync(web3: Web3, dappchainEndpoint: string, chainId: string, gatewayAddress: string, version?: GatewayVersion): Promise<DPOSUser>;
     static createUserAsync(wallet: ethers.Signer, dappchainEndpoint: string, dappchainKey: string, chainId: string, gatewayAddress: string, version?: GatewayVersion): Promise<DPOSUser>;
-    constructor(wallet: ethers.Signer, client: Client, address: Address, ethAddress: string, gateway: ERC20Gateway_v2, loomToken: ERC20, vmc: ValidatorManagerContract | undefined, dappchainGateway: Contracts.LoomCoinTransferGateway, dappchainLoom: Contracts.Coin, dappchainDPOS: Contracts.DPOS2, dappchainMapper: Contracts.AddressMapper | null, version?: GatewayVersion);
+    constructor(wallet: ethers.Signer, client: Client, loomAddress: Address, ethAddress: string, gateway: ERC20Gateway_v2, loomToken: ERC20, vmc: ValidatorManagerContract | undefined, dappchainGateway: Contracts.LoomCoinTransferGateway, dappchainLoom: Contracts.Coin, dappchainDPOS: Contracts.DPOS2, dappchainMapper: Contracts.AddressMapper | null, version?: GatewayVersion);
     readonly dappchainDPOS: Contracts.DPOS2;
     listValidatorsAsync(): Promise<IValidator[]>;
     listCandidatesAsync(): Promise<ICandidate[]>;

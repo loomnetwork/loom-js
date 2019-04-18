@@ -121,7 +121,7 @@ var GatewayUser = /** @class */ (function (_super) {
                         return [2 /*return*/, new GatewayUser({
                                 wallet: crosschain.wallet,
                                 client: crosschain.client,
-                                address: crosschain.loomAddress,
+                                loomAddress: crosschain.loomAddress,
                                 ethAddress: crosschain.ethAddress,
                                 gateway: gateway,
                                 loomToken: loomToken,
@@ -156,7 +156,7 @@ var GatewayUser = /** @class */ (function (_super) {
                         return [2 /*return*/, new GatewayUser({
                                 wallet: crosschain.wallet,
                                 client: crosschain.client,
-                                address: crosschain.loomAddress,
+                                loomAddress: crosschain.loomAddress,
                                 ethAddress: crosschain.ethAddress,
                                 gateway: gateway,
                                 loomToken: loomToken,

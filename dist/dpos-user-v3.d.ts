@@ -1,9 +1,9 @@
 import BN from 'bn.js';
 import { Contracts } from '.';
-import { GatewayUser, NewGatewayUserParams, GatewayUserParams } from './gateway-user';
+import { GatewayUser, GatewayUserConstructorParams, GatewayUserParams } from './gateway-user';
 import { IValidator, ICandidate, ICandidateDelegations, IDelegatorDelegations } from './contracts/dpos3';
 import { LocktimeTier } from './proto/dposv3_pb';
-export interface NewDPOSUserV3Params extends NewGatewayUserParams {
+export interface DPOSUserV3ConstructorParams extends GatewayUserConstructorParams {
     dappchainDPOS: Contracts.DPOS3;
 }
 export declare class DPOSUserV3 extends GatewayUser {
@@ -12,7 +12,7 @@ export declare class DPOSUserV3 extends GatewayUser {
     static createMetamaskUserAsync(params: GatewayUserParams): Promise<DPOSUserV3>;
     static createEthSignMetamaskUserAsync(params: GatewayUserParams): Promise<DPOSUserV3>;
     static createUserAsync(params: GatewayUserParams): Promise<DPOSUserV3>;
-    constructor(params: NewDPOSUserV3Params);
+    constructor(params: DPOSUserV3ConstructorParams);
     readonly dappchainDPOS: Contracts.DPOS3;
     listValidatorsAsync(): Promise<IValidator[]>;
     listCandidatesAsync(): Promise<ICandidate[]>;
