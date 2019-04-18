@@ -138,7 +138,7 @@ export class DPOSUser extends GatewayUser {
   constructor(
     wallet: ethers.Signer,
     client: Client,
-    address: Address,
+    loomAddress: Address,
     ethAddress: string,
     gateway: ERC20Gateway_v2,
     loomToken: ERC20,
@@ -152,7 +152,7 @@ export class DPOSUser extends GatewayUser {
     super({
       wallet,
       client,
-      address,
+      loomAddress,
       ethAddress,
       gateway,
       loomToken,

@@ -7,7 +7,7 @@ import { DPOS3 } from './contracts'
 import { createDefaultClient } from './helpers'
 import {
   GatewayUser,
-  NewGatewayUserParams,
+  GatewayUserConstructorParams,
   GatewayUserParams,
   GatewayVersion
 } from './gateway-user'
@@ -22,7 +22,7 @@ import { LocktimeTier, DelegationState } from './proto/dposv3_pb'
 
 const log = debug('dpos3-user')
 
-export interface NewDPOSUserV3Params extends NewGatewayUserParams {
+export interface DPOSUserV3ConstructorParams extends GatewayUserConstructorParams {
   dappchainDPOS: Contracts.DPOS3
 }
 
@@ -54,7 +54,7 @@ export class DPOSUserV3 extends GatewayUser {
     return new DPOSUserV3({
       wallet: gatewayUser.wallet,
       client: gatewayUser.client,
-      address: gatewayUser.loomAddress,
+      loomAddress: gatewayUser.loomAddress,
       ethAddress: gatewayUser.ethAddress,
       gateway: gatewayUser.ethereumGateway,
       loomToken: gatewayUser.ethereumLoom,
@@ -74,7 +74,7 @@ export class DPOSUserV3 extends GatewayUser {
     return new DPOSUserV3({
       wallet: gatewayUser.wallet,
       client: gatewayUser.client,
-      address: gatewayUser.loomAddress,
+      loomAddress: gatewayUser.loomAddress,
       ethAddress: gatewayUser.ethAddress,
       gateway: gatewayUser.ethereumGateway,
       loomToken: gatewayUser.ethereumLoom,
@@ -87,7 +87,7 @@ export class DPOSUserV3 extends GatewayUser {
     })
   }
 
-  constructor(params: NewDPOSUserV3Params) {
+  constructor(params: DPOSUserV3ConstructorParams) {
     super(params)
     this._dappchainDPOS = params.dappchainDPOS
   }

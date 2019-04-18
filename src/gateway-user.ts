@@ -9,7 +9,7 @@ import { IWithdrawalReceipt } from './contracts/transfer-gateway'
 import { sleep, parseSigs } from './helpers'
 import { getMetamaskSigner } from './solidity-helpers'
 
-import { CrossChainUser, CrossChainUserParams, NewCrossChainUserParams } from './crosschain-user'
+import { CrossChainUser, CrossChainUserParams, CrossChainUserConstructorParams } from './crosschain-user'
 
 const log = debug('gateway-user')
 
@@ -42,7 +42,7 @@ export interface GatewayUserParams extends CrossChainUserParams {
   version: GatewayVersion
 }
 
-export interface NewGatewayUserParams extends NewCrossChainUserParams {
+export interface GatewayUserConstructorParams extends CrossChainUserConstructorParams {
   gateway: ERC20Gateway_v2
   loomToken: ERC20
   vmc?: ValidatorManagerContract
@@ -135,7 +135,7 @@ export class GatewayUser extends CrossChainUser {
     return new GatewayUser({
       wallet: crosschain.wallet,
       client: crosschain.client,
-      address: crosschain.loomAddress,
+      loomAddress: crosschain.loomAddress,
       ethAddress: crosschain.ethAddress,
       gateway,
       loomToken,
@@ -165,7 +165,7 @@ export class GatewayUser extends CrossChainUser {
     return new GatewayUser({
       wallet: crosschain.wallet,
       client: crosschain.client,
-      address: crosschain.loomAddress,
+      loomAddress: crosschain.loomAddress,
       ethAddress: crosschain.ethAddress,
       gateway,
       loomToken,
@@ -177,7 +177,7 @@ export class GatewayUser extends CrossChainUser {
     })
   }
 
-  constructor(params: NewGatewayUserParams) {
+  constructor(params: GatewayUserConstructorParams) {
     super(params)
 
     this._version = params.version

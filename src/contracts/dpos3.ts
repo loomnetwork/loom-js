@@ -38,7 +38,7 @@ export interface ICandidate {
   address: Address
   pubKey: Uint8Array
   delegationTotal: BN
-  slashPct: BN
+  slashPercentage: BN
   whitelistAmount: BN
   whitelistLocktimeTier: LocktimeTier
   maxReferralPercentage?: number
@@ -55,7 +55,7 @@ export interface ICandidate {
 export interface IValidator {
   address: Address
   pubKey: Uint8Array
-  slashPct: BN
+  slashPercentage: BN
   delegationTotal: BN
   whitelistAmount: BN
   whitelistLocktimeTier: LocktimeTier
@@ -69,7 +69,7 @@ export interface IDelegation {
   amount: BN
   updateAmount: BN
   lockTime: number
-  lockTimeTier: number
+  lockTimeTier: LocktimeTier
   state: DelegationState
   referrer: string
 }
@@ -127,7 +127,7 @@ export class DPOS3 extends Contract {
       address: Address.UnmarshalPB(candidate.getCandidate()!.getAddress()!),
       pubKey: candidate.getCandidate()!.getPubKey_asU8()!,
       delegationTotal: unmarshalBigUIntPB(candidate.getStatistic()!.getDelegationTotal()!),
-      slashPct: candidate.getStatistic()!.getSlashPercentage()
+      slashPercentage: candidate.getStatistic()!.getSlashPercentage()
         ? unmarshalBigUIntPB(candidate.getStatistic()!.getSlashPercentage()!)
         : new BN(0),
       whitelistAmount: unmarshalBigUIntPB(candidate.getStatistic()!.getWhitelistAmount()!),
@@ -159,7 +159,7 @@ export class DPOS3 extends Contract {
         ? unmarshalBigUIntPB(validator.getWhitelistAmount()!)
         : new BN(0),
       whitelistLocktimeTier: validator.getLocktimeTier(),
-      slashPct: validator.getSlashPercentage()
+      slashPercentage: validator.getSlashPercentage()
         ? unmarshalBigUIntPB(validator.getSlashPercentage()!)
         : new BN(0),
       delegationTotal: validator.getDelegationTotal()

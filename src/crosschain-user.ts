@@ -25,10 +25,10 @@ export interface CrossChainUserParams {
   wallet?: ethers.Signer
 }
 
-export interface NewCrossChainUserParams {
+export interface CrossChainUserConstructorParams {
   wallet: ethers.Signer
   client: Client
-  address: Address
+  loomAddress: Address
   ethAddress: string
   addressMapper?: Contracts.AddressMapper
 }
@@ -36,9 +36,9 @@ export interface NewCrossChainUserParams {
 export class CrossChainUser {
   private _wallet: ethers.Signer
   private _client: Client
-  private _address: Address
+  private _loomAddress: Address
   private _ethAddress: string
-  private _dappchainMapper?: Contracts.AddressMapper
+  private _addressMapper?: Contracts.AddressMapper
 
   static async createOfflineCrossChainUserAsync(
     params: CrossChainUserParams
@@ -75,9 +75,9 @@ export class CrossChainUser {
     const ethAddress = callerAddress.local.toString()
     const mapper = await AddressMapper.createAsync(client, callerAddress)
     const mapping = await mapper.getMappingAsync(callerAddress)
-    const address = mapping.to
+    const loomAddress = mapping.to
 
-    return new CrossChainUser({ wallet, client, address, ethAddress })
+    return new CrossChainUser({ wallet, client, loomAddress, ethAddress })
   }
 
   static async createCrossChainUserAsync(params: CrossChainUserParams): Promise<CrossChainUser> {
@@ -86,25 +86,25 @@ export class CrossChainUser {
       params.dappchainEndpoint,
       params.chainId
     )
-    const address = new Address(client.chainId, LocalAddress.fromPublicKey(publicKey))
+    const loomAddress = new Address(client.chainId, LocalAddress.fromPublicKey(publicKey))
     const ethAddress = await params.wallet!.getAddress()
-    const addressMapper = await AddressMapper.createAsync(client, address)
+    const addressMapper = await AddressMapper.createAsync(client, loomAddress)
 
     return new CrossChainUser({
       wallet: params.wallet!,
       client,
-      address,
+      loomAddress,
       ethAddress,
       addressMapper
     })
   }
 
-  constructor(params: NewCrossChainUserParams) {
+  constructor(params: CrossChainUserConstructorParams) {
     this._wallet = params.wallet
-    this._address = params.address
+    this._loomAddress = params.loomAddress
     this._ethAddress = params.ethAddress
     this._client = params.client
-    this._dappchainMapper = params.addressMapper
+    this._addressMapper = params.addressMapper
   }
 
   get client(): Client {
@@ -116,7 +116,7 @@ export class CrossChainUser {
   }
 
   get addressMapper(): Contracts.AddressMapper | undefined {
-    return this._dappchainMapper
+    return this._addressMapper
   }
 
   get ethAddress(): string {
@@ -124,7 +124,7 @@ export class CrossChainUser {
   }
 
   get loomAddress(): Address {
-    return this._address
+    return this._loomAddress
   }
 
   disconnect() {
@@ -138,17 +138,17 @@ export class CrossChainUser {
    * @param wallet The User's ethers wallet
    */
   async mapAccountsAsync() {
-    if (this._dappchainMapper === null) {
+    if (this._addressMapper === null) {
       throw new Error(`Tried to map accounts with nil address mapper`)
     }
     const walletAddress = await this._wallet.getAddress()
     const ethereumAddress = Address.fromString(`eth:${walletAddress}`)
-    if (await this._dappchainMapper!.hasMappingAsync(this._address)) {
-      log(`${this._address.toString()} is already mapped`)
+    if (await this._addressMapper!.hasMappingAsync(this._loomAddress)) {
+      log(`${this._loomAddress.toString()} is already mapped`)
       return
     }
     const signer = new EthersSigner(this._wallet)
-    await this._dappchainMapper!.addIdentityMappingAsync(this._address, ethereumAddress, signer)
-    log(`Mapped ${this._address} to ${ethereumAddress}`)
+    await this._addressMapper!.addIdentityMappingAsync(this._loomAddress, ethereumAddress, signer)
+      log(`Mapped ${this._loomAddress} to ${ethereumAddress}`)
   }
 }
