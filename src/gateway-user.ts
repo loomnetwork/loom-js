@@ -23,6 +23,7 @@ const ValidatorManagerContractABI = require('./mainnet-contracts/ValidatorManage
 const ERC20GatewayABI = require('./mainnet-contracts/ERC20Gateway.json')
 const ERC20GatewayABI_v2 = require('./mainnet-contracts/ERC20Gateway_v2.json')
 const ERC20ABI = require('./mainnet-contracts/ERC20.json')
+const ERC20Prefix = "\x14Withdraw ERC20:\n"
 
 const V2_GATEWAYS = ['oracle-dev', 'asia1']
 
@@ -364,8 +365,8 @@ export class GatewayUser extends CrossChainUser {
     )
 
     const msg = ethers.utils.solidityKeccak256(
-      ['address', 'uint256', 'address', 'bytes32'],
-      [this.ethAddress, nonce, this.ethereumGateway.address, amountHashed]
+      ['string', 'address', 'uint256', 'address', 'bytes32'],
+      [ERC20Prefix, this.ethAddress, nonce, this.ethereumGateway.address, amountHashed]
     )
 
     return msg
