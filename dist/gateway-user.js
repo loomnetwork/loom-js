@@ -15,7 +15,7 @@ var ValidatorManagerContractABI = require('./mainnet-contracts/ValidatorManagerC
 var ERC20GatewayABI = require('./mainnet-contracts/ERC20Gateway.json');
 var ERC20GatewayABI_v2 = require('./mainnet-contracts/ERC20Gateway_v2.json');
 var ERC20ABI = require('./mainnet-contracts/ERC20.json');
-var ERC20Prefix = "\x14Withdraw ERC20:\n";
+var ERC20Prefix = '\x14Withdraw ERC20:\n';
 var V2_GATEWAYS = ['oracle-dev', 'asia1'];
 var GatewayVersion;
 (function (GatewayVersion) {
@@ -327,7 +327,7 @@ var GatewayUser = /** @class */ (function (_super) {
                         log(amount.div(coinMultiplier).toString() + " tokens deposited to DAppChain Gateway...");
                         _a.label = 5;
                     case 5:
-                        if (!(pendingReceipt === null || pendingReceipt.oracleSignature === null)) return [3 /*break*/, 8];
+                        if (!(pendingReceipt === null || pendingReceipt.oracleSignature.length === 0)) return [3 /*break*/, 8];
                         return [4 /*yield*/, this.getPendingWithdrawalReceiptAsync()];
                     case 6:
                         pendingReceipt = _a.sent();
