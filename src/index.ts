@@ -56,6 +56,7 @@ export {
 export { Entity, IEntityParams } from './plasma-cash/entity'
 export { User as PlasmaUser } from './plasma-cash/user'
 export { DPOSUser } from './dpos-user'
+export { DPOSUserV3 } from './dpos-user-v3'
 export { GatewayVersion, GatewayUser } from './gateway-user'
 export { CrossChainUser } from './crosschain-user'
 export { SparseMerkleTree, ISparseMerkleTreeLevel } from './plasma-cash/sparse-merkle-tree'
