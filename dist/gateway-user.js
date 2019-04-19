@@ -15,6 +15,7 @@ var ValidatorManagerContractABI = require('./mainnet-contracts/ValidatorManagerC
 var ERC20GatewayABI = require('./mainnet-contracts/ERC20Gateway.json');
 var ERC20GatewayABI_v2 = require('./mainnet-contracts/ERC20Gateway_v2.json');
 var ERC20ABI = require('./mainnet-contracts/ERC20.json');
+var ERC20Prefix = "\x14Withdraw ERC20:\n";
 var V2_GATEWAYS = ['oracle-dev', 'asia1'];
 var GatewayVersion;
 (function (GatewayVersion) {
@@ -101,7 +102,7 @@ var GatewayUser = /** @class */ (function (_super) {
     };
     GatewayUser.createEthSignMetamaskGatewayUserAsync = function (params) {
         return tslib_1.__awaiter(this, void 0, void 0, function () {
-            var gwVersion, crosschain, dappchainLoom, dappchainGateway, _a, gateway, loomToken, vmc;
+            var gwVersion, crosschain, dappchainEthAddress, dappchainLoom, dappchainGateway, _a, gateway, loomToken, vmc;
             return tslib_1.__generator(this, function (_b) {
                 switch (_b.label) {
                     case 0:
@@ -109,10 +110,11 @@ var GatewayUser = /** @class */ (function (_super) {
                         return [4 /*yield*/, crosschain_user_1.CrossChainUser.createEthSignMetamaskCrossChainUserAsync(params)];
                     case 1:
                         crosschain = _b.sent();
-                        return [4 /*yield*/, contracts_1.Coin.createAsync(crosschain.client, crosschain.loomAddress)];
+                        dappchainEthAddress = new _1.Address('eth', _1.LocalAddress.fromHexString(crosschain.ethAddress));
+                        return [4 /*yield*/, contracts_1.Coin.createAsync(crosschain.client, dappchainEthAddress)];
                     case 2:
                         dappchainLoom = _b.sent();
-                        return [4 /*yield*/, contracts_1.LoomCoinTransferGateway.createAsync(crosschain.client, crosschain.loomAddress)];
+                        return [4 /*yield*/, contracts_1.LoomCoinTransferGateway.createAsync(crosschain.client, dappchainEthAddress)];
                     case 3:
                         dappchainGateway = _b.sent();
                         return [4 /*yield*/, GatewayUser.getContracts(crosschain.wallet, params.gatewayAddress, params.version)];
@@ -398,7 +400,7 @@ var GatewayUser = /** @class */ (function (_super) {
                     case 1:
                         nonce = _a.sent();
                         amountHashed = ethers_1.ethers.utils.solidityKeccak256(['uint256', 'address'], [amount.toString(), this.ethereumLoom.address]);
-                        msg = ethers_1.ethers.utils.solidityKeccak256(['address', 'uint256', 'address', 'bytes32'], [this.ethAddress, nonce, this.ethereumGateway.address, amountHashed]);
+                        msg = ethers_1.ethers.utils.solidityKeccak256(['string', 'address', 'uint256', 'address', 'bytes32'], [ERC20Prefix, this.ethAddress, nonce, this.ethereumGateway.address, amountHashed]);
                         return [2 /*return*/, msg];
                 }
             });

@@ -4,6 +4,7 @@ var tslib_1 = require("tslib");
 var bn_js_1 = tslib_1.__importDefault(require("bn.js"));
 var debug_1 = tslib_1.__importDefault(require("debug"));
 var ethers_1 = require("ethers");
+var _1 = require(".");
 var contracts_1 = require("./contracts");
 var gateway_user_1 = require("./gateway-user");
 var solidity_helpers_1 = require("./solidity-helpers");
@@ -32,13 +33,14 @@ var DPOSUserV3 = /** @class */ (function (_super) {
     };
     DPOSUserV3.createEthSignMetamaskUserAsync = function (params) {
         return tslib_1.__awaiter(this, void 0, void 0, function () {
-            var gatewayUser, dappchainDPOS;
+            var gatewayUser, dappchainEthAddress, dappchainDPOS;
             return tslib_1.__generator(this, function (_a) {
                 switch (_a.label) {
                     case 0: return [4 /*yield*/, gateway_user_1.GatewayUser.createEthSignMetamaskGatewayUserAsync(params)];
                     case 1:
                         gatewayUser = _a.sent();
-                        return [4 /*yield*/, contracts_1.DPOS3.createAsync(gatewayUser.client, gatewayUser.loomAddress)];
+                        dappchainEthAddress = new _1.Address('eth', _1.LocalAddress.fromHexString(gatewayUser.ethAddress));
+                        return [4 /*yield*/, contracts_1.DPOS3.createAsync(gatewayUser.client, dappchainEthAddress)];
                     case 2:
                         dappchainDPOS = _a.sent();
                         log('Connected to dappchain DPOS Contract');
@@ -61,13 +63,14 @@ var DPOSUserV3 = /** @class */ (function (_super) {
     };
     DPOSUserV3.createUserAsync = function (params) {
         return tslib_1.__awaiter(this, void 0, void 0, function () {
-            var gatewayUser, dappchainDPOS;
+            var gatewayUser, dappchainEthAddress, dappchainDPOS;
             return tslib_1.__generator(this, function (_a) {
                 switch (_a.label) {
                     case 0: return [4 /*yield*/, gateway_user_1.GatewayUser.createGatewayUserAsync(params)];
                     case 1:
                         gatewayUser = _a.sent();
-                        return [4 /*yield*/, contracts_1.DPOS3.createAsync(gatewayUser.client, gatewayUser.loomAddress)];
+                        dappchainEthAddress = new _1.Address('eth', _1.LocalAddress.fromHexString(gatewayUser.ethAddress));
+                        return [4 /*yield*/, contracts_1.DPOS3.createAsync(gatewayUser.client, dappchainEthAddress)];
                     case 2:
                         dappchainDPOS = _a.sent();
                         log('Connected to dappchain DPOS Contract');
