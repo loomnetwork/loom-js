@@ -303,7 +303,7 @@ export class GatewayUser extends CrossChainUser {
         ethereumAddress
       )
       log(`${amount.div(coinMultiplier).toString()} tokens deposited to DAppChain Gateway...`)
-      while (pendingReceipt === null || pendingReceipt.oracleSignature === null) {
+      while (pendingReceipt === null || pendingReceipt.oracleSignature.length === 0) {
         pendingReceipt = await this.getPendingWithdrawalReceiptAsync()
         await sleep(2000)
       }
