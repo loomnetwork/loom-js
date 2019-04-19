@@ -2,7 +2,7 @@ import BN from 'bn.js'
 import debug from 'debug'
 import { ethers } from 'ethers'
 import Web3 from 'web3'
-import { Address, Client, Contracts } from '.'
+import { LocalAddress, Address, Client, Contracts } from '.'
 import { DPOS3 } from './contracts'
 import { createDefaultClient } from './helpers'
 import {
@@ -48,7 +48,8 @@ export class DPOSUserV3 extends GatewayUser {
 
   static async createEthSignMetamaskUserAsync(params: GatewayUserParams): Promise<DPOSUserV3> {
     const gatewayUser = await GatewayUser.createEthSignMetamaskGatewayUserAsync(params)
-    const dappchainDPOS = await DPOS3.createAsync(gatewayUser.client, gatewayUser.loomAddress)
+    const dappchainEthAddress = new Address('eth', LocalAddress.fromHexString(gatewayUser.ethAddress))
+    const dappchainDPOS = await DPOS3.createAsync(gatewayUser.client, dappchainEthAddress)
     log('Connected to dappchain DPOS Contract')
 
     return new DPOSUserV3({
@@ -68,7 +69,8 @@ export class DPOSUserV3 extends GatewayUser {
 
   static async createUserAsync(params: GatewayUserParams): Promise<DPOSUserV3> {
     const gatewayUser = await GatewayUser.createGatewayUserAsync(params)
-    const dappchainDPOS = await DPOS3.createAsync(gatewayUser.client, gatewayUser.loomAddress)
+    const dappchainEthAddress = new Address('eth', LocalAddress.fromHexString(gatewayUser.ethAddress))
+    const dappchainDPOS = await DPOS3.createAsync(gatewayUser.client, dappchainEthAddress)
 
     log('Connected to dappchain DPOS Contract')
     return new DPOSUserV3({

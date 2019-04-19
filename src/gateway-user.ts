@@ -3,7 +3,7 @@ import debug from 'debug'
 import { ethers } from 'ethers'
 import Web3 from 'web3'
 
-import { CryptoUtils, Address, Client, Contracts } from '.'
+import { LocalAddress, CryptoUtils, Address, Client, Contracts } from '.'
 import { Coin, LoomCoinTransferGateway } from './contracts'
 import { IWithdrawalReceipt } from './contracts/transfer-gateway'
 import { sleep, parseSigs } from './helpers'
@@ -122,10 +122,11 @@ export class GatewayUser extends CrossChainUser {
 
     let crosschain = await CrossChainUser.createEthSignMetamaskCrossChainUserAsync(params)
 
-    const dappchainLoom = await Coin.createAsync(crosschain.client, crosschain.loomAddress)
+    const dappchainEthAddress = new Address('eth', LocalAddress.fromHexString(crosschain.ethAddress))
+    const dappchainLoom = await Coin.createAsync(crosschain.client, dappchainEthAddress)
     const dappchainGateway = await LoomCoinTransferGateway.createAsync(
       crosschain.client,
-      crosschain.loomAddress
+      dappchainEthAddress
     )
     const { gateway, loomToken, vmc } = await GatewayUser.getContracts(
       crosschain.wallet,

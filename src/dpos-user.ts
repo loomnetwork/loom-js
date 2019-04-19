@@ -2,7 +2,7 @@ import BN from 'bn.js'
 import debug from 'debug'
 import { ethers } from 'ethers'
 import Web3 from 'web3'
-import { Address, Client, Contracts } from '.'
+import { LocalAddress, Address, Client, Contracts } from '.'
 import { DPOS2 } from './contracts'
 import { createDefaultClient } from './helpers'
 import { GatewayUser, GatewayVersion } from './gateway-user'
@@ -80,7 +80,8 @@ export class DPOSUser extends GatewayUser {
       version: version ? version : GatewayVersion.SINGLESIG
     })
 
-    const dappchainDPOS = await DPOS2.createAsync(gatewayUser.client, gatewayUser.loomAddress)
+    const dappchainEthAddress = new Address('eth', LocalAddress.fromHexString(gatewayUser.ethAddress))
+    const dappchainDPOS = await DPOS2.createAsync(gatewayUser.client, dappchainEthAddress)
     log('Connected to dappchain DPOS Contract')
 
     return new DPOSUser(
