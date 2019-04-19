@@ -3,7 +3,7 @@ import debug from 'debug'
 import { ethers } from 'ethers'
 import Web3 from 'web3'
 
-import { CryptoUtils, Address, Client, Contracts } from '.'
+import { LocalAddress, CryptoUtils, Address, Client, Contracts } from '.'
 import { Coin, LoomCoinTransferGateway } from './contracts'
 import { IWithdrawalReceipt } from './contracts/transfer-gateway'
 import { sleep, parseSigs } from './helpers'
@@ -23,6 +23,7 @@ const ValidatorManagerContractABI = require('./mainnet-contracts/ValidatorManage
 const ERC20GatewayABI = require('./mainnet-contracts/ERC20Gateway.json')
 const ERC20GatewayABI_v2 = require('./mainnet-contracts/ERC20Gateway_v2.json')
 const ERC20ABI = require('./mainnet-contracts/ERC20.json')
+const ERC20Prefix = "\x14Withdraw ERC20:\n"
 
 const V2_GATEWAYS = ['oracle-dev', 'asia1']
 
@@ -121,10 +122,11 @@ export class GatewayUser extends CrossChainUser {
 
     let crosschain = await CrossChainUser.createEthSignMetamaskCrossChainUserAsync(params)
 
-    const dappchainLoom = await Coin.createAsync(crosschain.client, crosschain.loomAddress)
+    const dappchainEthAddress = new Address('eth', LocalAddress.fromHexString(crosschain.ethAddress))
+    const dappchainLoom = await Coin.createAsync(crosschain.client, dappchainEthAddress)
     const dappchainGateway = await LoomCoinTransferGateway.createAsync(
       crosschain.client,
-      crosschain.loomAddress
+      dappchainEthAddress
     )
     const { gateway, loomToken, vmc } = await GatewayUser.getContracts(
       crosschain.wallet,
@@ -364,8 +366,8 @@ export class GatewayUser extends CrossChainUser {
     )
 
     const msg = ethers.utils.solidityKeccak256(
-      ['address', 'uint256', 'address', 'bytes32'],
-      [this.ethAddress, nonce, this.ethereumGateway.address, amountHashed]
+      ['string', 'address', 'uint256', 'address', 'bytes32'],
+      [ERC20Prefix, this.ethAddress, nonce, this.ethereumGateway.address, amountHashed]
     )
 
     return msg
