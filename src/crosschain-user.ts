@@ -149,6 +149,6 @@ export class CrossChainUser {
     }
     const signer = new EthersSigner(this._wallet)
     await this._addressMapper!.addIdentityMappingAsync(this._loomAddress, ethereumAddress, signer)
-      log(`Mapped ${this._loomAddress} to ${ethereumAddress}`)
+    log(`Mapped ${this._loomAddress} to ${ethereumAddress}`)
   }
 }
