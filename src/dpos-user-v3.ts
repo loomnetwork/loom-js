@@ -48,7 +48,10 @@ export class DPOSUserV3 extends GatewayUser {
 
   static async createEthSignMetamaskUserAsync(params: GatewayUserParams): Promise<DPOSUserV3> {
     const gatewayUser = await GatewayUser.createEthSignMetamaskGatewayUserAsync(params)
-    const dappchainEthAddress = new Address('eth', LocalAddress.fromHexString(gatewayUser.ethAddress))
+    const dappchainEthAddress = new Address(
+      'eth',
+      LocalAddress.fromHexString(gatewayUser.ethAddress)
+    )
     const dappchainDPOS = await DPOS3.createAsync(gatewayUser.client, dappchainEthAddress)
     log('Connected to dappchain DPOS Contract')
 
@@ -69,7 +72,10 @@ export class DPOSUserV3 extends GatewayUser {
 
   static async createUserAsync(params: GatewayUserParams): Promise<DPOSUserV3> {
     const gatewayUser = await GatewayUser.createGatewayUserAsync(params)
-    const dappchainEthAddress = new Address('eth', LocalAddress.fromHexString(gatewayUser.ethAddress))
+    const dappchainEthAddress = new Address(
+      'eth',
+      LocalAddress.fromHexString(gatewayUser.ethAddress)
+    )
     const dappchainDPOS = await DPOS3.createAsync(gatewayUser.client, dappchainEthAddress)
 
     log('Connected to dappchain DPOS Contract')

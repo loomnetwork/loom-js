@@ -80,7 +80,10 @@ export class DPOSUser extends GatewayUser {
       version: version ? version : GatewayVersion.SINGLESIG
     })
 
-    const dappchainEthAddress = new Address('eth', LocalAddress.fromHexString(gatewayUser.ethAddress))
+    const dappchainEthAddress = new Address(
+      'eth',
+      LocalAddress.fromHexString(gatewayUser.ethAddress)
+    )
     const dappchainDPOS = await DPOS2.createAsync(gatewayUser.client, dappchainEthAddress)
     log('Connected to dappchain DPOS Contract')
 

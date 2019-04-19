@@ -9,7 +9,11 @@ import { IWithdrawalReceipt } from './contracts/transfer-gateway'
 import { sleep, parseSigs } from './helpers'
 import { getMetamaskSigner } from './solidity-helpers'
 
-import { CrossChainUser, CrossChainUserParams, CrossChainUserConstructorParams } from './crosschain-user'
+import {
+  CrossChainUser,
+  CrossChainUserParams,
+  CrossChainUserConstructorParams
+} from './crosschain-user'
 
 const log = debug('gateway-user')
 
@@ -23,7 +27,7 @@ const ValidatorManagerContractABI = require('./mainnet-contracts/ValidatorManage
 const ERC20GatewayABI = require('./mainnet-contracts/ERC20Gateway.json')
 const ERC20GatewayABI_v2 = require('./mainnet-contracts/ERC20Gateway_v2.json')
 const ERC20ABI = require('./mainnet-contracts/ERC20.json')
-const ERC20Prefix = "\x14Withdraw ERC20:\n"
+const ERC20Prefix = '\x14Withdraw ERC20:\n'
 
 const V2_GATEWAYS = ['oracle-dev', 'asia1']
 
@@ -122,7 +126,10 @@ export class GatewayUser extends CrossChainUser {
 
     let crosschain = await CrossChainUser.createEthSignMetamaskCrossChainUserAsync(params)
 
-    const dappchainEthAddress = new Address('eth', LocalAddress.fromHexString(crosschain.ethAddress))
+    const dappchainEthAddress = new Address(
+      'eth',
+      LocalAddress.fromHexString(crosschain.ethAddress)
+    )
     const dappchainLoom = await Coin.createAsync(crosschain.client, dappchainEthAddress)
     const dappchainGateway = await LoomCoinTransferGateway.createAsync(
       crosschain.client,
