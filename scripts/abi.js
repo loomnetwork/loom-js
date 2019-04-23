@@ -24,7 +24,7 @@ ts_generator.tsGenerator(
 
   shell.mkdir('-p', './dist/mainnet-contracts')
   shell.cp(
-    './src/mainnet-contracts/*.json',
+    './src/mainnet-contracts/*', // copy everything regarding types
     './dist/mainnet-contracts/'
   )
 })

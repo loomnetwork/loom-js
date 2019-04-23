@@ -2,7 +2,7 @@ import BN from 'bn.js'
 import debug from 'debug'
 import { ethers } from 'ethers'
 import Web3 from 'web3'
-import { Address, Client, Contracts } from '.'
+import { LocalAddress, Address, Client, Contracts } from '.'
 import { DPOS2 } from './contracts'
 import { createDefaultClient } from './helpers'
 import { GatewayUser, GatewayVersion } from './gateway-user'
@@ -15,8 +15,11 @@ import {
   ICandidateDelegations,
   IDelegatorDelegations
 } from './contracts/dpos2'
+
 import { getMetamaskSigner } from './sign-helpers'
 import { ERC20Gateway_v2 } from './mainnet-contracts/ERC20Gateway_v2'
+import { ERC20 } from './mainnet-contracts/ERC20'
+import { ValidatorManagerContract } from './mainnet-contracts/ValidatorManagerContract'
 
 const log = debug('dpos-user')
 
@@ -70,15 +73,19 @@ export class DPOSUser extends GatewayUser {
     gatewayAddress: string,
     version?: GatewayVersion
   ): Promise<DPOSUser> {
-    const gatewayUser = await GatewayUser.createEthSignMetamaskGatewayUserAsync(
+    const gatewayUser = await GatewayUser.createEthSignMetamaskGatewayUserAsync({
       web3,
       dappchainEndpoint,
       chainId,
       gatewayAddress,
-      version
-    )
+      version: version ? version : GatewayVersion.SINGLESIG
+    })
 
-    const dappchainDPOS = await DPOS2.createAsync(gatewayUser.client, gatewayUser.loomAddress)
+    const dappchainEthAddress = new Address(
+      'eth',
+      LocalAddress.fromHexString(gatewayUser.ethAddress)
+    )
+    const dappchainDPOS = await DPOS2.createAsync(gatewayUser.client, dappchainEthAddress)
     log('Connected to dappchain DPOS Contract')
 
     return new DPOSUser(
@@ -105,14 +112,14 @@ export class DPOSUser extends GatewayUser {
     gatewayAddress: string,
     version?: GatewayVersion
   ): Promise<DPOSUser> {
-    const gatewayUser = await GatewayUser.createGatewayUserAsync(
+    const gatewayUser = await GatewayUser.createGatewayUserAsync({
       wallet,
       dappchainEndpoint,
-      dappchainKey,
+      dappchainPrivateKey: dappchainKey,
       chainId,
       gatewayAddress,
-      version
-    )
+      version: version ? version : GatewayVersion.SINGLESIG
+    })
 
     const { client, address } = createDefaultClient(dappchainKey, dappchainEndpoint, chainId)
     const dappchainDPOS = await DPOS2.createAsync(client, address)
@@ -128,7 +135,7 @@ export class DPOSUser extends GatewayUser {
       gatewayUser.dappchainGateway,
       gatewayUser.dappchainLoom,
       dappchainDPOS,
-      gatewayUser.addressMapper,
+      gatewayUser.addressMapper!,
       version
     )
   }
@@ -136,30 +143,30 @@ export class DPOSUser extends GatewayUser {
   constructor(
     wallet: ethers.Signer,
     client: Client,
-    address: Address,
+    loomAddress: Address,
     ethAddress: string,
-    gateway: ethers.Contract,
-    loomToken: ethers.Contract,
-    vmc: ethers.Contract | undefined,
+    gateway: ERC20Gateway_v2,
+    loomToken: ERC20,
+    vmc: ValidatorManagerContract | undefined,
     dappchainGateway: Contracts.LoomCoinTransferGateway,
     dappchainLoom: Contracts.Coin,
     dappchainDPOS: Contracts.DPOS2,
     dappchainMapper: Contracts.AddressMapper | null,
     version: GatewayVersion = GatewayVersion.SINGLESIG
   ) {
-    super(
+    super({
       wallet,
       client,
-      address,
+      loomAddress,
       ethAddress,
       gateway,
       loomToken,
       vmc,
       dappchainGateway,
       dappchainLoom,
-      dappchainMapper,
+      addressMapper: dappchainMapper!,
       version
-    )
+    })
     this._dappchainDPOS = dappchainDPOS
   }
 
