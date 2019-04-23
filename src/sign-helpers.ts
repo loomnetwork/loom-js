@@ -75,7 +75,7 @@ export class EthersSigner implements ISignerAsync {
  * Abstract class for signing with Scatter
  */
 export abstract class BaseEosScatterSigner implements ISignerAsync {
-  protected _nonce: string = '0'
+  private _nonce: string = '0'
 
   get nonce(): string {
     return ecc.sha256(this._nonce).slice(0, 12)
