@@ -21,7 +21,7 @@ import './e2e/client-test-tx-cache'
 import './e2e/client-test-signed-eth-tx-middleware'
 import './e2e/client-test-signed-eos-tx-middleware'
 
-Events
+// Events
 import './e2e/multiple-events-nd-tests'
 
 // Contracts
@@ -29,7 +29,7 @@ import './e2e/coin-tests'
 import './e2e/address-mapper-tests'
 
 // TODO: Re-enable once this is updated to DPOSv2
-//import './e2e/dpos-tests'
+// import './e2e/dpos-tests'
 
 // Weave Blueprint Contract
 import './e2e/contract-tests'

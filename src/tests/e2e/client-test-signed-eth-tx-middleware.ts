@@ -63,9 +63,7 @@ async function bootstrapTest(
   ABI: any[]
 }> {
   // Create the client
-  const privKey = CryptoUtils.B64ToUint8Array(
-    'D6XCGyCcDZ5TE22h66AlU+Bn6JqL4RnSl4a09RGU9LfM53JFG/T5GAnC0uiuIIiw9Dl0TwEAmdGb+WE0Bochkg=='
-  )
+  const privKey = CryptoUtils.generatePrivateKey()
   const pubKey = CryptoUtils.publicKeyFromPrivateKey(privKey)
   const client = createClient()
   client.on('error', err => console.error(err))
@@ -259,9 +257,7 @@ test('Test Signed Eth Tx Middleware Type 2', async t => {
 test('Test Signed Eth Tx Middleware Type 2 with Coin Contract', async t => {
   try {
     // Create the client
-    const privKey = CryptoUtils.B64ToUint8Array(
-      'D6XCGyCcDZ5TE22h66AlU+Bn6JqL4RnSl4a09RGU9LfM53JFG/T5GAnC0uiuIIiw9Dl0TwEAmdGb+WE0Bochkg=='
-    )
+    const privKey = CryptoUtils.generatePrivateKey()
     const pubKey = CryptoUtils.publicKeyFromPrivateKey(privKey)
     const client = createTestHttpClient()
     client.on('error', err => console.error(err))

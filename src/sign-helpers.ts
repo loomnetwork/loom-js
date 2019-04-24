@@ -142,7 +142,23 @@ export class OfflineEosScatterEosSign extends BaseEosScatterSigner {
 
     const shaData = ecc.sha256(ecc.sha256(msg) + ecc.sha256(this.nonce))
     const sig = ecc.signHash(shaData, this._privateKey)
-    return Promise.resolve(Buffer.from(sig))
+    return Promise.resolve(Buffer.concat([Buffer.from('04', 'hex'), Buffer.from(sig)]))
+  }
+}
+
+/**
+ * Eos sign using ecc curve
+ */
+export class EosSign implements ISignerAsync {
+  private _privateKey: string
+
+  constructor(privateKey: string) {
+    this._privateKey = privateKey
+  }
+
+  signAsync(msg: string): Promise<Uint8Array> {
+    const sig = ecc.signHash(msg, this._privateKey)
+    return Promise.resolve(Buffer.concat([Buffer.from('03', 'hex'), Buffer.from(sig)]))
   }
 }
 
