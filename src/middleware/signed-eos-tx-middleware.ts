@@ -32,11 +32,11 @@ export class SignedEosTxMiddleware implements ITxMiddlewareHandler {
 
     const sig = await this._signer.signAsync(txDataHex)
 
-    log(`signer: ${this._signerAddress}, signature: ${sig}`, sig)
+    log(`signer: ${this._signerAddress}, signature: ${bytesToHex(sig)}`)
 
     const signedTx = new SignedTx()
     signedTx.setInner(txData as Uint8Array)
-    signedTx.setSignature(sig)
+    signedTx.setSignature(sig as Uint8Array)
 
     return signedTx.serializeBinary()
   }

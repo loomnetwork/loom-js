@@ -2,6 +2,7 @@ import ethutil from 'ethereumjs-util'
 import Web3 from 'web3'
 import { ethers } from 'ethers'
 import ecc from 'eosjs-ecc'
+import { hexToBytes } from './crypto-utils'
 
 const web3 = new Web3()
 
@@ -85,6 +86,13 @@ export abstract class BaseEosScatterSigner implements ISignerAsync {
     this._nonce = n
   }
 
+  buildSig(sig: string): Uint8Array {
+    const byteIndicator = hexToBytes('04')
+    const scatterNonce = hexToBytes(this.nonce)
+    const sigBuffer = Buffer.from(sig)
+    return Buffer.concat([byteIndicator, scatterNonce, sigBuffer])
+  }
+
   abstract signAsync(msg: string): Promise<Uint8Array>
 }
 
@@ -116,7 +124,7 @@ export class EosScatterSigner extends BaseEosScatterSigner {
     }
 
     const sig = await this._scatter.authenticate(this.nonce, msg, this._publicKey)
-    return Buffer.from(sig)
+    return this.buildSig(sig)
   }
 }
 
@@ -142,7 +150,7 @@ export class OfflineEosScatterEosSign extends BaseEosScatterSigner {
 
     const shaData = ecc.sha256(ecc.sha256(msg) + ecc.sha256(this.nonce))
     const sig = ecc.signHash(shaData, this._privateKey)
-    return Promise.resolve(Buffer.concat([Buffer.from('04', 'hex'), Buffer.from(sig)]))
+    return Promise.resolve(this.buildSig(sig))
   }
 }
 
@@ -158,7 +166,7 @@ export class EosSign implements ISignerAsync {
 
   signAsync(msg: string): Promise<Uint8Array> {
     const sig = ecc.signHash(msg, this._privateKey)
-    return Promise.resolve(Buffer.concat([Buffer.from('03', 'hex'), Buffer.from(sig)]))
+    return Promise.resolve(Buffer.concat([hexToBytes('03'), Buffer.from(sig)]))
   }
 }
 
