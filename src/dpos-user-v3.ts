@@ -205,7 +205,7 @@ export class DPOSUserV3 extends GatewayUser {
     for (const d of delegations.delegationsArray) {
       // if it's the rewards delegation and it's already bonded
       if (d.index === 0 && d.state == DelegationState.BONDED) {
-        this.dappchainDPOS.unbondAsync(d.validator, 0, 0)
+        await this.dappchainDPOS.unbondAsync(d.validator, 0, 0)
         total = total.add(d.amount)
       }
     }
