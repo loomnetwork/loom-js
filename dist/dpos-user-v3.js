@@ -199,15 +199,21 @@ var DPOSUserV3 = /** @class */ (function (_super) {
                     case 1:
                         delegations = _b.sent();
                         total = new bn_js_1.default(0);
-                        for (_i = 0, _a = delegations.delegationsArray; _i < _a.length; _i++) {
-                            d = _a[_i];
-                            // if it's the rewards delegation and it's already bonded
-                            if (d.index === 0 && d.state == dposv3_pb_1.DelegationState.BONDED) {
-                                this.dappchainDPOS.unbondAsync(d.validator, 0, 0);
-                                total = total.add(d.amount);
-                            }
-                        }
-                        return [2 /*return*/, total];
+                        _i = 0, _a = delegations.delegationsArray;
+                        _b.label = 2;
+                    case 2:
+                        if (!(_i < _a.length)) return [3 /*break*/, 5];
+                        d = _a[_i];
+                        if (!(d.index === 0 && d.state == dposv3_pb_1.DelegationState.BONDED)) return [3 /*break*/, 4];
+                        return [4 /*yield*/, this.dappchainDPOS.unbondAsync(d.validator, 0, 0)];
+                    case 3:
+                        _b.sent();
+                        total = total.add(d.amount);
+                        _b.label = 4;
+                    case 4:
+                        _i++;
+                        return [3 /*break*/, 2];
+                    case 5: return [2 /*return*/, total];
                 }
             });
         });
