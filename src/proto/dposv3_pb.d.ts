@@ -206,6 +206,14 @@ export class ValidatorStatistic extends jspb.Message {
   getRecentlyMissedBlocks(): number;
   setRecentlyMissedBlocks(value: number): void;
 
+  hasUpdateWhitelistAmount(): boolean;
+  clearUpdateWhitelistAmount(): void;
+  getUpdateWhitelistAmount(): proto_loom_pb.BigUInt | undefined;
+  setUpdateWhitelistAmount(value?: proto_loom_pb.BigUInt): void;
+
+  getUpdateLocktimeTier(): LocktimeTier;
+  setUpdateLocktimeTier(value: LocktimeTier): void;
+
   serializeBinary(): Uint8Array;
   toObject(includeInstance?: boolean): ValidatorStatistic.AsObject;
   static toObject(includeInstance: boolean, msg: ValidatorStatistic): ValidatorStatistic.AsObject;
@@ -225,6 +233,8 @@ export namespace ValidatorStatistic {
     delegationTotal?: proto_loom_pb.BigUInt.AsObject,
     slashPercentage?: proto_loom_pb.BigUInt.AsObject,
     recentlyMissedBlocks: number,
+    updateWhitelistAmount?: proto_loom_pb.BigUInt.AsObject,
+    updateLocktimeTier: LocktimeTier,
   }
 }
 
@@ -335,15 +345,20 @@ export namespace CandidateListV3 {
 }
 
 export class Delegation extends jspb.Message {
+  hasDelegator(): boolean;
+  clearDelegator(): void;
+  getDelegator(): proto_loom_pb.Address | undefined;
+  setDelegator(value?: proto_loom_pb.Address): void;
+
   hasValidator(): boolean;
   clearValidator(): void;
   getValidator(): proto_loom_pb.Address | undefined;
   setValidator(value?: proto_loom_pb.Address): void;
 
-  hasDelegator(): boolean;
-  clearDelegator(): void;
-  getDelegator(): proto_loom_pb.Address | undefined;
-  setDelegator(value?: proto_loom_pb.Address): void;
+  hasUpdateValidator(): boolean;
+  clearUpdateValidator(): void;
+  getUpdateValidator(): proto_loom_pb.Address | undefined;
+  setUpdateValidator(value?: proto_loom_pb.Address): void;
 
   getIndex(): number;
   setIndex(value: number): void;
@@ -358,19 +373,17 @@ export class Delegation extends jspb.Message {
   getUpdateAmount(): proto_loom_pb.BigUInt | undefined;
   setUpdateAmount(value?: proto_loom_pb.BigUInt): void;
 
-  getLockTime(): number;
-  setLockTime(value: number): void;
-
   getLocktimeTier(): LocktimeTier;
   setLocktimeTier(value: LocktimeTier): void;
 
+  getUpdateLocktimeTier(): LocktimeTier;
+  setUpdateLocktimeTier(value: LocktimeTier): void;
+
+  getLockTime(): number;
+  setLockTime(value: number): void;
+
   getState(): DelegationState;
   setState(value: DelegationState): void;
-
-  hasUpdateValidator(): boolean;
-  clearUpdateValidator(): void;
-  getUpdateValidator(): proto_loom_pb.Address | undefined;
-  setUpdateValidator(value?: proto_loom_pb.Address): void;
 
   getReferrer(): string;
   setReferrer(value: string): void;
@@ -387,15 +400,16 @@ export class Delegation extends jspb.Message {
 
 export namespace Delegation {
   export type AsObject = {
-    validator?: proto_loom_pb.Address.AsObject,
     delegator?: proto_loom_pb.Address.AsObject,
+    validator?: proto_loom_pb.Address.AsObject,
+    updateValidator?: proto_loom_pb.Address.AsObject,
     index: number,
     amount?: proto_loom_pb.BigUInt.AsObject,
     updateAmount?: proto_loom_pb.BigUInt.AsObject,
-    lockTime: number,
     locktimeTier: LocktimeTier,
+    updateLocktimeTier: LocktimeTier,
+    lockTime: number,
     state: DelegationState,
-    updateValidator?: proto_loom_pb.Address.AsObject,
     referrer: string,
   }
 }
@@ -1396,6 +1410,32 @@ export namespace GetRequestBatchTallyRequest {
   }
 }
 
+export class RegisterReferrerRequest extends jspb.Message {
+  getName(): string;
+  setName(value: string): void;
+
+  hasAddress(): boolean;
+  clearAddress(): void;
+  getAddress(): proto_loom_pb.Address | undefined;
+  setAddress(value?: proto_loom_pb.Address): void;
+
+  serializeBinary(): Uint8Array;
+  toObject(includeInstance?: boolean): RegisterReferrerRequest.AsObject;
+  static toObject(includeInstance: boolean, msg: RegisterReferrerRequest): RegisterReferrerRequest.AsObject;
+  static extensions: {[key: number]: jspb.ExtensionFieldInfo<jspb.Message>};
+  static extensionsBinary: {[key: number]: jspb.ExtensionFieldBinaryInfo<jspb.Message>};
+  static serializeBinaryToWriter(message: RegisterReferrerRequest, writer: jspb.BinaryWriter): void;
+  static deserializeBinary(bytes: Uint8Array): RegisterReferrerRequest;
+  static deserializeBinaryFromReader(message: RegisterReferrerRequest, reader: jspb.BinaryReader): RegisterReferrerRequest;
+}
+
+export namespace RegisterReferrerRequest {
+  export type AsObject = {
+    name: string,
+    address?: proto_loom_pb.Address.AsObject,
+  }
+}
+
 export class SetElectionCycleRequest extends jspb.Message {
   getElectionCycle(): number;
   setElectionCycle(value: number): void;
@@ -1829,6 +1869,32 @@ export namespace DposDelegatorUnbondsEvent {
   export type AsObject = {
     address?: proto_loom_pb.Address.AsObject,
     amount?: proto_loom_pb.BigUInt.AsObject,
+  }
+}
+
+export class DposReferrerRegistersEvent extends jspb.Message {
+  getName(): string;
+  setName(value: string): void;
+
+  hasAddress(): boolean;
+  clearAddress(): void;
+  getAddress(): proto_loom_pb.Address | undefined;
+  setAddress(value?: proto_loom_pb.Address): void;
+
+  serializeBinary(): Uint8Array;
+  toObject(includeInstance?: boolean): DposReferrerRegistersEvent.AsObject;
+  static toObject(includeInstance: boolean, msg: DposReferrerRegistersEvent): DposReferrerRegistersEvent.AsObject;
+  static extensions: {[key: number]: jspb.ExtensionFieldInfo<jspb.Message>};
+  static extensionsBinary: {[key: number]: jspb.ExtensionFieldBinaryInfo<jspb.Message>};
+  static serializeBinaryToWriter(message: DposReferrerRegistersEvent, writer: jspb.BinaryWriter): void;
+  static deserializeBinary(bytes: Uint8Array): DposReferrerRegistersEvent;
+  static deserializeBinaryFromReader(message: DposReferrerRegistersEvent, reader: jspb.BinaryReader): DposReferrerRegistersEvent;
+}
+
+export namespace DposReferrerRegistersEvent {
+  export type AsObject = {
+    name: string,
+    address?: proto_loom_pb.Address.AsObject,
   }
 }
 
