@@ -54,7 +54,6 @@ export interface ICandidate {
 
 export interface IValidator {
   address: Address
-  pubKey: Uint8Array
   slashPercentage: BN
   delegationTotal: BN
   whitelistAmount: BN
@@ -154,7 +153,6 @@ export class DPOS3 extends Contract {
 
     return result.getStatisticsList().map((validator: ValidatorStatistic) => ({
       address: Address.UnmarshalPB(validator.getAddress()!),
-      pubKey: validator.getPubKey_asU8()!,
       whitelistAmount: validator.getWhitelistAmount()
         ? unmarshalBigUIntPB(validator.getWhitelistAmount()!)
         : new BN(0),
