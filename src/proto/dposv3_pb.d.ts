@@ -180,11 +180,6 @@ export class ValidatorStatistic extends jspb.Message {
   getAddress(): proto_loom_pb.Address | undefined;
   setAddress(value?: proto_loom_pb.Address): void;
 
-  getPubKey(): Uint8Array | string;
-  getPubKey_asU8(): Uint8Array;
-  getPubKey_asB64(): string;
-  setPubKey(value: Uint8Array | string): void;
-
   hasWhitelistAmount(): boolean;
   clearWhitelistAmount(): void;
   getWhitelistAmount(): proto_loom_pb.BigUInt | undefined;
@@ -227,7 +222,6 @@ export class ValidatorStatistic extends jspb.Message {
 export namespace ValidatorStatistic {
   export type AsObject = {
     address?: proto_loom_pb.Address.AsObject,
-    pubKey: Uint8Array | string,
     whitelistAmount?: proto_loom_pb.BigUInt.AsObject,
     locktimeTier: LocktimeTier,
     delegationTotal?: proto_loom_pb.BigUInt.AsObject,

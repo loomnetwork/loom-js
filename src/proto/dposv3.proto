@@ -49,14 +49,13 @@ message InitializationState {
 
 message ValidatorStatistic {
     Address address = 1;
-    bytes pub_key = 2;
-    BigUInt whitelist_amount = 3;
-    LocktimeTier locktime_tier = 4;
-    BigUInt delegation_total = 5;
-    BigUInt slash_percentage = 6;
-    uint64 recently_missed_blocks = 7;
-    BigUInt update_whitelist_amount = 8;
-    LocktimeTier update_locktime_tier = 9;
+    BigUInt whitelist_amount = 2;
+    LocktimeTier locktime_tier = 3;
+    BigUInt delegation_total = 4;
+    BigUInt slash_percentage = 5;
+    uint64 recently_missed_blocks = 6;
+    BigUInt update_whitelist_amount = 7;
+    LocktimeTier update_locktime_tier = 8;
 }
 
 enum CandidateState {
