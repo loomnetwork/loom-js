@@ -27,7 +27,7 @@ const ValidatorManagerContractABI = require('./mainnet-contracts/ValidatorManage
 const ERC20GatewayABI = require('./mainnet-contracts/ERC20Gateway.json')
 const ERC20GatewayABI_v2 = require('./mainnet-contracts/ERC20Gateway_v2.json')
 const ERC20ABI = require('./mainnet-contracts/ERC20.json')
-const ERC20Prefix = '\x14Withdraw ERC20:\n'
+const ERC20Prefix = '\x10Withdraw ERC20:\n'
 
 const V2_GATEWAYS = ['oracle-dev', 'asia1']
 
