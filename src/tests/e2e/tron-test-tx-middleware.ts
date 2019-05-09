@@ -122,12 +122,11 @@ async function bootstrapTest(
     let trxAddressHex = '0x'+ trxAddress.substring(2,100)
 
     const signer = new TronWebSigner(tronWeb, trxAddressHex)
-    console.log("signer", await signer.signAsync("test"))
   
     return { client, pubKey, privKey, signer, loomProvider, contract, ABI }
   }
 
-test('Test Signed Eth Tx Middleware Type 3', async t => {
+test('Test Signed Trx Tx Middleware (Type 3)', async t => {
   try {
     const { client, signer, pubKey, loomProvider, contract } = await bootstrapTest(
       createTestHttpClient
@@ -141,7 +140,7 @@ test('Test Signed Eth Tx Middleware Type 3', async t => {
     // Set the mapping
     const trxAddress = await signer.getAddress()
     const from = new Address(client.chainId, LocalAddress.fromPublicKey(pubKey))
-    const to = new Address('eth', LocalAddress.fromHexString(trxAddress))
+    const to = new Address('tron', LocalAddress.fromHexString(trxAddress))
 
     // console.log("signer is ", signer)
     // Add mapping if not added yet
@@ -157,7 +156,7 @@ test('Test Signed Eth Tx Middleware Type 3', async t => {
       t.error(err)
     }
 
-    const callerChainId = 'trx'
+    const callerChainId = 'tron'
     // Override the default caller chain ID
     loomProvider.callerChainId = callerChainId
     // Ethereum account needs its own middleware
