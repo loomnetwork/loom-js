@@ -121,7 +121,7 @@ async function bootstrapTest(
     let trxAddress = tronWeb.address.toHex(tronDefaultAddr)
     let trxAddressHex = '0x'+ trxAddress.substring(2,100)
 
-    const signer = new TronWebSigner(TronWeb, trxAddressHex)
+    const signer = new TronWebSigner(tronWeb, trxAddressHex)
     console.log("signer", await signer.signAsync("test"))
   
     return { client, pubKey, privKey, signer, loomProvider, contract, ABI }
