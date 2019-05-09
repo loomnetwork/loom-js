@@ -1,6 +1,7 @@
 declare module 'tronweb' {
 
   export class TronWeb {
+    sha3(msg: string);
     constructor(e: any, r: any, ...args: any[]);
     setAddress(publicAddress: string);
     setPrivateKey(privatekey: string);
