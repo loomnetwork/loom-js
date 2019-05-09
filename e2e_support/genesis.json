@@ -53,6 +53,10 @@
           {
             "name":"auth:sigtx:eth1",
             "status":"WAITING"
+          },
+          {
+            "name":"auth:sigtx:tron",
+            "status":"WAITING"
           }
         ]
       }
