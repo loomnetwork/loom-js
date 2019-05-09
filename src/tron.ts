@@ -31,7 +31,6 @@ export class TronWebSigner implements IEthereumSigner {
    * @returns Promise that will be resolved with the signature bytes.
    */
   async signAsync(msg: string): Promise<Uint8Array> {
-
     const signature = await this._tronWeb.trx.sign(msg)
     const sig = signature.slice(2)
 
