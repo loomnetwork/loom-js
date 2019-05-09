@@ -17,7 +17,7 @@ export class SignedTrxTxMiddleware implements ITxMiddlewareHandler {
   signerAddress?: string
 
   /**
-   * @param signer ethers.js signer to use for signing txs.
+   * @param signer tronweb signer to use for signing txs.
    */
   constructor(signer: TronWebSigner) {
     this.signer = signer

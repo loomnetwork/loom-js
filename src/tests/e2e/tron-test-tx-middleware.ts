@@ -122,13 +122,14 @@ async function bootstrapTest(
     let trxAddressHex = '0x'+ trxAddress.substring(2,100)
 
     const signer = new TronWebSigner(TronWeb, trxAddressHex)
+    console.log("signer", await signer.signAsync("test"))
   
     return { client, pubKey, privKey, signer, loomProvider, contract, ABI }
   }
 
 test('Test Signed Eth Tx Middleware Type 3', async t => {
   try {
-    const { client, signer, pubKey, loomProvider } = await bootstrapTest(
+    const { client, signer, pubKey, loomProvider, contract } = await bootstrapTest(
       createTestHttpClient
     )
 
@@ -142,6 +143,7 @@ test('Test Signed Eth Tx Middleware Type 3', async t => {
     const from = new Address(client.chainId, LocalAddress.fromPublicKey(pubKey))
     const to = new Address('eth', LocalAddress.fromHexString(trxAddress))
 
+    // console.log("signer is ", signer)
     // Add mapping if not added yet
     if (!(await addressMapper.hasMappingAsync(from))) {
       await addressMapper.addIdentityMappingAsync(from, to, signer)
@@ -169,7 +171,7 @@ test('Test Signed Eth Tx Middleware Type 3', async t => {
       middlewaresUsed![0] instanceof CachedNonceTxMiddleware,
       'CachedNonceTxMiddleware used'
     )
-    t.assert(middlewaresUsed![1] instanceof SignedEthTxMiddleware, 'SignedEthTxMiddleware used')
+    t.assert(middlewaresUsed![1] instanceof SignedTrxTxMiddleware, 'SignedTrxTxMiddleware used')
 
     let tx = await contract.methods.set(1).send({ from: to.local.toString() })
     t.equal(

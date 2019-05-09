@@ -1,5 +1,5 @@
 import ethutil from 'ethereumjs-util'
-import { TronWeb } from 'tronweb'
+import TronWeb from 'tronweb'
 
 /**
  * Signs messages using an Ethereum private key.
