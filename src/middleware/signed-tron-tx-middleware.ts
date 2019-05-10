@@ -1,5 +1,5 @@
 import debug from 'debug'
-import { TronWebSigner } from '../tron'
+import { TronWebSigner } from '../tron-web-signer'
 
 import { SignedTx } from '../proto/loom_pb'
 import { ITxMiddlewareHandler } from '../client'
@@ -7,12 +7,12 @@ import { EthersSigner, soliditySha3 } from '../solidity-helpers'
 import { bytesToHex, hexToBytes } from '../crypto-utils'
 import { Address } from '../address'
 
-const log = debug('signed-trx-tx-middleware')
+const log = debug('signed-tron-tx-middleware')
 
 /**
  * Signs transactions using an Ethereum compatible (secp256k1) private key.
  */
-export class SignedTrxTxMiddleware implements ITxMiddlewareHandler {
+export class SignedTronTxMiddleware implements ITxMiddlewareHandler {
   signer: TronWebSigner
   signerAddress?: string
 
