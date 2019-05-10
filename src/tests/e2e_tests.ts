@@ -36,3 +36,4 @@ import './e2e/contract-tests'
 import './e2e/evm-contract-tests'
 
 import './e2e/tron-test-tx-middleware'
+
