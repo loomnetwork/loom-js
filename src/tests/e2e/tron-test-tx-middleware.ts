@@ -30,6 +30,7 @@ async function bootstrapTest(
   loomProvider: LoomProvider
   contract: any
   ABI: any[]
+  account: Address
 }> {
   // Create the client
   const privKey = CryptoUtils.B64ToUint8Array(
@@ -39,6 +40,8 @@ async function bootstrapTest(
   const client = createClient()
   client.on('error', err => console.error(err))
   client.txMiddleware = createDefaultTxMiddleware(client, privKey)
+
+  const account = new Address(client.chainId, LocalAddress.fromPublicKey(pubKey))
 
   // Create LoomProvider instance
   const loomProvider = new LoomProvider(client, privKey)
@@ -122,12 +125,12 @@ async function bootstrapTest(
 
   const signer = new TronWebSigner(tronWeb, trxAddressHex)
 
-  return { client, pubKey, privKey, signer, loomProvider, contract, ABI }
+  return { client, pubKey, privKey, signer, loomProvider, contract, ABI, account }
 }
 
 test('Test Signed Tron Tx Middleware Type 2', async t => {
   try {
-    const { client, signer, pubKey, loomProvider, contract } = await bootstrapTest(
+    const { client, signer, pubKey, loomProvider, contract, account } = await bootstrapTest(
       createTestHttpClient
     )
 
@@ -159,7 +162,7 @@ test('Test Signed Tron Tx Middleware Type 2', async t => {
     loomProvider.callerChainId = callerChainId
     // Tron account needs its own middleware
     loomProvider.setMiddlewaresForAddress(to.local.toString(), [
-      new CachedNonceTxMiddleware(pubKey, client), // FIX
+      new CachedNonceTxMiddleware(account, client),
       new SignedTronTxMiddleware(signer)
     ])
 
