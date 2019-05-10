@@ -1,12 +1,6 @@
 import ethutil from 'ethereumjs-util'
 import TronWeb from 'tronweb'
-
-/**
- * Signs messages using an Ethereum private key.
- */
-export interface IEthereumSigner {
-  signAsync(msg: string): Promise<Uint8Array>
-}
+import { IEthereumSigner } from './solidity-helpers'
 
 /**
  * Signs message using a TronWeb account.
@@ -47,11 +41,10 @@ export class TronWebSigner implements IEthereumSigner {
     return Buffer.concat([ethutil.toBuffer(mode) as Buffer, r, s, ethutil.toBuffer(v) as Buffer])
   }
 
-  /** 
+  /**
    * Returns signer address
    */
   async getAddress(): Promise<string> {
     return this._address
   }
-
 }
