@@ -34,7 +34,7 @@ async function bootstrapTest(
 }> {
   // Create the client
   const privKey = CryptoUtils.B64ToUint8Array(
-    'D6XCGyCcDZ5TE22h66AlU+Bn6JqL4RnSl4a09RGU9LfM53JFG/T5GAnC0uiuIIiw9Dl0TwEAmdGb+WE0Bochkg=='
+    '5IKwJ+M1zSrqF/eJ99OeEWGRQH1ND0GURLu8ukm8yx0QmNQm5rOoPUpBLhiR327Ac3IpLts9+ZKAzdRykkMmwg=='
   )
   const pubKey = CryptoUtils.publicKeyFromPrivateKey(privKey)
   const client = createClient()
@@ -151,6 +151,7 @@ test('Test Signed Tron Tx Middleware Type 2', async t => {
 
     try {
       const addressMapped = await addressMapper.getMappingAsync(from)
+      console.log(addressMapped)
       t.assert(addressMapped.from.equals(from), 'Should be mapped the from address')
       t.assert(addressMapped.to.equals(to), 'Should be mapped the to address')
     } catch (err) {
