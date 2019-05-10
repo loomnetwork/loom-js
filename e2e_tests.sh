@@ -28,18 +28,18 @@ fi
 
 download_dappchain() {
   cd $LOOM_DIR
-  # wget https://private.delegatecall.com/loom/$PLATFORM/$BUILD_ID/loom
-  # chmod +x loom
-  # LOOM_BIN=`pwd`/loom
+  wget https://private.delegatecall.com/loom/$PLATFORM/$BUILD_ID/loom
+  chmod +x loom
+  LOOM_BIN=`pwd`/loom
 }
 
 setup_weave_blueprint() {
   cd $LOOM_DIR
-  # git clone https://github.com/loomnetwork/weave-blueprint.git
-  # cd weave-blueprint
-  # LOOM_BLUEPRINT_DIR=`pwd`
-  # make deps
-  # make
+  git clone https://github.com/loomnetwork/weave-blueprint.git
+  cd weave-blueprint
+  LOOM_BLUEPRINT_DIR=`pwd`
+  make deps
+  make
 }
 
 setup_dappchain() {
@@ -48,7 +48,7 @@ setup_dappchain() {
   cp -R $REPO_ROOT/e2e_support/* .
   cp -R $REPO_ROOT/e2e_support/tm-config/* chaindata/config/
   mkdir -p contracts
-  # cp $LOOM_BLUEPRINT_DIR/build/contracts/* contracts
+  cp $LOOM_BLUEPRINT_DIR/build/contracts/* contracts
 }
 
 start_chains() {
@@ -93,7 +93,6 @@ if [ "${TRAVIS:-}" ]; then
   download_dappchain
 fi
 
-# setup_weave_blueprint
 setup_dappchain
 
 trap cleanup EXIT
