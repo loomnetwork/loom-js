@@ -4,7 +4,7 @@ set -euxo pipefail
 
 eval "$(GIMME_GO_VERSION=1.10.2 gimme)"
 
-export BUILD_ID=build-3906
+export BUILD_ID=tg-tron-integration
 
 bash e2e_tests.sh
 
