@@ -5,7 +5,7 @@ import { ethers } from 'ethers'
 import {
   NonceTxMiddleware,
   CachedNonceTxMiddleware,
-  SignedTrxTxMiddleware,
+  SignedTronTxMiddleware,
   CryptoUtils,
   Client
 } from '../../index'
@@ -160,7 +160,7 @@ test('Test Signed Tron Tx Middleware Type 2', async t => {
     // Tron account needs its own middleware
     loomProvider.setMiddlewaresForAddress(to.local.toString(), [
       new CachedNonceTxMiddleware(pubKey, client), // FIX
-      new SignedTrxTxMiddleware(signer)
+      new SignedTronTxMiddleware(signer)
     ])
 
     const middlewaresUsed = loomProvider.accountMiddlewares.get(trxAddress.toLowerCase())
@@ -168,7 +168,7 @@ test('Test Signed Tron Tx Middleware Type 2', async t => {
       middlewaresUsed![0] instanceof CachedNonceTxMiddleware,
       'CachedNonceTxMiddleware used'
     )
-    t.assert(middlewaresUsed![1] instanceof SignedTrxTxMiddleware, 'SignedTrxTxMiddleware used')
+    t.assert(middlewaresUsed![1] instanceof SignedTronTxMiddleware, 'SignedTronTxMiddleware used')
 
     let tx = await contract.methods.set(1).send({ from: to.local.toString() })
     t.equal(

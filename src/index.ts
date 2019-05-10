@@ -16,7 +16,7 @@ export { unmarshalBigUIntPB, marshalBigUIntPB } from './big-uint'
 export {
   SignedTxMiddleware,
   SignedEthTxMiddleware,
-  SignedTrxTxMiddleware,
+  SignedTronTxMiddleware,
   NonceTxMiddleware,
   CachedNonceTxMiddleware,
   SpeculativeNonceTxMiddleware,
@@ -29,7 +29,6 @@ import * as Contracts from './contracts'
 export { Contracts }
 
 import * as CryptoUtils from './crypto-utils'
-import TronWeb from 'tronweb';
 export { CryptoUtils }
 
 export { IJSONRPCClient } from './internal/json-rpc-client'
@@ -64,4 +63,4 @@ export { CrossChainUser } from './crosschain-user'
 export { SparseMerkleTree, ISparseMerkleTreeLevel } from './plasma-cash/sparse-merkle-tree'
 
 export { PlasmaDB, IDatabaseCoin } from './plasma-cash/db'
-export { TronWebSigner } from './tron'
+export { TronWebSigner } from './tron-web-signer'
