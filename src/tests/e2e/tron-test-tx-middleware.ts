@@ -151,8 +151,8 @@ test('Test Signed Tron Tx Middleware Type 2', async t => {
 
     try {
       const addressMapped = await addressMapper.getMappingAsync(from)
-      t.assert(addressMapped.from.equals(from), 'Should be mapped the from address')
-      t.assert(addressMapped.to.equals(to), 'Should be mapped the to address')
+      t.assert(addressMapped.from.equals(from), 'Address mapper should map dappchain address')
+      t.assert(addressMapped.to.equals(to), 'Address mapper should map tron address')
     } catch (err) {
       t.error(err)
     }
