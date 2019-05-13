@@ -35,9 +35,8 @@ export class TronWebSigner implements IEthereumSigner {
 
     if (v === 0 || v === 1) {
       v += 27
-    } else {
-      mode = 3 // indicate that msg was prefixed before signing
-    }
+    } 
+    
     return Buffer.concat([ethutil.toBuffer(mode) as Buffer, r, s, ethutil.toBuffer(v) as Buffer])
   }
 
