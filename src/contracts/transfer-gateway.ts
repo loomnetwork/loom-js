@@ -283,6 +283,52 @@ export class TransferGateway extends Contract {
   }
 
   /**
+   * Sends a request to the DAppChain Gateway to begin withdrawal TRX tokens from the current
+   * DAppChain account to an Tron account.
+   * @param amount Amount to withdraw.
+   * @param tokenContract DAppChain address of Tron coin contract.
+   * @param recipient Tron address of the account in hex string where the token should be withdrawn to, if this is
+   *                  omitted the Gateway will attempt to use the Address Mapper to retrieve the
+   *                  address of the Tron account mapped to the current DAppChain account.
+   * @returns A promise that will be resolved when the DAppChain Gateway has accepted the withdrawal
+   *          request.
+   */
+  withdrawTRXAsync(amount: BN, tokenContract: Address, recipient?: Address): Promise<void> {
+    const req = new TransferGatewayWithdrawTokenRequest()
+    req.setTokenKind(TransferGatewayTokenKind.TRX)
+    req.setTokenAmount(marshalBigUIntPB(amount))
+    req.setTokenContract(tokenContract.MarshalPB())
+    if (recipient) {
+      req.setRecipient(recipient.MarshalPB())
+    }
+
+    return this.callAsync<void>('WithdrawToken', req)
+  }
+
+  /**
+   * Sends a request to the DAppChain Gateway to begin withdrawal TRC20 tokens from the current
+   * DAppChain account to an Tron account.
+   * @param amount Amount to withdraw.
+   * @param tokenContract DAppChain address of Tron TRC20 contract.
+   * @param recipient Tron address of the account in hex string where the token should be withdrawn to, if this is
+   *                  omitted the Gateway will attempt to use the Address Mapper to retrieve the
+   *                  address of the Tron account mapped to the current DAppChain account.
+   * @returns A promise that will be resolved when the DAppChain Gateway has accepted the withdrawal
+   *          request.
+   */
+  withdrawTRC20Async(amount: BN, tokenContract: Address, recipient?: Address): Promise<void> {
+    const req = new TransferGatewayWithdrawTokenRequest()
+    req.setTokenKind(TransferGatewayTokenKind.TRC20)
+    req.setTokenAmount(marshalBigUIntPB(amount))
+    req.setTokenContract(tokenContract.MarshalPB())
+    if (recipient) {
+      req.setRecipient(recipient.MarshalPB())
+    }
+
+    return this.callAsync<void>('WithdrawToken', req)
+  }
+
+  /**
    * Retrieves the current withdrawal receipt (if any) for the given DAppChain account.
    * Withdrawal receipts are created by calling one of the withdraw methods.
    * @param owner DAppChain address of a user account.
