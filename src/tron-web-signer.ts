@@ -35,8 +35,8 @@ export class TronWebSigner implements IEthereumSigner {
 
     if (v === 0 || v === 1) {
       v += 27
-    } 
-    
+    }
+
     return Buffer.concat([ethutil.toBuffer(mode) as Buffer, r, s, ethutil.toBuffer(v) as Buffer])
   }
 

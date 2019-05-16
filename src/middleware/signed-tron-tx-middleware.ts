@@ -10,7 +10,7 @@ import { Address } from '../address'
 const log = debug('signed-tron-tx-middleware')
 
 /**
- * Signs transactions using an Ethereum compatible (secp256k1) private key.
+ * Signs transactions using a TRON compatible (secp256k1) private key.
  */
 export class SignedTronTxMiddleware implements ITxMiddlewareHandler {
   signer: TronWebSigner
