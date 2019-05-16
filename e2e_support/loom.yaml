@@ -41,3 +41,10 @@ Auth:
     eth1:
       TxType: "eth"
       AccountType: 0
+    tron:
+      TxType: "tron"
+      AccountType: 1
+ContractLoaders:
+  - "static"
+  - "dynamic"
+  - "external"

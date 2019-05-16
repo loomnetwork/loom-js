@@ -16,6 +16,7 @@ export { unmarshalBigUIntPB, marshalBigUIntPB } from './big-uint'
 export {
   SignedTxMiddleware,
   SignedEthTxMiddleware,
+  SignedTronTxMiddleware,
   NonceTxMiddleware,
   CachedNonceTxMiddleware,
   SpeculativeNonceTxMiddleware,
@@ -62,3 +63,4 @@ export { CrossChainUser } from './crosschain-user'
 export { SparseMerkleTree, ISparseMerkleTreeLevel } from './plasma-cash/sparse-merkle-tree'
 
 export { PlasmaDB, IDatabaseCoin } from './plasma-cash/db'
+export { TronWebSigner } from './tron-web-signer'

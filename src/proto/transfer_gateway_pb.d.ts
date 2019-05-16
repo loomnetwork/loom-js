@@ -520,5 +520,7 @@ export enum TransferGatewayTokenKind {
   ERC721 = 2,
   ERC721X = 3,
   LOOMCOIN = 4,
+  TRX = 5,
+  TRC20 = 6,
 }
 

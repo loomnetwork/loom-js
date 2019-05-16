@@ -61,6 +61,7 @@ async function bootstrapTest(
   loomProvider: LoomProvider
   contract: any
   ABI: any[]
+  account: Address
 }> {
   // Create the client
   const privKey = CryptoUtils.B64ToUint8Array(
@@ -70,6 +71,8 @@ async function bootstrapTest(
   const client = createClient()
   client.on('error', err => console.error(err))
   client.txMiddleware = createDefaultTxMiddleware(client, privKey)
+
+  const account = new Address(client.chainId, LocalAddress.fromPublicKey(pubKey))
 
   // Create LoomProvider instance
   const loomProvider = new LoomProvider(client, privKey)
@@ -144,7 +147,7 @@ async function bootstrapTest(
   // And get the signer
   const signer = await getJsonRPCSignerAsync('http://localhost:8545')
 
-  return { client, pubKey, privKey, signer, loomProvider, contract, ABI }
+  return { client, pubKey, privKey, signer, loomProvider, contract, ABI, account }
 }
 
 test('Test Signed Eth Tx Middleware Type 1', async t => {
@@ -192,7 +195,7 @@ test('Test Signed Eth Tx Middleware Type 1', async t => {
 
 test('Test Signed Eth Tx Middleware Type 2', async t => {
   try {
-    const { client, signer, pubKey, loomProvider, contract } = await bootstrapTest(
+    const { client, signer, pubKey, loomProvider, contract, account } = await bootstrapTest(
       createTestHttpClient
     )
 
@@ -225,7 +228,7 @@ test('Test Signed Eth Tx Middleware Type 2', async t => {
     loomProvider.callerChainId = callerChainId
     // Ethereum account needs its own middleware
     loomProvider.setMiddlewaresForAddress(to.local.toString(), [
-      new CachedNonceTxMiddleware(pubKey, client), // FIX
+      new CachedNonceTxMiddleware(account, client),
       new SignedEthTxMiddleware(signer)
     ])
 
