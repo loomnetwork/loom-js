@@ -3,9 +3,8 @@ import { TronWebSigner } from '../tron-web-signer'
 
 import { SignedTx } from '../proto/loom_pb'
 import { ITxMiddlewareHandler } from '../client'
-import { EthersSigner, soliditySha3 } from '../solidity-helpers'
-import { bytesToHex, hexToBytes } from '../crypto-utils'
-import { Address } from '../address'
+import { soliditySha3 } from '../solidity-helpers'
+import { bytesToHex } from '../crypto-utils'
 
 const log = debug('signed-tron-tx-middleware')
 

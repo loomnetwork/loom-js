@@ -1,9 +1,6 @@
 import test from 'tape'
-import BN from 'bn.js'
-import { ethers } from 'ethers'
 
 import {
-  NonceTxMiddleware,
   CachedNonceTxMiddleware,
   SignedTronTxMiddleware,
   CryptoUtils,
