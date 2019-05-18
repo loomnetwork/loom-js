@@ -30,7 +30,11 @@ import {
   TotalDelegationResponseV3,
   TotalDelegationRequestV3,
   ConsolidateDelegationsRequest,
-  DelegationState
+  DelegationState,
+  CheckDelegatorRewardsRequest,
+  CheckDelegatorRewardsResponse,
+  ClaimDelegatorRewardsRequest,
+  ClaimDelegatorRewardsResponse
 } from '../proto/dposv3_pb'
 import { unmarshalBigUIntPB, marshalBigUIntPB } from '../big-uint'
 
@@ -312,6 +316,26 @@ export class DPOS3 extends Contract {
     unbondRequest.setAmount(marshalBigUIntPB(new BN(amount)))
     unbondRequest.setIndex(index)
     return this.callAsync<void>('Unbond', unbondRequest)
+  }
+
+  async claimDelegatorRewardsAsync(): Promise<BN> {
+    const req = new ClaimDelegatorRewardsRequest()
+    const resp = new ClaimDelegatorRewardsResponse()
+    const result = await this.callAsync('ClaimDelegatorRewards', req, resp)
+
+    return resp.getAmount() ? unmarshalBigUIntPB(resp.getAmount()!) : new BN(0)
+  }
+
+  async checkDelegatorRewardsAsync(delegator: Address): Promise<BN> {
+    const req = new CheckDelegatorRewardsRequest()
+    req.setDelegator(delegator.MarshalPB())
+    const result = await this.staticCallAsync(
+      'CheckDelegatorRewards',
+      req,
+      new CheckDelegatorRewardsResponse()
+    )
+
+    return result.getAmount() ? unmarshalBigUIntPB(result.getAmount()!) : new BN(0)
   }
 
   private getDelegation(delegation: Delegation): IDelegation {
