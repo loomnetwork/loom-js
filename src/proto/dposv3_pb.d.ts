@@ -1892,39 +1892,83 @@ export namespace DposReferrerRegistersEvent {
   }
 }
 
-export class ClaimRewardsRequest extends jspb.Message {
+export class CheckDelegatorRewardsRequest extends jspb.Message {
+  hasDelegator(): boolean;
+  clearDelegator(): void;
+  getDelegator(): proto_loom_pb.Address | undefined;
+  setDelegator(value?: proto_loom_pb.Address): void;
+
   serializeBinary(): Uint8Array;
-  toObject(includeInstance?: boolean): ClaimRewardsRequest.AsObject;
-  static toObject(includeInstance: boolean, msg: ClaimRewardsRequest): ClaimRewardsRequest.AsObject;
+  toObject(includeInstance?: boolean): CheckDelegatorRewardsRequest.AsObject;
+  static toObject(includeInstance: boolean, msg: CheckDelegatorRewardsRequest): CheckDelegatorRewardsRequest.AsObject;
   static extensions: {[key: number]: jspb.ExtensionFieldInfo<jspb.Message>};
   static extensionsBinary: {[key: number]: jspb.ExtensionFieldBinaryInfo<jspb.Message>};
-  static serializeBinaryToWriter(message: ClaimRewardsRequest, writer: jspb.BinaryWriter): void;
-  static deserializeBinary(bytes: Uint8Array): ClaimRewardsRequest;
-  static deserializeBinaryFromReader(message: ClaimRewardsRequest, reader: jspb.BinaryReader): ClaimRewardsRequest;
+  static serializeBinaryToWriter(message: CheckDelegatorRewardsRequest, writer: jspb.BinaryWriter): void;
+  static deserializeBinary(bytes: Uint8Array): CheckDelegatorRewardsRequest;
+  static deserializeBinaryFromReader(message: CheckDelegatorRewardsRequest, reader: jspb.BinaryReader): CheckDelegatorRewardsRequest;
 }
 
-export namespace ClaimRewardsRequest {
+export namespace CheckDelegatorRewardsRequest {
   export type AsObject = {
+    delegator?: proto_loom_pb.Address.AsObject,
   }
 }
 
-export class ClaimRewardsResponse extends jspb.Message {
+export class CheckDelegatorRewardsResponse extends jspb.Message {
   hasAmount(): boolean;
   clearAmount(): void;
   getAmount(): proto_loom_pb.BigUInt | undefined;
   setAmount(value?: proto_loom_pb.BigUInt): void;
 
   serializeBinary(): Uint8Array;
-  toObject(includeInstance?: boolean): ClaimRewardsResponse.AsObject;
-  static toObject(includeInstance: boolean, msg: ClaimRewardsResponse): ClaimRewardsResponse.AsObject;
+  toObject(includeInstance?: boolean): CheckDelegatorRewardsResponse.AsObject;
+  static toObject(includeInstance: boolean, msg: CheckDelegatorRewardsResponse): CheckDelegatorRewardsResponse.AsObject;
   static extensions: {[key: number]: jspb.ExtensionFieldInfo<jspb.Message>};
   static extensionsBinary: {[key: number]: jspb.ExtensionFieldBinaryInfo<jspb.Message>};
-  static serializeBinaryToWriter(message: ClaimRewardsResponse, writer: jspb.BinaryWriter): void;
-  static deserializeBinary(bytes: Uint8Array): ClaimRewardsResponse;
-  static deserializeBinaryFromReader(message: ClaimRewardsResponse, reader: jspb.BinaryReader): ClaimRewardsResponse;
+  static serializeBinaryToWriter(message: CheckDelegatorRewardsResponse, writer: jspb.BinaryWriter): void;
+  static deserializeBinary(bytes: Uint8Array): CheckDelegatorRewardsResponse;
+  static deserializeBinaryFromReader(message: CheckDelegatorRewardsResponse, reader: jspb.BinaryReader): CheckDelegatorRewardsResponse;
 }
 
-export namespace ClaimRewardsResponse {
+export namespace CheckDelegatorRewardsResponse {
+  export type AsObject = {
+    amount?: proto_loom_pb.BigUInt.AsObject,
+  }
+}
+
+export class ClaimDelegatorRewardsRequest extends jspb.Message {
+  serializeBinary(): Uint8Array;
+  toObject(includeInstance?: boolean): ClaimDelegatorRewardsRequest.AsObject;
+  static toObject(includeInstance: boolean, msg: ClaimDelegatorRewardsRequest): ClaimDelegatorRewardsRequest.AsObject;
+  static extensions: {[key: number]: jspb.ExtensionFieldInfo<jspb.Message>};
+  static extensionsBinary: {[key: number]: jspb.ExtensionFieldBinaryInfo<jspb.Message>};
+  static serializeBinaryToWriter(message: ClaimDelegatorRewardsRequest, writer: jspb.BinaryWriter): void;
+  static deserializeBinary(bytes: Uint8Array): ClaimDelegatorRewardsRequest;
+  static deserializeBinaryFromReader(message: ClaimDelegatorRewardsRequest, reader: jspb.BinaryReader): ClaimDelegatorRewardsRequest;
+}
+
+export namespace ClaimDelegatorRewardsRequest {
+  export type AsObject = {
+  }
+}
+
+export class ClaimDelegatorRewardsResponse extends jspb.Message {
+  hasAmount(): boolean;
+  clearAmount(): void;
+  getAmount(): proto_loom_pb.BigUInt | undefined;
+  setAmount(value?: proto_loom_pb.BigUInt): void;
+
+  serializeBinary(): Uint8Array;
+  toObject(includeInstance?: boolean): ClaimDelegatorRewardsResponse.AsObject;
+  static toObject(includeInstance: boolean, msg: ClaimDelegatorRewardsResponse): ClaimDelegatorRewardsResponse.AsObject;
+  static extensions: {[key: number]: jspb.ExtensionFieldInfo<jspb.Message>};
+  static extensionsBinary: {[key: number]: jspb.ExtensionFieldBinaryInfo<jspb.Message>};
+  static serializeBinaryToWriter(message: ClaimDelegatorRewardsResponse, writer: jspb.BinaryWriter): void;
+  static deserializeBinary(bytes: Uint8Array): ClaimDelegatorRewardsResponse;
+  static deserializeBinaryFromReader(message: ClaimDelegatorRewardsResponse, reader: jspb.BinaryReader): ClaimDelegatorRewardsResponse;
+}
+
+export namespace ClaimDelegatorRewardsResponse {
   export type AsObject = {
     amount?: proto_loom_pb.BigUInt.AsObject,
   }

@@ -388,11 +388,17 @@ message DposReferrerRegistersEvent {
     Address address = 2;
 }
 
-message ClaimRewardsRequest {
+message CheckDelegatorRewardsRequest {
+    Address delegator = 1;
 }
 
-message ClaimRewardsResponse {
+message CheckDelegatorRewardsResponse {
     BigUInt amount = 1;
-
 }
 
+message ClaimDelegatorRewardsRequest {
+}
+
+message ClaimDelegatorRewardsResponse {
+    BigUInt amount = 1;
+}
