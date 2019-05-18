@@ -321,7 +321,7 @@ export class DPOS3 extends Contract {
   async claimDelegatorRewardsAsync(): Promise<BN> {
     const req = new ClaimDelegatorRewardsRequest()
     const resp = new ClaimDelegatorRewardsResponse()
-    const result = await this.callAsync('ClaimDelegatorRewards', req, resp)
+    const result = await this.callAsync('ClaimRewardsFromAllValidators', req, resp)
 
     return resp.getAmount() ? unmarshalBigUIntPB(resp.getAmount()!) : new BN(0)
   }
@@ -330,7 +330,7 @@ export class DPOS3 extends Contract {
     const req = new CheckDelegatorRewardsRequest()
     req.setDelegator(delegator.MarshalPB())
     const result = await this.staticCallAsync(
-      'CheckDelegatorRewards',
+      'CheckRewardsFromAllValidators',
       req,
       new CheckDelegatorRewardsResponse()
     )
