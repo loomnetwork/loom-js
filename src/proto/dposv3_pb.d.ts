@@ -1892,6 +1892,44 @@ export namespace DposReferrerRegistersEvent {
   }
 }
 
+export class ClaimRewardsRequest extends jspb.Message {
+  serializeBinary(): Uint8Array;
+  toObject(includeInstance?: boolean): ClaimRewardsRequest.AsObject;
+  static toObject(includeInstance: boolean, msg: ClaimRewardsRequest): ClaimRewardsRequest.AsObject;
+  static extensions: {[key: number]: jspb.ExtensionFieldInfo<jspb.Message>};
+  static extensionsBinary: {[key: number]: jspb.ExtensionFieldBinaryInfo<jspb.Message>};
+  static serializeBinaryToWriter(message: ClaimRewardsRequest, writer: jspb.BinaryWriter): void;
+  static deserializeBinary(bytes: Uint8Array): ClaimRewardsRequest;
+  static deserializeBinaryFromReader(message: ClaimRewardsRequest, reader: jspb.BinaryReader): ClaimRewardsRequest;
+}
+
+export namespace ClaimRewardsRequest {
+  export type AsObject = {
+  }
+}
+
+export class ClaimRewardsResponse extends jspb.Message {
+  hasAmount(): boolean;
+  clearAmount(): void;
+  getAmount(): proto_loom_pb.BigUInt | undefined;
+  setAmount(value?: proto_loom_pb.BigUInt): void;
+
+  serializeBinary(): Uint8Array;
+  toObject(includeInstance?: boolean): ClaimRewardsResponse.AsObject;
+  static toObject(includeInstance: boolean, msg: ClaimRewardsResponse): ClaimRewardsResponse.AsObject;
+  static extensions: {[key: number]: jspb.ExtensionFieldInfo<jspb.Message>};
+  static extensionsBinary: {[key: number]: jspb.ExtensionFieldBinaryInfo<jspb.Message>};
+  static serializeBinaryToWriter(message: ClaimRewardsResponse, writer: jspb.BinaryWriter): void;
+  static deserializeBinary(bytes: Uint8Array): ClaimRewardsResponse;
+  static deserializeBinaryFromReader(message: ClaimRewardsResponse, reader: jspb.BinaryReader): ClaimRewardsResponse;
+}
+
+export namespace ClaimRewardsResponse {
+  export type AsObject = {
+    amount?: proto_loom_pb.BigUInt.AsObject,
+  }
+}
+
 export enum LocktimeTier {
   TIER_ZERO = 0,
   TIER_ONE = 1,

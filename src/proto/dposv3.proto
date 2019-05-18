@@ -387,3 +387,12 @@ message DposReferrerRegistersEvent {
     string name = 1;
     Address address = 2;
 }
+
+message ClaimRewardsRequest {
+}
+
+message ClaimRewardsResponse {
+    BigUInt amount = 1;
+
+}
+
