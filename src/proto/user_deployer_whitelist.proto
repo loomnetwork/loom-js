@@ -1,0 +1,59 @@
+syntax = "proto3";
+package user_deployer_whitelist;
+import "proto/loom.proto";
+import "proto/deployer_whitelist.proto";
+
+enum TierID {
+    DEFAULT = 0;
+}
+
+message Tier {
+    TierID id = 1;
+    BigUInt fee = 2;
+    string name = 3;
+}
+
+message TierInfo {
+    repeated Tier tiers = 1;
+}
+
+message InitRequest {
+    Address owner = 1;
+    TierInfo tier_info = 2;
+}
+
+message DeployerContract {
+    Address contractAddress = 1;
+    VMType vmType = 2;
+}
+
+message WhitelistUserDeployerRequest {
+    Address deployerAddr = 1;
+    TierID tier_id = 3;
+}
+
+message UserState {
+    Address userAddr = 1;
+    repeated Address deployers = 2;
+}
+
+message UserDeployerState {
+    Address address = 1;
+    uint32 flags = 2;
+    repeated DeployerContract contracts = 3;
+}
+
+message GetUserDeployersRequest {
+}
+
+message GetUserDeployersResponse {
+    repeated deployer_whitelist.Deployer deployers = 1;
+}
+
+message GetDeployedContractsRequest {
+    Address deployerAddr = 1;
+}
+
+message GetDeployedContractsResponse {
+    repeated Address contractAddresses = 1;
+}

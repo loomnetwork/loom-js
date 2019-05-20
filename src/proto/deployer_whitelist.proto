@@ -1,0 +1,54 @@
+syntax = "proto3";
+package deployer_whitelist;
+import "proto/loom.proto";
+
+message InitRequest {
+    Address owner = 1;
+    repeated Deployer deployers = 2;
+}
+
+enum Flags {
+    NONE = 0;
+    GO = 1;
+    EVM = 2;
+    MIGRATION = 4;
+}
+
+message Deployer {
+    Address address = 1;
+    uint32 flags = 2;
+}
+
+message AddDeployerRequest {
+    Address deployerAddr = 1;
+    uint32 flags = 2;
+}
+
+message AddUserDeployerRequest {
+    Address deployerAddr = 1;
+}
+
+message AddDeployerResponse {
+}
+
+message GetDeployerRequest {
+    Address deployerAddr = 1;
+}
+
+message GetDeployerResponse {
+    Deployer deployer = 1;
+}
+
+message RemoveDeployerRequest {
+    Address deployerAddr = 1;
+}
+
+message RemoveDeployerResponse {
+}
+
+message ListDeployersRequest {
+}
+
+message ListDeployersResponse {
+    repeated Deployer deployers = 1;
+}
