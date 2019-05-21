@@ -27,7 +27,6 @@ import {
   CandidateStatistic,
   CandidateState,
   LocktimeTier,
-  TotalDelegationResponseV3,
   TotalDelegationRequestV3,
   ConsolidateDelegationsRequest,
   DelegationState,
@@ -321,7 +320,7 @@ export class DPOS3 extends Contract {
   async claimDelegatorRewardsAsync(): Promise<BN> {
     const req = new ClaimDelegatorRewardsRequest()
     const resp = new ClaimDelegatorRewardsResponse()
-    const result = await this.callAsync('ClaimRewardsFromAllValidators', req, resp)
+    await this.callAsync('ClaimRewardsFromAllValidators', req, resp)
 
     return resp.getAmount() ? unmarshalBigUIntPB(resp.getAmount()!) : new BN(0)
   }
