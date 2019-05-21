@@ -10,6 +10,8 @@ import {
   TierID
 } from '../proto/user_deployer_whitelist_pb'
 
+import {Address as LoomAddress} from '../proto/loom_pb'
+
 export class UserDeployerWhitelist extends Contract {
   static async createAsync(client: Client, callerAddr: Address): Promise < UserDeployerWhitelist > {
     const contractAddr = await client.getContractAddressAsync('user_deployer_whitelist')
@@ -28,7 +30,7 @@ export class UserDeployerWhitelist extends Contract {
     super(params)
   }
 
-  addUserDeployer(deployerAddr: Address, tierID: TierID): Promise<void> {
+  addUserDeployerAsync(deployerAddr: Address, tierID: TierID): Promise<void> {
     const whitelistUserDeployerReq = new WhitelistUserDeployerRequest()
     whitelistUserDeployerReq.setDeployeraddr(deployerAddr.MarshalPB())
     whitelistUserDeployerReq.setTierId(tierID)
@@ -39,14 +41,11 @@ export class UserDeployerWhitelist extends Contract {
     const result = await this.staticCallAsync('GetUserDeployers', getUserDeployerReq, new GetUserDeployersResponse())
     return result.getDeployersList() as Array<Address>
   }
-  async getDeployedContractsAsync(deployerAddr: Address): Promise<Array<Address> > {
+  async getDeployedContractsAsync(deployerAddr: Address): Promise<Array<LoomAddress> > {
     const getDeployedContractsReq = new GetDeployedContractsRequest()
     getDeployedContractsReq.setDeployeraddr(deployerAddr.MarshalPB())
     const result = await this.staticCallAsync('GetDeployedContracts', getDeployedContractsReq, new GetDeployedContractsResponse())
-    return result.getContractaddressesList() as Array<Address>
+    return result.getContractaddressesList() as Array<LoomAddress>
   }
 
-  
-
-
-  
+}
