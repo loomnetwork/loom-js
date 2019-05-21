@@ -9,10 +9,6 @@ import {
   WhitelistUserDeployerRequest,
   TierID
 } from '../proto/user_deployer_whitelist_pb'
-// import {
-//   unmarshalBigUIntPB,
-//   marshalBigUIntPB
-// } from '../big-uint'
 
 export class UserDeployerWhitelist extends Contract {
   static async createAsync(client: Client, callerAddr: Address): Promise < UserDeployerWhitelist > {
@@ -28,30 +24,29 @@ export class UserDeployerWhitelist extends Contract {
     })
   }
 
-  constructor(params: {
-    contractAddr: Address;callerAddr: Address;client: Client
-  }) {
+  constructor(params: {contractAddr: Address; callerAddr: Address; client: Client}) {
     super(params)
   }
 
-  async getUserDeployersAsync(): Promise < GetUserDeployersResponse > {
+  addUserDeployer(deployerAddr: Address, tierID: TierID): Promise<void> {
+    const whitelistUserDeployerReq = new WhitelistUserDeployerRequest()
+    whitelistUserDeployerReq.setDeployeraddr(deployerAddr.MarshalPB())
+    whitelistUserDeployerReq.setTierId(tierID)
+    return this.callAsync<void>('AddUserDeployer', whitelistUserDeployerReq)
+  }
+  async getUserDeployersAsync(): Promise<Array<Address>> {
     const getUserDeployerReq = new GetUserDeployersRequest()
     const result = await this.staticCallAsync('GetUserDeployers', getUserDeployerReq, new GetUserDeployersResponse())
-    return result
+    return result.getDeployersList() as Array<Address>
   }
-  async getDeployedContractsAsync(deployerAddr: Address): Promise < GetDeployedContractsResponse > {
+  async getDeployedContractsAsync(deployerAddr: Address): Promise<Array<Address> > {
     const getDeployedContractsReq = new GetDeployedContractsRequest()
     getDeployedContractsReq.setDeployeraddr(deployerAddr.MarshalPB())
     const result = await this.staticCallAsync('GetDeployedContracts', getDeployedContractsReq, new GetDeployedContractsResponse())
-    return result
+    return result.getContractaddressesList() as Array<Address>
   }
 
   
-  addUserDeployer(deployerAddr: Address, tier_id: TierID): Promise < void > {
-    const whitelistUserDeployerReq = new WhitelistUserDeployerRequest()
-    whitelistUserDeployerReq.setDeployeraddr(deployerAddr.MarshalPB())
-    whitelistUserDeployerReq.setTierId(tier_id)
-    return this.callAsync < void > ('AddUserDeployer', whitelistUserDeployerReq)
-  }
+
 
   
