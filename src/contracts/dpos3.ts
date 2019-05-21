@@ -27,7 +27,6 @@ import {
   CandidateStatistic,
   CandidateState,
   LocktimeTier,
-  TotalDelegationRequestV3,
   ConsolidateDelegationsRequest,
   DelegationState,
   CheckDelegatorRewardsRequest,

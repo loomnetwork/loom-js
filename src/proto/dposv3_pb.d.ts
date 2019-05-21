@@ -812,56 +812,6 @@ export namespace CheckRewardsResponse {
   }
 }
 
-export class TotalDelegationRequestV3 extends jspb.Message {
-  hasDelegatorAddress(): boolean;
-  clearDelegatorAddress(): void;
-  getDelegatorAddress(): proto_loom_pb.Address | undefined;
-  setDelegatorAddress(value?: proto_loom_pb.Address): void;
-
-  serializeBinary(): Uint8Array;
-  toObject(includeInstance?: boolean): TotalDelegationRequestV3.AsObject;
-  static toObject(includeInstance: boolean, msg: TotalDelegationRequestV3): TotalDelegationRequestV3.AsObject;
-  static extensions: {[key: number]: jspb.ExtensionFieldInfo<jspb.Message>};
-  static extensionsBinary: {[key: number]: jspb.ExtensionFieldBinaryInfo<jspb.Message>};
-  static serializeBinaryToWriter(message: TotalDelegationRequestV3, writer: jspb.BinaryWriter): void;
-  static deserializeBinary(bytes: Uint8Array): TotalDelegationRequestV3;
-  static deserializeBinaryFromReader(message: TotalDelegationRequestV3, reader: jspb.BinaryReader): TotalDelegationRequestV3;
-}
-
-export namespace TotalDelegationRequestV3 {
-  export type AsObject = {
-    delegatorAddress?: proto_loom_pb.Address.AsObject,
-  }
-}
-
-export class TotalDelegationResponseV3 extends jspb.Message {
-  hasAmount(): boolean;
-  clearAmount(): void;
-  getAmount(): proto_loom_pb.BigUInt | undefined;
-  setAmount(value?: proto_loom_pb.BigUInt): void;
-
-  hasWeightedAmount(): boolean;
-  clearWeightedAmount(): void;
-  getWeightedAmount(): proto_loom_pb.BigUInt | undefined;
-  setWeightedAmount(value?: proto_loom_pb.BigUInt): void;
-
-  serializeBinary(): Uint8Array;
-  toObject(includeInstance?: boolean): TotalDelegationResponseV3.AsObject;
-  static toObject(includeInstance: boolean, msg: TotalDelegationResponseV3): TotalDelegationResponseV3.AsObject;
-  static extensions: {[key: number]: jspb.ExtensionFieldInfo<jspb.Message>};
-  static extensionsBinary: {[key: number]: jspb.ExtensionFieldBinaryInfo<jspb.Message>};
-  static serializeBinaryToWriter(message: TotalDelegationResponseV3, writer: jspb.BinaryWriter): void;
-  static deserializeBinary(bytes: Uint8Array): TotalDelegationResponseV3;
-  static deserializeBinaryFromReader(message: TotalDelegationResponseV3, reader: jspb.BinaryReader): TotalDelegationResponseV3;
-}
-
-export namespace TotalDelegationResponseV3 {
-  export type AsObject = {
-    amount?: proto_loom_pb.BigUInt.AsObject,
-    weightedAmount?: proto_loom_pb.BigUInt.AsObject,
-  }
-}
-
 export class CheckAllDelegationsRequestV3 extends jspb.Message {
   hasDelegatorAddress(): boolean;
   clearDelegatorAddress(): void;
