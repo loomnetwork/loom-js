@@ -196,38 +196,12 @@ export class DPOSUserV3 extends GatewayUser {
     return this._dappchainDPOS.checkDelegationAsync(validatorAddress, delegatorAddress)
   }
 
-  // Iterates over all the delegator's reward delegations and unbonds the ones it can unbond
-  async claimRewardsAsync(): Promise<BN> {
-    // get all delegations
-    const delegations = await this._dappchainDPOS.checkAllDelegationsAsync(this.loomAddress)
-
-    let total = new BN(0)
-    for (const d of delegations.delegationsArray) {
-      // if it's the rewards delegation and it's already bonded
-      if (d.index === 0 && d.state == DelegationState.BONDED) {
-        await this.dappchainDPOS.unbondAsync(d.validator, 0, 0)
-        total = total.add(d.amount)
-      }
-    }
-    return total
+  claimDelegatorRewardsAsync(): Promise<BN> {
+    return this._dappchainDPOS.claimDelegatorRewardsAsync()
   }
 
-  // Iterates over all delegator delegations and returns 1 amount
-  async checkRewardsAsync(owner?: string): Promise<BN> {
+  async checkDelegatorRewardsAsync(owner?: string): Promise<BN> {
     const address = owner ? this.prefixAddress(owner) : this.loomAddress
-
-    // get all delegations
-    const delegations = await this._dappchainDPOS.checkAllDelegationsAsync(address)
-
-    // get the 0th of each
-    let total = new BN(0)
-    for (const d of delegations.delegationsArray) {
-      // if it's the rewards delegation and it's already bonded
-      if (d.index === 0 && d.state == DelegationState.BONDED) {
-        total = total.add(d.amount)
-      }
-    }
-
-    return total
+    return this._dappchainDPOS.checkDelegatorRewardsAsync(address)
   }
 }

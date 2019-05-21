@@ -180,15 +180,6 @@ message CheckRewardsResponse {
     BigUInt total_reward_distribution = 1;
 }
 
-message TotalDelegationRequestV3 {
-    Address delegator_address = 1;
-}
-
-message TotalDelegationResponseV3 {
-    BigUInt amount = 1;
-    BigUInt weighted_amount = 2;
-}
-
 message CheckAllDelegationsRequestV3 {
     Address delegator_address = 1;
 }
@@ -386,4 +377,19 @@ message DposDelegatorUnbondsEvent {
 message DposReferrerRegistersEvent {
     string name = 1;
     Address address = 2;
+}
+
+message CheckDelegatorRewardsRequest {
+    Address delegator = 1;
+}
+
+message CheckDelegatorRewardsResponse {
+    BigUInt amount = 1;
+}
+
+message ClaimDelegatorRewardsRequest {
+}
+
+message ClaimDelegatorRewardsResponse {
+    BigUInt amount = 1;
 }
