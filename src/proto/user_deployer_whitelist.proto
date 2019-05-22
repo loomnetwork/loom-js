@@ -1,7 +1,6 @@
 syntax = "proto3";
-package user_deployer_whitelist;
 import "proto/loom.proto";
-import "proto/deployer_whitelist.proto";
+import "proto/deployer_whitelist/deployer_whitelist.proto";
 
 enum TierID {
     DEFAULT = 0;

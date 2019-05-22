@@ -1,9 +1,9 @@
-// package: user_deployer_whitelist
+// package: 
 // file: proto/user_deployer_whitelist.proto
 
 import * as jspb from "google-protobuf";
 import * as proto_loom_pb from "../proto/loom_pb";
-import * as proto_deployer_whitelist_pb from "../proto/deployer_whitelist_pb";
+import * as proto_deployer_whitelist_deployer_whitelist_pb from "../proto/deployer_whitelist/deployer_whitelist_pb";
 
 export class Tier extends jspb.Message {
   getId(): TierID;
@@ -215,9 +215,9 @@ export namespace GetUserDeployersRequest {
 
 export class GetUserDeployersResponse extends jspb.Message {
   clearDeployersList(): void;
-  getDeployersList(): Array<proto_deployer_whitelist_pb.Deployer>;
-  setDeployersList(value: Array<proto_deployer_whitelist_pb.Deployer>): void;
-  addDeployers(value?: proto_deployer_whitelist_pb.Deployer, index?: number): proto_deployer_whitelist_pb.Deployer;
+  getDeployersList(): Array<proto_deployer_whitelist_deployer_whitelist_pb.Deployer>;
+  setDeployersList(value: Array<proto_deployer_whitelist_deployer_whitelist_pb.Deployer>): void;
+  addDeployers(value?: proto_deployer_whitelist_deployer_whitelist_pb.Deployer, index?: number): proto_deployer_whitelist_deployer_whitelist_pb.Deployer;
 
   serializeBinary(): Uint8Array;
   toObject(includeInstance?: boolean): GetUserDeployersResponse.AsObject;
@@ -231,7 +231,7 @@ export class GetUserDeployersResponse extends jspb.Message {
 
 export namespace GetUserDeployersResponse {
   export type AsObject = {
-    deployersList: Array<proto_deployer_whitelist_pb.Deployer.AsObject>,
+    deployersList: Array<proto_deployer_whitelist_deployer_whitelist_pb.Deployer.AsObject>,
   }
 }
 

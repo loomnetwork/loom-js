@@ -17,6 +17,7 @@ const protoFiles = [
   'dpos.proto',
   'dposv2.proto',
   'dposv3.proto',
+  'deployer_whitelist/deployer_whitelist.proto',
   'user_deployer_whitelist.proto'
 ]
 
