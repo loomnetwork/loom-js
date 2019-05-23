@@ -23,12 +23,11 @@ message InitRequest {
 
 message DeployerContract {
     Address contractAddress = 1;
-    VMType vmType = 2;
 }
 
 message WhitelistUserDeployerRequest {
     Address deployerAddr = 1;
-    TierID tier_id = 3;
+    TierID tier_id = 2;
 }
 
 message UserState {
@@ -38,12 +37,11 @@ message UserState {
 
 message UserDeployerState {
     Address address = 1;
-    uint32 flags = 2;
     repeated DeployerContract contracts = 3;
 }
 
 message GetUserDeployersRequest {
-    Address userAddress = 1;
+    Address userAddr = 1;
 }
 
 message GetUserDeployersResponse {
@@ -55,5 +53,6 @@ message GetDeployedContractsRequest {
 }
 
 message GetDeployedContractsResponse {
-    repeated Address contractAddresses = 1;
+    repeated DeployerContract contractAddresses = 1;
 }
+

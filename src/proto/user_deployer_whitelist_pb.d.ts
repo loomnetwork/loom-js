@@ -89,9 +89,6 @@ export class DeployerContract extends jspb.Message {
   getContractaddress(): proto_loom_pb.Address | undefined;
   setContractaddress(value?: proto_loom_pb.Address): void;
 
-  getVmtype(): proto_loom_pb.VMType;
-  setVmtype(value: proto_loom_pb.VMType): void;
-
   serializeBinary(): Uint8Array;
   toObject(includeInstance?: boolean): DeployerContract.AsObject;
   static toObject(includeInstance: boolean, msg: DeployerContract): DeployerContract.AsObject;
@@ -105,7 +102,6 @@ export class DeployerContract extends jspb.Message {
 export namespace DeployerContract {
   export type AsObject = {
     contractaddress?: proto_loom_pb.Address.AsObject,
-    vmtype: proto_loom_pb.VMType,
   }
 }
 
@@ -169,9 +165,6 @@ export class UserDeployerState extends jspb.Message {
   getAddress(): proto_loom_pb.Address | undefined;
   setAddress(value?: proto_loom_pb.Address): void;
 
-  getFlags(): number;
-  setFlags(value: number): void;
-
   clearContractsList(): void;
   getContractsList(): Array<DeployerContract>;
   setContractsList(value: Array<DeployerContract>): void;
@@ -190,16 +183,15 @@ export class UserDeployerState extends jspb.Message {
 export namespace UserDeployerState {
   export type AsObject = {
     address?: proto_loom_pb.Address.AsObject,
-    flags: number,
     contractsList: Array<DeployerContract.AsObject>,
   }
 }
 
 export class GetUserDeployersRequest extends jspb.Message {
-  hasUseraddress(): boolean;
-  clearUseraddress(): void;
-  getUseraddress(): proto_loom_pb.Address | undefined;
-  setUseraddress(value?: proto_loom_pb.Address): void;
+  hasUseraddr(): boolean;
+  clearUseraddr(): void;
+  getUseraddr(): proto_loom_pb.Address | undefined;
+  setUseraddr(value?: proto_loom_pb.Address): void;
 
   serializeBinary(): Uint8Array;
   toObject(includeInstance?: boolean): GetUserDeployersRequest.AsObject;
@@ -213,7 +205,7 @@ export class GetUserDeployersRequest extends jspb.Message {
 
 export namespace GetUserDeployersRequest {
   export type AsObject = {
-    useraddress?: proto_loom_pb.Address.AsObject,
+    useraddr?: proto_loom_pb.Address.AsObject,
   }
 }
 
@@ -263,9 +255,9 @@ export namespace GetDeployedContractsRequest {
 
 export class GetDeployedContractsResponse extends jspb.Message {
   clearContractaddressesList(): void;
-  getContractaddressesList(): Array<proto_loom_pb.Address>;
-  setContractaddressesList(value: Array<proto_loom_pb.Address>): void;
-  addContractaddresses(value?: proto_loom_pb.Address, index?: number): proto_loom_pb.Address;
+  getContractaddressesList(): Array<DeployerContract>;
+  setContractaddressesList(value: Array<DeployerContract>): void;
+  addContractaddresses(value?: DeployerContract, index?: number): DeployerContract;
 
   serializeBinary(): Uint8Array;
   toObject(includeInstance?: boolean): GetDeployedContractsResponse.AsObject;
@@ -279,7 +271,7 @@ export class GetDeployedContractsResponse extends jspb.Message {
 
 export namespace GetDeployedContractsResponse {
   export type AsObject = {
-    contractaddressesList: Array<proto_loom_pb.Address.AsObject>,
+    contractaddressesList: Array<DeployerContract.AsObject>,
   }
 }
 
