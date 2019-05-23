@@ -8,7 +8,7 @@ enum TierID {
 
 message Tier {
     TierID id = 1;
-    BigUInt fee = 2;
+    uint64 fee = 2;
     string name = 3;
 }
 
@@ -43,6 +43,7 @@ message UserDeployerState {
 }
 
 message GetUserDeployersRequest {
+    Address userAddress = 1;
 }
 
 message GetUserDeployersResponse {

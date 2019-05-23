@@ -9,10 +9,8 @@ export class Tier extends jspb.Message {
   getId(): TierID;
   setId(value: TierID): void;
 
-  hasFee(): boolean;
-  clearFee(): void;
-  getFee(): proto_loom_pb.BigUInt | undefined;
-  setFee(value?: proto_loom_pb.BigUInt): void;
+  getFee(): number;
+  setFee(value: number): void;
 
   getName(): string;
   setName(value: string): void;
@@ -30,7 +28,7 @@ export class Tier extends jspb.Message {
 export namespace Tier {
   export type AsObject = {
     id: TierID,
-    fee?: proto_loom_pb.BigUInt.AsObject,
+    fee: number,
     name: string,
   }
 }
@@ -198,6 +196,11 @@ export namespace UserDeployerState {
 }
 
 export class GetUserDeployersRequest extends jspb.Message {
+  hasUseraddress(): boolean;
+  clearUseraddress(): void;
+  getUseraddress(): proto_loom_pb.Address | undefined;
+  setUseraddress(value?: proto_loom_pb.Address): void;
+
   serializeBinary(): Uint8Array;
   toObject(includeInstance?: boolean): GetUserDeployersRequest.AsObject;
   static toObject(includeInstance: boolean, msg: GetUserDeployersRequest): GetUserDeployersRequest.AsObject;
@@ -210,6 +213,7 @@ export class GetUserDeployersRequest extends jspb.Message {
 
 export namespace GetUserDeployersRequest {
   export type AsObject = {
+    useraddress?: proto_loom_pb.Address.AsObject,
   }
 }
 
