@@ -1,6 +1,6 @@
-import {Client} from '../client'
-import {Contract} from '../contract'
-import {Address} from '../address'
+import { Client } from '../client'
+import { Contract } from '../contract'
+import { Address } from '../address'
 import {
   GetDeployedContractsRequest,
   GetDeployedContractsResponse,
@@ -8,10 +8,10 @@ import {
   GetUserDeployersResponse,
   WhitelistUserDeployerRequest,
   TierID,
-  DeployerContract,
+  DeployerContract
 } from '../proto/user_deployer_whitelist_pb'
 
-import {Deployer} from '../proto/deployer_whitelist/deployer_whitelist_pb'
+import { Deployer } from '../proto/deployer_whitelist/deployer_whitelist_pb'
 
 export class UserDeployerWhitelist extends Contract {
   static async createAsync(client: Client, callerAddr: Address): Promise<UserDeployerWhitelist> {
