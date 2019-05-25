@@ -8,7 +8,7 @@ enum TierID {
 
 message Tier {
     TierID id = 1;
-    uint64 fee = 2;
+    BigUInt fee = 2;
     string name = 3;
 }
 
