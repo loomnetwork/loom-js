@@ -8,10 +8,10 @@ import {
   GetUserDeployersResponse,
   WhitelistUserDeployerRequest,
   TierID,
-  DeployerContract
+  DeployerContract,
+  UserDeployerState
 } from '../proto/user_deployer_whitelist_pb'
 
-import { Deployer } from '../proto/deployer_whitelist/deployer_whitelist_pb'
 
 export class UserDeployerWhitelist extends Contract {
   static async createAsync(client: Client, callerAddr: Address): Promise<UserDeployerWhitelist> {
@@ -29,22 +29,22 @@ export class UserDeployerWhitelist extends Contract {
 
   addUserDeployerAsync(deployerAddr: Address, tierID: TierID): Promise<void> {
     const whitelistUserDeployerReq = new WhitelistUserDeployerRequest()
-    whitelistUserDeployerReq.setDeployeraddr(deployerAddr.MarshalPB())
-    whitelistUserDeployerReq.setTierId(tierID)
+    whitelistUserDeployerReq.setDeployerAddr(deployerAddr.MarshalPB())
+    whitelistUserDeployerReq.setTierid(tierID)
     return this.callAsync<void>('AddUserDeployer', whitelistUserDeployerReq)
   }
 
-  async getUserDeployersAsync(userAddr: Address): Promise<Array<Deployer>> {
+  async getUserDeployersAsync(userAddr: Address): Promise<Array<UserDeployerState>> {
     const getUserDeployerReq = new GetUserDeployersRequest()
-    getUserDeployerReq.setUseraddr(userAddr.MarshalPB())
+    getUserDeployerReq.setUserAddr(userAddr.MarshalPB())
     const result = await this.staticCallAsync('GetUserDeployers', getUserDeployerReq, new GetUserDeployersResponse())
-    return result.getDeployersList() as Array<Deployer>
+    return result.getDeployersList() as Array<UserDeployerState>
   }
 
   async getDeployedContractsAsync(deployerAddr: Address): Promise<Array<DeployerContract>> {
     const getDeployedContractsReq = new GetDeployedContractsRequest()
-    getDeployedContractsReq.setDeployeraddr(deployerAddr.MarshalPB())
+    getDeployedContractsReq.setDeployerAddr(deployerAddr.MarshalPB())
     const result = await this.staticCallAsync('GetDeployedContracts', getDeployedContractsReq, new GetDeployedContractsResponse())
-    return result.getContractaddressesList() as Array<DeployerContract>
+    return result.getContractAddressesList() as Array<DeployerContract>
   }
 }

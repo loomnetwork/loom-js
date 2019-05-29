@@ -1,58 +1,60 @@
 syntax = "proto3";
 import "proto/loom.proto";
-import "proto/deployer_whitelist/deployer_whitelist.proto";
 
 enum TierID {
     DEFAULT = 0;
 }
 
 message Tier {
-    TierID id = 1;
+    TierID TierID = 1 ;
     BigUInt fee = 2;
     string name = 3;
 }
 
 message TierInfo {
-    repeated Tier tiers = 1;
+    TierID TierID = 1 ;
+    uint64 fee = 2;
+    string name = 3;
 }
 
 message InitRequest {
     Address owner = 1;
-    TierInfo tier_info = 2;
+    repeated TierInfo tier_info = 2;
 }
 
 message DeployerContract {
-    Address contractAddress = 1;
+    Address contract_address = 1;
 }
 
 message WhitelistUserDeployerRequest {
-    Address deployerAddr = 1;
-    TierID tier_id = 2;
+    Address deployer_addr = 1;
+    TierID TierID = 2;
 }
 
 message UserState {
-    Address userAddr = 1;
+    Address user_addr = 1;
     repeated Address deployers = 2;
 }
 
 message UserDeployerState {
     Address address = 1;
-    repeated DeployerContract contracts = 3;
+    repeated DeployerContract contracts = 2;
+    TierID TierID = 3 ;
 }
 
 message GetUserDeployersRequest {
-    Address userAddr = 1;
+    Address user_addr = 1;
 }
 
 message GetUserDeployersResponse {
-    repeated deployer_whitelist.Deployer deployers = 1;
+    repeated UserDeployerState deployers = 1;
+
 }
 
 message GetDeployedContractsRequest {
-    Address deployerAddr = 1;
+    Address deployer_addr = 1;
 }
 
 message GetDeployedContractsResponse {
-    repeated DeployerContract contractAddresses = 1;
+    repeated DeployerContract contract_addresses = 1;
 }
-
