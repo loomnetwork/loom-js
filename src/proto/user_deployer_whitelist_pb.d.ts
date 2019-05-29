@@ -5,8 +5,8 @@ import * as jspb from "google-protobuf";
 import * as proto_loom_pb from "../proto/loom_pb";
 
 export class Tier extends jspb.Message {
-  getTierid(): TierID;
-  setTierid(value: TierID): void;
+  getTierId(): TierID;
+  setTierId(value: TierID): void;
 
   hasFee(): boolean;
   clearFee(): void;
@@ -28,15 +28,15 @@ export class Tier extends jspb.Message {
 
 export namespace Tier {
   export type AsObject = {
-    tierid: TierID,
+    tierId: TierID,
     fee?: proto_loom_pb.BigUInt.AsObject,
     name: string,
   }
 }
 
 export class TierInfo extends jspb.Message {
-  getTierid(): TierID;
-  setTierid(value: TierID): void;
+  getTierId(): TierID;
+  setTierId(value: TierID): void;
 
   getFee(): number;
   setFee(value: number): void;
@@ -56,7 +56,7 @@ export class TierInfo extends jspb.Message {
 
 export namespace TierInfo {
   export type AsObject = {
-    tierid: TierID,
+    tierId: TierID,
     fee: number,
     name: string,
   }
@@ -118,8 +118,8 @@ export class WhitelistUserDeployerRequest extends jspb.Message {
   getDeployerAddr(): proto_loom_pb.Address | undefined;
   setDeployerAddr(value?: proto_loom_pb.Address): void;
 
-  getTierid(): TierID;
-  setTierid(value: TierID): void;
+  getTierId(): TierID;
+  setTierId(value: TierID): void;
 
   serializeBinary(): Uint8Array;
   toObject(includeInstance?: boolean): WhitelistUserDeployerRequest.AsObject;
@@ -134,7 +134,7 @@ export class WhitelistUserDeployerRequest extends jspb.Message {
 export namespace WhitelistUserDeployerRequest {
   export type AsObject = {
     deployerAddr?: proto_loom_pb.Address.AsObject,
-    tierid: TierID,
+    tierId: TierID,
   }
 }
 
@@ -177,8 +177,8 @@ export class UserDeployerState extends jspb.Message {
   setContractsList(value: Array<DeployerContract>): void;
   addContracts(value?: DeployerContract, index?: number): DeployerContract;
 
-  getTierid(): TierID;
-  setTierid(value: TierID): void;
+  getTierId(): TierID;
+  setTierId(value: TierID): void;
 
   serializeBinary(): Uint8Array;
   toObject(includeInstance?: boolean): UserDeployerState.AsObject;
@@ -194,7 +194,7 @@ export namespace UserDeployerState {
   export type AsObject = {
     address?: proto_loom_pb.Address.AsObject,
     contractsList: Array<DeployerContract.AsObject>,
-    tierid: TierID,
+    tierId: TierID,
   }
 }
 

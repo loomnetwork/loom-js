@@ -6,13 +6,13 @@ enum TierID {
 }
 
 message Tier {
-    TierID TierID = 1 ;
+    TierID tier_id = 1;
     BigUInt fee = 2;
     string name = 3;
 }
 
 message TierInfo {
-    TierID TierID = 1 ;
+    TierID tier_id = 1;
     uint64 fee = 2;
     string name = 3;
 }
@@ -28,7 +28,7 @@ message DeployerContract {
 
 message WhitelistUserDeployerRequest {
     Address deployer_addr = 1;
-    TierID TierID = 2;
+    TierID tier_id = 2;
 }
 
 message UserState {
@@ -39,7 +39,7 @@ message UserState {
 message UserDeployerState {
     Address address = 1;
     repeated DeployerContract contracts = 2;
-    TierID TierID = 3 ;
+    TierID tier_id = 3 ;
 }
 
 message GetUserDeployersRequest {

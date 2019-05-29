@@ -1,11 +1,6 @@
 import test from 'tape'
 
-import {
-  CachedNonceTxMiddleware,
-  SignedTronTxMiddleware,
-  CryptoUtils,
-  Client
-} from '../../index'
+import { CachedNonceTxMiddleware, SignedTronTxMiddleware, CryptoUtils, Client } from '../../index'
 import { LoomProvider } from '../../loom-provider'
 import { deployContract } from '../evm-helpers'
 import { Address, LocalAddress } from '../../address'
