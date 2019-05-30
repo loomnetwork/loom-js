@@ -27,7 +27,7 @@ export class UserDeployerWhitelist extends Contract {
   }
 
   constructor(params: { contractAddr: Address; callerAddr: Address; client: Client }) {
-    super(params) // blah
+    super(params)
   }
 
   /**
