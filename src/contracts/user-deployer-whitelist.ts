@@ -12,6 +12,15 @@ import {
   UserDeployerState
 } from '../proto/user_deployer_whitelist_pb'
 
+export interface IDeployer {
+  address: Address
+  contracts: Array<IDeployedContract>
+  tierId: TierID
+}
+export interface IDeployedContract {
+  address: Address
+}
+  
 /**
  * Provides self-service deployer account management for users that wish to deploy EVM contracts
  * to the DAppChain.
@@ -50,7 +59,7 @@ export class UserDeployerWhitelist extends Contract {
    * @param user User account address.
    * @returns List of accounts authorized to deploy EVM contracts on behalf of the specified user.
    */
-  async getDeployersAsync(user: Address): Promise<Array<UserDeployerState>> {
+  async getDeployersAsync(user: Address): Promise<Array<IDeployer>> {
     const req = new GetUserDeployersRequest()
     req.setUserAddr(user.MarshalPB())
     const result = await this.staticCallAsync(
@@ -58,14 +67,20 @@ export class UserDeployerWhitelist extends Contract {
       req,
       new GetUserDeployersResponse()
     )
-    return result.getDeployersList()
+    return result.getDeployersList().map((userDeployerState: UserDeployerState)=> ({
+      address: Address.UnmarshalPB(userDeployerState.getAddress()!),
+      contracts: userDeployerState.getContractsList().map((deployerContract: DeployerContract) => ({
+        address: Address.UnmarshalPB(deployerContract.getContractAddress()!)
+      })) as Array<IDeployedContract>,
+      tierId: userDeployerState.getTierId()
+    })) as Array<IDeployer>
   }
 
   /**
    * @param deployer Deployer account address.
    * @returns Array of EVM contracts deployed by a particular deployer account.
    */
-  async getDeployedContractsAsync(deployer: Address): Promise<Array<DeployerContract>> {
+  async getDeployedContractsAsync(deployer: Address): Promise<Array<IDeployedContract>> {
     const req = new GetDeployedContractsRequest()
     req.setDeployerAddr(deployer.MarshalPB())
     const result = await this.staticCallAsync(
@@ -73,6 +88,8 @@ export class UserDeployerWhitelist extends Contract {
       req,
       new GetDeployedContractsResponse()
     )
-    return result.getContractAddressesList()
+    return result.getContractAddressesList().map((deployerContract: DeployerContract)=> ({ 
+      address: Address.UnmarshalPB(deployerContract.getContractAddress()!)
+    })) as Array<IDeployedContract>
   }
 }
