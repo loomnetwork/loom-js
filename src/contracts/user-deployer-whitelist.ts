@@ -20,7 +20,7 @@ export interface IDeployer {
 export interface IDeployedContract {
   address: Address
 }
-  
+
 /**
  * Provides self-service deployer account management for users that wish to deploy EVM contracts
  * to the DAppChain.
@@ -67,13 +67,13 @@ export class UserDeployerWhitelist extends Contract {
       req,
       new GetUserDeployersResponse()
     )
-    return result.getDeployersList().map((userDeployerState: UserDeployerState)=> ({
+    return result.getDeployersList().map(userDeployerState => ({
       address: Address.UnmarshalPB(userDeployerState.getAddress()!),
-      contracts: userDeployerState.getContractsList().map((deployerContract: DeployerContract) => ({
+      contracts: userDeployerState.getContractsList().map(deployerContract => ({
         address: Address.UnmarshalPB(deployerContract.getContractAddress()!)
-      })) as Array<IDeployedContract>,
+      })),
       tierId: userDeployerState.getTierId()
-    })) as Array<IDeployer>
+    }))
   }
 
   /**
@@ -88,8 +88,8 @@ export class UserDeployerWhitelist extends Contract {
       req,
       new GetDeployedContractsResponse()
     )
-    return result.getContractAddressesList().map((deployerContract: DeployerContract)=> ({ 
+    return result.getContractAddressesList().map(deployerContract => ({
       address: Address.UnmarshalPB(deployerContract.getContractAddress()!)
-    })) as Array<IDeployedContract>
+    }))
   }
 }
