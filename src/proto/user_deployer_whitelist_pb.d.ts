@@ -286,6 +286,76 @@ export namespace GetDeployedContractsResponse {
   }
 }
 
+export class GetTierInfoRequest extends jspb.Message {
+  getId(): TierID;
+  setId(value: TierID): void;
+
+  serializeBinary(): Uint8Array;
+  toObject(includeInstance?: boolean): GetTierInfoRequest.AsObject;
+  static toObject(includeInstance: boolean, msg: GetTierInfoRequest): GetTierInfoRequest.AsObject;
+  static extensions: {[key: number]: jspb.ExtensionFieldInfo<jspb.Message>};
+  static extensionsBinary: {[key: number]: jspb.ExtensionFieldBinaryInfo<jspb.Message>};
+  static serializeBinaryToWriter(message: GetTierInfoRequest, writer: jspb.BinaryWriter): void;
+  static deserializeBinary(bytes: Uint8Array): GetTierInfoRequest;
+  static deserializeBinaryFromReader(message: GetTierInfoRequest, reader: jspb.BinaryReader): GetTierInfoRequest;
+}
+
+export namespace GetTierInfoRequest {
+  export type AsObject = {
+    id: TierID,
+  }
+}
+
+export class GetTierInfoResponse extends jspb.Message {
+  hasTier(): boolean;
+  clearTier(): void;
+  getTier(): Tier | undefined;
+  setTier(value?: Tier): void;
+
+  serializeBinary(): Uint8Array;
+  toObject(includeInstance?: boolean): GetTierInfoResponse.AsObject;
+  static toObject(includeInstance: boolean, msg: GetTierInfoResponse): GetTierInfoResponse.AsObject;
+  static extensions: {[key: number]: jspb.ExtensionFieldInfo<jspb.Message>};
+  static extensionsBinary: {[key: number]: jspb.ExtensionFieldBinaryInfo<jspb.Message>};
+  static serializeBinaryToWriter(message: GetTierInfoResponse, writer: jspb.BinaryWriter): void;
+  static deserializeBinary(bytes: Uint8Array): GetTierInfoResponse;
+  static deserializeBinaryFromReader(message: GetTierInfoResponse, reader: jspb.BinaryReader): GetTierInfoResponse;
+}
+
+export namespace GetTierInfoResponse {
+  export type AsObject = {
+    tier?: Tier.AsObject,
+  }
+}
+
+export class ModifyTierInfoRequest extends jspb.Message {
+  getId(): TierID;
+  setId(value: TierID): void;
+
+  getFee(): number;
+  setFee(value: number): void;
+
+  getName(): string;
+  setName(value: string): void;
+
+  serializeBinary(): Uint8Array;
+  toObject(includeInstance?: boolean): ModifyTierInfoRequest.AsObject;
+  static toObject(includeInstance: boolean, msg: ModifyTierInfoRequest): ModifyTierInfoRequest.AsObject;
+  static extensions: {[key: number]: jspb.ExtensionFieldInfo<jspb.Message>};
+  static extensionsBinary: {[key: number]: jspb.ExtensionFieldBinaryInfo<jspb.Message>};
+  static serializeBinaryToWriter(message: ModifyTierInfoRequest, writer: jspb.BinaryWriter): void;
+  static deserializeBinary(bytes: Uint8Array): ModifyTierInfoRequest;
+  static deserializeBinaryFromReader(message: ModifyTierInfoRequest, reader: jspb.BinaryReader): ModifyTierInfoRequest;
+}
+
+export namespace ModifyTierInfoRequest {
+  export type AsObject = {
+    id: TierID,
+    fee: number,
+    name: string,
+  }
+}
+
 export enum TierID {
   DEFAULT = 0,
 }

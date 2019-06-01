@@ -1,3 +1,4 @@
+import BN from 'bn.js'
 import { Client } from '../client'
 import { Contract } from '../contract'
 import { Address } from '../address'
@@ -6,19 +7,31 @@ import {
   GetDeployedContractsResponse,
   GetUserDeployersRequest,
   GetUserDeployersResponse,
+  GetTierInfoRequest,
+  GetTierInfoResponse,
   WhitelistUserDeployerRequest,
+  ModifyTierInfoRequest,
   TierID,
+  Tier,
   DeployerContract,
   UserDeployerState
 } from '../proto/user_deployer_whitelist_pb'
+import { marshalBigUIntPB, unmarshalBigUIntPB } from '../big-uint'
 
 export interface IDeployer {
   address: Address
   contracts: Array<IDeployedContract>
   tierId: TierID
 }
+
 export interface IDeployedContract {
   address: Address
+}
+
+export interface ITier {
+  tierId: TierID
+  fee: BN
+  name: string
 }
 
 /**
@@ -92,4 +105,40 @@ export class UserDeployerWhitelist extends Contract {
       address: Address.UnmarshalPB(deployerContract.getContractAddress()!)
     }))
   }
+
+  /**
+   * @param TIerID tierid.
+   * @returns TIer object containing TierDetails.
+   */
+  async getTierInfoAsync(tierId: TierID): Promise<ITier> {
+    const req = new GetTierInfoRequest()
+    req.setId(tierId)
+    const result = await this.staticCallAsync(
+      'GetTierInfo',
+      req,
+      new GetTierInfoResponse()
+    )
+    return {
+      tierId: result.getTier()!.getTierId(),
+      fee: unmarshalBigUIntPB(result.getTier()!.getFee()!),
+      name: result.getTier()!.getName()
+    }
+  }
+
+  /**
+   * Allows to modify TierInfo, caller can only be owner set in init.
+   *
+   * @param TierID tierId
+   * @param fee
+   * @param name
+   */
+  modifyTierInfoAsync(tierId: TierID, fee: number, name: string): Promise<void> {
+    const req = new ModifyTierInfoRequest()
+    req.setId(tierId)
+    req.setFee(fee)
+    req.setName(name)
+    return this.callAsync<void>('ModifyTierInfo', req)
+  }
+
+
 }
