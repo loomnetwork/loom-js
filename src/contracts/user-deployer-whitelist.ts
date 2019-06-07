@@ -133,6 +133,9 @@ export class UserDeployerWhitelist extends Contract {
    * @param name
    */
   modifyTierInfoAsync(tierId: TierID, fee: number, name: string): Promise<void> {
+    if (fee <= 0) {
+      throw Error('whitelisting fess cannot be less than equal to zero')
+    }
     const req = new ModifyTierInfoRequest()
     req.setId(tierId)
     req.setFee(fee)
