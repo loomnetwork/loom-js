@@ -61,10 +61,10 @@ export class UserDeployerWhitelist extends Contract {
    * @param deployer Deployer account address.
    * @param tierId
    */
-  addDeployerAsync(deployer: Address, tierId?: TierID): Promise<void> {
+  addDeployerAsync(deployer: Address, tierId: TierID): Promise<void> {
     const req = new WhitelistUserDeployerRequest()
     req.setDeployerAddr(deployer.MarshalPB())
-    req.setTierId(tierId ? tierId : TierID.DEFAULT)
+    req.setTierId(tierId)
     return this.callAsync<void>('AddUserDeployer', req)
   }
 
