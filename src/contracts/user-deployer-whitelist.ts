@@ -107,8 +107,8 @@ export class UserDeployerWhitelist extends Contract {
   }
 
   /**
-   * @param TIerID tierid.
-   * @returns TIer object containing TierDetails.
+   * @param TierID tierId.
+   * @returns Tier object containing TierDetails.
    */
   async getTierInfoAsync(tierId: TierID): Promise<ITier> {
     const req = new GetTierInfoRequest()
@@ -133,8 +133,8 @@ export class UserDeployerWhitelist extends Contract {
    * @param name
    */
   modifyTierInfoAsync(tierId: TierID, fee: number, name: string): Promise<void> {
-    if (fee <= 0) {
-      throw Error('whitelisting fees cannot be less than equal to zero')
+    if (fee < 0) {
+      throw Error('whitelisting fees should be greater than zero')
     }
     const req = new ModifyTierInfoRequest()
     req.setId(tierId)
