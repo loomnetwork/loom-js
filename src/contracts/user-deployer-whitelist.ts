@@ -11,6 +11,7 @@ import {
   GetTierInfoResponse,
   WhitelistUserDeployerRequest,
   ModifyTierInfoRequest,
+  RemoveUserDeployerRequest,
   TierID,
   Tier,
   DeployerContract,
@@ -66,6 +67,16 @@ export class UserDeployerWhitelist extends Contract {
     req.setDeployerAddr(deployer.MarshalPB())
     req.setTierId(tierId)
     return this.callAsync<void>('AddUserDeployer', req)
+  }
+
+  /**
+   * Removes whitelisted deployer
+   * @param deployer Deployer account address.
+   */
+  removeDeployerAsync(deployer: Address): Promise<void> {
+    const req = new RemoveUserDeployerRequest()
+    req.setDeployerAddr(deployer.MarshalPB())
+    return this.callAsync<void>('RemoveUserDeployer', req)
   }
 
   /**

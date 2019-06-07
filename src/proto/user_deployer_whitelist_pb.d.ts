@@ -358,6 +358,28 @@ export namespace ModifyTierInfoRequest {
   }
 }
 
+export class RemoveUserDeployerRequest extends jspb.Message {
+  hasDeployerAddr(): boolean;
+  clearDeployerAddr(): void;
+  getDeployerAddr(): proto_loom_pb.Address | undefined;
+  setDeployerAddr(value?: proto_loom_pb.Address): void;
+
+  serializeBinary(): Uint8Array;
+  toObject(includeInstance?: boolean): RemoveUserDeployerRequest.AsObject;
+  static toObject(includeInstance: boolean, msg: RemoveUserDeployerRequest): RemoveUserDeployerRequest.AsObject;
+  static extensions: {[key: number]: jspb.ExtensionFieldInfo<jspb.Message>};
+  static extensionsBinary: {[key: number]: jspb.ExtensionFieldBinaryInfo<jspb.Message>};
+  static serializeBinaryToWriter(message: RemoveUserDeployerRequest, writer: jspb.BinaryWriter): void;
+  static deserializeBinary(bytes: Uint8Array): RemoveUserDeployerRequest;
+  static deserializeBinaryFromReader(message: RemoveUserDeployerRequest, reader: jspb.BinaryReader): RemoveUserDeployerRequest;
+}
+
+export namespace RemoveUserDeployerRequest {
+  export type AsObject = {
+    deployerAddr?: proto_loom_pb.Address.AsObject,
+  }
+}
+
 export enum TierID {
   DEFAULT = 0,
 }

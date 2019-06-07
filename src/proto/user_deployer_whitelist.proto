@@ -73,3 +73,6 @@ message ModifyTierInfoRequest {
     string name = 3;
 }
 
+message RemoveUserDeployerRequest {
+    Address deployer_addr = 1;
+}
