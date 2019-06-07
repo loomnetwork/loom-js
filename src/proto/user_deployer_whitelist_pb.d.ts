@@ -332,8 +332,10 @@ export class ModifyTierInfoRequest extends jspb.Message {
   getId(): TierID;
   setId(value: TierID): void;
 
-  getFee(): number;
-  setFee(value: number): void;
+  hasFee(): boolean;
+  clearFee(): void;
+  getFee(): proto_loom_pb.BigUInt | undefined;
+  setFee(value?: proto_loom_pb.BigUInt): void;
 
   getName(): string;
   setName(value: string): void;
@@ -351,7 +353,7 @@ export class ModifyTierInfoRequest extends jspb.Message {
 export namespace ModifyTierInfoRequest {
   export type AsObject = {
     id: TierID,
-    fee: number,
+    fee?: proto_loom_pb.BigUInt.AsObject,
     name: string,
   }
 }

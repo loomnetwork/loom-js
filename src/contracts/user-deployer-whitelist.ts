@@ -132,13 +132,13 @@ export class UserDeployerWhitelist extends Contract {
    * @param fee
    * @param name
    */
-  modifyTierInfoAsync(tierId: TierID, fee: number, name: string): Promise<void> {
-    if (fee < 0) {
+  modifyTierInfoAsync(tierId: TierID, fee: BN, name: string): Promise<void> {
+    if (fee.cmp(new BN(0)) <= 0) {
       throw Error('whitelisting fees should be greater than zero')
     }
     const req = new ModifyTierInfoRequest()
     req.setId(tierId)
-    req.setFee(fee)
+    req.setFee(marshalBigUIntPB(fee))
     req.setName(name)
     return this.callAsync<void>('ModifyTierInfo', req)
   }
