@@ -62,10 +62,10 @@ export class UserDeployerWhitelist extends Contract {
    * @param deployer Deployer account address.
    * @param tierId
    */
-  addDeployerAsync(deployer: Address, tierId: TierID): Promise<void> {
+  addDeployerAsync(deployer: Address, tierId?: TierID): Promise<void> {
     const req = new WhitelistUserDeployerRequest()
     req.setDeployerAddr(deployer.MarshalPB())
-    req.setTierId(tierId)
+    req.setTierId(tierId ? tierId : TierID.DEFAULT)
     return this.callAsync<void>('AddUserDeployer', req)
   }
 
@@ -143,7 +143,7 @@ export class UserDeployerWhitelist extends Contract {
    * @param fee
    * @param name
    */
-  modifyTierInfoAsync(tierId: TierID, fee: BN, name: string): Promise<void> {
+  setTierInfoAsync(tierId: TierID, fee: BN, name: string): Promise<void> {
     if (fee.cmp(new BN(0)) <= 0) {
       throw Error('whitelisting fees should be greater than zero')
     }
