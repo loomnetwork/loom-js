@@ -10,7 +10,7 @@ import {
   GetTierInfoRequest,
   GetTierInfoResponse,
   WhitelistUserDeployerRequest,
-  ModifyTierInfoRequest,
+  SetTierInfoRequest,
   RemoveUserDeployerRequest,
   TierID,
   Tier,
@@ -147,11 +147,11 @@ export class UserDeployerWhitelist extends Contract {
     if (fee.cmp(new BN(0)) <= 0) {
       throw Error('whitelisting fees should be greater than zero')
     }
-    const req = new ModifyTierInfoRequest()
+    const req = new SetTierInfoRequest()
     req.setId(tierId)
     req.setFee(marshalBigUIntPB(fee))
     req.setName(name)
-    return this.callAsync<void>('ModifyTierInfo', req)
+    return this.callAsync<void>('SetTierInfo', req)
   }
 
 

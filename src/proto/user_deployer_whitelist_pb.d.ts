@@ -328,7 +328,7 @@ export namespace GetTierInfoResponse {
   }
 }
 
-export class ModifyTierInfoRequest extends jspb.Message {
+export class SetTierInfoRequest extends jspb.Message {
   getId(): TierID;
   setId(value: TierID): void;
 
@@ -341,16 +341,16 @@ export class ModifyTierInfoRequest extends jspb.Message {
   setName(value: string): void;
 
   serializeBinary(): Uint8Array;
-  toObject(includeInstance?: boolean): ModifyTierInfoRequest.AsObject;
-  static toObject(includeInstance: boolean, msg: ModifyTierInfoRequest): ModifyTierInfoRequest.AsObject;
+  toObject(includeInstance?: boolean): SetTierInfoRequest.AsObject;
+  static toObject(includeInstance: boolean, msg: SetTierInfoRequest): SetTierInfoRequest.AsObject;
   static extensions: {[key: number]: jspb.ExtensionFieldInfo<jspb.Message>};
   static extensionsBinary: {[key: number]: jspb.ExtensionFieldBinaryInfo<jspb.Message>};
-  static serializeBinaryToWriter(message: ModifyTierInfoRequest, writer: jspb.BinaryWriter): void;
-  static deserializeBinary(bytes: Uint8Array): ModifyTierInfoRequest;
-  static deserializeBinaryFromReader(message: ModifyTierInfoRequest, reader: jspb.BinaryReader): ModifyTierInfoRequest;
+  static serializeBinaryToWriter(message: SetTierInfoRequest, writer: jspb.BinaryWriter): void;
+  static deserializeBinary(bytes: Uint8Array): SetTierInfoRequest;
+  static deserializeBinaryFromReader(message: SetTierInfoRequest, reader: jspb.BinaryReader): SetTierInfoRequest;
 }
 
-export namespace ModifyTierInfoRequest {
+export namespace SetTierInfoRequest {
   export type AsObject = {
     id: TierID,
     fee?: proto_loom_pb.BigUInt.AsObject,

@@ -67,7 +67,7 @@ message GetTierInfoResponse {
     Tier tier = 1;
 }
 
-message ModifyTierInfoRequest {
+message SetTierInfoRequest {
     TierID id = 1;
     BigUInt fee = 2;
     string name = 3;
