@@ -145,7 +145,7 @@ export class UserDeployerWhitelist extends Contract {
    */
   setTierInfoAsync(tierId: TierID, fee: BN, name: string): Promise<void> {
     if (fee.cmp(new BN(0)) <= 0) {
-      throw Error('whitelisting fees should be greater than zero')
+      throw Error('fee must be greater than zero')
     }
     const req = new SetTierInfoRequest()
     req.setId(tierId)
