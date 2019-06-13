@@ -124,18 +124,13 @@ export class UserDeployerWhitelist extends Contract {
   async getTierInfoAsync(tierId: TierID): Promise<ITier> {
     const req = new GetTierInfoRequest()
     req.setId(tierId)
-    const result = await this.staticCallAsync(
-      'GetTierInfo',
-      req,
-      new GetTierInfoResponse()
-    )
+    const result = await this.staticCallAsync('GetTierInfo', req, new GetTierInfoResponse())
     return {
       tierId: result.getTier()!.getTierId(),
       fee: unmarshalBigUIntPB(result.getTier()!.getFee()!),
       name: result.getTier()!.getName()
     }
   }
-
 
   /**
    * Allows to modify TierInfo, caller can only be owner set in init.
@@ -145,29 +140,14 @@ export class UserDeployerWhitelist extends Contract {
    * @param name
    */
 
-
-  async setTierInfoAsync(tierId: TierID, fee?: BN, name?: string): Promise<void> {
-    let result = await this.getTierInfoAsync(
-      tierId
-    )
+  async setTierInfoAsync(tier: ITier): Promise<void> {
     const req = new SetTierInfoRequest()
-    if (fee === undefined || fee === null) {
-      req.setFee(marshalBigUIntPB(result.fee!))
-    } else {
-      req.setFee(marshalBigUIntPB(fee!))
-    }
-    if (fee !== undefined && fee !== null && fee!.cmp(new BN(0)) <= 0) {
+    if (tier.fee.cmp(new BN(0)) <= 0) {
       throw Error('fee must be greater than zero')
     }
-    req.setId(tierId)
-    if (name === undefined || name === null) {
-      req.setName(result.name!)
-    } else {
-      req.setName(name)
-    }
-    req.setId(tierId)
+    req.setFee(marshalBigUIntPB(tier.fee))
+    req.setId(tier.tierId)
+    req.setName(tier.name)
     return this.callAsync<void>('SetTierInfo', req)
   }
-
-
 }
