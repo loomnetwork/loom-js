@@ -286,6 +286,100 @@ export namespace GetDeployedContractsResponse {
   }
 }
 
+export class GetTierInfoRequest extends jspb.Message {
+  getId(): TierID;
+  setId(value: TierID): void;
+
+  serializeBinary(): Uint8Array;
+  toObject(includeInstance?: boolean): GetTierInfoRequest.AsObject;
+  static toObject(includeInstance: boolean, msg: GetTierInfoRequest): GetTierInfoRequest.AsObject;
+  static extensions: {[key: number]: jspb.ExtensionFieldInfo<jspb.Message>};
+  static extensionsBinary: {[key: number]: jspb.ExtensionFieldBinaryInfo<jspb.Message>};
+  static serializeBinaryToWriter(message: GetTierInfoRequest, writer: jspb.BinaryWriter): void;
+  static deserializeBinary(bytes: Uint8Array): GetTierInfoRequest;
+  static deserializeBinaryFromReader(message: GetTierInfoRequest, reader: jspb.BinaryReader): GetTierInfoRequest;
+}
+
+export namespace GetTierInfoRequest {
+  export type AsObject = {
+    id: TierID,
+  }
+}
+
+export class GetTierInfoResponse extends jspb.Message {
+  hasTier(): boolean;
+  clearTier(): void;
+  getTier(): Tier | undefined;
+  setTier(value?: Tier): void;
+
+  serializeBinary(): Uint8Array;
+  toObject(includeInstance?: boolean): GetTierInfoResponse.AsObject;
+  static toObject(includeInstance: boolean, msg: GetTierInfoResponse): GetTierInfoResponse.AsObject;
+  static extensions: {[key: number]: jspb.ExtensionFieldInfo<jspb.Message>};
+  static extensionsBinary: {[key: number]: jspb.ExtensionFieldBinaryInfo<jspb.Message>};
+  static serializeBinaryToWriter(message: GetTierInfoResponse, writer: jspb.BinaryWriter): void;
+  static deserializeBinary(bytes: Uint8Array): GetTierInfoResponse;
+  static deserializeBinaryFromReader(message: GetTierInfoResponse, reader: jspb.BinaryReader): GetTierInfoResponse;
+}
+
+export namespace GetTierInfoResponse {
+  export type AsObject = {
+    tier?: Tier.AsObject,
+  }
+}
+
+export class SetTierInfoRequest extends jspb.Message {
+  getId(): TierID;
+  setId(value: TierID): void;
+
+  hasFee(): boolean;
+  clearFee(): void;
+  getFee(): proto_loom_pb.BigUInt | undefined;
+  setFee(value?: proto_loom_pb.BigUInt): void;
+
+  getName(): string;
+  setName(value: string): void;
+
+  serializeBinary(): Uint8Array;
+  toObject(includeInstance?: boolean): SetTierInfoRequest.AsObject;
+  static toObject(includeInstance: boolean, msg: SetTierInfoRequest): SetTierInfoRequest.AsObject;
+  static extensions: {[key: number]: jspb.ExtensionFieldInfo<jspb.Message>};
+  static extensionsBinary: {[key: number]: jspb.ExtensionFieldBinaryInfo<jspb.Message>};
+  static serializeBinaryToWriter(message: SetTierInfoRequest, writer: jspb.BinaryWriter): void;
+  static deserializeBinary(bytes: Uint8Array): SetTierInfoRequest;
+  static deserializeBinaryFromReader(message: SetTierInfoRequest, reader: jspb.BinaryReader): SetTierInfoRequest;
+}
+
+export namespace SetTierInfoRequest {
+  export type AsObject = {
+    id: TierID,
+    fee?: proto_loom_pb.BigUInt.AsObject,
+    name: string,
+  }
+}
+
+export class RemoveUserDeployerRequest extends jspb.Message {
+  hasDeployerAddr(): boolean;
+  clearDeployerAddr(): void;
+  getDeployerAddr(): proto_loom_pb.Address | undefined;
+  setDeployerAddr(value?: proto_loom_pb.Address): void;
+
+  serializeBinary(): Uint8Array;
+  toObject(includeInstance?: boolean): RemoveUserDeployerRequest.AsObject;
+  static toObject(includeInstance: boolean, msg: RemoveUserDeployerRequest): RemoveUserDeployerRequest.AsObject;
+  static extensions: {[key: number]: jspb.ExtensionFieldInfo<jspb.Message>};
+  static extensionsBinary: {[key: number]: jspb.ExtensionFieldBinaryInfo<jspb.Message>};
+  static serializeBinaryToWriter(message: RemoveUserDeployerRequest, writer: jspb.BinaryWriter): void;
+  static deserializeBinary(bytes: Uint8Array): RemoveUserDeployerRequest;
+  static deserializeBinaryFromReader(message: RemoveUserDeployerRequest, reader: jspb.BinaryReader): RemoveUserDeployerRequest;
+}
+
+export namespace RemoveUserDeployerRequest {
+  export type AsObject = {
+    deployerAddr?: proto_loom_pb.Address.AsObject,
+  }
+}
+
 export enum TierID {
   DEFAULT = 0,
 }

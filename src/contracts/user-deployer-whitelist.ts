@@ -1,3 +1,4 @@
+import BN from 'bn.js'
 import { Client } from '../client'
 import { Contract } from '../contract'
 import { Address } from '../address'
@@ -6,19 +7,32 @@ import {
   GetDeployedContractsResponse,
   GetUserDeployersRequest,
   GetUserDeployersResponse,
+  GetTierInfoRequest,
+  GetTierInfoResponse,
   WhitelistUserDeployerRequest,
+  SetTierInfoRequest,
+  RemoveUserDeployerRequest,
   TierID,
+  Tier,
   DeployerContract,
   UserDeployerState
 } from '../proto/user_deployer_whitelist_pb'
+import { marshalBigUIntPB, unmarshalBigUIntPB } from '../big-uint'
 
 export interface IDeployer {
   address: Address
   contracts: Array<IDeployedContract>
   tierId: TierID
 }
+
 export interface IDeployedContract {
   address: Address
+}
+
+export interface ITier {
+  tierId: TierID
+  fee: BN
+  name: string
 }
 
 /**
@@ -53,6 +67,16 @@ export class UserDeployerWhitelist extends Contract {
     req.setDeployerAddr(deployer.MarshalPB())
     req.setTierId(tierId ? tierId : TierID.DEFAULT)
     return this.callAsync<void>('AddUserDeployer', req)
+  }
+
+  /**
+   * Removes whitelisted deployer
+   * @param deployer Deployer account address.
+   */
+  removeDeployerAsync(deployer: Address): Promise<void> {
+    const req = new RemoveUserDeployerRequest()
+    req.setDeployerAddr(deployer.MarshalPB())
+    return this.callAsync<void>('RemoveUserDeployer', req)
   }
 
   /**
@@ -91,5 +115,36 @@ export class UserDeployerWhitelist extends Contract {
     return result.getContractAddressesList().map(deployerContract => ({
       address: Address.UnmarshalPB(deployerContract.getContractAddress()!)
     }))
+  }
+
+  /**
+   * @param tierId ID of tier.
+   * @returns Tier details.
+   */
+  async getTierInfoAsync(tierId: TierID): Promise<ITier> {
+    const req = new GetTierInfoRequest()
+    req.setId(tierId)
+    const result = await this.staticCallAsync('GetTierInfo', req, new GetTierInfoResponse())
+    return {
+      tierId: result.getTier()!.getTierId(),
+      fee: unmarshalBigUIntPB(result.getTier()!.getFee()!),
+      name: result.getTier()!.getName()
+    }
+  }
+
+  /**
+   * Set tier details, can only be called by the UserDeployerWhitelist contract owner.
+   *
+   * @param tier Tier details.
+   */
+  async setTierInfoAsync(tier: ITier): Promise<void> {
+    const req = new SetTierInfoRequest()
+    if (tier.fee.cmp(new BN(0)) <= 0) {
+      throw Error('fee must be greater than zero')
+    }
+    req.setFee(marshalBigUIntPB(tier.fee))
+    req.setId(tier.tierId)
+    req.setName(tier.name)
+    return this.callAsync<void>('SetTierInfo', req)
   }
 }

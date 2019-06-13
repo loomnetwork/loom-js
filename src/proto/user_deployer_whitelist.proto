@@ -58,3 +58,21 @@ message GetDeployedContractsRequest {
 message GetDeployedContractsResponse {
     repeated DeployerContract contract_addresses = 1;
 }
+
+message GetTierInfoRequest {
+    TierID id = 1;
+}
+
+message GetTierInfoResponse {
+    Tier tier = 1;
+}
+
+message SetTierInfoRequest {
+    TierID id = 1;
+    BigUInt fee = 2;
+    string name = 3;
+}
+
+message RemoveUserDeployerRequest {
+    Address deployer_addr = 1;
+}
