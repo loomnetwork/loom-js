@@ -136,6 +136,7 @@ export class UserDeployerWhitelist extends Contract {
     }
   }
 
+
   /**
    * Allows to modify TierInfo, caller can only be owner set in init.
    *
@@ -143,14 +144,28 @@ export class UserDeployerWhitelist extends Contract {
    * @param fee
    * @param name
    */
-  setTierInfoAsync(tierId: TierID, fee: BN, name: string): Promise<void> {
-    if (fee.cmp(new BN(0)) <= 0) {
+
+
+  async setTierInfoAsync(tierId: TierID, fee?: BN, name?: string): Promise<void> {
+    let result = await this.getTierInfoAsync(
+      tierId
+    )
+    const req = new SetTierInfoRequest()
+    if (fee === undefined || fee === null) {
+      req.setFee(marshalBigUIntPB(result.fee!))
+    } else {
+      req.setFee(marshalBigUIntPB(fee!))
+    }
+    if (fee !== undefined && fee !== null && fee!.cmp(new BN(0)) <= 0) {
       throw Error('fee must be greater than zero')
     }
-    const req = new SetTierInfoRequest()
     req.setId(tierId)
-    req.setFee(marshalBigUIntPB(fee))
-    req.setName(name)
+    if (name === undefined || name === null) {
+      req.setName(result.name!)
+    } else {
+      req.setName(name)
+    }
+    req.setId(tierId)
     return this.callAsync<void>('SetTierInfo', req)
   }
 
