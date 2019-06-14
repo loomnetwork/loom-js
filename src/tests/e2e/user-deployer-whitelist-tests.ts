@@ -65,13 +65,13 @@ async function getTierInfo(t: test.Test, createClient: () => Client) {
 
 test('user-deployer-whitelist', async t => {
   try {
-
     await addUserDeployer(t, createTestHttpClient)
     await waitForMillisecondsAsync(1000)
     await getUserDeployer(t, createTestHttpClient)
     await waitForMillisecondsAsync(1000)
     await getTierInfo(t, createTestHttpClient)
     await waitForMillisecondsAsync(1000)
+
   } catch (err) {
     t.fail(err)
   }
