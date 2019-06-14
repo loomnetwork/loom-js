@@ -9,7 +9,7 @@ set -euxo pipefail
 DEFAULT_GOPATH=$GOPATH
 REPO_ROOT=`pwd`
 LOOM_DIR=`pwd`/tmp/e2e
-
+LOOM_BIN=`pwd`/loom
 
 # Check available platforms
 PLATFORM='unknown'
@@ -25,7 +25,7 @@ fi
 
 download_dappchain() {
   cd $LOOM_DIR
-  wget https://private.delegatecall.com/loom/$PLATFORM/$BUILD_ID/loom
+  wget https://private.delegatecall.com/loom/linux/latest/loom
   chmod +x loom
   LOOM_BIN=`pwd`/loom
 }
@@ -36,8 +36,7 @@ setup_dappchain() {
   cp -R $REPO_ROOT/e2e_support/* .
   cp -R $REPO_ROOT/e2e_support/tm-config/* chaindata/config/
   mkdir -p contracts
-  cp $LOOM_BLUEPRINT_DIR/build/contracts/* contracts
-}
+ }
 
 init_dappchain() {
   cd $LOOM_DIR
@@ -78,6 +77,8 @@ if [ "${TRAVIS:-}" ]; then
   mkdir -p $LOOM_DIR
 fi
 
+#download_dappchain
+
 setup_dappchain
 
 init_dappchain
@@ -85,7 +86,12 @@ init_dappchain
 trap cleanup EXIT
 
 start_chains
-run_tests
+cd $LOOM_DIR
+
+yarn e2e:user-deployer-whitelist
+
+stop_chains
+
 cleanup
 
 sleep 1
