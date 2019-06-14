@@ -26,6 +26,8 @@ import './e2e/multiple-events-nd-tests'
 // Contracts
 import './e2e/coin-tests'
 import './e2e/address-mapper-tests'
+import './e2e/user-deployer-whitelist-tests'
+
 // TODO: Re-enable once this is updated to DPOSv2
 //import './e2e/dpos-tests'
 
