@@ -25,6 +25,7 @@
     "e2e:browser": "yarn proto && yarn abi && tsc && webpack --config webpack.e2e.test.config.js | tap-spec",
     "e2e:plasma-cash:honest": "yarn proto && yarn abi && yarn copy-contracts && tsc && yarn tape && tape -r dotenv/config dotenv_config_path=./.env.test dist/tests/e2e/plasma-cash/test-honest-operator.js | tap-spec",
     "e2e:plasma-cash:hostile": "yarn proto && yarn abi && yarn copy-contracts && tsc && yarn tape && tape -r dotenv/config dotenv_config_path=./.env.test dist/tests/e2e/plasma-cash/test-hostile-operator.js | tap-spec",
+    "e2e:user-deployer-whitelist": "yarn proto && yarn abi && yarn copy-contracts && tsc && yarn tape && tape -r dotenv/config dotenv_config_path=./.env.test dist/tests/e2e/user-deployer-whitelist-tests.js | tap-spec",
     "proto": "node ./scripts/gen-proto.js",
     "abi": "node ./scripts/abi.js && bash ./scripts/fix_types.sh",
     "copy-contracts": "node ./scripts/copy-contracts.js",
