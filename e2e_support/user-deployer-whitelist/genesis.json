@@ -6,6 +6,15 @@
             "name": "coin",
             "location": "coin:1.0.0",
             "init": {
+                "accounts": [
+                    {
+                        "owner": {
+                            "chain_id": "default",
+                            "local": "dHVZ95Bqnn3dsget6tyq72cJS3E="
+                        },
+                        "balance": 10000
+                    }
+                ]
             }
         },
         {
