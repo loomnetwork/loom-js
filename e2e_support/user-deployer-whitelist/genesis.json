@@ -1,0 +1,105 @@
+{
+    "contracts": [
+        {
+            "vm": "plugin",
+            "format": "plugin",
+            "name": "coin",
+            "location": "coin:1.0.0",
+            "init": {
+            }
+        },
+        {
+        "vm": "plugin",
+        "format": "plugin",
+        "name": "dposV2",
+        "location": "dposV2:2.0.0",
+        "init": {
+          "params": {
+            "validatorCount": "21",
+            "electionCycleLength": "604800"
+          },
+          "validators": [
+            {
+              "pubKey": "XvkW4a0U6o8x/SYtDx5RFTWcATdf9212+OodZWFR0mc=",
+              "power": "10"
+            },
+            {
+              "pubKey": "YOVrdKhgPrRp0oy2NCHkJv0MQBdVWbbsnwH2FUkOPng=",
+              "power": "10"
+            }
+          ]
+        }
+        },
+        {
+            "vm": "plugin",
+            "format": "plugin",
+            "name": "chainconfig",
+            "location": "chainconfig:1.0.0",
+            "init": {
+                "owner": {
+                    "chainId": "default",
+                    "local": "S7Mg3vyaNSnqchAyvZWoYF7S1UM="
+                },
+                "params": {
+                    "voteThreshold":"100",
+                    "numBlockConfirmations":"1"
+                },
+                "features": [
+                    {
+                        "name":"mw:deploy-wl",
+                        "status":"WAITING",
+                        "autoEnable": true
+                    },
+                    {
+                        "name":"mw:userdeploy-wl",
+                        "status":"WAITING",
+                        "autoEnable": true
+                    }
+                ]
+            }
+        },
+        {
+            "vm": "plugin",
+            "format": "plugin",
+            "name": "deployerwhitelist",
+            "location": "deployerwhitelist:1.0.0",
+            "init": {
+                "owner": {
+                    "chainId": "default",
+                    "local": "S7Mg3vyaNSnqchAyvZWoYF7S1UM="
+                },
+                "deployers": [
+                    {
+                        "address": {
+                            "chainId":"default",
+                            "local":"duzR9yYfz0xoTil74+3wO4JeAcQ="
+                        },
+                        "flags": 2
+                    }
+                ]
+            }
+        },
+        {
+            "vm": "plugin",
+            "format": "plugin",
+            "name": "user-deployer-whitelist",
+            "location": "user-deployer-whitelist:1.0.0",
+            "init": {
+                "owner": {
+                    "chainId": "default",
+                    "local": "S7Mg3vyaNSnqchAyvZWoYF7S1UM="
+                },
+                "tier_info": [
+                        {
+                            "id": 0,
+                            "fee": "10",
+                            "name": "tier1"
+                        }
+                ]
+            }
+
+        }
+
+    ]
+}
+
