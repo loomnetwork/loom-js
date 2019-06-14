@@ -118,8 +118,8 @@ export class UserDeployerWhitelist extends Contract {
   }
 
   /**
-   * @param TierID tierId.
-   * @returns Tier object containing TierDetails.
+   * @param tierId ID of tier.
+   * @returns Tier details.
    */
   async getTierInfoAsync(tierId: TierID): Promise<ITier> {
     const req = new GetTierInfoRequest()
@@ -133,13 +133,10 @@ export class UserDeployerWhitelist extends Contract {
   }
 
   /**
-   * Allows to modify TierInfo, caller can only be owner set in init.
+   * Set tier details, can only be called by the UserDeployerWhitelist contract owner.
    *
-   * @param TierID tierId
-   * @param fee
-   * @param name
+   * @param tier Tier details.
    */
-
   async setTierInfoAsync(tier: ITier): Promise<void> {
     const req = new SetTierInfoRequest()
     if (tier.fee.cmp(new BN(0)) <= 0) {
