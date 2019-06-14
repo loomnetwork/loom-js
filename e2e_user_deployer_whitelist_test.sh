@@ -1,9 +1,7 @@
 #!/bin/bash
 
 # To run this script with a locally built loom binary set the LOOM_BIN env var to point to your loom
-# binary. If you plan on running the tests frequently you'll save a lot of time if you run the
-# steps in the setup_weave_blueprint in another directory, and then set LOOM_BLUEPRINT_DIR env var
-# to point to it, otherwise the contract will be recloned and rebuilt every time.
+# binary. 
 
 set -euxo pipefail
 
