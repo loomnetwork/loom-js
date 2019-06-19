@@ -257,8 +257,8 @@ export class CandidateV3 extends jspb.Message {
   getNewFee(): number;
   setNewFee(value: number): void;
 
-  getState(): CandidateV3.CandidateState;
-  setState(value: CandidateV3.CandidateState): void;
+  getState(): CandidateState;
+  setState(value: CandidateState): void;
 
   getName(): string;
   setName(value: string): void;
@@ -288,18 +288,11 @@ export namespace CandidateV3 {
     pubKey: Uint8Array | string,
     fee: number,
     newFee: number,
-    state: CandidateV3.CandidateState,
+    state: CandidateState,
     name: string,
     description: string,
     website: string,
     maxReferralPercentage: number,
-  }
-
-  export enum CandidateState {
-    REGISTERED = 0,
-    UNREGISTERING = 1,
-    ABOUT_TO_CHANGE_FEE = 2,
-    CHANGING_FEE = 3,
   }
 }
 
@@ -391,8 +384,8 @@ export class Delegation extends jspb.Message {
   getLockTime(): number;
   setLockTime(value: number): void;
 
-  getState(): Delegation.DelegationState;
-  setState(value: Delegation.DelegationState): void;
+  getState(): DelegationState;
+  setState(value: DelegationState): void;
 
   getReferrer(): string;
   setReferrer(value: string): void;
@@ -418,15 +411,8 @@ export namespace Delegation {
     locktimeTier: LocktimeTier,
     updateLocktimeTier: LocktimeTier,
     lockTime: number,
-    state: Delegation.DelegationState,
+    state: DelegationState,
     referrer: string,
-  }
-
-  export enum DelegationState {
-    BONDING = 0,
-    BONDED = 1,
-    UNBONDING = 2,
-    REDELEGATING = 3,
   }
 }
 
@@ -659,8 +645,8 @@ export class WhitelistCandidateRequest extends jspb.Message {
   getAmount(): proto_loom_pb.BigUInt | undefined;
   setAmount(value?: proto_loom_pb.BigUInt): void;
 
-  getLocktimeTier(): LocktimeTier;
-  setLocktimeTier(value: LocktimeTier): void;
+  getLockTimeTier(): LocktimeTier;
+  setLockTimeTier(value: LocktimeTier): void;
 
   serializeBinary(): Uint8Array;
   toObject(includeInstance?: boolean): WhitelistCandidateRequest.AsObject;
@@ -676,7 +662,7 @@ export namespace WhitelistCandidateRequest {
   export type AsObject = {
     candidateAddress?: proto_loom_pb.Address.AsObject,
     amount?: proto_loom_pb.BigUInt.AsObject,
-    locktimeTier: LocktimeTier,
+    lockTimeTier: LocktimeTier,
   }
 }
 
@@ -713,8 +699,8 @@ export class ChangeWhitelistInfoRequest extends jspb.Message {
   getAmount(): proto_loom_pb.BigUInt | undefined;
   setAmount(value?: proto_loom_pb.BigUInt): void;
 
-  getLocktimeTier(): LocktimeTier;
-  setLocktimeTier(value: LocktimeTier): void;
+  getLockTimeTier(): LocktimeTier;
+  setLockTimeTier(value: LocktimeTier): void;
 
   serializeBinary(): Uint8Array;
   toObject(includeInstance?: boolean): ChangeWhitelistInfoRequest.AsObject;
@@ -730,7 +716,7 @@ export namespace ChangeWhitelistInfoRequest {
   export type AsObject = {
     candidateAddress?: proto_loom_pb.Address.AsObject,
     amount?: proto_loom_pb.BigUInt.AsObject,
-    locktimeTier: LocktimeTier,
+    lockTimeTier: LocktimeTier,
   }
 }
 
@@ -2135,5 +2121,19 @@ export enum LocktimeTier {
   TIER_ONE = 1,
   TIER_TWO = 2,
   TIER_THREE = 3,
+}
+
+export enum DelegationState {
+  BONDING = 0,
+  BONDED = 1,
+  UNBONDING = 2,
+  REDELEGATING = 3,
+}
+
+export enum CandidateState {
+  REGISTERED = 0,
+  UNREGISTERING = 1,
+  ABOUT_TO_CHANGE_FEE = 2,
+  CHANGING_FEE = 3,
 }
 
