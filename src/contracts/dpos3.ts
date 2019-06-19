@@ -25,10 +25,9 @@ import {
   CheckAllDelegationsResponseV3,
   CheckAllDelegationsRequestV3,
   CandidateStatistic,
-  CandidateState,
+  CandidateV3,
   LocktimeTier,
   ConsolidateDelegationsRequest,
-  DelegationState,
   CheckDelegatorRewardsRequest,
   CheckDelegatorRewardsResponse,
   ClaimDelegatorRewardsRequest,
@@ -47,7 +46,7 @@ export interface ICandidate {
 
   fee: BN
   newFee: BN
-  candidateState: CandidateState
+  candidateState: CandidateV3.CandidateState
 
   name: string
   description: string
@@ -71,7 +70,7 @@ export interface IDelegation {
   updateAmount: BN
   lockTime: number
   lockTimeTier: LocktimeTier
-  state: DelegationState
+  state: Delegation.DelegationState
   referrer: string
 }
 
@@ -126,7 +125,7 @@ export class DPOS3 extends Contract {
 
     return result.getCandidatesList().map((candidate: CandidateStatistic) => ({
       address: Address.UnmarshalPB(candidate.getCandidate()!.getAddress()!),
-      pubKey: candidate.getCandidate()!.getPubKey_asU8()!,
+      pubKey: candidate.getCandidate()!.getPubKey_asU8(),
       delegationTotal: unmarshalBigUIntPB(candidate.getStatistic()!.getDelegationTotal()!),
       slashPercentage: candidate.getStatistic()!.getSlashPercentage()
         ? unmarshalBigUIntPB(candidate.getStatistic()!.getSlashPercentage()!)
@@ -136,7 +135,7 @@ export class DPOS3 extends Contract {
       maxReferralPercentage: candidate.getCandidate()!.getMaxReferralPercentage(),
 
       fee: new BN(candidate.getCandidate()!.getFee()),
-      newFee: new BN(candidate.getCandidate()!.getNewFee()!),
+      newFee: new BN(candidate.getCandidate()!.getNewFee()),
       candidateState: candidate.getCandidate()!.getState(),
 
       name: candidate.getCandidate()!.getName(),
