@@ -25,13 +25,14 @@ import {
   CheckAllDelegationsResponseV3,
   CheckAllDelegationsRequestV3,
   CandidateStatistic,
-  CandidateV3,
   LocktimeTier,
   ConsolidateDelegationsRequest,
   CheckDelegatorRewardsRequest,
   CheckDelegatorRewardsResponse,
   ClaimDelegatorRewardsRequest,
-  ClaimDelegatorRewardsResponse
+  ClaimDelegatorRewardsResponse,
+  DelegationState,
+  CandidateState,
 } from '../proto/dposv3_pb'
 import { unmarshalBigUIntPB, marshalBigUIntPB } from '../big-uint'
 
@@ -46,7 +47,7 @@ export interface ICandidate {
 
   fee: BN
   newFee: BN
-  candidateState: CandidateV3.CandidateState
+  candidateState: CandidateState
 
   name: string
   description: string
@@ -70,7 +71,7 @@ export interface IDelegation {
   updateAmount: BN
   lockTime: number
   lockTimeTier: LocktimeTier
-  state: Delegation.DelegationState
+  state: DelegationState
   referrer: string
 }
 
