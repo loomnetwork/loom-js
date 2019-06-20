@@ -25,14 +25,14 @@ import {
   CheckAllDelegationsResponseV3,
   CheckAllDelegationsRequestV3,
   CandidateStatistic,
-  CandidateState,
   LocktimeTier,
   ConsolidateDelegationsRequest,
-  DelegationState,
   CheckDelegatorRewardsRequest,
   CheckDelegatorRewardsResponse,
   ClaimDelegatorRewardsRequest,
-  ClaimDelegatorRewardsResponse
+  ClaimDelegatorRewardsResponse,
+  DelegationState,
+  CandidateState,
 } from '../proto/dposv3_pb'
 import { unmarshalBigUIntPB, marshalBigUIntPB } from '../big-uint'
 
@@ -126,7 +126,7 @@ export class DPOS3 extends Contract {
 
     return result.getCandidatesList().map((candidate: CandidateStatistic) => ({
       address: Address.UnmarshalPB(candidate.getCandidate()!.getAddress()!),
-      pubKey: candidate.getCandidate()!.getPubKey_asU8()!,
+      pubKey: candidate.getCandidate()!.getPubKey_asU8(),
       delegationTotal: unmarshalBigUIntPB(candidate.getStatistic()!.getDelegationTotal()!),
       slashPercentage: candidate.getStatistic()!.getSlashPercentage()
         ? unmarshalBigUIntPB(candidate.getStatistic()!.getSlashPercentage()!)
@@ -136,7 +136,7 @@ export class DPOS3 extends Contract {
       maxReferralPercentage: candidate.getCandidate()!.getMaxReferralPercentage(),
 
       fee: new BN(candidate.getCandidate()!.getFee()),
-      newFee: new BN(candidate.getCandidate()!.getNewFee()!),
+      newFee: new BN(candidate.getCandidate()!.getNewFee()),
       candidateState: candidate.getCandidate()!.getState(),
 
       name: candidate.getCandidate()!.getName(),

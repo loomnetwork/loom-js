@@ -1,15 +1,12 @@
 import BN from 'bn.js'
 import debug from 'debug'
 import { ethers } from 'ethers'
-import Web3 from 'web3'
-import { LocalAddress, Address, Client, Contracts } from '.'
+import { LocalAddress, Address, Contracts } from '.'
 import { DPOS3 } from './contracts'
-import { createDefaultClient } from './helpers'
 import {
   GatewayUser,
   GatewayUserConstructorParams,
   GatewayUserParams,
-  GatewayVersion
 } from './gateway-user'
 import {
   IValidator,
@@ -18,7 +15,7 @@ import {
   IDelegatorDelegations
 } from './contracts/dpos3'
 import { getMetamaskSigner } from './solidity-helpers'
-import { LocktimeTier, DelegationState } from './proto/dposv3_pb'
+import { LocktimeTier } from './proto/dposv3_pb'
 
 const log = debug('dpos3-user')
 
