@@ -523,5 +523,6 @@ export enum TransferGatewayTokenKind {
   TRX = 5,
   TRC20 = 6,
   BINANCE = 7,
+  BEP2 = 8,
 }
 

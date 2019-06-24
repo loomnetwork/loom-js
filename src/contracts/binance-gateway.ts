@@ -1,7 +1,11 @@
 import { TransferGateway } from './transfer-gateway'
 import { Client } from '../client'
 import { Address } from '../address'
-import { TransferGatewayWithdrawLoomCoinRequest } from '../proto/transfer_gateway_pb'
+import {
+  TransferGatewayWithdrawLoomCoinRequest,
+  TransferGatewayWithdrawTokenRequest,
+  TransferGatewayTokenKind
+} from '../proto/transfer_gateway_pb'
 import { marshalBigUIntPB } from '../big-uint'
 import BN from 'bn.js'
 
@@ -17,11 +21,24 @@ export class BinanceTransferGateway extends TransferGateway {
 
   WithdrawLoomToBinanceDexAsync(
     amount: BN,
-    recipient: Address
+    recipient: Address,
   ): Promise<void> {
     const req = new TransferGatewayWithdrawLoomCoinRequest()
     req.setAmount(marshalBigUIntPB(amount))
     req.setRecipient(recipient.MarshalPB())
     return this.callAsync<void>('WithdrawLoomCoin', req)
+  }
+
+  WithdrawBEP2ToBinanceDexAsync(
+    amount: BN,
+    tokenContract: Address,
+    recipient: Address,
+  ): Promise<void> {
+    const req = new TransferGatewayWithdrawTokenRequest()
+    req.setTokenKind(TransferGatewayTokenKind.BEP2)
+    req.setTokenAmount(marshalBigUIntPB(amount))
+    req.setTokenContract(tokenContract.MarshalPB())
+    req.setRecipient(recipient.MarshalPB())
+    return this.callAsync<void>('WithdrawToken', req)
   }
 }
