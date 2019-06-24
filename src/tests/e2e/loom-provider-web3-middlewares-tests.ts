@@ -6,7 +6,7 @@ import { createTestClient, waitForMillisecondsAsync } from '../helpers'
 import { LoomProvider } from '../../loom-provider'
 import { deployContract } from '../evm-helpers'
 import { SignedTxMiddleware } from '../../middleware'
-import { ITxMiddlewareHandler, ITxResults } from '../../client'
+import { ITxMiddlewareHandler } from '../../client'
 import { NonceTx } from '../../proto/loom_pb'
 
 // import Web3 from 'web3'
@@ -66,9 +66,9 @@ test('LoomProvider + Web3 + Middleware', async t => {
   // Middlewares available on path "loom-js/src/middleware"
   const setupMiddlewareFn = function(
     client: Client, // Unused
-    privateKey: Uint8Array
+    privateKey: Uint8Array | null
   ): ITxMiddlewareHandler[] {
-    return [new SuperSimpleMiddlware(), new SignedTxMiddleware(privateKey)]
+    return [new SuperSimpleMiddlware(), new SignedTxMiddleware(privateKey!)]
   }
 
   // Passing custom middleware on third parameter

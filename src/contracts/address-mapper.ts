@@ -76,8 +76,8 @@ export class AddressMapper extends Contract {
     )
 
     return {
-      from: Address.UmarshalPB(result.getFrom()!),
-      to: Address.UmarshalPB(result.getTo()!)
+      from: Address.UnmarshalPB(result.getFrom()!),
+      to: Address.UnmarshalPB(result.getTo()!)
     } as IAddressMapping
   }
 }

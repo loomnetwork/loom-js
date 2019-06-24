@@ -276,6 +276,22 @@ test('LoomProvider + Web3 + Get version', async t => {
   t.end()
 })
 
+test('LoomProvider + Web3 + getBlockNumber', async t => {
+  const { client, web3 } = await newContractAndClient()
+  try {
+    const blockNumber = await web3.eth.getBlockNumber()
+    t.assert(typeof blockNumber === 'number', 'Block number should be a number')
+  } catch (err) {
+    console.log(err)
+  }
+
+  if (client) {
+    client.disconnect()
+  }
+
+  t.end()
+})
+
 test('LoomProvider + Web3 + getBlockByNumber', async t => {
   const { client, web3 } = await newContractAndClient()
   try {
@@ -432,6 +448,57 @@ test('LoomProvider + Web3 + getBalance', async t => {
   try {
     const balance = await web3.eth.getBalance(from)
     t.equal(balance, '0', 'Default balance is 0')
+  } catch (err) {
+    console.log(err)
+  }
+
+  if (client) {
+    client.disconnect()
+  }
+
+  t.end()
+})
+
+test('LoomProvider + Web3 + getTransactionReceipt', async t => {
+  const { contract, client } = await newContractAndClient()
+  try {
+    const newValue = 1
+
+    const tx = await contract.methods.set(newValue).send()
+    console.log('tx', tx)
+    t.assert(tx.events.NewValueSet.blockTime > 0, 'blockTime should be greater than 0')
+    t.assert(tx.events.NewValueSet.blockHash > 0, 'blockHash should be greater than 0')
+    t.equal(tx.status, '0x1', 'SimpleStore.set should return correct status')
+
+    await waitForMillisecondsAsync(1000)
+  } catch (err) {
+    console.log(err)
+  }
+
+  if (client) {
+    client.disconnect()
+  }
+
+  t.end()
+})
+
+test('LoomProvider + Web3 + Logs', async t => {
+  const { contract, client, web3 } = await newContractAndClient()
+  try {
+    const newValue = 1
+
+    const blockNum = await web3.eth.getBlockNumber()
+    const tx = await contract.methods.set(newValue).send()
+    t.equal(tx.status, '0x1', 'SimpleStore.set should return correct status')
+
+    const events = await contract.getPastEvents('NewValueSet', {
+      fromBlock: blockNum
+    })
+    console.log('events', events)
+    t.assert(events.length > 0, 'Should have more than 0 events')
+    t.assert(events[0].blockTime > 0, 'blockTime should be greater than 0')
+
+    await waitForMillisecondsAsync(1000)
   } catch (err) {
     console.log(err)
   }

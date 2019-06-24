@@ -1,34 +1,32 @@
+import debug from 'debug'
 import BN from 'bn.js'
 import Web3 from 'web3'
+import { ethers, utils } from 'ethers'
+
 import {
   Entity,
   IEntityParams,
   EthereumPlasmaClient,
   CryptoUtils,
-  NonceTxMiddleware,
-  SignedTxMiddleware,
   Address,
   LocalAddress,
   IDatabaseCoin,
   DAppChainPlasmaClient,
-  Client,
-  createJSONRPCClient,
   PlasmaDB
 } from '..'
 import { IPlasmaCoin } from './ethereum-client'
-import { sleep } from '../helpers'
-import { ethers, utils } from 'ethers'
+import { sleep, createDefaultClient } from '../helpers'
 import { AddressMapper } from '../contracts/address-mapper'
 import { EthersSigner } from '../solidity-helpers'
-import { selectProtocol } from '../rpc-client-factory'
-import { JSONRPCProtocol } from '../internal/json-rpc-client'
+
+const debugLog = debug('plasma-cash:user')
+const errorLog = debug('plasma-cash:user:error')
 
 const ERC721_ABI = ['function safeTransferFrom(address from, address to, uint256 tokenId) public']
 const ERC20_ABI = [
   'function approve(address spender, uint256 value) public returns (bool)',
   'function allowance(address owner, address spender) public view returns (uint256)'
 ]
-// Helper function to create a user instance.
 
 // User friendly wrapper for all Entity related functions, taking advantage of the database
 export class User extends Entity {
@@ -104,32 +102,14 @@ export class User extends Entity {
     startBlock?: BN,
     chainId?: string
   ): Promise<User> {
+    const { client: dAppClient, publicKey: pubKey, address: callerAddress } = createDefaultClient(
+      dappchainPrivateKey || CryptoUtils.Uint8ArrayToB64(CryptoUtils.generatePrivateKey()),
+      dappchainEndpoint,
+      chainId || 'default'
+    )
+
     const database = new PlasmaDB(dbPath)
     const ethPlasmaClient = new EthereumPlasmaClient(wallet, plasmaAddress, eventsEndpoint)
-
-    const protocol = selectProtocol(dappchainEndpoint)
-    const writerSuffix = protocol == JSONRPCProtocol.HTTP ? '/rpc' : '/websocket'
-    const readerSuffix = protocol == JSONRPCProtocol.HTTP ? '/query' : '/queryws'
-
-    const writer = createJSONRPCClient({
-      protocols: [{ url: dappchainEndpoint + writerSuffix }]
-    })
-    const reader = createJSONRPCClient({
-      protocols: [{ url: dappchainEndpoint + readerSuffix }]
-    })
-    const dAppClient = new Client(chainId || 'default', writer, reader)
-    let privKey
-    if (dappchainPrivateKey === null) {
-      privKey = CryptoUtils.generatePrivateKey()
-    } else {
-      privKey = CryptoUtils.B64ToUint8Array(dappchainPrivateKey)
-    }
-    const pubKey = CryptoUtils.publicKeyFromPrivateKey(privKey)
-    dAppClient.txMiddleware = [
-      new NonceTxMiddleware(pubKey, dAppClient),
-      new SignedTxMiddleware(privKey)
-    ]
-    const callerAddress = new Address(chainId || 'default', LocalAddress.fromPublicKey(pubKey))
 
     const addressMapper = await AddressMapper.createAsync(
       dAppClient,
@@ -203,7 +183,7 @@ export class User extends Entity {
     // amount - approved
     if (amount.gt(currentApproval)) {
       await token.approve(this.plasmaCashContract.address, amount.sub(currentApproval).toString())
-      console.log('Approved an extra', amount.sub(currentApproval))
+      debugLog('Approved an extra', amount.sub(currentApproval))
     }
 
     let currentBlock = await this.getCurrentBlockAsync()
@@ -224,7 +204,7 @@ export class User extends Entity {
       })
       .on('data', (event: any, err: any) => {
         if (this.verifyInclusionAsync(slot, new BN(event.returnValues.blockNumber))) {
-          console.log(
+          debugLog(
             `${this.prefix(slot)} Tx included & verified in block ${
               event.returnValues.blockNumber
             }`
@@ -239,7 +219,7 @@ export class User extends Entity {
           throw new Error(`${this.prefix(slot)} Tx was censored for ${buffer} blocks.`)
         }
       })
-      .on('error', (err: any) => console.log(err))
+      .on('error', (err: any) => errorLog(err))
   }
 
   // Transfer a coin by specifying slot & new owner
@@ -256,7 +236,7 @@ export class User extends Entity {
 
   // Whenever a new block gets submitted refresh the user's state for their coins
   async watchBlocks() {
-    console.log(`[${this.ethAddress}] Watching for blocks...`)
+    debugLog(`[${this.ethAddress}] Watching for blocks...`)
     this.newBlocks = this.plasmaEvents.events
       .SubmittedBlock({
         filter: {},
@@ -264,7 +244,7 @@ export class User extends Entity {
       })
       .on('data', async (event: any, err: any) => {
         const blk = new BN(event.returnValues.blockNumber)
-        console.log(`[${this.ethAddress}] Got new block: ${blk}`)
+        debugLog(`[${this.ethAddress}] Got new block: ${blk}`)
 
         // Get user coins from the dappchain
         const coins = await this.getUserCoinsAsync()
@@ -286,7 +266,7 @@ export class User extends Entity {
           }
         }
       })
-      .on('error', (err: any) => console.log(err))
+      .on('error', (err: any) => errorLog(err))
   }
 
   stopWatchingBlocks() {
@@ -308,10 +288,10 @@ export class User extends Entity {
         await this.challengeExitAsync(slot, exit.owner)
       }
       this.watchExit(slot, new BN(await this.web3.eth.getBlockNumber()))
-      console.log(`${this.prefix(slot)} Verified history, started watching.`)
+      debugLog(`${this.prefix(slot)} Verified history, started watching.`)
     } else {
       this.database.removeCoin(slot)
-      console.log(`${this.prefix(slot)} Invalid history, rejecting...`)
+      debugLog(`${this.prefix(slot)} Invalid history, rejecting...`)
     }
     return valid
   }

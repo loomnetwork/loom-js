@@ -97,6 +97,46 @@ const loomProviderObj = new LoomProvider(client, privateKey, setupMiddlewareFn)
 
 More examples here: https://github.com/loomnetwork/loom-js/blob/master/src/tests/e2e/loom-provider-web3-middlewares-tests.ts
 
+### JSON RPC supported calls
+
+LoomProvider combined with Web3 supports the following `JSON RPC` calls
+
+#### Current implemented
+
+- [x] eth_accounts
+- [x] eth_blockNumber
+- [x] eth_call
+- [x] eth_estimateGas
+- [x] eth_gasPrice
+- [x] eth_getBlockByHash
+- [x] eth_getBlockByNumber
+- [x] eth_getCode
+- [x] eth_getFilterChanges
+- [x] eth_getLogs
+- [x] eth_getTransactionByHash
+- [x] eth_getTransactionReceipt
+- [x] eth_newBlockFilter
+- [x] eth_newFilter
+- [x] eth_newPendingTransactionFilter
+- [x] eth_sendTransaction
+- [x] eth_subscribe
+- [x] eth_uninstallFilter
+- [x] eth_unsubscribe
+- [x] net_version
+
+#### Should
+- [ ] eth_getFilterLogs (Returns an array of all logs matching filter with given id)
+
+#### Maybe
+
+- [ ] net_peerCount (Returns the current ethereum protocol version)
+- [ ] eth_syncing (Returns an object with data about the sync status or false)
+- [ ] eth_coinbase (Returns the client coinbase address)
+- [ ] web3_clientVersion (Returns the current client version)
+- [ ] eth_getTransactionCount (Returns the number of transactions sent from an address)
+- [ ] eth_getBlockTransactionCountByHash (Returns the number of transactions in a block from a block matching the given block hash)
+- [ ] eth_getBlockTransactionCountByNumber (Returns the number of transactions in a block matching the given block number)
+
 ### Custom Loom provider methods
 
 Install the loom-js beta version:

@@ -15,16 +15,24 @@ import './e2e/loom-provider-web3-child-events'
 import './e2e/client-evm-tests'
 import './e2e/client-evm-event-tests'
 import './e2e/client-evm-event-tests-2'
+
+// Middlewares
 import './e2e/client-test-tx-cache'
+import './e2e/client-test-tx-middleware'
+
+// Events
 import './e2e/multiple-events-nd-tests'
 
 // Contracts
 import './e2e/coin-tests'
 import './e2e/address-mapper-tests'
-import './e2e/dpos-tests'
+// TODO: Re-enable once this is updated to DPOSv2
+//import './e2e/dpos-tests'
 
 // Weave Blueprint Contract
 import './e2e/contract-tests'
 
 // Simple Store Contract
 import './e2e/evm-contract-tests'
+
+import './e2e/tron-test-tx-middleware'

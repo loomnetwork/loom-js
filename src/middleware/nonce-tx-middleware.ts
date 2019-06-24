@@ -1,7 +1,9 @@
 import debug from 'debug'
-import { NonceTx } from '../proto/loom_pb'
+
+import { Address } from '../address'
 import { ITxMiddlewareHandler, Client, ITxResults } from '../client'
 import { bytesToHex } from '../crypto-utils'
+import { NonceTx } from '../proto/loom_pb'
 
 const log = debug('nonce-tx-middleware')
 
@@ -17,17 +19,25 @@ export function isInvalidTxNonceError(err: any): boolean {
  * The Loom DAppChain keeps track of the nonce of the last committed tx to prevent replay attacks.
  */
 export class NonceTxMiddleware implements ITxMiddlewareHandler {
-  private _publicKey: Uint8Array
+  private _publicKey: Uint8Array | null = null
+  private _account: Address | null = null
   private _client: Client
 
-  constructor(publicKey: Uint8Array, client: Client) {
-    this._publicKey = publicKey
+  constructor(publicKey: Uint8Array, client: Client)
+  constructor(account: Address, client: Client)
+  constructor(publicKeyOrAccount: Uint8Array | Address, client: Client) {
+    if (publicKeyOrAccount instanceof Address) {
+      this._account = publicKeyOrAccount
+    } else {
+      this._publicKey = publicKeyOrAccount
+    }
     this._client = client
   }
 
   async Handle(txData: Readonly<Uint8Array>): Promise<Uint8Array> {
-    const key = bytesToHex(this._publicKey)
-    const nonce = await this._client.getNonceAsync(key)
+    const key = this._publicKey ? bytesToHex(this._publicKey) : undefined
+    const account = this._account ? this._account.toString() : undefined
+    const nonce = await this._client.getAccountNonceAsync({ key, account })
 
     log(`Next nonce ${nonce + 1}`)
 
