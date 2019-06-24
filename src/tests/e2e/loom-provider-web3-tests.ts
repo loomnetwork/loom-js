@@ -309,7 +309,7 @@ test('LoomProvider + Web3 + getBlockByNumber', async t => {
   t.end()
 })
 
-test('LoomProvider + Web3 + Dispatch event twice same contract and function', async t => {
+test.only('LoomProvider + Web3 + Dispatch event twice same contract and function', async t => {
   // We're planning to execute 4 asserts
   t.plan(4)
 
