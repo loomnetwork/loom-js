@@ -19,7 +19,7 @@ export class BinanceTransferGateway extends TransferGateway {
     return new BinanceTransferGateway({ contractAddr, callerAddr, client })
   }
 
-  WithdrawLoomAsync(
+  withdrawLoomAsync(
     amount: BN,
     recipient: Address,
   ): Promise<void> {
@@ -29,7 +29,7 @@ export class BinanceTransferGateway extends TransferGateway {
     return this.callAsync<void>('WithdrawLoomCoin', req)
   }
 
-  WithdrawToken(
+  withdrawToken(
     amount: BN,
     tokenContract: Address,
     recipient: Address,
