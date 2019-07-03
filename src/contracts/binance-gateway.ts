@@ -19,21 +19,14 @@ export class BinanceTransferGateway extends TransferGateway {
     return new BinanceTransferGateway({ contractAddr, callerAddr, client })
   }
 
-  withdrawLoomAsync(
-    amount: BN,
-    recipient: Address,
-  ): Promise<void> {
+  withdrawLoomAsync(amount: BN, recipient: Address): Promise<void> {
     const req = new TransferGatewayWithdrawLoomCoinRequest()
     req.setAmount(marshalBigUIntPB(amount))
     req.setRecipient(recipient.MarshalPB())
     return this.callAsync<void>('WithdrawLoomCoin', req)
   }
 
-  withdrawToken(
-    amount: BN,
-    tokenContract: Address,
-    recipient: Address,
-  ): Promise<void> {
+  withdrawToken(amount: BN, tokenContract: Address, recipient: Address): Promise<void> {
     const req = new TransferGatewayWithdrawTokenRequest()
     req.setTokenKind(TransferGatewayTokenKind.BEP2)
     req.setTokenAmount(marshalBigUIntPB(amount))
