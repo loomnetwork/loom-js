@@ -522,5 +522,7 @@ export enum TransferGatewayTokenKind {
   LOOMCOIN = 4,
   TRX = 5,
   TRC20 = 6,
+  BEP2_LOOM = 7,
+  BEP2 = 8,
 }
 
