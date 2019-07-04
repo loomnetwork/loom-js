@@ -23,6 +23,7 @@ export interface IDeployer {
   address: Address
   contracts: Array<IDeployedContract>
   tierId: TierID
+  active: Boolean
 }
 
 export interface IDeployedContract {
@@ -96,7 +97,8 @@ export class UserDeployerWhitelist extends Contract {
       contracts: userDeployerState.getContractsList().map(deployerContract => ({
         address: Address.UnmarshalPB(deployerContract.getContractAddress()!)
       })),
-      tierId: userDeployerState.getTierId()
+      tierId: userDeployerState.getTierId(),
+      active: userDeployerState.getActive()
     }))
   }
 
