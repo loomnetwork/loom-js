@@ -514,6 +514,22 @@ export namespace TransferGatewayGetUnclaimedTokensResponse {
   }
 }
 
+export class TransferGatewayResubmitWithdrawalRequest extends jspb.Message {
+  serializeBinary(): Uint8Array;
+  toObject(includeInstance?: boolean): TransferGatewayResubmitWithdrawalRequest.AsObject;
+  static toObject(includeInstance: boolean, msg: TransferGatewayResubmitWithdrawalRequest): TransferGatewayResubmitWithdrawalRequest.AsObject;
+  static extensions: {[key: number]: jspb.ExtensionFieldInfo<jspb.Message>};
+  static extensionsBinary: {[key: number]: jspb.ExtensionFieldBinaryInfo<jspb.Message>};
+  static serializeBinaryToWriter(message: TransferGatewayResubmitWithdrawalRequest, writer: jspb.BinaryWriter): void;
+  static deserializeBinary(bytes: Uint8Array): TransferGatewayResubmitWithdrawalRequest;
+  static deserializeBinaryFromReader(message: TransferGatewayResubmitWithdrawalRequest, reader: jspb.BinaryReader): TransferGatewayResubmitWithdrawalRequest;
+}
+
+export namespace TransferGatewayResubmitWithdrawalRequest {
+  export type AsObject = {
+  }
+}
+
 export enum TransferGatewayTokenKind {
   ETH = 0,
   ERC20 = 1,

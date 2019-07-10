@@ -2,6 +2,7 @@ import { TransferGateway } from './transfer-gateway'
 import { Client } from '../client'
 import { Address } from '../address'
 import {
+  TransferGatewayResubmitWithdrawalRequest,
   TransferGatewayWithdrawLoomCoinRequest,
   TransferGatewayWithdrawTokenRequest,
   TransferGatewayTokenKind
@@ -54,5 +55,15 @@ export class BinanceTransferGateway extends TransferGateway {
     req.setTokenContract(tokenContract.MarshalPB())
     req.setRecipient(recipient.MarshalPB())
     return this.callAsync<void>('WithdrawToken', req)
+  }
+
+  /**
+   * Sends a request to the DAppChain Gateway to resubmit a previously rejected token withdrawal
+   * from the current DAppChain account. This is currently only supported by the Binance gateway.
+   * Only the original withdrawer can resubmit a reject withdrawal.
+   */
+  resubmitWithdrawalAsync(): Promise<void> {
+    const req = new TransferGatewayResubmitWithdrawalRequest()
+    return this.callAsync<void>('ResubmitWithdrawal', req)
   }
 }

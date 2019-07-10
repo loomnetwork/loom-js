@@ -165,3 +165,6 @@ message TransferGatewayGetUnclaimedTokensRequest {
 message TransferGatewayGetUnclaimedTokensResponse {
     repeated TransferGatewayUnclaimedToken unclaimed_tokens = 1;
 }
+
+message TransferGatewayResubmitWithdrawalRequest {
+}
