@@ -58,11 +58,11 @@ export class BinanceTransferGateway extends TransferGateway {
   }
 
   /**
-   * Sends a request to the DAppChain Gateway to resubmits a previously rejected token withdrawal
-   * from the current DAppChain account this is currently only supported by the Binance gateway.
+   * Sends a request to the DAppChain Gateway to resubmit a previously rejected token withdrawal
+   * from the current DAppChain account. This is currently only supported by the Binance gateway.
    * Only the original withdrawer can resubmit a reject withdrawal.
    */
-  resubmitWithdrawal(): Promise<void> {
+  resubmitWithdrawalAsync(): Promise<void> {
     const req = new TransferGatewayResubmitWithdrawalRequest()
     return this.callAsync<void>('ResubmitWithdrawal', req)
   }
