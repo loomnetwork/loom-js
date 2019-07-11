@@ -180,8 +180,8 @@ export class UserDeployerState extends jspb.Message {
   getTierId(): TierID;
   setTierId(value: TierID): void;
 
-  getActive(): boolean;
-  setActive(value: boolean): void;
+  getInactive(): boolean;
+  setInactive(value: boolean): void;
 
   serializeBinary(): Uint8Array;
   toObject(includeInstance?: boolean): UserDeployerState.AsObject;
@@ -198,7 +198,7 @@ export namespace UserDeployerState {
     address?: proto_loom_pb.Address.AsObject,
     contractsList: Array<DeployerContract.AsObject>,
     tierId: TierID,
-    active: boolean,
+    inactive: boolean,
   }
 }
 
