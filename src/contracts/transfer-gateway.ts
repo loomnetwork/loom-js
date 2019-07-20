@@ -14,10 +14,13 @@ import {
   TransferGatewayReclaimContractTokensRequest,
   TransferGatewayReclaimDepositorTokensRequest,
   TransferGatewayGetUnclaimedTokensRequest,
-  TransferGatewayGetUnclaimedTokensResponse
+  TransferGatewayGetUnclaimedTokensResponse,
+  TransferGatewayListContractMappingRequest,
+  TransferGatewayListContractMappingResponse,
 } from '../proto/transfer_gateway_pb'
 import { marshalBigUIntPB, unmarshalBigUIntPB } from '../big-uint'
 import { B64ToUint8Array } from '../crypto-utils'
+import { IAddressMapping } from './address-mapper'
 
 export interface IUnclaimedToken {
   tokenContract: Address
@@ -182,6 +185,40 @@ export class TransferGateway extends Contract {
     mappingContractRequest.setForeignContractTxHash(foreignContractCreatorTxHash)
 
     return this.callAsync<void>('AddContractMapping', mappingContractRequest)
+  }
+
+  /**
+   * Lists contract mappings.
+   * 
+   * @returns an object with one entry for confirmed mappings 
+   * and one entry for pending mappings.
+   */
+  async listContractMappingAsync(): Promise<{
+    confirmed: IAddressMapping[],
+    pending: IAddressMapping[]
+  }> {
+    const response = await this.staticCallAsync<TransferGatewayListContractMappingResponse>(
+      'ListContractMapping',
+      new TransferGatewayListContractMappingRequest(),
+      new TransferGatewayListContractMappingResponse()
+    )
+
+    const confirmed = response.getConfimedMappingsList()
+      .map((mapping) => ({
+        from: Address.UnmarshalPB(mapping.getFrom()!),
+        to: Address.UnmarshalPB(mapping.getTo()!)
+      } as IAddressMapping))
+
+    const pending = response.getConfimedMappingsList()
+      .map((mapping) => ({
+        from: Address.UnmarshalPB(mapping.getFrom()!),
+        to: Address.UnmarshalPB(mapping.getTo()!)
+      }) as IAddressMapping)
+
+    return {
+      confirmed,
+      pending,
+    }
   }
 
   /**
