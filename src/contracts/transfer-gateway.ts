@@ -16,7 +16,7 @@ import {
   TransferGatewayGetUnclaimedTokensRequest,
   TransferGatewayGetUnclaimedTokensResponse,
   TransferGatewayListContractMappingRequest,
-  TransferGatewayListContractMappingResponse,
+  TransferGatewayListContractMappingResponse
 } from '../proto/transfer_gateway_pb'
 import { marshalBigUIntPB, unmarshalBigUIntPB } from '../big-uint'
 import { B64ToUint8Array } from '../crypto-utils'
@@ -188,13 +188,12 @@ export class TransferGateway extends Contract {
   }
 
   /**
-   * Lists contract mappings.
-   * 
-   * @returns an object with one entry for confirmed mappings 
-   * and one entry for pending mappings.
+   * Fetches contract mappings from the DAppChain Gateway.
+   *
+   * @returns An object containing both confirmed & pending contract mappings.
    */
-  async listContractMappingAsync(): Promise<{
-    confirmed: IAddressMapping[],
+  async listContractMappingsAsync(): Promise<{
+    confirmed: IAddressMapping[]
     pending: IAddressMapping[]
   }> {
     const response = await this.staticCallAsync<TransferGatewayListContractMappingResponse>(
@@ -203,21 +202,19 @@ export class TransferGateway extends Contract {
       new TransferGatewayListContractMappingResponse()
     )
 
-    const confirmed = response.getConfimedMappingsList()
-      .map((mapping) => ({
-        from: Address.UnmarshalPB(mapping.getFrom()!),
-        to: Address.UnmarshalPB(mapping.getTo()!)
-      } as IAddressMapping))
+    const confirmed = response.getConfimedMappingsList().map(mapping => ({
+      from: Address.UnmarshalPB(mapping.getFrom()!),
+      to: Address.UnmarshalPB(mapping.getTo()!)
+    }))
 
-    const pending = response.getConfimedMappingsList()
-      .map((mapping) => ({
-        from: Address.UnmarshalPB(mapping.getFrom()!),
-        to: Address.UnmarshalPB(mapping.getTo()!)
-      }) as IAddressMapping)
+    const pending = response.getConfimedMappingsList().map(mapping => ({
+      from: Address.UnmarshalPB(mapping.getFrom()!),
+      to: Address.UnmarshalPB(mapping.getTo()!)
+    }))
 
     return {
       confirmed,
-      pending,
+      pending
     }
   }
 
