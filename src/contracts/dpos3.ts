@@ -32,7 +32,7 @@ import {
   ClaimDelegatorRewardsRequest,
   ClaimDelegatorRewardsResponse,
   DelegationState,
-  CandidateState,
+  CandidateState
 } from '../proto/dposv3_pb'
 import { unmarshalBigUIntPB, marshalBigUIntPB } from '../big-uint'
 
@@ -56,6 +56,7 @@ export interface ICandidate {
 
 export interface IValidator {
   address: Address
+  recentlyMissedBlocks: number
   slashPercentage: BN
   delegationTotal: BN
   whitelistAmount: BN
@@ -155,6 +156,7 @@ export class DPOS3 extends Contract {
 
     return result.getStatisticsList().map((validator: ValidatorStatistic) => ({
       address: Address.UnmarshalPB(validator.getAddress()!),
+      recentlyMissedBlocks: validator.getRecentlyMissedBlocks(),
       whitelistAmount: validator.getWhitelistAmount()
         ? unmarshalBigUIntPB(validator.getWhitelistAmount()!)
         : new BN(0),
