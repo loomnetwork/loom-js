@@ -25,6 +25,7 @@ export class SpeculativeNonceTxMiddleware implements ITxMiddlewareHandler {
   private _fetchNoncePromise: Promise<void> | null
 
   constructor(publicKey: Uint8Array, client: Client)
+  constructor(account: Address, client: Client)
   constructor(publicKeyOrAccount: Uint8Array | Address, client: Client) {
     if (publicKeyOrAccount instanceof Address) {
       this._account = publicKeyOrAccount
