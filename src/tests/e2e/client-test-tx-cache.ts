@@ -520,7 +520,7 @@ test('Test SpeculativeNonceTxMiddleware - rapid txs', async t => {
     const caller = new Address('default', LocalAddress.fromPublicKey(publicKey))
 
     client.txMiddleware = [
-      new SpeculativeNonceTxMiddleware(caller, client),
+      new SpeculativeNonceTxMiddleware(publicKey, client),
       new SignedTxMiddleware(privateKey)
     ]
 
