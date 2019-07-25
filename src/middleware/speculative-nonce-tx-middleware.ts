@@ -1,8 +1,9 @@
 import debug from 'debug'
-import { NonceTx, Address } from '../proto/loom_pb'
+import { NonceTx } from '../proto/loom_pb'
 import { ITxMiddlewareHandler, Client, ITxResults, isTxAlreadyInCacheError } from '../client'
 import { bytesToHex } from '../crypto-utils'
 import { INVALID_TX_NONCE_ERROR } from './nonce-tx-middleware'
+import { Address } from '../address'
 
 const log = debug('speculative-nonce-tx-middleware')
 

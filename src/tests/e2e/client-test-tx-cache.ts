@@ -517,13 +517,12 @@ test('Test SpeculativeNonceTxMiddleware - rapid txs', async t => {
   try {
     const privateKey = CryptoUtils.generatePrivateKey()
     const publicKey = CryptoUtils.publicKeyFromPrivateKey(privateKey)
+    const caller = new Address('default', LocalAddress.fromPublicKey(publicKey))
 
     client.txMiddleware = [
       new SpeculativeNonceTxMiddleware(publicKey, client),
       new SignedTxMiddleware(privateKey)
     ]
-
-    const caller = new Address('default', LocalAddress.fromPublicKey(publicKey))
 
     const functionSetOk = Buffer.from(
       '60fe47b1000000000000000000000000000000000000000000000000000000000000000f',
