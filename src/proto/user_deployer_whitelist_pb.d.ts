@@ -180,6 +180,9 @@ export class UserDeployerState extends jspb.Message {
   getTierId(): TierID;
   setTierId(value: TierID): void;
 
+  getInactive(): boolean;
+  setInactive(value: boolean): void;
+
   serializeBinary(): Uint8Array;
   toObject(includeInstance?: boolean): UserDeployerState.AsObject;
   static toObject(includeInstance: boolean, msg: UserDeployerState): UserDeployerState.AsObject;
@@ -195,6 +198,7 @@ export namespace UserDeployerState {
     address?: proto_loom_pb.Address.AsObject,
     contractsList: Array<DeployerContract.AsObject>,
     tierId: TierID,
+    inactive: boolean,
   }
 }
 
@@ -203,6 +207,9 @@ export class GetUserDeployersRequest extends jspb.Message {
   clearUserAddr(): void;
   getUserAddr(): proto_loom_pb.Address | undefined;
   setUserAddr(value?: proto_loom_pb.Address): void;
+
+  getIncludeInactive(): boolean;
+  setIncludeInactive(value: boolean): void;
 
   serializeBinary(): Uint8Array;
   toObject(includeInstance?: boolean): GetUserDeployersRequest.AsObject;
@@ -217,6 +224,7 @@ export class GetUserDeployersRequest extends jspb.Message {
 export namespace GetUserDeployersRequest {
   export type AsObject = {
     userAddr?: proto_loom_pb.Address.AsObject,
+    includeInactive: boolean,
   }
 }
 
