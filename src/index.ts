@@ -17,6 +17,7 @@ export {
   SignedTxMiddleware,
   SignedEthTxMiddleware,
   SignedTronTxMiddleware,
+  SignedBinanceTxMiddleware,
   NonceTxMiddleware,
   CachedNonceTxMiddleware,
   SpeculativeNonceTxMiddleware,
@@ -64,3 +65,4 @@ export { SparseMerkleTree, ISparseMerkleTreeLevel } from './plasma-cash/sparse-m
 
 export { PlasmaDB, IDatabaseCoin } from './plasma-cash/db'
 export { TronWebSigner } from './tron-web-signer'
+export { BinanceSigner } from './binance-signer'
