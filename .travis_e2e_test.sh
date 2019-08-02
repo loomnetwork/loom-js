@@ -4,7 +4,7 @@ set -euxo pipefail
 
 eval "$(GIMME_GO_VERSION=1.10.2 gimme)"
 
-export BUILD_ID=build-1046
+export BUILD_ID=build-1200
 
 bash e2e_tests.sh
 
