@@ -20,7 +20,7 @@ export class BinanceSigner implements IEthereumSigner {
   async signAsync(msg: string): Promise<Uint8Array> {
     const privKeyBuf = Buffer.from(this._privateKey, "hex")
     const signature = crypto.generateSignature(msg.toString(), privKeyBuf)
-    const sig = signature.slice(2)
+    const sig = signature.toString("hex").slice(2)
 
     let mode = 3 // Binance sign
     const r = ethutil.toBuffer('0x' + sig.substring(0, 64)) as Buffer
