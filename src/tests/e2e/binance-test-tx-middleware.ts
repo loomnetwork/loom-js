@@ -112,7 +112,8 @@ async function bootstrapTest(
   })
 
   // Instantiate Binance signer
-  const privateKey = crypto.generatePrivateKey()
+  // const privateKey = crypto.generatePrivateKey()
+  const privateKey = "276932de6251efb607422ec0860fca05cb0a32f1257d6f8759b24e8371e111c4"
   const signer = new BinanceSigner(privateKey)
 
   return { client, pubKey, privKey, signer, loomProvider, contract, ABI, account }

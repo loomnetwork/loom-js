@@ -15,7 +15,7 @@ export class SignedBinanceTxMiddleware implements ITxMiddlewareHandler {
   signerAddress?: string
 
   /**
-   * @param signer ethers.js signer to use for signing txs.
+   * @param signer signer to use for signing txs.
    */
   constructor(signer: BinanceSigner) {
     this.signer = signer
