@@ -148,7 +148,7 @@ test('Test Signed Binance Tx Middleware Type 2', async t => {
       t.error(err)
     }
 
-    const callerChainId = 'eth'
+    const callerChainId = 'binance'
     // Override the default caller chain ID
     loomProvider.callerChainId = callerChainId
     // Ethereum account needs its own middleware
