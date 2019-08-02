@@ -13,15 +13,15 @@
       "name": "coin",
       "location": "coin:1.0.0",
       "init": {
-          "accounts": [
-              {
-                  "owner": {
-                      "chain_id": "default",
-                      "local": "dHVZ95Bqnn3dsget6tyq72cJS3E="
-                  },
-                  "balance": 100
-              }
-          ]
+        "accounts": [
+          {
+            "owner": {
+              "chain_id": "default",
+              "local": "dHVZ95Bqnn3dsget6tyq72cJS3E="
+            },
+            "balance": 100
+          }
+        ]
       }
     },
     {
@@ -54,16 +54,32 @@
         },
         "features": [
           {
-            "name":"auth:sigtx:eth",
-            "status":"WAITING"
+            "name": "auth:sigtx:eth",
+            "status": "WAITING"
           },
           {
-            "name":"auth:sigtx:eth1",
-            "status":"WAITING"
+            "name": "auth:sigtx:eth1",
+            "status": "WAITING"
           },
           {
-            "name":"auth:sigtx:tron",
-            "status":"WAITING"
+            "name": "auth:sigtx:tron",
+            "status": "WAITING"
+          },
+          {
+            "name": "auth:sigtx:binance",
+            "status": "WAITING"
+          },
+          {
+            "name": "addrmapper:v1.1",
+            "status": "WAITING"
+          },
+          {
+            "name": "mw:mulcsigtx:v1.1",
+            "status": "WAITING"
+          },
+          {
+            "name": "tg:binance-cm",
+            "status": "WAITING"
           }
         ]
       }
