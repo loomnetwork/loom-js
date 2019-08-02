@@ -5,7 +5,7 @@ import { soliditySha3 } from '../solidity-helpers'
 import { bytesToHex, hexToBytes } from '../crypto-utils'
 import { BinanceSigner } from '../binance-signer';
 
-const log = debug('signed-eth-tx-middleware')
+const log = debug('signed-binance-tx-middleware')
 
 /**
  * Signs transactions using an Binance compatible (secp256k1) private key.

@@ -113,10 +113,7 @@ async function bootstrapTest(
 
   // Instantiate Binance signer
   const privateKey = crypto.generatePrivateKey()
-  const address = crypto.getAddressFromPrivateKey(privateKey)
-  const decod = crypto.decodeAddress(address)
-  const binanceAddressHex = '0x' + decod.toString("hex")
-  const signer = new BinanceSigner(privateKey, binanceAddressHex)
+  const signer = new BinanceSigner(privateKey)
 
   return { client, pubKey, privKey, signer, loomProvider, contract, ABI, account }
 }

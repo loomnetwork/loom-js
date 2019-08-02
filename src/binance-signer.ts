@@ -3,15 +3,18 @@ import ethutil from 'ethereumjs-util'
 const { crypto } = require('@binance-chain/javascript-sdk')
 /**
  * Signs message using a Binance account.
- * This signer should be used for interactive signing in the browser with TronLink.
+ * This signer should be used for interactive signing in the browser.
  */
 export class BinanceSigner implements IEthereumSigner { 
   private _privateKey: string
   private _address: string
 
-  constructor(privateKey: string, accountAddress: string) {
+  constructor(privateKey: string) {
     this._privateKey = privateKey
-    this._address = accountAddress
+    const address = crypto.getAddressFromPrivateKey(privateKey)
+    const decod = crypto.decodeAddress(address)
+    const binanceAddressHex = '0x' + decod.toString("hex")
+    this._address = binanceAddressHex
   }
 
   async signAsync(msg: string): Promise<Uint8Array> {
