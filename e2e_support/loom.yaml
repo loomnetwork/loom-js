@@ -45,7 +45,7 @@ Auth:
       TxType: "tron"
       AccountType: 1
     binance:
-      TxType: "binance",
+      TxType: "binance"
       AccountType: 1
 ContractLoaders:
   - "static"
