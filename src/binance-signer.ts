@@ -19,19 +19,10 @@ export class BinanceSigner implements IEthereumSigner {
 
   async signAsync(msg: string): Promise<Uint8Array> {
     const privKeyBuf = Buffer.from(this._privateKey, "hex")
-    const signature = crypto.generateSignature(msg.toString(), privKeyBuf)
-    const sig = signature.toString("hex")
-
-    let mode = 3 // Binance sign
-    const r = ethutil.toBuffer('0x' + sig.substring(0, 64)) as Buffer
-    const s = ethutil.toBuffer('0x' + sig.substring(64, 128)) as Buffer
-    let v = parseInt(sig.substring(128, 130), 16)
-
-    if (v === 0 || v === 1) {
-      v += 27
-    }
-
-    return Buffer.concat([ethutil.toBuffer(mode) as Buffer, r, s, ethutil.toBuffer(v) as Buffer])
+    const msgBuf = Buffer.from(msg, "hex")
+    const sig = ethutil.ecsign(msgBuf, privKeyBuf)
+    let mode = 1 // Binance sign
+    return Buffer.concat([ethutil.toBuffer(mode) as Buffer, sig.r, sig.s, ethutil.toBuffer(sig.v) as Buffer])
   }
 
   async getAddress(): Promise<string> {
