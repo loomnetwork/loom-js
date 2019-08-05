@@ -4,6 +4,7 @@ import { ITxMiddlewareHandler } from '../client'
 import { soliditySha3 } from '../solidity-helpers'
 import { bytesToHex, hexToBytes } from '../crypto-utils'
 import { BinanceSigner } from '../binance-signer';
+import { ethers } from 'ethers'
 
 const log = debug('signed-binance-tx-middleware')
 
@@ -28,10 +29,7 @@ export class SignedBinanceTxMiddleware implements ITxMiddlewareHandler {
     }
 
     // Get hash to be signed
-    const hash = soliditySha3({
-      type: 'bytes',
-      value: bytesToHex(txData)
-    })
+    const hash = ethers.utils.sha256(bytesToHex(txData))
 
     // Signing the transaction
     const sig = await this.signer.signAsync(hash)
