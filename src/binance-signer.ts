@@ -1,6 +1,6 @@
 import { IEthereumSigner } from './solidity-helpers'
 import ethutil from 'ethereumjs-util'
-const { crypto } = require('@binance-chain/javascript-sdk')
+const { crypto, utils } = require('@binance-chain/javascript-sdk')
 /**
  * Signs message using a Binance account.
  * This signer should be used for interactive signing in the browser.
@@ -19,9 +19,10 @@ export class BinanceSigner implements IEthereumSigner {
 
   async signAsync(msg: string): Promise<Uint8Array> {
     const privKeyBuf = Buffer.from(this._privateKey, "hex")
-    const msgBuf = Buffer.from(msg, 'hex')
-    const sig = ethutil.ecsign(msgBuf, privKeyBuf)
-    let mode = 4 // Binance sign
+    const msgHash = utils.sha256(msg.replace('0x', ''))
+    const msgBuf2 = ethutil.toBuffer("0x" + msgHash)
+    const sig = ethutil.ecsign(msgBuf2, privKeyBuf)
+    const mode = 4 // Binance sign
     return Buffer.concat([ethutil.toBuffer(mode) as Buffer, sig.r, sig.s, ethutil.toBuffer(sig.v) as Buffer])
   }
 
