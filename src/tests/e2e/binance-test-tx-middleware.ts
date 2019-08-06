@@ -1,22 +1,21 @@
-import test from 'tape'
-import { BinanceSigner } from '../../binance-signer';
-import { LoomProvider } from '../../loom-provider'
-import { Address, LocalAddress } from '../../address'
-import { createTestHttpClient } from '../helpers'
-import { AddressMapper } from '../../contracts'
-import { deployContract } from '../evm-helpers'
-import { createDefaultTxMiddleware } from '../../helpers'
 
+import test from 'tape'
 
 import {
-  CachedNonceTxMiddleware,
   SignedBinanceTxMiddleware,
+  CachedNonceTxMiddleware,
   CryptoUtils,
   Client
 } from '../../index'
+import { BinanceSigner } from '../../binance-signer';
+import { LoomProvider } from '../../loom-provider'
+import { deployContract } from '../evm-helpers'
+import { Address, LocalAddress } from '../../address'
+import { createDefaultTxMiddleware } from '../../helpers'
+import { createTestHttpClient } from '../helpers'
+import { AddressMapper } from '../../contracts'
 
 const Web3 = require('web3')
-const { crypto } = require('@binance-chain/javascript-sdk')
 
 async function bootstrapTest(
   createClient: () => Client
