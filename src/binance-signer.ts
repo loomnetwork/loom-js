@@ -18,21 +18,11 @@ export class BinanceSigner implements IEthereumSigner {
   }
 
   async signAsync(msg: string): Promise<Uint8Array> {
-    console.log("msg", msg);
     const privKeyBuf = Buffer.from(this._privateKey, "hex")
     const msgHash = utils.sha256(msg)
-    const msgBuf2 = ethutil.toBuffer("0x" + msgHash)
-    const sig = ethutil.ecsign(msgBuf2, privKeyBuf)
+    const msgBuf = ethutil.toBuffer("0x" + msgHash)
+    const sig = ethutil.ecsign(msgBuf, privKeyBuf)
     const mode = 4 // Binance sign
-    let pubKey = crypto.getPublicKeyFromPrivateKey(this._privateKey)
-    let sig2 = Buffer.concat([sig.r, sig.s]).toString('hex')
-    let msg2 = msg.replace('0x', '')
-    console.log(msg2);
-    console.log("binance sig", (crypto.generateSignature(msg, this._privateKey)).toString('hex'));
-    console.log("verified hex", crypto.verifySignature(sig2, msg, pubKey));
-    console.log("address ", this._address);
-    
-    
     return Buffer.concat([ethutil.toBuffer(mode) as Buffer, sig.r, sig.s, ethutil.toBuffer(sig.v) as Buffer])
   }
 
