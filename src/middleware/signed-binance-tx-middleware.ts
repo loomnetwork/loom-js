@@ -26,12 +26,9 @@ export class SignedBinanceTxMiddleware implements ITxMiddlewareHandler {
       // Getting the public key address
       this.signerAddress = await this.signer.getAddress()
     }
-
-    // Get hash to be signed
-    const hash = ethers.utils.sha256("0x" + bytesToHex(txData))
     
     // Signing the transaction
-    const sig = await this.signer.signAsync(hash)
+    const sig = await this.signer.signAsync(bytesToHex(txData))
 
     log(`signer: ${this.signerAddress}, signature: 0x${bytesToHex(sig.slice(1))}`)
 
