@@ -138,7 +138,7 @@ test('Test Signed Binance Tx Middleware Type 2', async t => {
       try {
         await addressMapper.addBinanceIdentityMappingAsync(from, to, signer)
       } catch (error) {
-        console.log('failed to map accounts ' + error)
+        console.log('failed to map accounts : ' + error)
       }
     }
 
