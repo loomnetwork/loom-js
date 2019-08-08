@@ -1,4 +1,3 @@
-
 import test from 'tape'
 
 import {
@@ -7,7 +6,7 @@ import {
   CryptoUtils,
   Client
 } from '../../index'
-import { BinanceSigner } from '../../binance-signer';
+import { BinanceSigner } from '../../binance-signer'
 import { LoomProvider } from '../../loom-provider'
 import { deployContract } from '../evm-helpers'
 import { Address, LocalAddress } from '../../address'
@@ -112,7 +111,7 @@ async function bootstrapTest(
 
   // Instantiate Binance signer
   // const privateKey = crypto.generatePrivateKey()
-  const privateKey = "276932de6251efb607422ec0860fca05cb0a32f1257d6f8759b24e8371e111c4"
+  const privateKey = '276932de6251efb607422ec0860fca05cb0a32f1257d6f8759b24e8371e111c4'
   const signer = new BinanceSigner(privateKey)
 
   return { client, pubKey, privKey, signer, loomProvider, contract, ABI, account }
@@ -133,13 +132,13 @@ test('Test Signed Binance Tx Middleware Type 2', async t => {
     const ethAddress = await signer.getAddress()
     const from = new Address(client.chainId, LocalAddress.fromPublicKey(pubKey))
     const to = new Address('binance', LocalAddress.fromHexString(ethAddress))
-      
+
     // Add mapping if not added yet
     if (!(await addressMapper.hasMappingAsync(from))) {
       try {
         await addressMapper.addBinanceIdentityMappingAsync(from, to, signer)
       } catch (error) {
-        console.log('failed to map accounts ' + error);
+        console.log('failed to map accounts ' + error)
       }
     }
 
@@ -165,7 +164,10 @@ test('Test Signed Binance Tx Middleware Type 2', async t => {
       middlewaresUsed![0] instanceof CachedNonceTxMiddleware,
       'CachedNonceTxMiddleware used'
     )
-    t.assert(middlewaresUsed![1] instanceof SignedBinanceTxMiddleware, 'SignedBinanceTxMiddleware used')
+    t.assert(
+      middlewaresUsed![1] instanceof SignedBinanceTxMiddleware,
+      'SignedBinanceTxMiddleware used'
+    )
 
     let tx = await contract.methods.set(1).send({ from: to.local.toString() })
     t.equal(

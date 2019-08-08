@@ -54,7 +54,9 @@ export class AddressMapper extends Contract {
     return this.callAsync<void>('AddIdentityMapping', mappingIdentityRequest)
   }
 
-  //Similar to addIdentityMappingAsync but for Binance, and this function not require message encryption
+  /**
+   * Similar to addIdentityMappingAsync but for Binance
+   */
   async addBinanceIdentityMappingAsync(
     from: Address,
     to: Address,

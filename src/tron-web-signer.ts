@@ -1,4 +1,4 @@
-import { SIGNATURE_TYPE } from './crypto-utils';
+import { SIGNATURE_TYPE } from './crypto-utils'
 import ethutil from 'ethereumjs-util'
 import TronWeb from 'tronweb'
 import { IEthereumSigner } from './solidity-helpers'
@@ -37,7 +37,12 @@ export class TronWebSigner implements IEthereumSigner {
       v += 27
     }
 
-    return Buffer.concat([ethutil.toBuffer(SIGNATURE_TYPE.TRON) as Buffer, r, s, ethutil.toBuffer(v) as Buffer])
+    return Buffer.concat([
+      ethutil.toBuffer(SIGNATURE_TYPE.TRON) as Buffer,
+      r,
+      s,
+      ethutil.toBuffer(v) as Buffer
+    ])
   }
 
   /**

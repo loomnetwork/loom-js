@@ -1,4 +1,4 @@
-import { SIGNATURE_TYPE } from './crypto-utils';
+import { SIGNATURE_TYPE } from './crypto-utils'
 import ethutil from 'ethereumjs-util'
 import Web3 from 'web3'
 import { ethers } from 'ethers'
@@ -143,6 +143,11 @@ export class OfflineWeb3Signer implements IEthereumSigner {
     const s = ethutil.toBuffer('0x' + sig.substring(64, 128)) as Buffer
     let v = parseInt(sig.substring(128, 130), 16)
 
-    return Buffer.concat([ethutil.toBuffer(SIGNATURE_TYPE.GETH) as Buffer, r, s, ethutil.toBuffer(v) as Buffer])
+    return Buffer.concat([
+      ethutil.toBuffer(SIGNATURE_TYPE.GETH) as Buffer,
+      r,
+      s,
+      ethutil.toBuffer(v) as Buffer
+    ])
   }
 }

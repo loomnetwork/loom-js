@@ -2,7 +2,7 @@ import debug from 'debug'
 import { SignedTx } from '../proto/loom_pb'
 import { ITxMiddlewareHandler } from '../client'
 import { bytesToHex } from '../crypto-utils'
-import { BinanceSigner } from '../binance-signer';
+import { BinanceSigner } from '../binance-signer'
 import { ethers } from 'ethers'
 
 const log = debug('signed-binance-tx-middleware')
@@ -26,7 +26,7 @@ export class SignedBinanceTxMiddleware implements ITxMiddlewareHandler {
       // Getting the public key address
       this.signerAddress = await this.signer.getAddress()
     }
-    
+
     // Signing the transaction
     const sig = await this.signer.signAsync(bytesToHex(txData))
 

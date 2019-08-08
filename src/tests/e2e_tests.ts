@@ -36,5 +36,3 @@ import './e2e/contract-tests'
 
 // Simple Store Contract
 import './e2e/evm-contract-tests'
-
-
