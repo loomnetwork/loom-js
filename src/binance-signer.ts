@@ -7,23 +7,20 @@ const { crypto } = require('@binance-chain/javascript-sdk')
  * This signer should be used for interactive signing in the browser.
  */
 export class BinanceSigner implements IEthereumSigner { 
-  private _privateKey: string
+  private _privateKey: Buffer
   private _address: string
 
   constructor(privateKey: string) {
-    this._privateKey = privateKey
+    this._privateKey = Buffer.from(privateKey, "hex")
     const address = crypto.getAddressFromPrivateKey(privateKey)
-    const decod = crypto.decodeAddress(address)
-    const binanceAddressHex = "0x" + decod.toString("hex")
-    this._address = binanceAddressHex
+    this._address = "0x" + crypto.decodeAddress(address).toString("hex")
   }
 
   async signAsync(msg: string): Promise<Uint8Array> { 
-    const privKeyBuf = Buffer.from(this._privateKey, "hex")
     const msgHex = msg.includes("0x") ? msg : "0x" + msg
     const msgBuf = ethutil.sha256(msgHex)
 
-    const sig = ethutil.ecsign(msgBuf, privKeyBuf)
+    const sig = ethutil.ecsign(msgBuf, this._privateKey)
     const mode = 4 // Binance sign
 
     return Buffer.concat([ethutil.toBuffer(mode) as Buffer, sig.r, sig.s, ethutil.toBuffer(sig.v) as Buffer])
