@@ -28,7 +28,7 @@ export class SignedBinanceTxMiddleware implements ITxMiddlewareHandler {
     }
 
     // Signing the transaction
-    const sig = await this.signer.signAsync(bytesToHex(txData))
+    const sig = await this.signer.signAsync('0x' + bytesToHex(txData))
 
     log(`signer: ${this.signerAddress}, signature: 0x${bytesToHex(sig.slice(1))}`)
 

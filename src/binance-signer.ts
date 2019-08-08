@@ -17,9 +17,7 @@ export class BinanceSigner implements IEthereumSigner {
   }
 
   async signAsync(msg: string): Promise<Uint8Array> {
-    const msgHex = msg.includes('0x') ? msg : '0x' + msg
-    const msgBuf = ethutil.sha256(msgHex)
-
+    const msgBuf = ethutil.sha256(msg)
     const sig = ethutil.ecsign(msgBuf, this._privateKey)
 
     return Buffer.concat([
