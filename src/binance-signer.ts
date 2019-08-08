@@ -1,4 +1,4 @@
-import { bytesToHex } from './crypto-utils';
+import { SIGNATURE_TYPE } from './crypto-utils';
 import { IEthereumSigner } from './solidity-helpers'
 import ethutil from 'ethereumjs-util'
 const { crypto } = require('@binance-chain/javascript-sdk')
@@ -21,9 +21,8 @@ export class BinanceSigner implements IEthereumSigner {
     const msgBuf = ethutil.sha256(msgHex)
 
     const sig = ethutil.ecsign(msgBuf, this._privateKey)
-    const mode = 4 // Binance sign
 
-    return Buffer.concat([ethutil.toBuffer(mode) as Buffer, sig.r, sig.s, ethutil.toBuffer(sig.v) as Buffer])
+    return Buffer.concat([ethutil.toBuffer(SIGNATURE_TYPE.BINANCE) as Buffer, sig.r, sig.s, ethutil.toBuffer(sig.v) as Buffer])
   }
 
   async getAddress(): Promise<string> {

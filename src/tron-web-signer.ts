@@ -1,3 +1,4 @@
+import { SIGNATURE_TYPE } from './crypto-utils';
 import ethutil from 'ethereumjs-util'
 import TronWeb from 'tronweb'
 import { IEthereumSigner } from './solidity-helpers'
@@ -28,7 +29,6 @@ export class TronWebSigner implements IEthereumSigner {
     const signature = await this._tronWeb.trx.sign(msg)
     const sig = signature.slice(2)
 
-    let mode = 3 // TRX sign
     const r = ethutil.toBuffer('0x' + sig.substring(0, 64)) as Buffer
     const s = ethutil.toBuffer('0x' + sig.substring(64, 128)) as Buffer
     let v = parseInt(sig.substring(128, 130), 16)
@@ -37,7 +37,7 @@ export class TronWebSigner implements IEthereumSigner {
       v += 27
     }
 
-    return Buffer.concat([ethutil.toBuffer(mode) as Buffer, r, s, ethutil.toBuffer(v) as Buffer])
+    return Buffer.concat([ethutil.toBuffer(SIGNATURE_TYPE.TRON) as Buffer, r, s, ethutil.toBuffer(v) as Buffer])
   }
 
   /**

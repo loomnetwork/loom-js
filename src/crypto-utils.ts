@@ -34,7 +34,13 @@ export function getGUID(): string {
 export const SIGNATURE_LENGTH = nacl.sign.signatureLength
 export const PRIVATE_KEY_LENGTH = nacl.sign.secretKeyLength
 export const PUBLIC_KEY_LENGTH = nacl.sign.publicKeyLength
-
+export const enum SIGNATURE_TYPE {
+  EIP712  = 0,
+	GETH    = 1,
+	TREZOR  = 2,
+	TRON    = 3,
+	BINANCE = 4
+}
 /**
  * Generates a private key for signing.
  * @returns 64-byte private key.
