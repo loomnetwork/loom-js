@@ -31,7 +31,7 @@ async function bootstrapTest(
 }> {
   // Create the client
   const privKey = CryptoUtils.B64ToUint8Array(
-    'D6XCGyCcDZ5TE22h66AlU+Bn6JqL4RnSl4a09RGU9LfM53JFG/T5GAnC0uiuIIiw9Dl0TwEAmdGb+WE0Bochkg=='
+    '2P+LWAMkX33egniR6BXM1T58qFf+Px7HAMNZ+5fF4C3u1b0IukTungCETO8GeQc4WYpapHJRytojGSE71R217Q=='
   )
   const pubKey = CryptoUtils.publicKeyFromPrivateKey(privKey)
   const client = createClient()
@@ -133,7 +133,7 @@ test('Test Signed Binance Tx Middleware Type 2', async t => {
     const ethAddress = await signer.getAddress()
     const from = new Address(client.chainId, LocalAddress.fromPublicKey(pubKey))
     const to = new Address('binance', LocalAddress.fromHexString(ethAddress))
-
+      
     // Add mapping if not added yet
     if (!(await addressMapper.hasMappingAsync(from))) {
       try {

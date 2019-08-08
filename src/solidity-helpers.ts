@@ -147,7 +147,3 @@ export class OfflineWeb3Signer implements IEthereumSigner {
     return Buffer.concat([ethutil.toBuffer(mode) as Buffer, r, s, ethutil.toBuffer(v) as Buffer])
   }
 }
-
-export function encodeParameters(types: string[], params: any[]): string {
-  return (web3.eth.abi.encodeParameters as any)(types, params)
-}

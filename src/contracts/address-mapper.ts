@@ -8,12 +8,7 @@ import {
   AddressMapperHasMappingRequest,
   AddressMapperHasMappingResponse
 } from '../proto/address_mapper_pb'
-import { IEthereumSigner, soliditySha3, encodeParameters } from '../solidity-helpers'
-import ethutil from 'ethereumjs-util'
-import { bytesToHex } from '../crypto-utils';
-import { ethers } from 'ethers'
-
-const { utils } = require('@binance-chain/javascript-sdk')
+import { IEthereumSigner, soliditySha3 } from '../solidity-helpers'
 export interface IAddressMapping {
   from: Address
   to: Address
@@ -67,11 +62,9 @@ export class AddressMapper extends Contract {
     const mappingIdentityRequest = new AddressMapperAddIdentityMappingRequest()
     mappingIdentityRequest.setFrom(from.MarshalPB())
     mappingIdentityRequest.setTo(to.MarshalPB())
-
     const msg = from.local.toString().slice(2) + to.local.toString().slice(2)
     const sign = await ethersSigner.signAsync(msg)
     mappingIdentityRequest.setSignature(sign)
-
     return this.callAsync<void>('AddIdentityMapping', mappingIdentityRequest)
   }
 
