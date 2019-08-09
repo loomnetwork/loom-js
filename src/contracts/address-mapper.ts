@@ -9,6 +9,7 @@ import {
   AddressMapperHasMappingResponse
 } from '../proto/address_mapper_pb'
 import { IEthereumSigner, soliditySha3 } from '../solidity-helpers'
+
 export interface IAddressMapping {
   from: Address
   to: Address

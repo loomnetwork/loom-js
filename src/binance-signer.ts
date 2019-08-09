@@ -2,6 +2,7 @@ import { SIGNATURE_TYPE } from './crypto-utils'
 import { IEthereumSigner } from './solidity-helpers'
 import ethutil from 'ethereumjs-util'
 const { crypto } = require('@binance-chain/javascript-sdk')
+
 /**
  * Signs message using a Binance account.
  * This signer should be used for interactive signing in the browser.
