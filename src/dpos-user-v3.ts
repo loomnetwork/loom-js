@@ -3,11 +3,7 @@ import debug from 'debug'
 import { ethers } from 'ethers'
 import { LocalAddress, Address, Contracts } from '.'
 import { DPOS3 } from './contracts'
-import {
-  GatewayUser,
-  GatewayUserConstructorParams,
-  GatewayUserParams,
-} from './gateway-user'
+import { GatewayUser, GatewayUserConstructorParams, GatewayUserParams } from './gateway-user'
 import {
   IValidator,
   ICandidate,

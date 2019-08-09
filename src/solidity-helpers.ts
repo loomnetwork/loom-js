@@ -1,3 +1,4 @@
+import { SIGNATURE_TYPE } from './crypto-utils'
 import ethutil from 'ethereumjs-util'
 import Web3 from 'web3'
 import { ethers } from 'ethers'
@@ -97,7 +98,7 @@ export class Web3Signer implements IEthereumSigner {
     const signature = await this._web3.eth.sign(msg, this._address)
     const sig = signature.slice(2)
 
-    let mode = 1 // Geth
+    let mode = SIGNATURE_TYPE.GETH // Geth
     const r = ethutil.toBuffer('0x' + sig.substring(0, 64)) as Buffer
     const s = ethutil.toBuffer('0x' + sig.substring(64, 128)) as Buffer
     let v = parseInt(sig.substring(128, 130), 16)
@@ -105,7 +106,7 @@ export class Web3Signer implements IEthereumSigner {
     if (v === 0 || v === 1) {
       v += 27
     } else {
-      mode = 0 // indicate that msg wasn't prefixed before signing (MetaMask doesn't prefix!)
+      mode = SIGNATURE_TYPE.EIP712 // indicate that msg wasn't prefixed before signing (MetaMask doesn't prefix!)
     }
     return Buffer.concat([ethutil.toBuffer(mode) as Buffer, r, s, ethutil.toBuffer(v) as Buffer])
   }
@@ -138,12 +139,15 @@ export class OfflineWeb3Signer implements IEthereumSigner {
     const ret = await this._web3.eth.accounts.sign(msg, this._account.privateKey)
     // @ts-ignore
     const sig = ret.signature.slice(2)
-
-    let mode = 1 // Geth
     const r = ethutil.toBuffer('0x' + sig.substring(0, 64)) as Buffer
     const s = ethutil.toBuffer('0x' + sig.substring(64, 128)) as Buffer
     let v = parseInt(sig.substring(128, 130), 16)
 
-    return Buffer.concat([ethutil.toBuffer(mode) as Buffer, r, s, ethutil.toBuffer(v) as Buffer])
+    return Buffer.concat([
+      ethutil.toBuffer(SIGNATURE_TYPE.GETH) as Buffer,
+      r,
+      s,
+      ethutil.toBuffer(v) as Buffer
+    ])
   }
 }
