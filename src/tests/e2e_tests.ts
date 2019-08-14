@@ -19,7 +19,6 @@ import './e2e/client-evm-event-tests-2'
 // Middlewares
 import './e2e/client-test-tx-cache'
 import './e2e/client-test-tx-middleware'
-import './e2e/tron-test-tx-middleware'
 import './e2e/binance-test-tx-middleware'
 
 // Events

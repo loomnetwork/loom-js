@@ -16,7 +16,6 @@ export { unmarshalBigUIntPB, marshalBigUIntPB } from './big-uint'
 export {
   SignedTxMiddleware,
   SignedEthTxMiddleware,
-  SignedTronTxMiddleware,
   SignedBinanceTxMiddleware,
   NonceTxMiddleware,
   CachedNonceTxMiddleware,
@@ -48,6 +47,4 @@ export { DPOSUser } from './dpos-user'
 export { DPOSUserV3 } from './dpos-user-v3'
 export { GatewayVersion, GatewayUser } from './gateway-user'
 export { CrossChainUser } from './crosschain-user'
-
-export { TronWebSigner } from './tron-web-signer'
 export { BinanceSigner } from './binance-signer'
