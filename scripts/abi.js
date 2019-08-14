@@ -16,11 +16,6 @@ ts_generator.tsGenerator(
   { cwd, loggingLvl: "info" },
   new typechain.Typechain({ cwd, rawConfig: options })
 ).then(() => {
-  shell.mkdir('-p', './dist/plasma-cash/contracts')
-  shell.cp(
-    './src/plasma-cash/contracts/*.json',
-    './dist/plasma-cash/contracts/'
-  )
 
   shell.mkdir('-p', './dist/mainnet-contracts')
   shell.cp(

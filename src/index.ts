@@ -34,17 +34,6 @@ export { CryptoUtils }
 export { IJSONRPCClient } from './internal/json-rpc-client'
 export { createJSONRPCClient, IJSONRPCProtocolOptions } from './rpc-client-factory'
 
-// The Plasma Cash client API should be considered experimental, interfaces are likely to change.
-export { DAppChainPlasmaClient } from './plasma-cash/dappchain-client'
-export {
-  EthereumPlasmaClient,
-  IPlasmaCoin,
-  PlasmaCoinState,
-  IPlasmaDeposit,
-  IPlasmaChallenge,
-  marshalChallengeEvent
-} from './plasma-cash/ethereum-client'
-export { PlasmaCashTx } from './plasma-cash/plasma-cash-tx'
 export {
   IEthereumSigner,
   OfflineWeb3Signer,
@@ -54,13 +43,8 @@ export {
   getJsonRPCSignerAsync,
   getMetamaskSigner
 } from './solidity-helpers'
-export { Entity, IEntityParams } from './plasma-cash/entity'
-export { User as PlasmaUser } from './plasma-cash/user'
 export { DPOSUser } from './dpos-user'
 export { DPOSUserV3 } from './dpos-user-v3'
 export { GatewayVersion, GatewayUser } from './gateway-user'
 export { CrossChainUser } from './crosschain-user'
-export { SparseMerkleTree, ISparseMerkleTreeLevel } from './plasma-cash/sparse-merkle-tree'
-
-export { PlasmaDB, IDatabaseCoin } from './plasma-cash/db'
 export { BinanceSigner } from './binance-signer'
