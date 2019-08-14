@@ -1,0 +1,16 @@
+ChainID: "default"
+RegistryVersion: 2
+ReceiptsVersion: 2
+DPOSVersion: 2
+DeployerWhitelist:
+  ContractEnabled: true
+ChainConfig:
+  ContractEnabled: true
+UserDeployerWhitelist:
+  ContractEnabled: true
+ContractLogLevel: "debug"
+LoomLogLevel: "debug"
+BootLegacyDPoS: true
+GoContractDeployerWhitelist:
+  Enabled: true
+DeployEnabled: true
