@@ -48,7 +48,6 @@
     "rlp": "^2.1.0",
     "rpc-websockets": "^4.1.1",
     "shelljs": "^0.8.2",
-    "tronweb": "^2.5.3",
     "tslib": "^1.9.3",
     "tweetnacl": "^1.0.0",
     "web3": "1.0.0-beta.33"
