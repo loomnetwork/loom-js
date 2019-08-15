@@ -393,7 +393,7 @@ export class LoomProvider {
 
   // PRIVATE FUNCTIONS EVM CALLS
 
-  private async _ethCallSupportedMethod(payload: IEthRPCPayload): Promise<IEthBlock | null> {
+  private _ethCallSupportedMethod(payload: IEthRPCPayload): Promise<any | null> {
     return this._client.readClient.sendAsync(payload.method, payload.params)
   }
 
