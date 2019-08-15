@@ -131,7 +131,7 @@ export function setupProtocolsFromEndpoint(
 ): { writer: IJSONRPCClient; reader: IJSONRPCClient } {
   const protocol = selectProtocol(endpoint)
   const writerSuffix = protocol === JSONRPCProtocol.HTTP ? '/rpc' : '/websocket'
-  const readerSuffix = protocol === JSONRPCProtocol.HTTP ? '/query' : '/queryws'
+  const readerSuffix = protocol === JSONRPCProtocol.HTTP ? '/eth' : '/eth'
 
   const writer = createJSONRPCClient({
     protocols: [{ url: endpoint + writerSuffix }]
