@@ -257,6 +257,10 @@ export class Client extends EventEmitter {
     return this._writeClient.url
   }
 
+  get readClient(): IJSONRPCClient {
+    return this._readClient
+  }
+
   /**
    * Constructs a new client to read & write data from/to a Loom DAppChain via web sockets.
    * @param chainId DAppChain identifier.
