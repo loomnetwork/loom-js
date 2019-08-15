@@ -393,7 +393,6 @@ export class LoomProvider {
 
   // PRIVATE FUNCTIONS EVM CALLS
 
-
   private async _ethCallSupportedMethod(payload: IEthRPCPayload): Promise<IEthBlock | null> {
     return this._client.readClient.sendAsync(payload.method, payload.params)
   }
@@ -489,17 +488,11 @@ export class LoomProvider {
     }
 
     if (result instanceof EthBlockHashList) {
-      return (result)
-        .getEthBlockHashList_asU8()
-        .map((hash: Uint8Array) => bytesToHexAddrLC(hash))
+      return result.getEthBlockHashList_asU8().map((hash: Uint8Array) => bytesToHexAddrLC(hash))
     } else if (result instanceof EthTxHashList) {
-      return (result)
-        .getEthTxHashList_asU8()
-        .map((hash: Uint8Array) => bytesToHexAddrLC(hash))
+      return result.getEthTxHashList_asU8().map((hash: Uint8Array) => bytesToHexAddrLC(hash))
     } else if (result instanceof EthFilterLogList) {
-      return (result)
-        .getEthBlockLogsList()
-        .map((log: EthFilterLog) => this._createLogResult(log))
+      return result.getEthBlockLogsList().map((log: EthFilterLog) => this._createLogResult(log))
     }
   }
 
