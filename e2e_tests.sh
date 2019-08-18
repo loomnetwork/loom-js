@@ -12,7 +12,9 @@ DEFAULT_GOPATH=$GOPATH
 GANACHE_PORT=8545
 REPO_ROOT=`pwd`
 LOOM_DIR=`pwd`/tmp/e2e
+BUILD_ID=build-1213
 
+LOOM_BLUEPRINT_DIR=/Users/loom-reda/workspaces/loom/weave-blueprint
 
 # Check available platforms
 PLATFORM='unknown'
@@ -87,14 +89,12 @@ cleanup() {
   export GOPATH=$DEFAULT_GOPATH
 }
 
-if [ "${TRAVIS:-}" ]; then
-  mkdir -p $LOOM_DIR
+  #mkdir -p $LOOM_DIR
 
-  setup_weave_blueprint
-  download_dappchain
-fi
+  #setup_weave_blueprint
+  #download_dappchain
 
-setup_dappchain
+#setup_dappchain
 
 trap cleanup EXIT
 

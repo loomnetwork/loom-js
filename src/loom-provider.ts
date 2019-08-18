@@ -35,6 +35,7 @@ import {
 import { soliditySha3 } from './solidity-helpers'
 import { marshalBigUIntPB } from './big-uint'
 import { SignedEthTxMiddleware } from './middleware'
+import { JsonRPCResponse } from "web3/types";
 
 export interface IEthReceipt {
   transactionHash: string
@@ -113,6 +114,7 @@ const numberToHexLC = (num: number): string => {
 export class LoomProvider {
   private _client: Client
   private _subscribed: boolean = false
+  private _ethSubscriptions: { [id: string]: any } = {}
   private _accountMiddlewares: Map<string, Array<ITxMiddlewareHandler>>
   private _setupMiddlewares: SetupMiddlewareFunction
   private _netVersionFromChainId: number
@@ -597,26 +599,43 @@ export class LoomProvider {
   private async _ethSubscribe(payload: IEthRPCPayload) {
     if (!this._subscribed) {
       this._subscribed = true
-      this._client.addListenerForTopics()
+    }
+    const method = payload.params[0] as string
+    const params = payload.params.slice(1)
+
+    // @ts-ignore
+    const subscriptionId: string = await this._client.readClient.sendAsync(method, params)
+
+    this._ethSubscriptions[subscriptionId] = {
+      id: subscriptionId,
+      method,
+      params
     }
 
-    const method = payload.params[0]
-    const filterObject = payload.params[1] || {}
-
-    const result = await this._client.evmSubscribeAsync(method, filterObject)
-    if (!result) {
-      throw Error('Subscribe filter failed')
-    }
-
-    return result
+    return subscriptionId
   }
 
   private _ethUninstallFilter(payload: IEthRPCPayload) {
     return this._client.uninstallEvmFilterAsync(payload.params[0])
   }
 
-  private _ethUnsubscribe(payload: IEthRPCPayload) {
-    return this._client.evmUnsubscribeAsync(payload.params[0])
+  private async _ethUnsubscribe(payload: IEthRPCPayload) {
+    // return this._client.evmUnsubscribeAsync(payload.params[0])
+    const subscriptionId = payload.params[0]
+    const unsubscribeMethod = payload.params[1] || 'eth_unsubscribe'
+    const subscription = this._ethSubscriptions[subscriptionId]
+    if (subscription !== undefined) {
+      const response = await this._client.readClient.sendAsync(unsubscribeMethod, [subscriptionId])
+      if (response) {
+        // this.removeAllListeners(subscription.method)
+        delete this._ethSubscriptions[subscriptionId]
+      }
+      return response
+    }
+
+    return Promise.reject(
+      new Error(`Provider error: Subscription with ID ${subscriptionId} does not exist.`)
+    )
   }
 
   private _netVersion() {
@@ -857,32 +876,25 @@ export class LoomProvider {
     })
   }
 
-  private _onWebSocketMessage(msgEvent: IChainEventArgs) {
-    if (msgEvent.kind === ClientEvent.EVMEvent) {
-      log(`Socket message arrived ${JSON.stringify(msgEvent)}`)
-      this.notificationCallbacks.forEach((callback: Function) => {
-        const JSONRPCResult = {
-          jsonrpc: '2.0',
-          method: 'eth_subscription',
-          params: {
-            subscription: msgEvent.id,
-            result: {
-              transactionHash: bytesToHexAddrLC(msgEvent.transactionHashBytes),
-              logIndex: '0x0',
-              transactionIndex: '0x0',
-              blockHash: '0x0',
-              blockNumber: numberToHexLC(+msgEvent.blockHeight),
-              address: msgEvent.contractAddress.local.toString(),
-              type: 'mined',
-              data: bytesToHexAddrLC(msgEvent.data),
-              topics: msgEvent.topics
-            }
-          }
-        }
+  private _onWebSocketMessage(msgEvent: any) {
+    let event
 
-        callback(JSONRPCResult)
-      })
+    if (Array.isArray(msgEvent)) {
+      event = msgEvent[0].id
+    } else if (typeof msgEvent.id === 'undefined') {
+      event = this._ethSubscriptions[msgEvent.params.subscription]
+      msgEvent = msgEvent.params
+    } else {
+      event = msgEvent.id
     }
+
+    log('Message', event, msgEvent)
+
+    log('Socket message arrived', msgEvent)
+    this.notificationCallbacks.forEach((callback: Function) => {
+      callback(msgEvent)
+    })
+
   }
 
   private async _commitTransaction(

@@ -15,6 +15,7 @@ export function getTestUrls() {
  * the .env.test (see .env.test.example for default values).
  */
 export function createTestClient(): Client {
+  console.log(getTestUrls().wsWriteUrl, getTestUrls().wsReadUrl)
   return new Client('default', getTestUrls().wsWriteUrl, getTestUrls().wsReadUrl)
 }
 
