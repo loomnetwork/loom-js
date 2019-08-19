@@ -54,7 +54,7 @@ export class CrossChainUser {
   static async createMetamaskCrossChainUserAsync(
     params: CrossChainUserParams
   ): Promise<CrossChainUser> {
-    const provider = new ethers.providers.Web3Provider(params.web3!.currentProvider)
+    const provider = new ethers.providers.Web3Provider(params.web3!.currentProvider as any)
     const wallet = provider.getSigner()
     return CrossChainUser.createCrossChainUserAsync({
       wallet,
