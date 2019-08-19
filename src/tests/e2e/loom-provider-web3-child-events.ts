@@ -99,7 +99,7 @@ async function testContracts(t: Test, contractB: any, contractA: any) {
 
     let tx = await contractA.methods.doEmit(value, contractB.options.address).send()
     t.equal(
-      tx.status === '0x1' ? true : tx.status,
+      tx.status === true ? true : tx.status,
       true,
       `doEmit should return correct status for ${value}`
     )

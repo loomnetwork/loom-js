@@ -465,7 +465,7 @@ test('LoomProvider method eth_getTransactionReceipt', async t => {
 
     t.equal(
       ethGetTransactionReceiptResult.result.status,
-      '0x1',
+      true,
       'Status for eth_getTransactionReceipt should be 0x1'
     )
   } catch (err) {
