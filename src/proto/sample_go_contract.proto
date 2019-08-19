@@ -1,0 +1,8 @@
+syntax = "proto3";
+
+import "proto/loom.proto";
+
+message SampleGoContractNestedEvmRequest {
+
+}
+
