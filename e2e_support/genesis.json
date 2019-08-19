@@ -1,12 +1,5 @@
 {
   "contracts": [
-    {	
-      "vm": "plugin",	
-      "format": "plugin",	
-      "name": "BluePrint",	
-      "location": "blueprint:0.0.1",	
-      "init": {}	
-    },
     {
       "vm": "plugin",
       "format": "plugin",

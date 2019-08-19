@@ -47,8 +47,8 @@ setup_dappchain() {
   $LOOM_BIN init -f
   cp -R $REPO_ROOT/e2e_support/* .
   cp -R $REPO_ROOT/e2e_support/tm-config/* chaindata/config/
-  mkdir -p contracts
-  cp $LOOM_BLUEPRINT_DIR/build/contracts/* contracts
+  #mkdir -p contracts
+  #cp $LOOM_BLUEPRINT_DIR/build/contracts/* contracts
 }
 
 start_chains() {
@@ -72,7 +72,7 @@ stop_chains() {
     kill -9 $LOOM_PID
     LOOM_PID=""
   fi
-  pkill -f "${LOOM_DIR}/contracts/blueprint.0.0.1" || true
+  #pkill -f "${LOOM_DIR}/contracts/blueprint.0.0.1" || true
 }
 
 run_tests() {
@@ -90,8 +90,8 @@ cleanup() {
 if [ "${TRAVIS:-}" ]; then
   mkdir -p $LOOM_DIR
 
-  setup_weave_blueprint
-  download_dappchain
+  #setup_weave_blueprint
+  #download_dappchain
 fi
 
 setup_dappchain
