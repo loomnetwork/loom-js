@@ -1,0 +1,33 @@
+import BN from 'bn.js';
+import Web3 from 'web3';
+import { ethers } from 'ethers';
+import { Entity, IEntityParams } from '..';
+import { IPlasmaCoin } from './ethereum-client';
+export declare class User extends Entity {
+    private _startBlock?;
+    private static _contractName;
+    private buffers;
+    private newBlocks;
+    constructor(web3: ethers.Signer, params: IEntityParams, startBlock?: BN);
+    static contractName: string;
+    static createMetamaskUser(web3: Web3, dappchainPrivateKey: string | null, plasmaAddress: string, dappchainEndpoint: string, eventsEndpoint: string, startBlock?: BN, chainId?: string): Promise<User>;
+    static createOfflineUser(privateKey: string, dappchainPrivateKey: string | null, endpoint: string, plasmaAddress: string, dappchainEndpoint: string, eventsEndpoint: string, dbPath?: string, startBlock?: BN, chainId?: string): Promise<User>;
+    static createUser(wallet: ethers.Signer, dappchainPrivateKey: string | null, plasmaAddress: string, dappchainEndpoint: string, eventsEndpoint: string, dbPath?: string, startBlock?: BN, chainId?: string): Promise<User>;
+    depositETHAsync(amount: BN): Promise<IPlasmaCoin>;
+    depositERC721Async(uid: BN, address: string): Promise<IPlasmaCoin>;
+    depositERC20Async(amount: BN, address: string): Promise<IPlasmaCoin>;
+    transferAndVerifyAsync(slot: BN, newOwner: string, buffer?: number): Promise<any>;
+    transferAsync(slot: BN, newOwner: string): Promise<any>;
+    watchBlocks(): Promise<void>;
+    stopWatchingBlocks(): void;
+    receiveAndWatchCoinAsync(slot: BN): Promise<boolean>;
+    receiveCoinAsync(slot: BN): Promise<boolean>;
+    verifyInclusionAsync(slot: BN, block: BN): Promise<boolean>;
+    exitAsync(slot: BN): Promise<any>;
+    deposits(): Promise<IPlasmaCoin[]>;
+    allDeposits(): Promise<any[]>;
+    disconnect(): void;
+    private findBlocks;
+    private getCoinHistoryFromDBAsync;
+    pollForBlockChange(currentBlock: BN, maxIters: number, sleepTime: number): Promise<BN>;
+}
