@@ -28,6 +28,6 @@ export class SampleGoContract extends Contract {
      request.setTestEvent(testEvent.MarshalPB())
      request.setChainTestEvent(chainTestEvent.MarshalPB())
 
-    return this.callAsync<void>('TestNestedEvmCalls', request)
+    return this.callAsync<void>('TestNestedEvmCalls2', request)
   }
 }
