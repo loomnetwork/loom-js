@@ -2,7 +2,7 @@ import { Client } from '../client'
 import { Contract } from '../contract'
 import { Address } from '../address'
 import {
-  SampleGoContractNestedEvmRequest
+  SampleGoContractNestedEvmRequest2
 } from '../proto/sample_go_contract_pb'
 
 export class SampleGoContract extends Contract {
@@ -19,9 +19,13 @@ export class SampleGoContract extends Contract {
     super(params)
   }
 
-  async testNestedEvmCallsAsync(
+  async testNestedEvmCalls2Async(
+    testEvent: Address,
+    chainTestEvent: Address
   ): Promise<Uint8Array | void> {
-    const request = new SampleGoContractNestedEvmRequest()
+    const request = new SampleGoContractNestedEvmRequest2()
+    request.setTestEvent(testEvent.MarshalPB())
+    request.setChainTestEvent(chainTestEvent.MarshalPB())
 
     return this.callAsync<void>('TestNestedEvmCalls', request)
   }

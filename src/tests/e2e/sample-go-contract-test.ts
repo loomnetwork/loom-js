@@ -10,6 +10,7 @@ import {
 import { createTestHttpClient } from '../helpers'
 import { B64ToUint8Array } from '../../crypto-utils'
 import { LoomProvider } from '../../loom-provider'
+import { deployContract } from '../evm-helpers'
 
 async function getClientAndContract(
   createClient: () => Client,
@@ -40,7 +41,18 @@ test('SampleGoContract', async t => {
       sampleGoContract,
     } = await getClientAndContract(createTestHttpClient, privKey)
 
-    await sampleGoContract.testNestedEvmCallsAsync()
+    const loomProvider = new LoomProvider(client, privKey)
+
+    const testEventData = ""
+    const testEventDataDeployResult = await deployContract(loomProvider, testEventData)
+    const testEventDataAddress = testEventDataDeployResult.contractAddress
+
+    const chainTestEventData = ""
+    const chainTestEventDataDeployResult = await deployContract(loomProvider, chainTestEventData)
+    const chainTestEventDataAddress = chainTestEventDataDeployResult.contractAddress
+
+    console.log("addresses",testEventDataAddress, chainTestEventDataAddress)
+    await sampleGoContract.testNestedEvmCalls2Async(testEventDataAddress, chainTestEventDataAddress)
 
     client.disconnect()
   } catch (err) {

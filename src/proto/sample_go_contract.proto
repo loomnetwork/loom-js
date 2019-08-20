@@ -2,7 +2,8 @@ syntax = "proto3";
 
 import "proto/loom.proto";
 
-message SampleGoContractNestedEvmRequest {
-
+message SampleGoContractNestedEvmRequest2 {
+    Address test_event = 1;
+    Address chain_test_event = 2;
 }
 
