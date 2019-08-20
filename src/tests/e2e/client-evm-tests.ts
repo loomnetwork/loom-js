@@ -1,7 +1,7 @@
 import test from 'tape'
 
 import { CryptoUtils } from '../../index'
-import { createTestClient, execAndWaitForMillisecondsAsync } from '../helpers'
+import { execAndWaitForMillisecondsAsync, createLegacyTestClient } from '../helpers'
 import { EthBlockHashList, EthBlockInfo } from '../../proto/evm_pb'
 import { bytesToHexAddr } from '../../crypto-utils'
 import { createDefaultTxMiddleware } from '../../helpers'
@@ -11,7 +11,7 @@ test('Client EVM test (newBlockEvmFilterAsync)', async t => {
 
   try {
     const privateKey = CryptoUtils.generatePrivateKey()
-    client = createTestClient()
+    client = createLegacyTestClient()
 
     client.on('error', err => t.error(err))
 
@@ -23,7 +23,6 @@ test('Client EVM test (newBlockEvmFilterAsync)', async t => {
     if (!filterId) {
       t.fail('Filter Id cannot be null')
     }
-
     // calls getevmfilterchanges
     const hash = await execAndWaitForMillisecondsAsync(
       client.getEvmFilterChangesAsync(filterId as string)
@@ -61,8 +60,7 @@ test('Client EVM test (newPendingTransactionEvmFilterAsync)', async t => {
   let client
   try {
     const privateKey = CryptoUtils.generatePrivateKey()
-    const publicKey = CryptoUtils.publicKeyFromPrivateKey(privateKey)
-    client = createTestClient()
+    client = createLegacyTestClient()
 
     client.on('error', err => t.error(err))
 

@@ -36,6 +36,7 @@ import { soliditySha3 } from './solidity-helpers'
 import { marshalBigUIntPB } from './big-uint'
 import { SignedEthTxMiddleware } from './middleware'
 import { JsonRPCResponse } from "web3/types";
+import { RPCClientEvent } from "./internal/json-rpc-client";
 
 export interface IEthReceipt {
   transactionHash: string
@@ -160,8 +161,10 @@ export class LoomProvider {
     this.notificationCallbacks = new Array()
     this.accounts = new Map<string, Uint8Array>()
 
+    const eventType = client.isLegacy ? ClientEvent.EVMEvent : RPCClientEvent.EVMMessage
     // Only subscribe for event emitter do not call subevents
-    this._client.addListener(ClientEvent.EVMEvent, (msg: IChainEventArgs) =>
+    // this._client.addListener(ClientEvent.EVMEvent, (msg: IChainEventArgs) =>
+    this._client.readClient.on(eventType, (msg: IChainEventArgs) =>
       this._onWebSocketMessage(msg)
     )
 
@@ -170,8 +173,9 @@ export class LoomProvider {
         return createDefaultTxMiddleware(client, privateKey)
       }
     }
+    if (client.isLegacy) this.addLegacyDefaultMethods()
+    else this.addDefaultMethods()
 
-    this.addDefaultMethods()
     this.addDefaultEvents()
     this.addAccounts([privateKey])
   }
@@ -214,6 +218,7 @@ export class LoomProvider {
   // PUBLIC FUNCTION TO SUPPORT WEB3
 
   on(type: string, callback: any) {
+    log("on", type)
     switch (type) {
       case 'data':
         this.notificationCallbacks.push(callback)
@@ -240,7 +245,7 @@ export class LoomProvider {
   addDefaultMethods() {
     this._ethRPCMethods.set('eth_accounts', this._ethAccounts)
     this._ethRPCMethods.set('eth_blockNumber', this._ethCallSupportedMethod)
-    this._ethRPCMethods.set('eth_call', this._ethCall)
+    this._ethRPCMethods.set('eth_call', this._ethCallSupportedMethod)
     this._ethRPCMethods.set('eth_estimateGas', this._ethEstimateGas)
     this._ethRPCMethods.set('eth_gasPrice', this._ethGasPrice)
     this._ethRPCMethods.set('eth_getBalance', this._ethGetBalance)
@@ -260,6 +265,34 @@ export class LoomProvider {
     this._ethRPCMethods.set('eth_sendTransaction', this._ethSendTransaction)
     this._ethRPCMethods.set('eth_sign', this._ethSign)
     this._ethRPCMethods.set('eth_subscribe', this._ethSubscribe)
+    this._ethRPCMethods.set('eth_uninstallFilter', this._ethCallSupportedMethod)
+    this._ethRPCMethods.set('eth_unsubscribe', this._ethUnsubscribe)
+    this._ethRPCMethods.set('net_version', this._netVersion)
+  }
+
+  addLegacyDefaultMethods() {
+    this._ethRPCMethods.set('eth_accounts', this._ethAccounts)
+    this._ethRPCMethods.set('eth_blockNumber', this._ethBlockNumber)
+    this._ethRPCMethods.set('eth_call', this._ethCall)
+    this._ethRPCMethods.set('eth_estimateGas', this._ethEstimateGas)
+    this._ethRPCMethods.set('eth_gasPrice', this._ethGasPrice)
+    this._ethRPCMethods.set('eth_getBalance', this._ethGetBalance)
+    this._ethRPCMethods.set('eth_getBlockByHash', this._ethGetBlockByHash)
+    this._ethRPCMethods.set('eth_getBlockByNumber', this._ethGetBlockByNumber)
+    this._ethRPCMethods.set('eth_getCode', this._ethGetCode)
+    this._ethRPCMethods.set('eth_getFilterChanges', this._ethGetFilterChanges)
+    this._ethRPCMethods.set('eth_getLogs', this._ethGetLogs)
+    this._ethRPCMethods.set('eth_getTransactionByHash', this._ethGetTransactionByHash)
+    this._ethRPCMethods.set('eth_getTransactionReceipt', this._ethGetTransactionReceipt)
+    this._ethRPCMethods.set('eth_newBlockFilter', this._ethNewBlockFilter)
+    this._ethRPCMethods.set('eth_newFilter', this._ethNewFilter)
+    this._ethRPCMethods.set(
+      'eth_newPendingTransactionFilter',
+      this._ethNewPendingTransactionFilter
+    )
+    this._ethRPCMethods.set('eth_sendTransaction', this._ethSendTransaction)
+    this._ethRPCMethods.set('eth_sign', this._ethSign)
+    this._ethRPCMethods.set('eth_subscribe', this._ethUnsubscribeLegacy)
     this._ethRPCMethods.set('eth_uninstallFilter', this._ethUninstallFilter)
     this._ethRPCMethods.set('eth_unsubscribe', this._ethUnsubscribe)
     this._ethRPCMethods.set('net_version', this._netVersion)
@@ -596,16 +629,32 @@ export class LoomProvider {
     return bytesToHexAddrLC(Buffer.concat([sig.r, sig.s, toBuffer(sig.v)]))
   }
 
+  private async _ethSubscribeLegacy(payload: IEthRPCPayload) {
+    if (!this._subscribed) {
+      this._subscribed = true
+      this._client.addListenerForTopics().catch(console.error)
+    }
+
+    const method = payload.params[0]
+    const filterObject = payload.params[1] || {}
+
+    const result = await this._client.evmSubscribeAsync(method, filterObject)
+    if (!result) {
+      throw Error('Subscribe filter failed')
+    }
+
+    return result
+  }
+
   private async _ethSubscribe(payload: IEthRPCPayload) {
     if (!this._subscribed) {
       this._subscribed = true
     }
-    const method = payload.params[0] as string
-    const params = payload.params.slice(1)
+    const { method, params } = payload // payload.params[0] as string
 
-    // @ts-ignore
-    const subscriptionId: string = await this._client.readClient.sendAsync(method, params)
-
+    const subscriptionId: string = await this._client.evmSubscribeAsync(method, params)
+    // const subscriptionId: string = await this._client.readClient.sendAsync(method, params)
+    log("subscribed", subscriptionId)
     this._ethSubscriptions[subscriptionId] = {
       id: subscriptionId,
       method,
@@ -619,12 +668,18 @@ export class LoomProvider {
     return this._client.uninstallEvmFilterAsync(payload.params[0])
   }
 
+  private async _ethUnsubscribeLegacy(payload: IEthRPCPayload) {
+    return this._client.evmUnsubscribeAsync(payload.params[0])
+  }
+
   private async _ethUnsubscribe(payload: IEthRPCPayload) {
+
     // return this._client.evmUnsubscribeAsync(payload.params[0])
     const subscriptionId = payload.params[0]
     const unsubscribeMethod = payload.params[1] || 'eth_unsubscribe'
     const subscription = this._ethSubscriptions[subscriptionId]
     if (subscription !== undefined) {
+      // const response = await  this._client.evmUnsubscribeAsync(payload.params[0])
       const response = await this._client.readClient.sendAsync(unsubscribeMethod, [subscriptionId])
       if (response) {
         // this.removeAllListeners(subscription.method)
@@ -877,24 +932,10 @@ export class LoomProvider {
   }
 
   private _onWebSocketMessage(msgEvent: any) {
-    let event
-
-    if (Array.isArray(msgEvent)) {
-      event = msgEvent[0].id
-    } else if (typeof msgEvent.id === 'undefined') {
-      event = this._ethSubscriptions[msgEvent.params.subscription]
-      msgEvent = msgEvent.params
-    } else {
-      event = msgEvent.id
-    }
-
-    log('Message', event, msgEvent)
-
     log('Socket message arrived', msgEvent)
     this.notificationCallbacks.forEach((callback: Function) => {
       callback(msgEvent)
     })
-
   }
 
   private async _commitTransaction(

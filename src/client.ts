@@ -21,7 +21,7 @@ import {
 } from './crypto-utils'
 import { Address, LocalAddress } from './address'
 import { WSRPCClient, IJSONRPCEvent } from './internal/ws-rpc-client'
-import { RPCClientEvent, IJSONRPCClient } from './internal/json-rpc-client'
+import { RPCClientEvent, IJSONRPCClient, IJSONRPCResponse } from './internal/json-rpc-client'
 import { sleep, parseUrl } from './helpers'
 
 export interface ITxHandlerResult {
@@ -81,7 +81,7 @@ export enum ClientEvent {
   /**
    * Exclusively used by loom-provider
    */
-  EVMEvent = 'evmEvent',
+  EVMEvent = 'message', // 'evmEvent',
   /**
    * Emitted when an error occurs that can't be relayed by other means.
    * Listener will receive IClientErrorEventArgs.
@@ -242,6 +242,7 @@ export class Client extends EventEmitter {
 
   private _writeClient: IJSONRPCClient
   private _readClient!: IJSONRPCClient
+  readonly isLegacy: boolean
 
   /** Broadcaster to use to send txs & receive results. */
   txBroadcaster: ITxBroadcaster
@@ -318,6 +319,8 @@ export class Client extends EventEmitter {
         this._emitNetEvent(url, ClientEvent.Disconnected)
       )
     }
+
+    this.isLegacy = false === /eth$/.test(this._readClient.url)
 
     const emitContractEvent = (url: string, event: IJSONRPCEvent) =>
       this._emitContractEvent(url, event)
@@ -420,8 +423,8 @@ export class Client extends EventEmitter {
     const emitContractEvent = (url: string, event: IJSONRPCEvent) => {
       this._emitContractEvent(url, event, true)
     }
-
-    this._readClient.on(RPCClientEvent.EVMMessage, emitContractEvent)
+    const eventType = this.isLegacy ? RPCClientEvent.EVMMessage : RPCClientEvent.Message
+    this._readClient.on(eventType, emitContractEvent)
   }
 
   /**
@@ -551,15 +554,14 @@ export class Client extends EventEmitter {
     id: string
   ): Promise<EthBlockHashList | EthFilterLogList | EthTxHashList | null> {
     debugLog(`Get filter changes for ${JSON.stringify({ id }, null, 2)}`)
-    const result = await this._readClient.sendAsync<Uint8Array>('getevmfilterchanges', {
+    const result = await this._readClient.sendAsync<string>('getevmfilterchanges', {
       id
     })
 
     if (result) {
       const envelope: EthFilterEnvelope = EthFilterEnvelope.deserializeBinary(
-        bufferToProtobufBytes(result)
+        B64ToUint8Array(result)
       )
-
       switch (envelope.getMessageCase()) {
         case EthFilterEnvelope.MessageCase.ETH_BLOCK_HASH_LIST:
           return envelope.getEthBlockHashList() as EthBlockHashList
@@ -650,6 +652,7 @@ export class Client extends EventEmitter {
     hashHexStr: string,
     full: boolean = true
   ): Promise<EthBlockInfo | null> {
+    console.log(hashHexStr)
     const result = await this._readClient.sendAsync<string>('getevmblockbyhash', {
       hash: Buffer.from(hashHexStr.slice(2), 'hex').toString('base64'),
       full
@@ -679,12 +682,15 @@ export class Client extends EventEmitter {
    * @param method Method selected to the filter, can be "newHeads" or "logs"
    * @param filter JSON string of the filter
    */
-  evmSubscribeAsync(method: string, filterObject: Object): Promise<string> {
-    const filter = JSON.stringify(filterObject)
-    return this._readClient.sendAsync<string>('evmsubscribe', {
-      method,
-      filter
-    })
+  evmSubscribeAsync(method: string, params: Object | any[]): Promise<string> {
+    if (this.isLegacy) {
+      const filter = JSON.stringify(params)
+      return this._readClient.sendAsync<string>('evmsubscribe', {
+        method,
+        filter
+      })
+    }
+    return this._readClient.sendAsync<string>('eth_subscribe', params)
   }
 
   /**
@@ -695,9 +701,10 @@ export class Client extends EventEmitter {
    * @return boolean If true the subscription is removed with success
    */
   evmUnsubscribeAsync(id: string): Promise<boolean> {
-    return this._readClient.sendAsync<boolean>('evmunsubscribe', {
-      id
-    })
+    if (this.isLegacy) {
+      return this._readClient.sendAsync<boolean>('evmunsubscribe', { id })
+    }
+    return this._readClient.sendAsync<boolean>('eth_unsubscribe', [id])
   }
 
   /**
@@ -758,6 +765,12 @@ export class Client extends EventEmitter {
       this.emit(ClientEvent.Error, eventArgs)
     } else if (result) {
       debugLog('Event', event.id, result)
+
+      // emit evm events as is (jsonrpc/ethereum)
+      if (this.isLegacy === false && isEVM) {
+        this.emit(ClientEvent.EVMEvent, event)
+        return
+      }
 
       // Ugh, no built-in JSON->Protobuf marshaller apparently
       // https://github.com/google/protobuf/issues/1591 so gotta do this manually

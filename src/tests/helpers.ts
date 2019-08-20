@@ -3,9 +3,9 @@ import { Client, createJSONRPCClient } from '../index'
 export function getTestUrls() {
   return {
     wsWriteUrl: process.env.TEST_LOOM_DAPP_WS_WRITE_URL || 'ws://127.0.0.1:46658/websocket',
-    wsReadUrl: process.env.TEST_LOOM_DAPP_WS_READ_URL || 'ws://127.0.0.1:46658/queryws',
+    wsReadUrl: process.env.TEST_LOOM_DAPP_WS_READ_URL || 'ws://127.0.0.1:46658/eth',
     httpWriteUrl: process.env.TEST_LOOM_DAPP_HTTP_WRITE_URL || 'http://127.0.0.1:46658/rpc',
-    httpReadUrl: process.env.TEST_LOOM_DAPP_HTTP_READ_URL || 'http://127.0.0.1:46658/query'
+    httpReadUrl: process.env.TEST_LOOM_DAPP_HTTP_READ_URL || 'http://127.0.0.1:46658/eth'
   }
 }
 
@@ -17,6 +17,11 @@ export function getTestUrls() {
 export function createTestClient(): Client {
   console.log(getTestUrls().wsWriteUrl, getTestUrls().wsReadUrl)
   return new Client('default', getTestUrls().wsWriteUrl, getTestUrls().wsReadUrl)
+}
+
+export function createLegacyTestClient(): Client {
+  console.log(getTestUrls().wsWriteUrl, getTestUrls().wsReadUrl)
+  return new Client('default', getTestUrls().wsWriteUrl, getTestUrls().wsReadUrl.replace(/eth$/, "queryws"))
 }
 
 export function createTestHttpClient(): Client {

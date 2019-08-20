@@ -1,7 +1,7 @@
 import test from 'tape'
 
 import { CryptoUtils, Client } from '../../index'
-import { createTestClient, waitForMillisecondsAsync } from '../helpers'
+import { createTestClient, waitForMillisecondsAsync, createLegacyTestClient } from '../helpers'
 import { CallTx, VMType, MessageTx, Transaction } from '../../proto/loom_pb'
 import { LoomProvider } from '../../loom-provider'
 import { deployContract } from '../evm-helpers'
@@ -69,7 +69,7 @@ test('Client EVM Event test (two filters)', async t => {
   try {
     const privateKey = CryptoUtils.generatePrivateKey()
     const publicKey = CryptoUtils.publicKeyFromPrivateKey(privateKey)
-    client = createTestClient()
+    client = createLegacyTestClient()
 
     client.on('error', err => t.error(err))
 
