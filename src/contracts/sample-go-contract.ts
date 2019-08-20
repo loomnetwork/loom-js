@@ -1,3 +1,4 @@
+import BN from 'bn.js'
 import { Client } from '../client'
 import { Contract } from '../contract'
 import { Address } from '../address'
@@ -19,13 +20,13 @@ export class SampleGoContract extends Contract {
     super(params)
   }
 
-  async testNestedEvmCalls2Async(
+  testNestedEvmCalls2Async(
     testEvent: Address,
     chainTestEvent: Address
   ): Promise<Uint8Array | void> {
     const request = new SampleGoContractNestedEvmRequest2()
-    request.setTestEvent(testEvent.MarshalPB())
-    request.setChainTestEvent(chainTestEvent.MarshalPB())
+     request.setTestEvent(testEvent.MarshalPB())
+     request.setChainTestEvent(chainTestEvent.MarshalPB())
 
     return this.callAsync<void>('TestNestedEvmCalls', request)
   }
