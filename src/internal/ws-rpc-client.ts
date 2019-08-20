@@ -35,7 +35,10 @@ export class WSRPCClient extends EventEmitter {
   private _isSubcribed: boolean = false
 
   protected _rpcId: number = 0
-  protected _getNextRequestId = () => (++this._rpcId).toString()
+  // XXX workaround int.string bug on the eth endpoint. Set as string when fixed.
+  // @ts-ignore
+  protected _getNextRequestId = (): string => ++this._rpcId
+  // protected _getNextRequestId = () => (++this._rpcId).toString()
 
   requestTimeout: number
 
@@ -211,11 +214,10 @@ export class WSRPCClient extends EventEmitter {
       log('Loom Event arrived', msg)
       this.emit(RPCClientEvent.Message, this.url, msg)
     }
-
-    // Events from EVM have the id from the evmsubscribe command
-    if (/^0x.+$/.test(msg.id)) {
+    // Events from EVM have msg.params.subscription
+    else if (msg.params && ("subscription" in msg.params)) {
       log('EVM Event arrived', msg)
-      this.emit(RPCClientEvent.EVMMessage, this.url, msg)
+      this.emit(RPCClientEvent.EVMMessage, msg)
     }
   }
 }
