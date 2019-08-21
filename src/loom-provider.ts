@@ -666,7 +666,7 @@ export class LoomProvider {
     return this._client.uninstallEvmFilterAsync(payload.params[0])
   }
 
-  private async _ethUnsubscribeLegacy(payload: IEthRPCPayload) {
+  private _ethUnsubscribeLegacy(payload: IEthRPCPayload) {
     return this._client.evmUnsubscribeAsync(payload.params[0])
   }
 
@@ -929,10 +929,34 @@ export class LoomProvider {
   }
 
   private _onWebSocketMessage(msgEvent: any) {
+    if (this._client.isLegacy) {
+      if (msgEvent.kind === ClientEvent.EVMEvent) {
+        log(`Socket message arrived ${JSON.stringify(msgEvent)}`)
+        const JSONRPCResult = {
+          jsonrpc: '2.0',
+          method: 'eth_subscription',
+          params: {
+            subscription: msgEvent.id,
+            result: {
+              transactionHash: bytesToHexAddrLC(msgEvent.transactionHashBytes),
+              logIndex: '0x0',
+              transactionIndex: '0x0',
+              blockHash: '0x0',
+              blockNumber: numberToHexLC(+msgEvent.blockHeight),
+              address: msgEvent.contractAddress.local.toString(),
+              type: 'mined',
+              data: bytesToHexAddrLC(msgEvent.data),
+              topics: msgEvent.topics
+            }
+          }
+        }
+        this.notificationCallbacks.forEach((callback) => callback(JSONRPCResult))
+      }
+      return
+    }
+
     log('Socket message arrived', msgEvent)
-    this.notificationCallbacks.forEach((callback: Function) => {
-      callback(msgEvent)
-    })
+    this.notificationCallbacks.forEach((callback) => callback(msgEvent))
   }
 
   private async _commitTransaction(
