@@ -290,9 +290,9 @@ export class LoomProvider {
     )
     this._ethRPCMethods.set('eth_sendTransaction', this._ethSendTransaction)
     this._ethRPCMethods.set('eth_sign', this._ethSign)
-    this._ethRPCMethods.set('eth_subscribe', this._ethUnsubscribeLegacy)
+    this._ethRPCMethods.set('eth_subscribe', this._ethSubscribeLegacy)
     this._ethRPCMethods.set('eth_uninstallFilter', this._ethUninstallFilter)
-    this._ethRPCMethods.set('eth_unsubscribe', this._ethUnsubscribe)
+    this._ethRPCMethods.set('eth_unsubscribe', this._ethUnsubscribeLegacy)
     this._ethRPCMethods.set('net_version', this._netVersion)
   }
 
