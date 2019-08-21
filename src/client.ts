@@ -258,10 +258,6 @@ export class Client extends EventEmitter {
     return this._writeClient.url
   }
 
-  get readClient(): IJSONRPCClient {
-    return this._readClient
-  }
-
   /**
    * Constructs a new client to read & write data from/to a Loom DAppChain via web sockets.
    * @param chainId DAppChain identifier.
@@ -450,6 +446,17 @@ export class Client extends EventEmitter {
   }
 
   /**
+   * Sends a JSON-RPC message.
+   * @param method RPC method name.
+   * @param params Parameter object or array.
+   * @returns A promise that will be resolved with the value of the result field (if any) in the
+   *          JSON-RPC response message.
+   */
+  async sendWeb3MsgAsync<T>(method: string, params: object | any[]): Promise<IJSONRPCResponse<T>> {
+    return this._readClient.sendAsync<IJSONRPCResponse<T>>(method, params)
+  }
+
+  /**
    * Queries the receipt corresponding to a transaction hash
    *
    * @param txHash Transaction hash returned by call transaction.
@@ -554,13 +561,13 @@ export class Client extends EventEmitter {
     id: string
   ): Promise<EthBlockHashList | EthFilterLogList | EthTxHashList | null> {
     debugLog(`Get filter changes for ${JSON.stringify({ id }, null, 2)}`)
-    const result = await this._readClient.sendAsync<string>('getevmfilterchanges', {
+    const result = await this._readClient.sendAsync<Uint8Array>('getevmfilterchanges', {
       id
     })
 
     if (result) {
       const envelope: EthFilterEnvelope = EthFilterEnvelope.deserializeBinary(
-        B64ToUint8Array(result)
+        bufferToProtobufBytes(result)
       )
       switch (envelope.getMessageCase()) {
         case EthFilterEnvelope.MessageCase.ETH_BLOCK_HASH_LIST:
@@ -652,7 +659,6 @@ export class Client extends EventEmitter {
     hashHexStr: string,
     full: boolean = true
   ): Promise<EthBlockInfo | null> {
-    console.log(hashHexStr)
     const result = await this._readClient.sendAsync<string>('getevmblockbyhash', {
       hash: Buffer.from(hashHexStr.slice(2), 'hex').toString('base64'),
       full
@@ -767,7 +773,7 @@ export class Client extends EventEmitter {
       debugLog('Event', event.id, result)
 
       // emit evm events as is (jsonrpc/ethereum)
-      if (this.isLegacy === false && isEVM) {
+      if (!this.isLegacy && isEVM) {
         this.emit(ClientEvent.EVMEvent, event)
         return
       }

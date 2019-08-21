@@ -162,17 +162,18 @@ export class LoomProvider {
     this.accounts = new Map<string, Uint8Array>()
 
     const eventType = client.isLegacy ? ClientEvent.EVMEvent : RPCClientEvent.EVMMessage
-    // Only subscribe for event emitter do not call subevents
-    // this._client.addListener(ClientEvent.EVMEvent, (msg: IChainEventArgs) =>
-    this._client.readClient.on(eventType, (msg: IChainEventArgs) => this._onWebSocketMessage(msg))
+    this._client.addListener(eventType, (msg: IChainEventArgs) => this._onWebSocketMessage(msg))
 
     if (!this._setupMiddlewares) {
       this._setupMiddlewares = (client: Client, privateKey: Uint8Array) => {
         return createDefaultTxMiddleware(client, privateKey)
       }
     }
-    if (client.isLegacy) this.addLegacyDefaultMethods()
-    else this.addDefaultMethods()
+    if (client.isLegacy) {
+      this.addLegacyDefaultMethods()
+    } else {
+      this.addDefaultMethods()
+    }
 
     this.addDefaultEvents()
     this.addAccounts([privateKey])
@@ -427,7 +428,7 @@ export class LoomProvider {
   // PRIVATE FUNCTIONS EVM CALLS
 
   private _ethCallSupportedMethod(payload: IEthRPCPayload): Promise<any | null> {
-    return this._client.readClient.sendAsync(payload.method, payload.params)
+    return this._client.sendWeb3MsgAsync(payload.method, payload.params)
   }
 
   private _ethAccounts() {
@@ -671,13 +672,12 @@ export class LoomProvider {
   }
 
   private async _ethUnsubscribe(payload: IEthRPCPayload) {
-    // return this._client.evmUnsubscribeAsync(payload.params[0])
     const subscriptionId = payload.params[0]
     const unsubscribeMethod = payload.params[1] || 'eth_unsubscribe'
     const subscription = this._ethSubscriptions[subscriptionId]
     if (subscription !== undefined) {
       // const response = await  this._client.evmUnsubscribeAsync(payload.params[0])
-      const response = await this._client.readClient.sendAsync(unsubscribeMethod, [subscriptionId])
+      const response = await this._client.sendWeb3MsgAsync(unsubscribeMethod, [subscriptionId])
       if (response) {
         // this.removeAllListeners(subscription.method)
         delete this._ethSubscriptions[subscriptionId]
@@ -950,13 +950,13 @@ export class LoomProvider {
             }
           }
         }
-        this.notificationCallbacks.forEach((callback) => callback(JSONRPCResult))
+        this.notificationCallbacks.forEach(callback => callback(JSONRPCResult))
       }
       return
     }
 
     log('Socket message arrived', msgEvent)
-    this.notificationCallbacks.forEach((callback) => callback(msgEvent))
+    this.notificationCallbacks.forEach(callback => callback(msgEvent))
   }
 
   private async _commitTransaction(

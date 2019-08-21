@@ -37,13 +37,17 @@ export class WSRPCClient extends EventEmitter {
   protected _rpcId: number = 0
   // XXX workaround int.string bug on the eth endpoint. Set as string when fixed.
   // @ts-ignore
-  protected _getNextRequestId = (): string => ++this._rpcId
-  // protected _getNextRequestId = () => (++this._rpcId).toString()
+  protected _getNextIntRequestId = (): string => ++this._rpcId
+  protected _getNextStringRequestId = () => (++this._rpcId).toString()
 
   requestTimeout: number
 
   get isSubscribed(): boolean {
     return this._isSubcribed
+  }
+
+  get isLegacy() {
+    return /eth$/.test(this.url) === false
   }
 
   /**
@@ -71,7 +75,7 @@ export class WSRPCClient extends EventEmitter {
       requestTimeout = 15000, // 15s
       reconnectInterval,
       maxReconnects = 0, // 0 means there is no limit
-      generateRequestId = this._getNextRequestId
+      generateRequestId = this.isLegacy ? this._getNextStringRequestId : this._getNextIntRequestId
     } = opts
 
     this._client = new WSClient(
@@ -209,19 +213,22 @@ export class WSRPCClient extends EventEmitter {
     const msgStr = message instanceof ArrayBuffer ? Buffer.from(message).toString() : message
     const msg = JSON.parse(msgStr)
 
-    // Events from native loomchain have the id equals 0
-    if (msg.id === '0') {
-      log('Loom Event arrived', msg)
-      this.emit(RPCClientEvent.Message, this.url, msg)
-    }
-    // EVM Event old endpoint
-    else if (/^0x.+$/.test(msg.id)) {
-      this.emit(RPCClientEvent.EVMMessage, this.url, msg)
-    }
-    // EVM Event eth endpoint
-    else if (msg.params && 'subscription' in msg.params) {
-      log('EVM Event arrived', msg)
-      this.emit(RPCClientEvent.EVMMessage, msg)
+    if (this.isLegacy) {
+      // Events from native loomchain have the id equals 0
+      if (msg.id === '0') {
+        log('Loom Event arrived', msg)
+        this.emit(RPCClientEvent.Message, this.url, msg)
+      }
+      // EVM Event old endpoint
+      else if (/^0x.+$/.test(msg.id)) {
+        this.emit(RPCClientEvent.EVMMessage, this.url, msg)
+      }
+    } else {
+      // EVM Event eth endpoint
+      if (msg.method === 'eth_subscription') {
+        log('EVM Event arrived', msg)
+        this.emit(RPCClientEvent.EVMMessage, msg)
+      }
     }
   }
 }
