@@ -35,8 +35,8 @@ import {
 import { soliditySha3 } from './solidity-helpers'
 import { marshalBigUIntPB } from './big-uint'
 import { SignedEthTxMiddleware } from './middleware'
-import { JsonRPCResponse } from "web3/types";
-import { RPCClientEvent } from "./internal/json-rpc-client";
+import { JsonRPCResponse } from 'web3/types'
+import { RPCClientEvent } from './internal/json-rpc-client'
 
 export interface IEthReceipt {
   transactionHash: string
@@ -164,9 +164,7 @@ export class LoomProvider {
     const eventType = client.isLegacy ? ClientEvent.EVMEvent : RPCClientEvent.EVMMessage
     // Only subscribe for event emitter do not call subevents
     // this._client.addListener(ClientEvent.EVMEvent, (msg: IChainEventArgs) =>
-    this._client.readClient.on(eventType, (msg: IChainEventArgs) =>
-      this._onWebSocketMessage(msg)
-    )
+    this._client.readClient.on(eventType, (msg: IChainEventArgs) => this._onWebSocketMessage(msg))
 
     if (!this._setupMiddlewares) {
       this._setupMiddlewares = (client: Client, privateKey: Uint8Array) => {
@@ -218,7 +216,7 @@ export class LoomProvider {
   // PUBLIC FUNCTION TO SUPPORT WEB3
 
   on(type: string, callback: any) {
-    log("on", type)
+    log('on', type)
     switch (type) {
       case 'data':
         this.notificationCallbacks.push(callback)
@@ -654,7 +652,7 @@ export class LoomProvider {
 
     const subscriptionId: string = await this._client.evmSubscribeAsync(method, params)
     // const subscriptionId: string = await this._client.readClient.sendAsync(method, params)
-    log("subscribed", subscriptionId)
+    log('subscribed', subscriptionId)
     this._ethSubscriptions[subscriptionId] = {
       id: subscriptionId,
       method,
@@ -673,7 +671,6 @@ export class LoomProvider {
   }
 
   private async _ethUnsubscribe(payload: IEthRPCPayload) {
-
     // return this._client.evmUnsubscribeAsync(payload.params[0])
     const subscriptionId = payload.params[0]
     const unsubscribeMethod = payload.params[1] || 'eth_unsubscribe'

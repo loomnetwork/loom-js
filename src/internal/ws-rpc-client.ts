@@ -215,7 +215,7 @@ export class WSRPCClient extends EventEmitter {
       this.emit(RPCClientEvent.Message, this.url, msg)
     }
     // Events from EVM have msg.params.subscription
-    else if (msg.params && ("subscription" in msg.params)) {
+    else if (msg.params && 'subscription' in msg.params) {
       log('EVM Event arrived', msg)
       this.emit(RPCClientEvent.EVMMessage, msg)
     }

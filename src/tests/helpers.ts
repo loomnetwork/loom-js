@@ -21,7 +21,11 @@ export function createTestClient(): Client {
 
 export function createLegacyTestClient(): Client {
   console.log(getTestUrls().wsWriteUrl, getTestUrls().wsReadUrl)
-  return new Client('default', getTestUrls().wsWriteUrl, getTestUrls().wsReadUrl.replace(/eth$/, "queryws"))
+  return new Client(
+    'default',
+    getTestUrls().wsWriteUrl,
+    getTestUrls().wsReadUrl.replace(/eth$/, 'queryws')
+  )
 }
 
 export function createTestHttpClient(): Client {
