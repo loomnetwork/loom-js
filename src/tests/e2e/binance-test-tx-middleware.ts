@@ -172,7 +172,7 @@ test('Test Signed Binance Tx Middleware Type 2', async t => {
     let tx = await contract.methods.set(1).send({ from: to.local.toString() })
     t.equal(
       tx.status,
-      '0x1',
+      true,
       `SimpleStore.set should return correct status for address (to) ${to.local.toString()}`
     )
 

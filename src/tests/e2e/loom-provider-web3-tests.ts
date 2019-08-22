@@ -103,7 +103,7 @@ test('LoomProvider + Web3 + Event with not matching topic', async t => {
     })
 
     const tx = await contract.methods.set(newValue).send()
-    t.equal(tx.status, '0x1', 'SimpleStore.set should return correct status')
+    t.equal(tx.status, true, 'SimpleStore.set should return correct status')
 
     const resultOfGet = await contract.methods.get().call()
     t.equal(+resultOfGet, newValue, `SimpleStore.get should return correct value`)
@@ -132,7 +132,7 @@ test('LoomProvider + Web3 + Multiple event topics', async t => {
     })
 
     const tx = await contract.methods.set(newValue).send()
-    t.equal(tx.status, '0x1', 'SimpleStore.set should return correct status')
+    t.equal(tx.status, true, 'SimpleStore.set should return correct status')
 
     const resultOfGet = await contract.methods.get().call()
     t.equal(+resultOfGet, newValue, `SimpleStore.get should return correct value`)
@@ -293,7 +293,7 @@ test('LoomProvider + Web3 + getTransactionReceipt', async t => {
     console.log('tx', tx)
     t.assert(tx.events.NewValueSet.blockTime > 0, 'blockTime should be greater than 0')
     t.assert(tx.events.NewValueSet.blockHash > 0, 'blockHash should be greater than 0')
-    t.equal(tx.status, '0x1', 'SimpleStore.set should return correct status')
+    t.equal(tx.status, true, 'SimpleStore.set should return correct status')
 
     await waitForMillisecondsAsync(1000)
   } catch (err) {
@@ -314,7 +314,7 @@ test('LoomProvider + Web3 + Logs', async t => {
 
     const blockNum = await web3.eth.getBlockNumber()
     const tx = await contract.methods.set(newValue).send()
-    t.equal(tx.status, '0x1', 'SimpleStore.set should return correct status')
+    t.equal(tx.status, true, 'SimpleStore.set should return correct status')
 
     const events = await contract.getPastEvents('NewValueSet', {
       fromBlock: blockNum
