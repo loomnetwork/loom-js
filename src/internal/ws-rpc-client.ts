@@ -35,10 +35,12 @@ export class WSRPCClient extends EventEmitter {
   private _isSubcribed: boolean = false
 
   protected _rpcId: number = 0
-  // XXX workaround int.string bug on the eth endpoint. Set as string when fixed.
-  // @ts-ignore
-  protected _getNextIntRequestId = (): string => ++this._rpcId
-  protected _getNextStringRequestId = () => (++this._rpcId).toString()
+
+  protected _getNextRequestId(): string {
+    const id = ++this._rpcId
+    // @ts-ignore
+    return this.isLegacy ? id.toString() : id
+  }
 
   requestTimeout: number
 
@@ -75,7 +77,7 @@ export class WSRPCClient extends EventEmitter {
       requestTimeout = 15000, // 15s
       reconnectInterval,
       maxReconnects = 0, // 0 means there is no limit
-      generateRequestId = this.isLegacy ? this._getNextStringRequestId : this._getNextIntRequestId
+      generateRequestId = this._getNextRequestId
     } = opts
 
     this._client = new WSClient(
