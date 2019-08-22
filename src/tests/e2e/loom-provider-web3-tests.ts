@@ -291,9 +291,9 @@ test.skip('LoomProvider + Web3 + getTransactionReceipt', async t => {
 
     const tx = await contract.methods.set(newValue).send()
     console.log('tx', tx)
-    // there is no blockTime property in tx.events.NewValueSet
+    // TODO: there is no blockTime property in tx.events.NewValueSet, it's a Loom extension that's
+    //       not implemented on the /eth endpoint yet, re-enable this when we implement it again
     // t.assert(tx.events.NewValueSet.blockTime > 0, 'blockTime should be greater than 0')
-    // blockHash: > 0 ...?
     t.assert(tx.events.NewValueSet.blockHash > 0, 'blockHash should be greater than 0')
     t.equal(tx.status, '0x1', 'SimpleStore.set should return correct status')
 
@@ -323,8 +323,8 @@ test('LoomProvider + Web3 + Logs', async t => {
     })
     console.log('events', events)
     t.assert(events.length > 0, 'Should have more than 0 events')
-    // no blockTime in events on eth endpoint
-    // TODO: reanable once blockTime is added to the eth endpoint
+    // TODO: there is no blockTime property on Ethereum events, it's a Loom extension that's
+    //       not implemented on the /eth endpoint yet, re-enable this when we implement it again
     // t.assert(events[0].blockTime > 0, 'blockTime should be greater than 0')
 
     await waitForMillisecondsAsync(1000)

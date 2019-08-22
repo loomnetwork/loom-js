@@ -419,8 +419,7 @@ export class Client extends EventEmitter {
     const emitContractEvent = (url: string, event: IJSONRPCEvent) => {
       this._emitContractEvent(url, event, true)
     }
-    const eventType = this.isLegacy ? RPCClientEvent.EVMMessage : RPCClientEvent.Message
-    this._readClient.on(eventType, emitContractEvent)
+    this._readClient.on(RPCClientEvent.EVMMessage, emitContractEvent)
   }
 
   /**
@@ -446,7 +445,7 @@ export class Client extends EventEmitter {
   }
 
   /**
-   * Sends a JSON-RPC message.
+   * Sends a Web3 JSON-RPC message to the /eth endpoint on a Loom node.
    * @param method RPC method name.
    * @param params Parameter object or array.
    * @returns A promise that will be resolved with the value of the result field (if any) in the
@@ -799,8 +798,11 @@ export class Client extends EventEmitter {
         transactionHashBytes: result.tx_hash ? B64ToUint8Array(result.tx_hash) : new Uint8Array([])
       }
 
-      if (isEVM) this.emit(ClientEvent.EVMEvent, eventArgs)
-      else this.emit(ClientEvent.Contract, eventArgs)
+      if (isEVM) {
+        this.emit(ClientEvent.EVMEvent, eventArgs)
+      } else {
+        this.emit(ClientEvent.Contract, eventArgs)
+      }
     }
   }
 

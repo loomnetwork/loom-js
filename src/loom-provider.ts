@@ -644,12 +644,10 @@ export class LoomProvider {
 
   private async _ethSubscribe(payload: IEthRPCPayload) {
     if (!this._subscribed) {
-      this._subscribed = true
+      this._subscribed = true // FISHY
     }
-    const { method, params } = payload // payload.params[0] as string
-
+    const { method, params } = payload
     const subscriptionId: string = await this._client.evmSubscribeAsync(method, params)
-    // const subscriptionId: string = await this._client.readClient.sendAsync(method, params)
     log('subscribed', subscriptionId)
     this._ethSubscriptions[subscriptionId] = {
       id: subscriptionId,
@@ -673,10 +671,8 @@ export class LoomProvider {
     const unsubscribeMethod = payload.params[1] || 'eth_unsubscribe'
     const subscription = this._ethSubscriptions[subscriptionId]
     if (subscription !== undefined) {
-      // const response = await  this._client.evmUnsubscribeAsync(payload.params[0])
       const response = await this._client.sendWeb3MsgAsync(unsubscribeMethod, [subscriptionId])
       if (response) {
-        // this.removeAllListeners(subscription.method)
         delete this._ethSubscriptions[subscriptionId]
       }
       return response

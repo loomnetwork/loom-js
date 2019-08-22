@@ -36,9 +36,8 @@ export class WSRPCClient extends EventEmitter {
 
   protected _rpcId: number = 0
 
-  protected _getNextRequestId(): string {
+  protected _getNextRequestId = () => {
     const id = ++this._rpcId
-    // @ts-ignore
     return this.isLegacy ? id.toString() : id
   }
 
@@ -68,7 +67,7 @@ export class WSRPCClient extends EventEmitter {
       requestTimeout?: number
       reconnectInterval?: number
       maxReconnects?: number
-      generateRequestId?: (method: string, params: object | any[]) => string
+      generateRequestId?: (method: string, params: object | any[]) => string | number
     } = {}
   ) {
     super()
@@ -216,7 +215,7 @@ export class WSRPCClient extends EventEmitter {
     const msg = JSON.parse(msgStr)
 
     if (this.isLegacy) {
-      // Events from native loomchain have the id equals 0
+      // Events from native loomchain have id 0
       if (msg.id === '0') {
         log('Loom Event arrived', msg)
         this.emit(RPCClientEvent.Message, this.url, msg)
