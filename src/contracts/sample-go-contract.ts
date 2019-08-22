@@ -12,7 +12,6 @@ export class SampleGoContract extends Contract {
     if (!contractAddr) {
       throw Error('Failed to resolve contract address')
     }
-
     return new SampleGoContract({ contractAddr, callerAddr, client })
   }
 
@@ -22,11 +21,15 @@ export class SampleGoContract extends Contract {
 
   testNestedEvmCalls2Async(
     testEvent: Address,
-    chainTestEvent: Address
+    chainTestEvent: Address,
+    testEventValue: number,
+    chainTestEventValue: number,
   ): Promise<Uint8Array | void> {
     const request = new SampleGoContractNestedEvmRequest2()
-     request.setTestEvent(testEvent.MarshalPB())
-     request.setChainTestEvent(chainTestEvent.MarshalPB())
+    request.setTestEvent(testEvent.MarshalPB())
+    request.setChainTestEvent(chainTestEvent.MarshalPB())
+    request.setTestEventValue(testEventValue)
+    request.setChainTestEventValue(chainTestEventValue)
 
     return this.callAsync<void>('TestNestedEvmCalls2', request)
   }
