@@ -34,8 +34,6 @@ import {
 } from './crypto-utils'
 import { soliditySha3 } from './solidity-helpers'
 import { marshalBigUIntPB } from './big-uint'
-import { SignedEthTxMiddleware } from './middleware'
-import { JsonRPCResponse } from 'web3/types'
 import { RPCClientEvent } from './internal/json-rpc-client'
 
 export interface IEthReceipt {
