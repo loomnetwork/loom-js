@@ -159,8 +159,7 @@ export class LoomProvider {
     this.notificationCallbacks = new Array()
     this.accounts = new Map<string, Uint8Array>()
 
-    const eventType = client.isLegacy ? ClientEvent.EVMEvent : RPCClientEvent.EVMMessage
-    this._client.addListener(eventType, (msg: IChainEventArgs) => this._onWebSocketMessage(msg))
+    this._client.addListener(ClientEvent.EVMEvent, (msg: IChainEventArgs) => this._onWebSocketMessage(msg))
 
     if (!this._setupMiddlewares) {
       this._setupMiddlewares = (client: Client, privateKey: Uint8Array) => {

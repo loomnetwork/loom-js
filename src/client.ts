@@ -81,7 +81,7 @@ export enum ClientEvent {
   /**
    * Exclusively used by loom-provider
    */
-  EVMEvent = 'message', // 'evmEvent',
+  EVMEvent = 'evmEvent',
   /**
    * Emitted when an error occurs that can't be relayed by other means.
    * Listener will receive IClientErrorEventArgs.
