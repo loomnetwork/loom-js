@@ -1,7 +1,7 @@
 import test from 'tape'
 
 import { NonceTxMiddleware, SignedTxMiddleware, CryptoUtils } from '../../index'
-import { createTestClient, createLegacyTestClient } from '../helpers'
+import { createTestClient } from '../helpers'
 import { CallTx, VMType, MessageTx, Transaction } from '../../proto/loom_pb'
 import { LoomProvider } from '../../loom-provider'
 import { deployContract } from '../evm-helpers'
@@ -41,7 +41,7 @@ test('Client EVM Event test', async t => {
   try {
     const privateKey = CryptoUtils.generatePrivateKey()
     const publicKey = CryptoUtils.publicKeyFromPrivateKey(privateKey)
-    client = createLegacyTestClient()
+    client = createTestClient()
 
     client.on('error', err => t.error(err))
 

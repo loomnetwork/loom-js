@@ -2,7 +2,7 @@ import test from 'tape'
 import BN from 'bn.js'
 
 import { LocalAddress, CryptoUtils } from '../../index'
-import { createTestClient, waitForMillisecondsAsync } from '../helpers'
+import { createTestClient, waitForMillisecondsAsync, createWeb3TestClient } from '../helpers'
 
 import { LoomProvider } from '../../loom-provider'
 import { deployContract } from '../evm-helpers'
@@ -40,9 +40,9 @@ const Web3 = require('web3')
  *
  */
 
-const newContractAndClient = async () => {
+const newContractAndClient = async (useEthEndpoint: boolean) => {
   const privKey = CryptoUtils.generatePrivateKey()
-  const client = createTestClient()
+  const client = useEthEndpoint ? createWeb3TestClient() : createTestClient()
   const from = LocalAddress.fromPublicKey(CryptoUtils.publicKeyFromPrivateKey(privKey)).toString()
   const loomProvider = new LoomProvider(client, privKey)
   const web3 = new Web3(loomProvider)
@@ -87,9 +87,9 @@ const newContractAndClient = async () => {
   return { contract, client, web3, from, privKey }
 }
 
-test('LoomProvider + Web3 + Event with not matching topic', async t => {
+async function testWeb3MismatchedTopic(t: any, useEthEndpoint: boolean) {
   t.plan(2)
-  const { contract, client } = await newContractAndClient()
+  const { contract, client } = await newContractAndClient(useEthEndpoint)
 
   try {
     const newValue = 1
@@ -116,11 +116,11 @@ test('LoomProvider + Web3 + Event with not matching topic', async t => {
   if (client) {
     client.disconnect()
   }
-})
+}
 
-test('LoomProvider + Web3 + Multiple event topics', async t => {
+async function testWeb3MultipleTopics(t: any, useEthEndpoint: boolean) {
   t.plan(3)
-  const { contract, client } = await newContractAndClient()
+  const { contract, client } = await newContractAndClient(useEthEndpoint)
   try {
     const newValue = 1
 
@@ -147,10 +147,10 @@ test('LoomProvider + Web3 + Multiple event topics', async t => {
   }
 
   t.end()
-})
+}
 
-test('LoomProvider + Web3 + Eth Sign', async t => {
-  const { client, web3, from, privKey } = await newContractAndClient()
+async function testWeb3Sign(t: any, useEthEndpoint: boolean) {
+  const { client, web3, from, privKey } = await newContractAndClient(useEthEndpoint)
   try {
     const msg = '0xff'
     const result = await web3.eth.sign(msg, from)
@@ -178,10 +178,10 @@ test('LoomProvider + Web3 + Eth Sign', async t => {
   }
 
   t.end()
-})
+}
 
-test('LoomProvider + Web3 + Get version', async t => {
-  const { client, web3 } = await newContractAndClient()
+async function testWeb3NetId(t: any, useEthEndpoint: boolean) {
+  const { client, web3 } = await newContractAndClient(useEthEndpoint)
   try {
     const chainIdHash = soliditySha3(client.chainId)
       .slice(2)
@@ -199,10 +199,10 @@ test('LoomProvider + Web3 + Get version', async t => {
   }
 
   t.end()
-})
+}
 
-test('LoomProvider + Web3 + getBlockNumber', async t => {
-  const { client, web3 } = await newContractAndClient()
+async function testWeb3BlockNumber(t: any, useEthEndpoint: boolean) {
+  const { client, web3 } = await newContractAndClient(useEthEndpoint)
   try {
     const blockNumber = await web3.eth.getBlockNumber()
     t.assert(typeof blockNumber === 'number', 'Block number should be a number')
@@ -215,10 +215,10 @@ test('LoomProvider + Web3 + getBlockNumber', async t => {
   }
 
   t.end()
-})
+}
 
-test('LoomProvider + Web3 + getBlockByNumber', async t => {
-  const { client, web3 } = await newContractAndClient()
+async function testWeb3BlockByNumber(t: any, useEthEndpoint: boolean) {
+  const { client, web3 } = await newContractAndClient(useEthEndpoint)
   try {
     const blockNumber = await web3.eth.getBlockNumber()
     const blockInfo = await web3.eth.getBlock(blockNumber, false)
@@ -232,10 +232,10 @@ test('LoomProvider + Web3 + getBlockByNumber', async t => {
   }
 
   t.end()
-})
+}
 
-test('LoomProvider + Web3 + getBlockHash', async t => {
-  const { client, web3 } = await newContractAndClient()
+async function testWeb3BlockByHash(t: any, useEthEndpoint: boolean) {
+  const { client, web3 } = await newContractAndClient(useEthEndpoint)
   try {
     const blockNumber = await web3.eth.getBlockNumber()
     const blockInfo = await web3.eth.getBlock(blockNumber, false)
@@ -250,10 +250,10 @@ test('LoomProvider + Web3 + getBlockHash', async t => {
   }
 
   t.end()
-})
+}
 
-test('LoomProvider + Web3 + getGasPrice', async t => {
-  const { client, web3 } = await newContractAndClient()
+async function testWeb3GasPrice(t: any, useEthEndpoint: boolean) {
+  const { client, web3 } = await newContractAndClient(useEthEndpoint)
   try {
     const gasPrice = await web3.eth.getGasPrice()
     t.equal(gasPrice, null, "Gas price isn't used on Loomchain")
@@ -266,10 +266,10 @@ test('LoomProvider + Web3 + getGasPrice', async t => {
   }
 
   t.end()
-})
+}
 
-test('LoomProvider + Web3 + getBalance', async t => {
-  const { client, web3, from } = await newContractAndClient()
+async function testWeb3Balance(t: any, useEthEndpoint: boolean) {
+  const { client, web3, from } = await newContractAndClient(useEthEndpoint)
   try {
     const balance = await web3.eth.getBalance(from)
     t.equal(balance, '0', 'Default balance is 0')
@@ -282,10 +282,10 @@ test('LoomProvider + Web3 + getBalance', async t => {
   }
 
   t.end()
-})
+}
 
-test.skip('LoomProvider + Web3 + getTransactionReceipt', async t => {
-  const { contract, client } = await newContractAndClient()
+async function testWeb3TransactionReceipt(t: any, useEthEndpoint: boolean) {
+  const { contract, client } = await newContractAndClient(useEthEndpoint)
   try {
     const newValue = 1
 
@@ -293,7 +293,9 @@ test.skip('LoomProvider + Web3 + getTransactionReceipt', async t => {
     console.log('tx', tx)
     // TODO: there is no blockTime property in tx.events.NewValueSet, it's a Loom extension that's
     //       not implemented on the /eth endpoint yet, re-enable this when we implement it again
-    // t.assert(tx.events.NewValueSet.blockTime > 0, 'blockTime should be greater than 0')
+    if (!useEthEndpoint) {
+      t.assert(tx.events.NewValueSet.blockTime > 0, 'blockTime should be greater than 0')
+    }
     t.assert(tx.events.NewValueSet.blockHash > 0, 'blockHash should be greater than 0')
     t.equal(tx.status, '0x1', 'SimpleStore.set should return correct status')
 
@@ -307,10 +309,10 @@ test.skip('LoomProvider + Web3 + getTransactionReceipt', async t => {
   }
 
   t.end()
-})
+}
 
-test('LoomProvider + Web3 + Logs', async t => {
-  const { contract, client, web3 } = await newContractAndClient()
+async function testWeb3PastEvents(t: any, useEthEndpoint: boolean) {
+  const { contract, client, web3 } = await newContractAndClient(useEthEndpoint)
   try {
     const newValue = 1
 
@@ -325,8 +327,9 @@ test('LoomProvider + Web3 + Logs', async t => {
     t.assert(events.length > 0, 'Should have more than 0 events')
     // TODO: there is no blockTime property on Ethereum events, it's a Loom extension that's
     //       not implemented on the /eth endpoint yet, re-enable this when we implement it again
-    // t.assert(events[0].blockTime > 0, 'blockTime should be greater than 0')
-
+    if (!useEthEndpoint) {
+      t.assert(events[0].blockTime > 0, 'blockTime should be greater than 0')
+    }
     await waitForMillisecondsAsync(1000)
   } catch (err) {
     console.log(err)
@@ -337,4 +340,27 @@ test('LoomProvider + Web3 + Logs', async t => {
   }
 
   t.end()
-})
+}
+
+test('LoomProvider + Web3 + Event with not matching topic (legacy)', (t: any) => testWeb3MismatchedTopic(t, false))
+test('LoomProvider + Web3 + Event with not matching topic', (t: any) => testWeb3MismatchedTopic(t, true))
+test('LoomProvider + Web3 + Multiple event topics (legacy)', (t: any) => testWeb3MultipleTopics(t, false))
+test('LoomProvider + Web3 + Multiple event topics', (t: any) => testWeb3MultipleTopics(t, true))
+test('LoomProvider + Web3 + Eth Sign (legacy)', (t: any) => testWeb3Sign(t, false))
+test('LoomProvider + Web3 + Eth Sign', (t: any) => testWeb3Sign(t, true))
+test('LoomProvider + Web3 + Get version (legacy)', (t: any) => testWeb3NetId(t, false))
+test('LoomProvider + Web3 + Get version', (t: any) => testWeb3NetId(t, true))
+test('LoomProvider + Web3 + getBlockNumber (legacy)', (t: any) => testWeb3BlockNumber(t, false))
+test('LoomProvider + Web3 + getBlockNumber', (t: any) => testWeb3BlockNumber(t, true))
+test('LoomProvider + Web3 + getBlockByNumber (legacy)', (t: any) => testWeb3BlockByNumber(t, false))
+test('LoomProvider + Web3 + getBlockByNumber', (t: any) => testWeb3BlockByNumber(t, true))
+test('LoomProvider + Web3 + getBlock by hash (legacy)', (t: any) => testWeb3BlockByHash(t, false))
+test('LoomProvider + Web3 + getBlock by hash', (t: any) => testWeb3BlockByHash(t, true))
+test('LoomProvider + Web3 + getGasPrice (legacy)', (t: any) => testWeb3GasPrice(t, false))
+test('LoomProvider + Web3 + getGasPrice', (t: any) => testWeb3GasPrice(t, true))
+test('LoomProvider + Web3 + getBalance (legacy)', (t: any) => testWeb3Balance(t, false))
+test('LoomProvider + Web3 + getBalance', (t: any) => testWeb3Balance(t, true))
+test('LoomProvider + Web3 + getTransactionReceipt (legacy)', (t: any) => testWeb3TransactionReceipt(t, false))
+test('LoomProvider + Web3 + getTransactionReceipt', (t: any) => testWeb3TransactionReceipt(t, true))
+test('LoomProvider + Web3 + Logs (legacy)', (t: any) => testWeb3PastEvents(t, false))
+test('LoomProvider + Web3 + Logs', (t: any) => testWeb3PastEvents(t, true))
