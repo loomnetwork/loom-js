@@ -58,6 +58,8 @@
   "include": [
     "src/index.ts",
     "src/types/*.d.ts",
+    "src/types/web3/*.d.ts",
+    "src/types/web3/eth/*.d.ts",
     "src/tests/*.ts"
   ]
 }

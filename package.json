@@ -63,7 +63,6 @@
     "@types/retry": "^0.10.2",
     "@types/shelljs": "^0.8.0",
     "@types/tape": "^4.2.32",
-    "@types/web3": "^1.0.19",
     "babel-cli": "^6.26.0",
     "babel-loader": "^8.0.0-beta.2",
     "dotenv": "^5.0.1",
