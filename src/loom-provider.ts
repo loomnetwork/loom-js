@@ -35,6 +35,7 @@ import {
 import { soliditySha3 } from './solidity-helpers'
 import { marshalBigUIntPB } from './big-uint'
 import { SignedEthTxMiddleware } from './middleware'
+import { CryptoUtils } from '.'
 
 export interface IEthReceipt {
   transactionHash: string
@@ -147,7 +148,7 @@ export class LoomProvider {
    */
   constructor(
     client: Client,
-    privateKey: Uint8Array,
+    privateKeyOrAddress: Uint8Array | Address,
     setupMiddlewaresFunction?: SetupMiddlewareFunction
   ) {
     this._client = client
@@ -157,11 +158,20 @@ export class LoomProvider {
     this._ethRPCMethods = new Map<string, EthRPCMethod>()
     this.notificationCallbacks = new Array()
     this.accounts = new Map<string, Uint8Array>()
+    let privateKey: Uint8Array
 
     // Only subscribe for event emitter do not call subevents
     this._client.addListener(ClientEvent.EVMEvent, (msg: IChainEventArgs) =>
       this._onWebSocketMessage(msg)
     )
+
+    if (privateKeyOrAddress instanceof Uint8Array) {
+      privateKey = privateKeyOrAddress
+    } else {
+      privateKey = CryptoUtils.generatePrivateKey()
+      this.setMiddlewaresForAddress(privateKeyOrAddress.local.toString(), client.txMiddleware)
+      this.callerChainId = privateKeyOrAddress.chainId
+    }
 
     if (!this._setupMiddlewares) {
       this._setupMiddlewares = (client: Client, privateKey: Uint8Array) => {
