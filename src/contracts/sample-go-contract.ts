@@ -2,9 +2,7 @@ import BN from 'bn.js'
 import { Client } from '../client'
 import { Contract } from '../contract'
 import { Address } from '../address'
-import {
-  SampleGoContractNestedEvmRequest
-} from '../proto/sample_go_contract_pb'
+import { SampleGoContractNestedEvmRequest } from '../proto/sample_go_contract_pb'
 
 export class SampleGoContract extends Contract {
   static async createAsync(client: Client, callerAddr: Address): Promise<SampleGoContract> {
@@ -23,7 +21,7 @@ export class SampleGoContract extends Contract {
     innerEmitter: Address,
     outerEmitter: Address,
     innerEmitterValue: number,
-    outerEmitterValue: number,
+    outerEmitterValue: number
   ): Promise<Uint8Array | void> {
     const request = new SampleGoContractNestedEvmRequest()
     request.setInnerEmitter(innerEmitter.MarshalPB())
