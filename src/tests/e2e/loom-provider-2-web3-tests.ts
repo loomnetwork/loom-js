@@ -189,7 +189,7 @@ test('LoomProvider + Web3 + getGasPrice', async t => {
   const { loomProvider, web3 } = await newContractAndClient()
   try {
     const gasPrice = await web3.eth.getGasPrice()
-    t.equal(gasPrice, null, "Gas price isn't used on Loomchain")
+    t.equal(gasPrice, '0', "Gas price isn't used on Loomchain")
   } catch (err) {
     t.error(err)
   }

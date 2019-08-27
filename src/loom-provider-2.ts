@@ -1,5 +1,4 @@
 import debug from 'debug'
-import retry from 'retry'
 import { Wallet } from 'ethers'
 import { Client as WSClient } from 'rpc-websockets'
 import { EthRPCMethod, IEthRPCPayload } from './loom-provider'
@@ -10,38 +9,30 @@ const debugLog = debug('loom-provider-2')
 const eventLog = debug('loom-provider-2:event')
 const errorLog = debug('loom-provider-2:error')
 
+/**
+ * Web3 provider that interacts with EVM contracts deployed on Loom DAppChains.
+ */
 export class LoomProvider2 {
   private _wallet: Wallet
   private _wsRPC: WSClient
-  private _ethRPCMethods: Map<string, EthRPCMethod>
-  protected notificationCallbacks: Array<Function>
+  private _ethRPCMethods: Map<string, EthRPCMethod> = new Map<string, EthRPCMethod>()
+  protected notificationCallbacks: Array<Function> = new Array()
+  readonly wallets: Map<string, Wallet | null> = new Map<string, Wallet>()
 
   /**
-   * The retry strategy that should be used to retry some web3 requests.
-   * By default failed requested won't be resent.
-   * To understand how to tweak the retry strategy see
-   * https://github.com/tim-kos/node-retry#retrytimeoutsoptions
+   * Constructs the LoomProvider2 to bridges communication between Web3 and Loom DappChains
+   *
+   * @param host Loomchain address
+   * @param ecdsaPrivateKey ECDSA private key
    */
-  retryStrategy: retry.OperationOptions = {
-    retries: 0,
-    minTimeout: 1000, // 1s
-    maxTimeout: 30000, // 30s
-    randomize: true
-  }
-
   constructor(public host: string, private ecdsaPrivateKey?: string) {
     // Simply create socket
     this._wsRPC = new WSClient(host)
 
-    // Methods from LoomProvider2
-    this._ethRPCMethods = new Map<string, EthRPCMethod>()
-
-    // Notifications for Web3
-    this.notificationCallbacks = new Array()
-
     // If no privakey passed generate a random wallet
     this._wallet = ecdsaPrivateKey ? new Wallet(ecdsaPrivateKey) : Wallet.createRandom()
 
+    // Emits new messages to the provider handler above (Web3)
     this._wsRPC.once('open', () => {
       ;((this._wsRPC as any).socket as EventEmitter).on(
         'message',
@@ -52,6 +43,7 @@ export class LoomProvider2 {
       }
     })
 
+    // Prepare LoomProvider2 default methods
     this.addDefaultMethods()
   }
 
@@ -61,7 +53,6 @@ export class LoomProvider2 {
 
   addDefaultMethods() {
     this._ethRPCMethods.set('eth_accounts', this._ethAccounts.bind(this))
-    this._ethRPCMethods.set('eth_gasPrice', this._ethGasPrice.bind(this))
     this._ethRPCMethods.set('eth_sendTransaction', this._ethSendTransaction.bind(this))
   }
 
@@ -79,6 +70,12 @@ export class LoomProvider2 {
     }
   }
 
+  /**
+   * Should be used to make async request
+   *
+   * @param payload JSON payload
+   * @param callback Triggered on end with (err, result)
+   */
   async send(payload: any, callback: Function) {
     const isArray = Array.isArray(payload)
     if (isArray) {
@@ -114,60 +111,7 @@ export class LoomProvider2 {
     }
   }
 
-  // PRIVATE FUNCTIONS EVM CALLS
-
-  private async _ethAccounts() {
-    const address = await this.wallet.getAddress()
-    return [address]
-  }
-
-  private _ethGasPrice() {
-    // Loom DAppChain doesn't use gas price
-    // This method can be overwritten if necessary
-    return null // Returns null to afford with Web3 calls
-  }
-
-  private async _ethSendTransaction(payload: IEthRPCPayload) {
-    const params: any = payload.params[0]
-
-    const account = await this.wallet.getAddress()
-
-    // Get the nonce for the next tx
-    const nonce = await this.sendAsync({
-      id: 0,
-      method: 'eth_getTransactionCount',
-      params: [account, 'latest']
-    })
-
-    debugLog(`Next nonce ${nonce.result}`)
-
-    // Create transaction
-    const transaction: any = {
-      nonce: hexToNumber(nonce.result) + 1,
-      data: params.data,
-      gasPrice: '0x0'
-    }
-
-    if (params.to) {
-      transaction.to = params.to
-    }
-
-    if (params.value) {
-      transaction.value = params.value
-    }
-
-    const signedTransaction = await this.wallet.sign(transaction)
-
-    debugLog(`Signed transaction ${JSON.stringify(transaction, null, 2)} ${signedTransaction}`)
-
-    const tx = await this.sendAsync({
-      id: 0,
-      method: 'eth_sendRawTransaction',
-      params: [signedTransaction]
-    })
-
-    return tx.result
-  }
+  // EVENT HANDLING METHODS
 
   on(type: string, callback: any) {
     if (typeof callback !== 'function') {
@@ -235,7 +179,56 @@ export class LoomProvider2 {
     this._wsRPC.close(1000, 'bye')
   }
 
-  _onWebSocketMessage(jsonResult: any) {
+  // PRIVATE FUNCTIONS
+
+  private async _ethAccounts() {
+    const address = await this.wallet.getAddress()
+    return [address]
+  }
+
+  private async _ethSendTransaction(payload: IEthRPCPayload) {
+    const params: any = payload.params[0]
+
+    const account = await this.wallet.getAddress()
+
+    // Get the nonce for the next tx
+    const nonce = await this.sendAsync({
+      id: 0,
+      method: 'eth_getTransactionCount',
+      params: [account, 'latest']
+    })
+
+    debugLog(`Next nonce ${nonce.result}`)
+
+    // Create transaction
+    const transaction: any = {
+      nonce: hexToNumber(nonce.result) + 1,
+      data: params.data,
+      gasPrice: '0x0'
+    }
+
+    if (params.to) {
+      transaction.to = params.to
+    }
+
+    if (params.value) {
+      transaction.value = params.value
+    }
+
+    const signedTransaction = await this.wallet.sign(transaction)
+
+    debugLog(`Signed transaction ${JSON.stringify(transaction, null, 2)} ${signedTransaction}`)
+
+    const tx = await this.sendAsync({
+      id: 0,
+      method: 'eth_sendRawTransaction',
+      params: [signedTransaction]
+    })
+
+    return tx.result
+  }
+
+  private _onWebSocketMessage(jsonResult: any) {
     try {
       const result = JSON.parse(jsonResult)
 
