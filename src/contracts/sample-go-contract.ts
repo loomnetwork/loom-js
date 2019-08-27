@@ -3,7 +3,7 @@ import { Client } from '../client'
 import { Contract } from '../contract'
 import { Address } from '../address'
 import {
-  SampleGoContractNestedEvmRequest2
+  SampleGoContractNestedEvmRequest
 } from '../proto/sample_go_contract_pb'
 
 export class SampleGoContract extends Contract {
@@ -19,18 +19,18 @@ export class SampleGoContract extends Contract {
     super(params)
   }
 
-  testNestedEvmCalls2Async(
-    testEvent: Address,
-    chainTestEvent: Address,
-    testEventValue: number,
-    chainTestEventValue: number,
+  testNestedEvmCallsAsync(
+    innerEmitter: Address,
+    outerEmitter: Address,
+    innerEmitterValue: number,
+    outerEmitterValue: number,
   ): Promise<Uint8Array | void> {
-    const request = new SampleGoContractNestedEvmRequest2()
-    request.setTestEvent(testEvent.MarshalPB())
-    request.setChainTestEvent(chainTestEvent.MarshalPB())
-    request.setTestEventValue(testEventValue)
-    request.setChainTestEventValue(chainTestEventValue)
+    const request = new SampleGoContractNestedEvmRequest()
+    request.setInnerEmitter(innerEmitter.MarshalPB())
+    request.setOuterEmitter(outerEmitter.MarshalPB())
+    request.setInnerEmitterValue(innerEmitterValue)
+    request.setOuterEmitterValue(outerEmitterValue)
 
-    return this.callAsync<void>('TestNestedEvmCalls2', request)
+    return this.callAsync<void>('TestNestedEvmCalls', request)
   }
 }
