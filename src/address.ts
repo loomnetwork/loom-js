@@ -5,7 +5,9 @@ import { bufferToProtobufBytes } from './crypto-utils'
 import * as pb from './proto/loom_pb'
 
 export class LocalAddress {
-  constructor(public bytes: Uint8Array) {}
+  constructor(public bytes: Uint8Array) {
+    this.bytes = Buffer.from(bytes)
+  }
 
   isEmpty(): boolean {
     return this.bytes && this.bytes.length === 0
@@ -28,9 +30,8 @@ export class LocalAddress {
   }
 
   equals(other: LocalAddress): boolean {
-
     // Node API docs say parameters can be Buffer | Uint8Array... so shush TypeScript
-    return Buffer.compare(this.bytes, other.bytes ) === 0
+    return Buffer.compare(this.bytes, other.bytes) === 0
   }
 
   static fromHexString(hexAddr: string): LocalAddress {
@@ -92,7 +93,7 @@ export class Address {
   }
 
   static UnmarshalPB(pb: pb.Address): Address {
-    return new Address(pb.getChainId(), new LocalAddress(Buffer.from(pb.getLocal_asU8())))
+    return new Address(pb.getChainId(), new LocalAddress(pb.getLocal_asU8()))
   }
 
   /**
