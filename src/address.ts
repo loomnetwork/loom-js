@@ -30,7 +30,6 @@ export class LocalAddress {
   }
 
   equals(other: LocalAddress): boolean {
-    // Node API docs say parameters can be Buffer | Uint8Array... so shush TypeScript
     return Buffer.compare(this.bytes, other.bytes) === 0
   }
 
