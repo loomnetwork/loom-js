@@ -1,8 +1,10 @@
 import debug from 'debug'
 import retry from 'retry'
 import { Wallet } from 'ethers'
+import { Client as WSClient } from 'rpc-websockets'
 import { EthRPCMethod, IEthRPCPayload } from './loom-provider'
 import { hexToNumber } from './crypto-utils'
+import { Params } from './proto/dposv3_pb'
 
 const log = debug('loom-provider-2')
 const error = debug('loom-provider-2:error')
@@ -10,6 +12,7 @@ const error = debug('loom-provider-2:error')
 export class LoomProvider2 {
   private _idCounter = 0
   private _wallet: Wallet
+  private _wsRPC: WSClient
   private _ethRPCMethods: Map<string, EthRPCMethod>
   protected notificationCallbacks: Array<Function>
 
@@ -27,6 +30,9 @@ export class LoomProvider2 {
   }
 
   constructor(public host: string, private ecdsaPrivateKey?: string) {
+    // Simply create socket
+    this._wsRPC = new WSClient(host)
+
     // Methods from LoomProvider2
     this._ethRPCMethods = new Map<string, EthRPCMethod>()
 
@@ -49,44 +55,57 @@ export class LoomProvider2 {
     this._ethRPCMethods.set('eth_sendTransaction', this._ethSendTransaction.bind(this))
   }
 
-  // Adapter function for async / await
-  async sendAsync(payload: any): Promise<any> {
-    return new Promise((resolve, reject) => {
-      // @ts-ignore
-      this.send(payload, (error: any, val: any) => {
-        if (error) reject(error)
-        else resolve(val)
+  // Adapter function for sendAsync from truffle provider
+  async sendAsync(payload: any, callback?: Function): Promise<any | void> {
+    if (callback) {
+      await this.send(payload, callback)
+    } else {
+      return new Promise((resolve, reject) => {
+        this.send(payload, (err: Error, result: any) => {
+          if (err) reject(err)
+          else resolve(result)
+        })
       })
-    })
+    }
   }
 
   async send(payload: any, callback: Function) {
-    log('Request payload', JSON.stringify(payload, null, 2))
-
     const isArray = Array.isArray(payload)
     if (isArray) {
       payload = payload[0]
     }
 
-    payload.id = this._idCounter++
+    log('New Payload', payload)
+
+    if (!this._wsRPC.ready) {
+      log(`Socket not ready resched call ${payload}`)
+
+      setTimeout(() => {
+        this.send(payload, callback)
+      }, 1000)
+
+      return
+    }
+
+    let result
 
     try {
-      let methodToCall = this._ethRPCMethods.get(payload.method)
-
-      if (methodToCall) {
-        const result = await methodToCall(payload)
-        callback(null, this._okResponse(payload.id, result, isArray))
+      if (this._ethRPCMethods.has(payload.method)) {
+        const f: Function = this._ethRPCMethods.get(payload.method)!
+        result = await f(payload)
       } else {
-        // Call loomchain from here
+        result = await this._wsRPC.call(payload.method, payload.params)
       }
+
+      callback(null, this._okResponse(payload.id, result, isArray))
     } catch (err) {
-      error(err)
       callback(err, null)
     }
   }
 
   disconnect() {
     log(`Disconnect`)
+    this._wsRPC.close(1000, 'bye')
   }
 
   // PRIVATE FUNCTIONS EVM CALLS
