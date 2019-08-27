@@ -76,62 +76,65 @@ const newContractAndClient = async () => {
   return { contract, web3, from, loomProvider }
 }
 
-// test('LoomProvider + Web3 + Event with not matching topic', async t => {
-//   // t.plan(2)
-//   // const { contract, loomProvider } = await newContractAndClient()
+test('LoomProvider + Web3 + Event with not matching topic', async t => {
+  t.plan(2)
+  const { contract, loomProvider } = await newContractAndClient()
 
-//   try {
-//     // const newValue = 1
-//     // contract.events.NewValueSet({ filter: { _value: [4, 5] } }, (err: Error, event: any) => {
-//     //   console.log(err, event)
-//     //   if (err) t.error(err)
-//     //   else {
-//     //     t.fail('should not been dispatched')
-//     //   }
-//     // })
-//     // const tx = await contract.methods.set(newValue).send()
-//     // t.equal(tx.status, true, 'SimpleStore.set should return correct status')
-//     // const resultOfGet = await contract.methods.get().call()
-//     // t.equal(+resultOfGet, newValue, `SimpleStore.get should return correct value`)
-//     // await waitForMillisecondsAsync(1000)
-//   } catch (err) {
-//     console.log(err)
-//   }
+  try {
+    const newValue = 1
 
-//   // loomProvider.disconnect()
-//   t.end()
-// })
+    contract.events.NewValueSet({ filter: { _value: [4, 5] } }, (err: Error, event: any) => {
+      if (err) t.error(err)
+      else {
+        t.fail('should not been dispatched')
+      }
+    })
 
-// test('LoomProvider + Web3 + Multiple event topics', async t => {
-//   t.plan(3)
-//   const { contract, loomProvider } = await newContractAndClient()
-//   try {
-//     const newValue = 1
+    const tx = await contract.methods.set(newValue).send()
+    t.equal(tx.status, true, 'SimpleStore.set should return correct status')
 
-//     contract.events.NewValueSet({ filter: { _value: [1, 2, 3] } }, (err: Error, event: any) => {
-//       if (err) t.error(err)
-//       else {
-//         t.equal(+event.returnValues._value, newValue, `Return value should be ${newValue}`)
-//       }
-//     })
+    const resultOfGet = await contract.methods.get().call()
+    t.equal(+resultOfGet, newValue, `SimpleStore.get should return correct value`)
 
-//     const tx = await contract.methods.set(newValue).send()
-//     t.equal(tx.status, true, 'SimpleStore.set should return correct status')
+    await waitForMillisecondsAsync(1000)
+  } catch (err) {
+    t.error(err)
+  }
 
-//     const resultOfGet = await contract.methods.get().call()
-//     t.equal(+resultOfGet, newValue, `SimpleStore.get should return correct value`)
+  loomProvider.disconnect()
+  t.end()
+})
 
-//     await waitForMillisecondsAsync(1000)
-//   } catch (err) {
-//     console.log(err)
-//   }
+test('LoomProvider + Web3 + Multiple event topics', async t => {
+  t.plan(3)
+  const { contract, loomProvider } = await newContractAndClient()
+  try {
+    const newValue = 1
 
-//   if (loomProvider) {
-//     loomProvider.disconnect()
-//   }
+    contract.events.NewValueSet({ filter: { _value: [1, 2, 3] } }, (err: Error, event: any) => {
+      if (err) t.error(err)
+      else {
+        t.equal(+event.returnValues._value, newValue, `Return value should be ${newValue}`)
+      }
+    })
 
-//   t.end()
-// })
+    const tx = await contract.methods.set(newValue).send()
+    t.equal(tx.status, true, 'SimpleStore.set should return correct status')
+
+    const resultOfGet = await contract.methods.get().call()
+    t.equal(+resultOfGet, newValue, `SimpleStore.get should return correct value`)
+
+    await waitForMillisecondsAsync(1000)
+  } catch (err) {
+    t.error(err)
+  }
+
+  if (loomProvider) {
+    loomProvider.disconnect()
+  }
+
+  t.end()
+})
 
 test('LoomProvider + Web3 + getBlockNumber', async t => {
   const { loomProvider, web3 } = await newContractAndClient()
@@ -140,127 +143,124 @@ test('LoomProvider + Web3 + getBlockNumber', async t => {
     const blockNumber = await web3.eth.getBlockNumber()
     t.assert(typeof blockNumber === 'number', 'Block number should be a number')
   } catch (err) {
-    console.log(err)
+    t.error(err)
   }
 
   loomProvider.disconnect()
   t.end()
 })
 
-// test('LoomProvider + Web3 + getBlockByNumber', async t => {
-//   const { loomProvider, web3 } = await newContractAndClient()
-//   try {
-//     const blockNumber = await web3.eth.getBlockNumber()
-//     const blockInfo = await web3.eth.getBlock(blockNumber, false)
-//     t.equal(parseInt(blockInfo.blockNumber, 16), blockNumber, 'Block number should be equal')
-//   } catch (err) {
-//     console.log(err)
-//   }
+test('LoomProvider + Web3 + getBlockByNumber', async t => {
+  const { loomProvider, web3 } = await newContractAndClient()
+  try {
+    const blockNumber = await web3.eth.getBlockNumber()
+    const blockInfo = await web3.eth.getBlock(blockNumber, false)
+    t.equal(blockInfo.number, blockNumber, 'Block number should be equal')
+  } catch (err) {
+    t.error(err)
+  }
 
-//   if (loomProvider) {
-//     loomProvider.disconnect()
-//   }
+  if (loomProvider) {
+    loomProvider.disconnect()
+  }
 
-//   t.end()
-// })
+  t.end()
+})
 
-// test('LoomProvider + Web3 + getBlockHash', async t => {
-//   const { loomProvider, web3 } = await newContractAndClient()
-//   try {
-//     const blockNumber = await web3.eth.getBlockNumber()
-//     const blockInfo = await web3.eth.getBlock(blockNumber, false)
-//     const blockInfoByHash = await web3.eth.getBlock(blockInfo.transactionHash, false)
-//     t.assert(blockInfoByHash, 'Should return block info by hash')
-//   } catch (err) {
-//     console.log(err)
-//   }
+test('LoomProvider + Web3 + getBlockHash', async t => {
+  const { loomProvider, web3 } = await newContractAndClient()
+  try {
+    const blockNumber = await web3.eth.getBlockNumber()
+    const blockInfo = await web3.eth.getBlock(blockNumber, false)
+    const blockInfoByHash = await web3.eth.getBlock(blockInfo.hash, false)
+    t.assert(blockInfoByHash, 'Should return block info by hash')
+  } catch (err) {
+    t.error(err)
+  }
 
-//   if (loomProvider) {
-//     loomProvider.disconnect()
-//   }
+  if (loomProvider) {
+    loomProvider.disconnect()
+  }
 
-//   t.end()
-// })
+  t.end()
+})
 
-// test('LoomProvider + Web3 + getGasPrice', async t => {
-//   const { loomProvider, web3 } = await newContractAndClient()
-//   try {
-//     const gasPrice = await web3.eth.getGasPrice()
-//     t.equal(gasPrice, null, "Gas price isn't used on Loomchain")
-//   } catch (err) {
-//     console.log(err)
-//   }
+test('LoomProvider + Web3 + getGasPrice', async t => {
+  const { loomProvider, web3 } = await newContractAndClient()
+  try {
+    const gasPrice = await web3.eth.getGasPrice()
+    t.equal(gasPrice, null, "Gas price isn't used on Loomchain")
+  } catch (err) {
+    t.error(err)
+  }
 
-//   if (loomProvider) {
-//     loomProvider.disconnect()
-//   }
+  if (loomProvider) {
+    loomProvider.disconnect()
+  }
 
-//   t.end()
-// })
+  t.end()
+})
 
-// test('LoomProvider + Web3 + getBalance', async t => {
-//   const { loomProvider, web3, from } = await newContractAndClient()
-//   try {
-//     const balance = await web3.eth.getBalance(from)
-//     t.equal(balance, '0', 'Default balance is 0')
-//   } catch (err) {
-//     console.log(err)
-//   }
+test('LoomProvider + Web3 + getBalance', async t => {
+  const { loomProvider, web3, from } = await newContractAndClient()
+  try {
+    const balance = await web3.eth.getBalance(from)
+    t.equal(balance, '0', 'Default balance is 0')
+  } catch (err) {
+    t.error(err)
+  }
 
-//   if (loomProvider) {
-//     loomProvider.disconnect()
-//   }
+  if (loomProvider) {
+    loomProvider.disconnect()
+  }
 
-//   t.end()
-// })
+  t.end()
+})
 
-// test('LoomProvider + Web3 + getTransactionReceipt', async t => {
-//   const { contract, loomProvider } = await newContractAndClient()
-//   try {
-//     const newValue = 1
+test('LoomProvider + Web3 + getTransactionReceipt', async t => {
+  const { contract, loomProvider } = await newContractAndClient()
+  try {
+    const newValue = 1
 
-//     const tx = await contract.methods.set(newValue).send()
-//     console.log('tx', tx)
-//     t.assert(tx.events.NewValueSet.blockTime > 0, 'blockTime should be greater than 0')
-//     t.assert(tx.events.NewValueSet.blockHash > 0, 'blockHash should be greater than 0')
-//     t.equal(tx.status, true, 'SimpleStore.set should return correct status')
+    const tx = await contract.methods.set(newValue).send()
+    t.assert(tx.events.NewValueSet.blockHash > 0, 'blockHash should be greater than 0')
+    t.equal(tx.status, true, 'SimpleStore.set should return correct status')
 
-//     await waitForMillisecondsAsync(1000)
-//   } catch (err) {
-//     console.log(err)
-//   }
+    await waitForMillisecondsAsync(1000)
+  } catch (err) {
+    t.error(err)
+  }
 
-//   if (loomProvider) {
-//     loomProvider.disconnect()
-//   }
+  if (loomProvider) {
+    loomProvider.disconnect()
+  }
 
-//   t.end()
-// })
+  t.end()
+})
 
-// test('LoomProvider + Web3 + Logs', async t => {
-//   const { contract, loomProvider, web3 } = await newContractAndClient()
-//   try {
-//     const newValue = 1
+test('LoomProvider + Web3 + Logs', async t => {
+  const { contract, loomProvider, web3 } = await newContractAndClient()
+  try {
+    const newValue = 1
 
-//     const blockNum = await web3.eth.getBlockNumber()
-//     const tx = await contract.methods.set(newValue).send()
-//     t.equal(tx.status, true, 'SimpleStore.set should return correct status')
+    const blockNum = await web3.eth.getBlockNumber()
+    const tx = await contract.methods.set(newValue).send()
+    t.equal(tx.status, true, 'SimpleStore.set should return correct status')
 
-//     const events = await contract.getPastEvents('NewValueSet', {
-//       fromBlock: blockNum
-//     })
-//     console.log('events', events)
-//     t.assert(events.length > 0, 'Should have more than 0 events')
-//     t.assert(events[0].blockTime > 0, 'blockTime should be greater than 0')
+    const events = await contract.getPastEvents('NewValueSet', {
+      fromBlock: blockNum
+    })
 
-//     await waitForMillisecondsAsync(1000)
-//   } catch (err) {
-//     console.log(err)
-//   }
+    t.assert(events.length > 0, 'Should have more than 0 events')
 
-//   if (loomProvider) {
-//     loomProvider.disconnect()
-//   }
+    await waitForMillisecondsAsync(1000)
+  } catch (err) {
+    t.error(err)
+  }
 
-//   t.end()
-// })
+  if (loomProvider) {
+    loomProvider.disconnect()
+  }
+
+  t.end()
+})

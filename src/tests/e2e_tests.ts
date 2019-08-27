@@ -13,7 +13,7 @@
 
 // Loom Provider 2
 import './e2e/loom-provider-2-tests'
-// import './e2e/loom-provider-2-web3-tests'
+import './e2e/loom-provider-2-web3-tests'
 
 // // EVM
 // import './e2e/client-evm-tests'
