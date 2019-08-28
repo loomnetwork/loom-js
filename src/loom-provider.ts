@@ -165,12 +165,12 @@ export class LoomProvider {
       this._onWebSocketMessage(msg)
     )
 
-    if (privateKeyOrAddress instanceof Uint8Array) {
-      privateKey = privateKeyOrAddress
-    } else {
+    if ('chainId' in privateKeyOrAddress) {
       privateKey = CryptoUtils.generatePrivateKey()
       this.setMiddlewaresForAddress(privateKeyOrAddress.local.toString(), client.txMiddleware)
       this.callerChainId = privateKeyOrAddress.chainId
+    } else {
+      privateKey = privateKeyOrAddress
     }
 
     if (!this._setupMiddlewares) {
