@@ -778,6 +778,7 @@ export class LoomProvider {
 
     return {
       blockNumber,
+      number: blockNumber,
       transactionHash,
       parentHash,
       logsBloom,
@@ -785,8 +786,7 @@ export class LoomProvider {
       transactions,
       gasLimit: '0x0',
       gasUsed: '0x0',
-      size: '0x0',
-      number: '0x0'
+      size: '0x0'
     }
   }
 
