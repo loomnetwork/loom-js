@@ -645,6 +645,10 @@ export class LoomProvider {
   }
 
   private async _ethSubscribe(payload: IEthRPCPayload) {
+    if (!this._subscribed) {
+      this._subscribed = true
+      this._client.addListenerForTopics().catch(console.error)
+    }
     const { method, params } = payload
     const subscriptionId: string = await this._client.evmSubscribeAsync(method, params)
     log('subscribed', subscriptionId, params)
@@ -946,7 +950,7 @@ export class LoomProvider {
       }
 
     } else {
-      log('Socket message arrived', JSON.stringify(msgEvent, null, 2))
+      log('Socket message arrived (web3)', JSON.stringify(msgEvent, null, 2))
       this.notificationCallbacks.forEach(callback => callback(msgEvent))
     }
   }

@@ -696,9 +696,9 @@ export class Client extends EventEmitter {
         method,
         filter
       })
+    } else {
+      return this._readClient.sendAsync<string>('eth_subscribe', params)
     }
-    this.addListenerForTopics()
-    return this._readClient.sendAsync<string>('eth_subscribe', params)
   }
 
   /**

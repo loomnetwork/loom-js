@@ -90,11 +90,11 @@ async function testContracts(t: Test, contractB: any, contractA: any) {
     const value = 5
 
     contractA.events.ContractAEvent({}, (_err: Error, event: any) => {
-      t.equal(event.returnValues.v, '5', 'Value returned should be 5')
+      t.equal(event.returnValues.v, '5', 'Value returned should be 5 (A)')
     })
 
     contractB.events.ContractBEvent({}, (_err: Error, event: any) => {
-      t.equal(event.returnValues.v, '5', 'Value returned should be 5')
+      t.equal(event.returnValues.v, '5', 'Value returned should be 5 (B)')
     })
 
     let tx = await contractA.methods.doEmit(value, contractB.options.address).send()
