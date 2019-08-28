@@ -4,6 +4,7 @@ import { waitForMillisecondsAsync, getTestUrls } from '../../helpers'
 import { deployContract2 } from '../../evm-helpers'
 import Web3 from 'web3'
 import { LoomProvider2 } from '../../../loom-provider-2'
+import { BlockType } from 'web3/eth/types'
 
 /**
  * Requires the SimpleStore solidity contract deployed on a loomchain.
@@ -172,7 +173,7 @@ test('LoomProvider + Web3 + getBlockHash', async t => {
   try {
     const blockNumber = await web3.eth.getBlockNumber()
     const blockInfo = await web3.eth.getBlock(blockNumber, false)
-    const blockInfoByHash = await web3.eth.getBlock(blockInfo.hash, false)
+    const blockInfoByHash = await web3.eth.getBlock(blockInfo.hash as BlockType, false)
     t.assert(blockInfoByHash, 'Should return block info by hash')
   } catch (err) {
     t.error(err)
