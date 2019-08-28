@@ -116,7 +116,7 @@ async function testContractEvents(t: test.Test, createClient: () => Client) {
   client.disconnect()
 }
 
-test('Contract', async t => {
+test.skip('BluePrint Contract', async t => {
   try {
     t.comment('Calls via HTTP')
     await testContractCalls(t, createTestHttpClient)
