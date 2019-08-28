@@ -923,7 +923,6 @@ export class LoomProvider {
   private _onWebSocketMessage(msgEvent: any) {
     if (this._client.isLegacy) {
       if (msgEvent.kind === ClientEvent.EVMEvent) {
-        log(`Socket message arrived ${JSON.stringify(msgEvent)}`)
         const JSONRPCResult = {
           jsonrpc: '2.0',
           method: 'eth_subscription',
@@ -942,13 +941,14 @@ export class LoomProvider {
             }
           }
         }
+        log('Socket message arrived', JSON.stringify(JSONRPCResult, null, 2))
         this.notificationCallbacks.forEach(callback => callback(JSONRPCResult))
       }
-      return
-    }
 
-    log('Socket message arrived', msgEvent)
-    this.notificationCallbacks.forEach(callback => callback(msgEvent))
+    } else {
+      log('Socket message arrived', JSON.stringify(msgEvent, null, 2))
+      this.notificationCallbacks.forEach(callback => callback(msgEvent))
+    }
   }
 
   private async _commitTransaction(
