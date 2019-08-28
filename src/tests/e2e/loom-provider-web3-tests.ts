@@ -124,20 +124,22 @@ async function testWeb3MultipleTopics(t: any, useEthEndpoint: boolean) {
   try {
     const newValue = 1
 
-    contract.events.NewValueSet({ filter: { _value: [1, 2, 3] } }, (err: Error, event: any) => {
-      if (err) t.error(err)
-      else {
-        t.equal(+event.returnValues._value, newValue, `Return value should be ${newValue}`)
+    contract.events.NewValueSet(
+      { filter: { _value: [1, 2, 3] } },
+      (err: Error, event: any) => {
+        if (err) t.error(err)
+        else {
+          t.equal(+event.returnValues._value, newValue, `Return value should be ${newValue}`)
+        }
       }
-    })
+    )
+    await waitForMillisecondsAsync(1000)
 
     const tx = await contract.methods.set(newValue).send()
     t.equal(tx.status, '0x1', 'SimpleStore.set should return correct status')
 
     const resultOfGet = await contract.methods.get().call()
     t.equal(+resultOfGet, newValue, `SimpleStore.get should return correct value`)
-
-    await waitForMillisecondsAsync(3000)
   } catch (err) {
     console.log(err)
   }

@@ -318,8 +318,9 @@ export class Client extends EventEmitter {
 
     this.isLegacy = false === /eth$/.test(this._readClient.url)
 
-    const emitContractEvent = (url: string, event: IJSONRPCEvent) =>
-      this._emitContractEvent(url, event)
+    const emitContractEvent = this.isLegacy
+      ? (url: string, event: IJSONRPCEvent) => this._emitContractEvent(url, event)
+      : (event: IJSONRPCEvent) => this._emitContractEvent('', event)
 
     this.on('newListener', (event: string) => {
       if (event === ClientEvent.Contract && this.listenerCount(ClientEvent.Contract) === 0) {
@@ -416,9 +417,10 @@ export class Client extends EventEmitter {
    * addListenerForTopics
    */
   async addListenerForTopics() {
-    const emitContractEvent = (url: string, event: IJSONRPCEvent) => {
-      this._emitContractEvent(url, event, true)
-    }
+    const emitContractEvent = this.isLegacy
+      ? (url: string, event: IJSONRPCEvent) => this._emitContractEvent(url, event, true)
+      : (event: IJSONRPCEvent) => this._emitContractEvent('', event, true)
+
     this._readClient.on(RPCClientEvent.EVMMessage, emitContractEvent)
   }
 
@@ -695,6 +697,7 @@ export class Client extends EventEmitter {
         filter
       })
     }
+    this.addListenerForTopics()
     return this._readClient.sendAsync<string>('eth_subscribe', params)
   }
 
@@ -764,19 +767,14 @@ export class Client extends EventEmitter {
   }
 
   private _emitContractEvent(url: string, event: IJSONRPCEvent, isEVM: boolean = false): void {
+    debugLog('_emitContractEvent', arguments)
     const { error, result } = event
     if (error) {
       const eventArgs: IClientErrorEventArgs = { kind: ClientEvent.Error, url, error }
       this.emit(ClientEvent.Error, eventArgs)
+    } else if (!this.isLegacy && isEVM) {
+      this.emit(ClientEvent.EVMEvent, event)
     } else if (result) {
-      debugLog('Event', event.id, result)
-
-      // emit evm events as is (jsonrpc/ethereum)
-      if (!this.isLegacy && isEVM) {
-        this.emit(ClientEvent.EVMEvent, event)
-        return
-      }
-
       // Ugh, no built-in JSON->Protobuf marshaller apparently
       // https://github.com/google/protobuf/issues/1591 so gotta do this manually
       const eventArgs: IChainEventArgs = {

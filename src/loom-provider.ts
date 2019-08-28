@@ -159,7 +159,9 @@ export class LoomProvider {
     this.notificationCallbacks = new Array()
     this.accounts = new Map<string, Uint8Array>()
 
-    this._client.addListener(ClientEvent.EVMEvent, (msg: IChainEventArgs) => this._onWebSocketMessage(msg))
+    this._client.addListener(ClientEvent.EVMEvent, (msg: IChainEventArgs) =>
+      this._onWebSocketMessage(msg)
+    )
 
     if (!this._setupMiddlewares) {
       this._setupMiddlewares = (client: Client, privateKey: Uint8Array) => {
@@ -643,12 +645,9 @@ export class LoomProvider {
   }
 
   private async _ethSubscribe(payload: IEthRPCPayload) {
-    if (!this._subscribed) {
-      this._subscribed = true // FISHY
-    }
     const { method, params } = payload
     const subscriptionId: string = await this._client.evmSubscribeAsync(method, params)
-    log('subscribed', subscriptionId)
+    log('subscribed', subscriptionId, params)
     this._ethSubscriptions[subscriptionId] = {
       id: subscriptionId,
       method,
