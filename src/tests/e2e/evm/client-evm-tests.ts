@@ -1,10 +1,10 @@
 import test from 'tape'
 
-import { CryptoUtils } from '../../index'
-import { createTestClient, execAndWaitForMillisecondsAsync } from '../helpers'
-import { EthBlockHashList, EthBlockInfo } from '../../proto/evm_pb'
-import { bytesToHexAddr } from '../../crypto-utils'
-import { createDefaultTxMiddleware } from '../../helpers'
+import { CryptoUtils } from '../../../index'
+import { createTestClient, execAndWaitForMillisecondsAsync } from '../../helpers'
+import { EthBlockHashList, EthBlockInfo } from '../../../proto/evm_pb'
+import { bytesToHexAddr } from '../../../crypto-utils'
+import { createDefaultTxMiddleware } from '../../../helpers'
 
 test('Client EVM test (newBlockEvmFilterAsync)', async t => {
   let client

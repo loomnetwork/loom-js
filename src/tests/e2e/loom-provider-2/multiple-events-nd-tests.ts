@@ -1,12 +1,10 @@
 import test from 'tape'
 
-import { LocalAddress, CryptoUtils } from '../../index'
-import { createTestClient, waitForMillisecondsAsync } from '../helpers'
+import { waitForMillisecondsAsync, getTestUrls } from '../../helpers'
 
-import { LoomProvider } from '../../loom-provider'
-import { deployContract } from '../evm-helpers'
-
-const Web3 = require('web3')
+import { deployContract2 } from '../../evm-helpers'
+import Web3 from 'web3'
+import { LoomProvider2 } from '../../../loom-provider-2'
 
 /**
  *  pragma solidity ^0.4.24;
@@ -33,10 +31,9 @@ const Web3 = require('web3')
  */
 
 const newContractAndClient = async () => {
-  const privKey = CryptoUtils.generatePrivateKey()
-  const client = createTestClient()
-  const from = LocalAddress.fromPublicKey(CryptoUtils.publicKeyFromPrivateKey(privKey)).toString()
-  const loomProvider = new LoomProvider(client, privKey)
+  const { wsEth } = getTestUrls()
+  const loomProvider = new LoomProvider2(wsEth)
+  const from = await loomProvider.wallet.getAddress()
   const web3 = new Web3(loomProvider)
 
   const contractData =
@@ -251,19 +248,19 @@ const newContractAndClient = async () => {
     }
   ]
 
-  const result = await deployContract(loomProvider, contractData)
+  const result = await deployContract2(loomProvider, contractData)
 
   const contract = new web3.eth.Contract(ABI, result.contractAddress, { from })
 
   return {
     contract,
-    client
+    loomProvider
   }
 }
 
 test('LoomProvider + Web3', async t => {
   t.plan(3) // EXPECTS 3 ASSERTIONS
-  const { contract, client } = await newContractAndClient()
+  const { contract, loomProvider } = await newContractAndClient()
 
   try {
     contract.events.Transfer({}, (err: any, event: any) => {
@@ -282,11 +279,11 @@ test('LoomProvider + Web3', async t => {
 
     await waitForMillisecondsAsync(3000)
   } catch (err) {
-    console.log(err)
+    t.error(err)
   }
 
-  if (client) {
-    client.disconnect()
+  if (loomProvider) {
+    loomProvider.disconnect()
   }
 
   t.end()

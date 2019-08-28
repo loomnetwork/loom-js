@@ -1,13 +1,13 @@
 import test from 'tape'
 
-import { LocalAddress, CryptoUtils, Client } from '../../index'
-import { createTestClient, waitForMillisecondsAsync } from '../helpers'
+import { LocalAddress, CryptoUtils, Client } from '../../../index'
+import { createTestClient, waitForMillisecondsAsync } from '../../helpers'
 
-import { LoomProvider } from '../../loom-provider'
-import { deployContract } from '../evm-helpers'
-import { SignedTxMiddleware } from '../../middleware'
-import { ITxMiddlewareHandler } from '../../client'
-import { NonceTx } from '../../proto/loom_pb'
+import { LoomProvider } from '../../../loom-provider'
+import { deployContract } from '../../evm-helpers'
+import { SignedTxMiddleware } from '../../../middleware'
+import { ITxMiddlewareHandler } from '../../../client'
+import { NonceTx } from '../../../proto/loom_pb'
 
 // import Web3 from 'web3'
 const Web3 = require('web3')
@@ -77,7 +77,7 @@ test('LoomProvider + Web3 + Middleware', async t => {
 
   const web3 = new Web3(loomProvider)
 
-  client.on('error', console.log)
+  client.on('error', console.error)
 
   const contractData =
     '0x608060405234801561001057600080fd5b50600a60008190555061010e806100286000396000f3006080604052600436106049576000357c0100000000000000000000000000000000000000000000000000000000900463ffffffff16806360fe47b114604e5780636d4ce63c146078575b600080fd5b348015605957600080fd5b5060766004803603810190808035906020019092919050505060a0565b005b348015608357600080fd5b50608a60d9565b6040518082815260200191505060405180910390f35b806000819055506000547fb922f092a64f1a076de6f21e4d7c6400b6e55791cc935e7bb8e7e90f7652f15b60405160405180910390a250565b600080549050905600a165627a7a72305820b76f6c855a1f95260fc70490b16774074225da52ea165a58e95eb7a72a59d1700029'
@@ -118,7 +118,6 @@ test('LoomProvider + Web3 + Middleware', async t => {
     const newValue = 1
 
     contract.events.NewValueSet({ filter: { _value: [4, 5] } }, (err: Error, event: any) => {
-      console.log(err, event)
       if (err) t.error(err)
       else {
         t.fail('should not been dispatched')
@@ -133,7 +132,7 @@ test('LoomProvider + Web3 + Middleware', async t => {
 
     await waitForMillisecondsAsync(1000)
   } catch (err) {
-    console.log(err)
+    t.error(err)
   }
 
   if (client) {

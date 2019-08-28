@@ -1,9 +1,9 @@
 import test from 'tape'
-import { waitForMillisecondsAsync, getTestUrls } from '../helpers'
+import { waitForMillisecondsAsync, getTestUrls } from '../../helpers'
 
-import { deployContract2 } from '../evm-helpers'
+import { deployContract2 } from '../../evm-helpers'
 import Web3 from 'web3'
-import { LoomProvider2 } from '../../loom-provider-2'
+import { LoomProvider2 } from '../../../loom-provider-2'
 
 /**
  * Requires the SimpleStore solidity contract deployed on a loomchain.
@@ -242,6 +242,8 @@ test('LoomProvider + Web3 + Logs', async t => {
   const { contract, loomProvider, web3 } = await newContractAndClient()
   try {
     const newValue = 1
+
+    await waitForMillisecondsAsync(1000)
 
     const blockNum = await web3.eth.getBlockNumber()
     const tx = await contract.methods.set(newValue).send()

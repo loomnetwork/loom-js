@@ -1,12 +1,12 @@
 import test from 'tape'
 
-import { NonceTxMiddleware, SignedTxMiddleware, CryptoUtils } from '../../index'
-import { createTestClient } from '../helpers'
-import { CallTx, VMType, MessageTx, Transaction } from '../../proto/loom_pb'
-import { LoomProvider } from '../../loom-provider'
-import { deployContract } from '../evm-helpers'
-import { bufferToProtobufBytes } from '../../crypto-utils'
-import { Address, LocalAddress } from '../../address'
+import { NonceTxMiddleware, SignedTxMiddleware, CryptoUtils } from '../../../index'
+import { createTestClient } from '../../helpers'
+import { CallTx, VMType, MessageTx, Transaction } from '../../../proto/loom_pb'
+import { LoomProvider } from '../../../loom-provider'
+import { deployContract } from '../../evm-helpers'
+import { bufferToProtobufBytes } from '../../../crypto-utils'
+import { Address, LocalAddress } from '../../../address'
 
 /**
  * Requires the SimpleStore solidity contract deployed on a loomchain.
@@ -78,8 +78,6 @@ test('Client EVM Event test', async t => {
 
     const filterCreated = await client.evmSubscribeAsync('logs', filter)
 
-    console.log('Filter created', filterCreated)
-
     const caller = new Address('default', LocalAddress.fromPublicKey(publicKey))
     const address = new Address('default', LocalAddress.fromHexString(result.contractAddress))
     const data = Buffer.from(
@@ -101,10 +99,7 @@ test('Client EVM Event test', async t => {
     tx.setData(msgTx.serializeBinary())
 
     await client.commitTxAsync<Transaction>(tx)
-
-    console.log('Disconnected')
   } catch (err) {
-    console.error(err)
     t.fail(err.message)
   }
 

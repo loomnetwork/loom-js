@@ -1,9 +1,9 @@
 import test from 'tape'
 
-import { LocalAddress, CryptoUtils } from '../../index'
-import { createTestClient, execAndWaitForMillisecondsAsync } from '../helpers'
-import { LoomProvider } from '../../loom-provider'
-import { deployContract } from '../evm-helpers'
+import { LocalAddress, CryptoUtils } from '../../../index'
+import { createTestClient, execAndWaitForMillisecondsAsync } from '../../helpers'
+import { LoomProvider } from '../../../loom-provider'
+import { deployContract } from '../../evm-helpers'
 
 /**
  * Requires the SimpleStore solidity contract deployed on a loomchain.
@@ -41,12 +41,10 @@ test('LoomProvider + Subscribe', async t => {
     const privKey = CryptoUtils.generatePrivateKey()
     client = createTestClient()
     client.on('error', msg => console.error('error', msg))
-    const fromAddr = LocalAddress.fromPublicKey(
-      CryptoUtils.publicKeyFromPrivateKey(privKey)
-    ).toString()
+
     const loomProvider = new LoomProvider(client, privKey)
 
-    const contractDeployResult = await deployContract(loomProvider, contractData)
+    await deployContract(loomProvider, contractData)
     const id = 1
 
     const ethSubscribeNewHardsResult = await execAndWaitForMillisecondsAsync(
@@ -99,7 +97,7 @@ test('LoomProvider + Subscribe', async t => {
     t.equal(ethUnsubscribeLogsResult.id, id, `Id for eth_unsubscribe should be equal ${id}`)
     t.assert(ethUnsubscribeLogsResult.result, 'Unsubscribed for Logs')
   } catch (err) {
-    console.log(err)
+    t.error(err)
   }
 
   if (client) {

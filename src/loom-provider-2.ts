@@ -1,4 +1,5 @@
 import debug from 'debug'
+import retry from 'retry'
 import { Wallet } from 'ethers'
 import { Client as WSClient } from 'rpc-websockets'
 import { EthRPCMethod, IEthRPCPayload } from './loom-provider'
@@ -17,7 +18,19 @@ export class LoomProvider2 {
   private _wsRPC: WSClient
   private _ethRPCMethods: Map<string, EthRPCMethod> = new Map<string, EthRPCMethod>()
   protected notificationCallbacks: Array<Function> = new Array()
-  readonly wallets: Map<string, Wallet | null> = new Map<string, Wallet>()
+
+  /**
+   * The retry strategy that should be used to retry some web3 requests.
+   * By default failed requested won't be resent.
+   * To understand how to tweak the retry strategy see
+   * https://github.com/tim-kos/node-retry#retrytimeoutsoptions
+   */
+  retryStrategy: retry.OperationOptions = {
+    retries: 0,
+    minTimeout: 1000, // 1s
+    maxTimeout: 30000, // 30s
+    randomize: true
+  }
 
   /**
    * Constructs the LoomProvider2 to bridges communication between Web3 and Loom DappChains
@@ -94,21 +107,29 @@ export class LoomProvider2 {
       return
     }
 
-    let result
+    const op = retry.operation(this.retryStrategy)
+    op.attempt(async currAttempt => {
+      debugLog(`Current attempt ${currAttempt}`)
 
-    try {
-      if (this._ethRPCMethods.has(payload.method)) {
-        const f: Function = this._ethRPCMethods.get(payload.method)!
-        result = await f(payload)
-      } else {
-        result = await this._wsRPC.call(payload.method, payload.params)
+      let result
+
+      try {
+        if (this._ethRPCMethods.has(payload.method)) {
+          const f: Function = this._ethRPCMethods.get(payload.method)!
+          result = await f(payload)
+        } else {
+          result = await this._wsRPC.call(payload.method, payload.params)
+        }
+
+        callback(null, this._okResponse(payload.id, result, isArray))
+      } catch (err) {
+        if (!op.retry(err)) {
+          callback(err, null)
+        } else {
+          errorLog(err)
+        }
       }
-
-      callback(null, this._okResponse(payload.id, result, isArray))
-    } catch (err) {
-      errorLog(err)
-      callback(err, null)
-    }
+    })
   }
 
   // EVENT HANDLING METHODS

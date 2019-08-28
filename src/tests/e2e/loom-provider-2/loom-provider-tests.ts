@@ -1,17 +1,10 @@
 import test from 'tape'
 
-import BN from 'bn.js'
-import { LocalAddress, CryptoUtils } from '../../index'
-import {
-  createTestClient,
-  execAndWaitForMillisecondsAsync,
-  waitForMillisecondsAsync
-} from '../helpers'
-import { LoomProvider } from '../../loom-provider'
-import { deployContract } from '../evm-helpers'
-import { ecrecover, privateToPublic, fromRpcSig, toBuffer } from 'ethereumjs-util'
-import { soliditySha3 } from '../../solidity-helpers'
-import { bytesToHexAddr } from '../../crypto-utils'
+import { LocalAddress, CryptoUtils } from '../../../index'
+import { createTestClient, execAndWaitForMillisecondsAsync, getTestUrls } from '../../helpers'
+import { LoomProvider } from '../../../loom-provider'
+import { deployContract } from '../../evm-helpers'
+import { LoomProvider2 } from '../../../loom-provider-2'
 
 /**
  * Requires the SimpleStore solidity contract deployed on a loomchain.
@@ -46,84 +39,34 @@ const newContractAndClient = async () => {
   return { privKey, client, contractData, contractAddress, transactionHash, from, loomProvider }
 }
 
-test('LoomProvider method eth_sign', async t => {
-  const { loomProvider, from, privKey, client } = await newContractAndClient()
+test('LoomProvider2 method eth_blockNumber', async t => {
+  const { wsEth } = getTestUrls()
+  const loomProvider = new LoomProvider2(wsEth)
 
   try {
     const id = 1
-    const msg = '0xff'
-
-    const signResult = await execAndWaitForMillisecondsAsync(
+    const ethBlockNumber = await execAndWaitForMillisecondsAsync(
       loomProvider.sendAsync({
         id,
-        method: 'eth_sign',
-        params: [from, msg]
+        method: 'eth_blockNumber'
       })
     )
 
-    const hash = soliditySha3('\x19Ethereum Signed Message:\n32', msg).slice(2)
-    const { r, s, v } = fromRpcSig(signResult.result)
-    const pubKey = ecrecover(Buffer.from(hash, 'hex'), v, r, s)
-
-    const privateHash = soliditySha3(privKey).slice(2)
-
-    t.equal(
-      bytesToHexAddr(pubKey),
-      bytesToHexAddr(privateToPublic(Buffer.from(privateHash, 'hex'))),
-      'Should pubKey from ecrecover been valid'
-    )
+    t.equal(ethBlockNumber.id, id, `Id for eth_blockNumber should be equal ${id}`)
+    t.assert(ethBlockNumber.result, 'JSON RPC result should be set')
+    t.equal(ethBlockNumber.result.indexOf('0x'), 0, 'Block number should be hex-encoded')
   } catch (err) {
-    console.log(err)
     t.error(err, 'Error found')
   }
 
-  if (client) {
-    client.disconnect()
-  }
-
-  t.end()
-})
-
-test('LoomProvider method net_version', async t => {
-  const { loomProvider, client } = await newContractAndClient()
-
-  try {
-    const id = 1
-    const netVersionResult = await execAndWaitForMillisecondsAsync(
-      loomProvider.sendAsync({
-        id,
-        method: 'net_version'
-      })
-    )
-
-    const chainIdHash = soliditySha3(client.chainId)
-      .slice(2)
-      .slice(0, 13)
-    const netVersionFromChainId = new BN(chainIdHash).toNumber()
-
-    t.deepEqual(
-      netVersionResult,
-      {
-        id: 1,
-        jsonrpc: '2.0',
-        result: netVersionFromChainId
-      },
-      'net_version should match the chain id'
-    )
-  } catch (err) {
-    console.log(err)
-    t.error(err, 'Error found')
-  }
-
-  if (client) {
-    client.disconnect()
-  }
-
+  loomProvider.disconnect()
   t.end()
 })
 
 test('LoomProvider method eth_accounts', async t => {
-  const { loomProvider, from, client } = await newContractAndClient()
+  const { wsEth } = getTestUrls()
+  const loomProvider = new LoomProvider2(wsEth)
+  const from = await loomProvider.wallet.getAddress()
 
   try {
     const id = 1
@@ -145,76 +88,16 @@ test('LoomProvider method eth_accounts', async t => {
       'accounts should be available on eth_accounts command'
     )
   } catch (err) {
-    console.log(err)
     t.error(err, 'Error found')
   }
 
-  if (client) {
-    client.disconnect()
-  }
-
-  t.end()
-})
-
-test('LoomProvider method eth_newBlockFilter', async t => {
-  const { loomProvider, client } = await newContractAndClient()
-
-  try {
-    const id = 1
-
-    const ethNewBlockFilterResult = await execAndWaitForMillisecondsAsync(
-      loomProvider.sendAsync({
-        id,
-        method: 'eth_newBlockFilter'
-      })
-    )
-
-    t.equal(ethNewBlockFilterResult.id, id, `Id for eth_newBlockFilter should be equal ${id}`)
-    t.assert(
-      /0x.+/.test(ethNewBlockFilterResult.result),
-      'Hex identification should be returned on eth_newBlockFilter'
-    )
-  } catch (err) {
-    console.log(err)
-    t.error(err, 'Error found')
-  }
-
-  if (client) {
-    client.disconnect()
-  }
-
-  t.end()
-})
-
-test('LoomProvider method eth_blockNumber', async t => {
-  const { loomProvider, client } = await newContractAndClient()
-
-  try {
-    const id = 1
-    const ethBlockNumber = await execAndWaitForMillisecondsAsync(
-      loomProvider.sendAsync({
-        id,
-        method: 'eth_blockNumber'
-      })
-    )
-
-    t.equal(ethBlockNumber.id, id, `Id for eth_blockNumber should be equal ${id}`)
-    t.assert(ethBlockNumber.result, 'JSON RPC result should be set')
-    t.equal(ethBlockNumber.result.indexOf('0x'), 0, 'Block number should be hex-encoded')
-  } catch (err) {
-    console.log(err)
-    t.error(err, 'Error found')
-  }
-
-  if (client) {
-    client.disconnect()
-  }
-
+  loomProvider.disconnect()
   t.end()
 })
 
 test('LoomProvider method eth_getBlockByNumber (0x1)', async t => {
-  const { loomProvider, client } = await newContractAndClient()
+  const { wsEth } = getTestUrls()
+  const loomProvider = new LoomProvider2(wsEth)
 
   try {
     const id = 1
@@ -231,19 +114,16 @@ test('LoomProvider method eth_getBlockByNumber (0x1)', async t => {
       'Block should be returned from eth_getBlockByNumber'
     )
   } catch (err) {
-    console.log(err)
     t.error(err, 'Error found')
   }
 
-  if (client) {
-    client.disconnect()
-  }
-
+  loomProvider.disconnect()
   t.end()
 })
 
 test('LoomProvider method eth_getBlockByNumber (latest)', async t => {
-  const { loomProvider, client } = await newContractAndClient()
+  const { wsEth } = getTestUrls()
+  const loomProvider = new LoomProvider2(wsEth)
 
   try {
     const id = 1
@@ -266,19 +146,18 @@ test('LoomProvider method eth_getBlockByNumber (latest)', async t => {
       'Block should be returned from eth_getBlockByNumber'
     )
   } catch (err) {
-    console.log(err)
     t.error(err, 'Error found')
   }
 
-  if (client) {
-    client.disconnect()
-  }
-
+  loomProvider.disconnect()
   t.end()
 })
 
 test('LoomProvider method eth_sendTransaction', async t => {
-  const { loomProvider, from, contractAddress, client } = await newContractAndClient()
+  const { from, contractAddress, client } = await newContractAndClient()
+
+  const { wsEth } = getTestUrls()
+  const loomProvider = new LoomProvider2(wsEth)
 
   try {
     const id = 1
@@ -306,19 +185,19 @@ test('LoomProvider method eth_sendTransaction', async t => {
       'Hex identification should be returned for eth_sendTransaction command (contract transaction)'
     )
   } catch (err) {
-    console.log(err)
     t.error(err, 'Error found')
   }
 
-  if (client) {
-    client.disconnect()
-  }
-
+  client.disconnect()
+  loomProvider.disconnect()
   t.end()
 })
 
 test('LoomProvider method eth_sendTransaction (deploy)', async t => {
-  const { loomProvider, from, client } = await newContractAndClient()
+  const { from, client } = await newContractAndClient()
+
+  const { wsEth } = getTestUrls()
+  const loomProvider = new LoomProvider2(wsEth)
 
   try {
     const id = 1
@@ -351,19 +230,19 @@ test('LoomProvider method eth_sendTransaction (deploy)', async t => {
       'Hex identification should be returned for eth_sendTransaction command (deploy new contract)'
     )
   } catch (err) {
-    console.log(err)
     t.error(err, 'Error found')
   }
 
-  if (client) {
-    client.disconnect()
-  }
-
+  client.disconnect()
+  loomProvider.disconnect()
   t.end()
 })
 
 test('LoomProvider method eth_getCode', async t => {
-  const { loomProvider, contractAddress, client } = await newContractAndClient()
+  const { contractAddress, client } = await newContractAndClient()
+
+  const { wsEth } = getTestUrls()
+  const loomProvider = new LoomProvider2(wsEth)
 
   try {
     const id = 1
@@ -381,19 +260,19 @@ test('LoomProvider method eth_getCode', async t => {
       'Hex identification should be returned for eth_getCode command'
     )
   } catch (err) {
-    console.log(err)
     t.error(err, 'Error found')
   }
 
-  if (client) {
-    client.disconnect()
-  }
-
+  client.disconnect()
+  loomProvider.disconnect()
   t.end()
 })
 
 test('LoomProvider method eth_call', async t => {
-  const { loomProvider, from, contractAddress, client } = await newContractAndClient()
+  const { from, contractAddress, client } = await newContractAndClient()
+
+  const { wsEth } = getTestUrls()
+  const loomProvider = new LoomProvider2(wsEth)
 
   try {
     const id = 1
@@ -421,19 +300,19 @@ test('LoomProvider method eth_call', async t => {
       'Return from eth_call should be 0x000000000000000000000000000000000000000000000000000000000000000a'
     )
   } catch (err) {
-    console.log(err)
     t.error(err, 'Error found')
   }
 
-  if (client) {
-    client.disconnect()
-  }
-
+  loomProvider.disconnect()
+  client.disconnect()
   t.end()
 })
 
 test('LoomProvider method eth_getTransactionReceipt', async t => {
-  const { loomProvider, client, contractAddress, from } = await newContractAndClient()
+  const { client, contractAddress, from } = await newContractAndClient()
+
+  const { wsEth } = getTestUrls()
+  const loomProvider = new LoomProvider2(wsEth)
 
   try {
     const id = 1
@@ -469,19 +348,19 @@ test('LoomProvider method eth_getTransactionReceipt', async t => {
       'Status for eth_getTransactionReceipt should be 0x1'
     )
   } catch (err) {
-    console.log(err)
     t.error(err, 'Error found')
   }
 
-  if (client) {
-    client.disconnect()
-  }
-
+  loomProvider.disconnect()
+  client.disconnect()
   t.end()
 })
 
 test('LoomProvider method eth_getTransactionByHash', async t => {
-  const { loomProvider, transactionHash, client } = await newContractAndClient()
+  const { transactionHash, client } = await newContractAndClient()
+
+  const { wsEth } = getTestUrls()
+  const loomProvider = new LoomProvider2(wsEth)
 
   try {
     const id = 1
@@ -500,19 +379,19 @@ test('LoomProvider method eth_getTransactionByHash', async t => {
       'Hex identification should be returned for eth_getTransactionByHash command'
     )
   } catch (err) {
-    console.log(err)
     t.error(err, 'Error found')
   }
 
-  if (client) {
-    client.disconnect()
-  }
-
+  loomProvider.disconnect()
+  client.disconnect()
   t.end()
 })
 
 test('LoomProvider method eth_subscribe', async t => {
-  const { loomProvider, client } = await newContractAndClient()
+  const { client } = await newContractAndClient()
+
+  const { wsEth } = getTestUrls()
+  const loomProvider = new LoomProvider2(wsEth)
 
   try {
     const id = 1
@@ -531,19 +410,19 @@ test('LoomProvider method eth_subscribe', async t => {
       'Hex identification should be returned for eth_subscribe command'
     )
   } catch (err) {
-    console.log(err)
     t.error(err, 'Error found')
   }
 
-  if (client) {
-    client.disconnect()
-  }
-
+  loomProvider.disconnect()
+  client.disconnect()
   t.end()
 })
 
 test('LoomProvider method eth_uninstallFilter', async t => {
-  const { loomProvider, from, client } = await newContractAndClient()
+  const { client } = await newContractAndClient()
+
+  const { wsEth } = getTestUrls()
+  const loomProvider = new LoomProvider2(wsEth)
 
   try {
     const id = 1
@@ -558,77 +437,10 @@ test('LoomProvider method eth_uninstallFilter', async t => {
     t.equal(ethUninstallFilter.id, id, `Id for eth_subscribe should be equal ${id}`)
     t.equal(ethUninstallFilter.result, true, 'Uninstall filter should return true')
   } catch (err) {
-    console.log(err)
     t.error(err, 'Error found')
   }
 
-  if (client) {
-    client.disconnect()
-  }
-
-  t.end()
-})
-
-test('LoomProvider adding custom method', async t => {
-  const { loomProvider, from, client } = await newContractAndClient()
-
-  try {
-    const id = 1
-
-    loomProvider.addCustomMethod('eth_balance', payload => {
-      t.equal(payload.params[0], from, 'Address should user address')
-      t.equal(payload.method, 'eth_balance', 'Method should be eth_balance')
-      return '0x1'
-    })
-
-    const ethBalanceResult = await execAndWaitForMillisecondsAsync(
-      loomProvider.sendAsync({
-        id,
-        method: 'eth_balance',
-        params: [from]
-      })
-    )
-
-    t.equal(ethBalanceResult.result, '0x1', 'Balance should be 0x1')
-  } catch (err) {
-    console.log(err)
-    t.error(err, 'Error found')
-  }
-
-  if (client) {
-    client.disconnect()
-  }
-
-  t.end()
-})
-
-test('LoomProvider overwriting existing method', async t => {
-  const { loomProvider, from, client } = await newContractAndClient()
-
-  try {
-    const id = 1
-    loomProvider.overwriteMethod('eth_estimateGas', payload => {
-      t.equal(payload.method, 'eth_estimateGas', 'Method should be eth_estimateGas')
-      return '0x123'
-    })
-
-    const ethEstimateGasResult = await execAndWaitForMillisecondsAsync(
-      loomProvider.sendAsync({
-        id,
-        method: 'eth_estimateGas',
-        params: [from]
-      })
-    )
-
-    t.equal(ethEstimateGasResult.result, '0x123', 'Estimate gas should be 0x123')
-  } catch (err) {
-    console.log(err)
-    t.error(err, 'Error found')
-  }
-
-  if (client) {
-    client.disconnect()
-  }
-
+  loomProvider.disconnect()
+  client.disconnect()
   t.end()
 })

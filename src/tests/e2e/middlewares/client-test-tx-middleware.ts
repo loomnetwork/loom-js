@@ -8,14 +8,14 @@ import {
   SignedEthTxMiddleware,
   CryptoUtils,
   Client
-} from '../../index'
-import { LoomProvider } from '../../loom-provider'
-import { deployContract } from '../evm-helpers'
-import { Address, LocalAddress } from '../../address'
-import { createDefaultTxMiddleware } from '../../helpers'
-import { EthersSigner, getJsonRPCSignerAsync } from '../../solidity-helpers'
-import { createTestHttpClient } from '../helpers'
-import { AddressMapper, Coin } from '../../contracts'
+} from '../../../index'
+import { LoomProvider } from '../../../loom-provider'
+import { deployContract } from '../../evm-helpers'
+import { Address, LocalAddress } from '../../../address'
+import { createDefaultTxMiddleware } from '../../../helpers'
+import { EthersSigner, getJsonRPCSignerAsync } from '../../../solidity-helpers'
+import { createTestHttpClient } from '../../helpers'
+import { AddressMapper, Coin } from '../../../contracts'
 
 // import Web3 from 'web3'
 const Web3 = require('web3')

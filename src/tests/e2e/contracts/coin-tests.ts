@@ -7,9 +7,9 @@ import {
   createDefaultTxMiddleware,
   Client,
   LocalAddress
-} from '../../index'
-import { createTestHttpClient } from '../helpers'
-import { B64ToUint8Array } from '../../crypto-utils'
+} from '../../../index'
+import { createTestHttpClient } from '../../helpers'
+import { B64ToUint8Array } from '../../../crypto-utils'
 
 const toCoinE18 = (amount: number): BN => {
   return new BN(10).pow(new BN(18)).mul(new BN(amount))

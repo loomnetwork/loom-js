@@ -1,10 +1,12 @@
 import test, { Test } from 'tape'
 
-import { LocalAddress, CryptoUtils } from '../../index'
-import { createTestClient, waitForMillisecondsAsync } from '../helpers'
-
-import { LoomProvider } from '../../loom-provider'
-import { deployContract } from '../evm-helpers'
+import {
+  execAndWaitForMillisecondsAsync,
+  getTestUrls,
+  waitForMillisecondsAsync
+} from '../../helpers'
+import { deployContract2 } from '../../evm-helpers'
+import { LoomProvider2 } from '../../../loom-provider-2'
 
 const Web3 = require('web3')
 
@@ -41,10 +43,10 @@ const Web3 = require('web3')
 
 function contractABIAndBinary() {
   const contractBData =
-    '6080604052348015600f57600080fd5b5060db8061001e6000396000f300608060405260043610603f576000357c0100000000000000000000000000000000000000000000000000000000900463ffffffff168063f88d0dfc146044575b600080fd5b348015604f57600080fd5b50606c60048036038101908080359060200190929190505050606e565b005b806000819055507f8611c0f1e10aa104c81817ff1befe6e3677acee7991f16f99a8c375ca0793120816040518082815260200191505060405180910390a1505600a165627a7a723058203819249ad266695de9c923df5f4b3d2b244d3f6ba4297db60b92c4955bec2c230029'
+    '0x6080604052348015600f57600080fd5b5060db8061001e6000396000f300608060405260043610603f576000357c0100000000000000000000000000000000000000000000000000000000900463ffffffff168063f88d0dfc146044575b600080fd5b348015604f57600080fd5b50606c60048036038101908080359060200190929190505050606e565b005b806000819055507f8611c0f1e10aa104c81817ff1befe6e3677acee7991f16f99a8c375ca0793120816040518082815260200191505060405180910390a1505600a165627a7a723058203819249ad266695de9c923df5f4b3d2b244d3f6ba4297db60b92c4955bec2c230029'
 
   const contractAData =
-    '608060405234801561001057600080fd5b50610181806100206000396000f300608060405260043610610041576000357c0100000000000000000000000000000000000000000000000000000000900463ffffffff168063a045846314610046575b600080fd5b34801561005257600080fd5b5061009160048036038101908080359060200190929190803573ffffffffffffffffffffffffffffffffffffffff169060200190929190505050610093565b005b7fbb6ecd3f0ef42d655786d77b262f49bee128d78f171832c1ea73b1383674c23a826040518082815260200191505060405180910390a18073ffffffffffffffffffffffffffffffffffffffff1663f88d0dfc836040518263ffffffff167c010000000000000000000000000000000000000000000000000000000002815260040180828152602001915050600060405180830381600087803b15801561013957600080fd5b505af115801561014d573d6000803e3d6000fd5b5050505050505600a165627a7a72305820101762f1d82f0bc7e12cf1b12098f2dfda892ad477dfd98760c2efab436ae3600029'
+    '0x608060405234801561001057600080fd5b50610181806100206000396000f300608060405260043610610041576000357c0100000000000000000000000000000000000000000000000000000000900463ffffffff168063a045846314610046575b600080fd5b34801561005257600080fd5b5061009160048036038101908080359060200190929190803573ffffffffffffffffffffffffffffffffffffffff169060200190929190505050610093565b005b7fbb6ecd3f0ef42d655786d77b262f49bee128d78f171832c1ea73b1383674c23a826040518082815260200191505060405180910390a18073ffffffffffffffffffffffffffffffffffffffff1663f88d0dfc836040518263ffffffff167c010000000000000000000000000000000000000000000000000000000002815260040180828152602001915050600060405180830381600087803b15801561013957600080fd5b505af115801561014d573d6000803e3d6000fd5b5050505050505600a165627a7a72305820101762f1d82f0bc7e12cf1b12098f2dfda892ad477dfd98760c2efab436ae3600029'
 
   const ABIContractB = [
     {
@@ -106,7 +108,7 @@ async function testContracts(t: Test, contractB: any, contractA: any) {
 
     await waitForMillisecondsAsync(1000)
   } catch (err) {
-    console.log(err)
+    t.error(err)
   }
 }
 
@@ -153,16 +155,15 @@ async function testGanache(t: Test) {
 }
 
 async function testLoomProvider(t: Test) {
-  const privKey = CryptoUtils.generatePrivateKey()
-  const client = createTestClient()
-  const from = LocalAddress.fromPublicKey(CryptoUtils.publicKeyFromPrivateKey(privKey)).toString()
-  const loomProvider = new LoomProvider(client, privKey)
+  const { wsEth } = getTestUrls()
+  const loomProvider = new LoomProvider2(wsEth)
   const web3 = new Web3(loomProvider)
+  const from = await loomProvider.wallet.getAddress()
 
   const { contractBData, contractAData, ABIContractB, ABIContractA } = contractABIAndBinary()
 
-  const resultB = await deployContract(loomProvider, contractBData)
-  const resultA = await deployContract(loomProvider, contractAData)
+  const resultB = await deployContract2(loomProvider, contractBData)
+  const resultA = await deployContract2(loomProvider, contractAData)
 
   const contractB = new web3.eth.Contract(ABIContractB, resultB.contractAddress, { from })
   const contractA = new web3.eth.Contract(ABIContractA, resultA.contractAddress, { from })
@@ -170,7 +171,7 @@ async function testLoomProvider(t: Test) {
   t.comment('Testing Loom Provider')
   await testContracts(t, contractB, contractA)
 
-  client.disconnect()
+  loomProvider.disconnect()
 }
 
 test('LoomProvider + Web3 + Child contracts events', async t => {

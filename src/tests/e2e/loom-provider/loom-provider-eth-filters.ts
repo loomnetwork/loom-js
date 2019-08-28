@@ -1,9 +1,9 @@
 import test from 'tape'
 
-import { CryptoUtils } from '../../index'
-import { createTestClient, execAndWaitForMillisecondsAsync } from '../helpers'
-import { LoomProvider } from '../../loom-provider'
-import { deployContract } from '../evm-helpers'
+import { CryptoUtils } from '../../../index'
+import { createTestClient, execAndWaitForMillisecondsAsync } from '../../helpers'
+import { LoomProvider } from '../../../loom-provider'
+import { deployContract } from '../../evm-helpers'
 
 /**
  * Requires the SimpleStore solidity contract deployed on a loomchain.
@@ -92,7 +92,7 @@ test('LoomProvider + Filters', async t => {
 
     t.deepEqual(ethUninstallFilterResult.result, true, 'Should uninstall filter and return true')
   } catch (err) {
-    console.log(err)
+    t.error(err)
   }
 
   if (client) {
@@ -133,8 +133,6 @@ test('LoomProvider + Filters 2', async t => {
 
     t.assert(ethGetFilterChanges.result.length > 0, 'Should return filter changes')
 
-    console.log('Hash for the latest block is:', ethGetFilterChanges.result)
-
     const ethGetBlockByHash = await execAndWaitForMillisecondsAsync(
       loomProvider.sendAsync({
         id: 13,
@@ -145,7 +143,7 @@ test('LoomProvider + Filters 2', async t => {
 
     t.assert(ethGetBlockByHash.result, 'Should return the block requested by hash')
   } catch (err) {
-    console.log(err)
+    t.error(err)
   }
 
   if (client) {
