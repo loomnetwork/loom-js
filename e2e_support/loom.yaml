@@ -35,6 +35,8 @@ ChainConfig:
   ContractEnabled: true
 Auth:
   Chains:
+    loom:
+      TxType: "loom"
     eth:
       TxType: "eth"
       AccountType: 1

@@ -62,6 +62,10 @@
           {
             "name": "tg:binance-cm",
             "status": "WAITING"
+          },
+          {
+            "name": "EthTxFeature",
+            "status": "WAITING"
           }
         ]
       }
