@@ -1,0 +1,11 @@
+syntax = "proto3";
+
+import "proto/loom.proto";
+
+message SampleGoContractNestedEvmRequest {
+    Address inner_emitter = 1;
+    Address outer_emitter = 2;
+    uint64 inner_emitter_value = 3;
+    uint64 outer_emitter_value = 4;
+}
+

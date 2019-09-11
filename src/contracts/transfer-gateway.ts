@@ -10,10 +10,24 @@ import {
   TransferGatewayTokenKind,
   TransferGatewayAddContractMappingRequest,
   TransferGatewayTokenWithdrawalSigned,
-  TransferGatewayContractMappingConfirmed
+  TransferGatewayContractMappingConfirmed,
+  TransferGatewayReclaimContractTokensRequest,
+  TransferGatewayReclaimDepositorTokensRequest,
+  TransferGatewayGetUnclaimedTokensRequest,
+  TransferGatewayGetUnclaimedTokensResponse,
+  TransferGatewayListContractMappingRequest,
+  TransferGatewayListContractMappingResponse
 } from '../proto/transfer_gateway_pb'
 import { marshalBigUIntPB, unmarshalBigUIntPB } from '../big-uint'
 import { B64ToUint8Array } from '../crypto-utils'
+import { IAddressMapping } from './address-mapper'
+
+export interface IUnclaimedToken {
+  tokenContract: Address
+  tokenKind: TransferGatewayTokenKind
+  tokenIds?: Array<BN>
+  tokenAmounts?: Array<BN>
+}
 
 export interface IWithdrawalReceipt {
   tokenOwner: Address
@@ -109,8 +123,8 @@ export class TransferGateway extends Contract {
         }
 
         this.emit(TransferGateway.EVENT_TOKEN_WITHDRAWAL, {
-          tokenOwner: Address.UmarshalPB(eventData.getTokenOwner()!),
-          tokenContract: Address.UmarshalPB(eventData.getTokenContract()!),
+          tokenOwner: Address.UnmarshalPB(eventData.getTokenOwner()!),
+          tokenContract: Address.UnmarshalPB(eventData.getTokenContract()!),
           tokenKind,
           tokenId,
           tokenAmount,
@@ -123,11 +137,28 @@ export class TransferGateway extends Contract {
         )
 
         this.emit(TransferGateway.EVENT_CONTRACT_MAPPING_CONFIRMED, {
-          foreignContract: Address.UmarshalPB(contractMappingConfirmed.getForeignContract()!),
-          localContract: Address.UmarshalPB(contractMappingConfirmed.getLocalContract()!)
+          foreignContract: Address.UnmarshalPB(contractMappingConfirmed.getForeignContract()!),
+          localContract: Address.UnmarshalPB(contractMappingConfirmed.getLocalContract()!)
         } as IContractMappingConfirmedEventArgs)
       }
     })
+  }
+
+  /**
+   * Adds a contract mapping to the DAppChain Gateway using gatway owner signature.
+   * A contract mapping associates a token contract on the DAppChain with it's counterpart on Ethereum.
+   */
+  addAuthorizedContractMappingAsync(params: {
+    foreignContract: Address
+    localContract: Address
+  }): Promise<void> {
+    const { foreignContract, localContract } = params
+
+    const mappingContractRequest = new TransferGatewayAddContractMappingRequest()
+    mappingContractRequest.setForeignContract(foreignContract.MarshalPB())
+    mappingContractRequest.setLocalContract(localContract.MarshalPB())
+
+    return this.callAsync<void>('AddAuthorizedContractMapping', mappingContractRequest)
   }
 
   /**
@@ -154,6 +185,37 @@ export class TransferGateway extends Contract {
     mappingContractRequest.setForeignContractTxHash(foreignContractCreatorTxHash)
 
     return this.callAsync<void>('AddContractMapping', mappingContractRequest)
+  }
+
+  /**
+   * Fetches contract mappings from the DAppChain Gateway.
+   *
+   * @returns An object containing both confirmed & pending contract mappings.
+   */
+  async listContractMappingsAsync(): Promise<{
+    confirmed: IAddressMapping[]
+    pending: IAddressMapping[]
+  }> {
+    const response = await this.staticCallAsync<TransferGatewayListContractMappingResponse>(
+      'ListContractMapping',
+      new TransferGatewayListContractMappingRequest(),
+      new TransferGatewayListContractMappingResponse()
+    )
+
+    const confirmed = response.getConfimedMappingsList().map(mapping => ({
+      from: Address.UnmarshalPB(mapping.getFrom()!),
+      to: Address.UnmarshalPB(mapping.getTo()!)
+    }))
+
+    const pending = response.getConfimedMappingsList().map(mapping => ({
+      from: Address.UnmarshalPB(mapping.getFrom()!),
+      to: Address.UnmarshalPB(mapping.getTo()!)
+    }))
+
+    return {
+      confirmed,
+      pending
+    }
   }
 
   /**
@@ -255,6 +317,52 @@ export class TransferGateway extends Contract {
   }
 
   /**
+   * Sends a request to the DAppChain Gateway to begin withdrawal TRX tokens from the current
+   * DAppChain account to an Tron account.
+   * @param amount Amount to withdraw.
+   * @param tokenContract DAppChain address of Tron coin contract.
+   * @param recipient Tron address of the account in hex string where the token should be withdrawn to, if this is
+   *                  omitted the Gateway will attempt to use the Address Mapper to retrieve the
+   *                  address of the Tron account mapped to the current DAppChain account.
+   * @returns A promise that will be resolved when the DAppChain Gateway has accepted the withdrawal
+   *          request.
+   */
+  withdrawTRXAsync(amount: BN, tokenContract: Address, recipient?: Address): Promise<void> {
+    const req = new TransferGatewayWithdrawTokenRequest()
+    req.setTokenKind(TransferGatewayTokenKind.TRX)
+    req.setTokenAmount(marshalBigUIntPB(amount))
+    req.setTokenContract(tokenContract.MarshalPB())
+    if (recipient) {
+      req.setRecipient(recipient.MarshalPB())
+    }
+
+    return this.callAsync<void>('WithdrawToken', req)
+  }
+
+  /**
+   * Sends a request to the DAppChain Gateway to begin withdrawal TRC20 tokens from the current
+   * DAppChain account to an Tron account.
+   * @param amount Amount to withdraw.
+   * @param tokenContract DAppChain address of Tron TRC20 contract.
+   * @param recipient Tron address of the account in hex string where the token should be withdrawn to, if this is
+   *                  omitted the Gateway will attempt to use the Address Mapper to retrieve the
+   *                  address of the Tron account mapped to the current DAppChain account.
+   * @returns A promise that will be resolved when the DAppChain Gateway has accepted the withdrawal
+   *          request.
+   */
+  withdrawTRC20Async(amount: BN, tokenContract: Address, recipient?: Address): Promise<void> {
+    const req = new TransferGatewayWithdrawTokenRequest()
+    req.setTokenKind(TransferGatewayTokenKind.TRC20)
+    req.setTokenAmount(marshalBigUIntPB(amount))
+    req.setTokenContract(tokenContract.MarshalPB())
+    if (recipient) {
+      req.setRecipient(recipient.MarshalPB())
+    }
+
+    return this.callAsync<void>('WithdrawToken', req)
+  }
+
+  /**
    * Retrieves the current withdrawal receipt (if any) for the given DAppChain account.
    * Withdrawal receipts are created by calling one of the withdraw methods.
    * @param owner DAppChain address of a user account.
@@ -295,8 +403,8 @@ export class TransferGateway extends Contract {
           break
       }
       return {
-        tokenOwner: Address.UmarshalPB(receipt.getTokenOwner()!),
-        tokenContract: Address.UmarshalPB(receipt.getTokenContract()!),
+        tokenOwner: Address.UnmarshalPB(receipt.getTokenOwner()!),
+        tokenContract: Address.UnmarshalPB(receipt.getTokenContract()!),
         tokenKind,
         tokenId,
         tokenAmount,
@@ -306,5 +414,81 @@ export class TransferGateway extends Contract {
       }
     }
     return null
+  }
+
+  /**
+   * Attempt to transfer tokens that originated from the specified Ethereum contract, and that have
+   * been deposited to the Ethereum Gateway, but haven't yet been received by the depositors on the
+   * DAppChain because of a missing identity or contract mapping. This method can only be called by
+   * the creator of the specified token contract, or the Gateway owner.
+   *
+   * @param tokenContract token contract to reclaim the tokens
+   */
+  async reclaimContractTokensAsync(tokenContract: Address): Promise<void> {
+    const req = new TransferGatewayReclaimContractTokensRequest()
+    req.setTokenContract(tokenContract.MarshalPB())
+    return this.callAsync<void>('ReclaimContractTokens', req)
+  }
+
+  async getUnclaimedTokensAsync(owner: Address): Promise<Array<IUnclaimedToken>> {
+    const req = new TransferGatewayGetUnclaimedTokensRequest()
+    req.setOwner(owner.MarshalPB())
+    const result = await this.staticCallAsync(
+      'GetUnclaimedTokens',
+      req,
+      new TransferGatewayGetUnclaimedTokensResponse()
+    )
+
+    const unclaimedTokens = result.getUnclaimedTokensList()
+
+    let tokens: Array<IUnclaimedToken> = []
+    for (let token of unclaimedTokens) {
+      const tokenKind = token.getTokenKind()
+      let tokenIds: Array<BN> = []
+      let tokenAmounts: Array<BN> = []
+      if (tokenKind === TransferGatewayTokenKind.ERC721) {
+        // Set only the tokenId for ERC721
+        for (let amt of token.getAmountsList()) {
+          tokenIds.push(unmarshalBigUIntPB(amt.getTokenId()!))
+        }
+      } else if (tokenKind === TransferGatewayTokenKind.ERC721X) {
+        // Set both the tokenId and the tokenAmounts for ERC721x
+        for (let amt of token.getAmountsList()) {
+          tokenIds.push(unmarshalBigUIntPB(amt.getTokenId()!))
+          tokenAmounts.push(unmarshalBigUIntPB(amt.getTokenAmount()!))
+        }
+      } else {
+        // Set only amount for all other cases
+        for (let amt of token.getAmountsList()) {
+          tokenAmounts.push(unmarshalBigUIntPB(amt.getTokenAmount()!))
+        }
+      }
+
+      tokens.push({
+        tokenContract: Address.UnmarshalPB(token.getTokenContract()!),
+        tokenKind: tokenKind,
+        tokenAmounts: tokenAmounts,
+        tokenIds: tokenIds
+      })
+    }
+
+    return tokens
+  }
+
+  /**
+   * Attempt to transfer any tokens that the caller may have deposited into the Ethereum Gateway
+   * but hasn't yet received from the DAppChain Gateway because of a missing identity or contract
+   * mapping.
+   *
+   * @param depositors Optional list of DAppChain accounts to reclaim tokens for, when set tokens
+   *                   will be reclaimed for the specified accounts instead of the caller's account.
+   *                   NOTE: Only the Gateway owner is authorized to provide a list of accounts.
+   */
+  async reclaimDepositorTokensAsync(depositors?: Array<Address>): Promise<void> {
+    const req = new TransferGatewayReclaimDepositorTokensRequest()
+    if (depositors && depositors.length > 0) {
+      req.setDepositorsList(depositors.map((address: Address) => address.MarshalPB()))
+    }
+    return this.callAsync<void>('ReclaimDepositorTokens', req)
   }
 }

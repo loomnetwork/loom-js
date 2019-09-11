@@ -1,3 +1,4 @@
+import { SIGNATURE_TYPE } from './crypto-utils'
 import ethutil from 'ethereumjs-util'
 import Web3 from 'web3'
 import { ethers } from 'ethers'
@@ -16,18 +17,42 @@ export interface IEthereumSigner {
 }
 
 /**
+ * Returns the Metamask signer from web3 current provider
+ */
+export function getMetamaskSigner(provider: any): ethers.Signer {
+  // HACK: force personal sign by pretending to be metamask no matter what the web3 provider is
+  provider.isMetaMask = true
+  return new ethers.providers.Web3Provider(provider).getSigner()
+}
+
+/**
+ * Returns json rpc signer, ex: http://localhost:8545
+ *
+ * @param urlString url string to connect to provider
+ * @param accountIndex index of the account on providers list
+ */
+export async function getJsonRPCSignerAsync(
+  urlString: string,
+  accountIndex: number = 0
+): Promise<ethers.Signer> {
+  const provider = new ethers.providers.JsonRpcProvider(urlString)
+  const signers = (await provider.listAccounts()).map((acc: any) => provider.getSigner(acc))
+  return signers[accountIndex]
+}
+
+/**
  * Signs message using a Web3 account.
  * This signer should be used for interactive signing in the browser with MetaMask.
  */
 export class EthersSigner implements IEthereumSigner {
-  private _wallet: ethers.Signer
+  private _signer: ethers.Signer
 
   /**
    * @param web3 Web3 instance to use for signing.
    * @param accountAddress Address of web3 account to sign with.
    */
-  constructor(wallet: ethers.Signer) {
-    this._wallet = wallet
+  constructor(signer: ethers.Signer) {
+    this._signer = signer
   }
 
   /**
@@ -36,7 +61,7 @@ export class EthersSigner implements IEthereumSigner {
    * @returns Promise that will be resolved with the signature bytes.
    */
   async signAsync(msg: string): Promise<Uint8Array> {
-    let flatSig = await this._wallet.signMessage(ethers.utils.arrayify(msg))
+    let flatSig = await this._signer.signMessage(ethers.utils.arrayify(msg))
     const sig = ethers.utils.splitSignature(flatSig)
     let v = sig.v!
     if (v === 0 || v === 1) {
@@ -73,7 +98,7 @@ export class Web3Signer implements IEthereumSigner {
     const signature = await this._web3.eth.sign(msg, this._address)
     const sig = signature.slice(2)
 
-    let mode = 1 // Geth
+    let mode = SIGNATURE_TYPE.GETH // Geth
     const r = ethutil.toBuffer('0x' + sig.substring(0, 64)) as Buffer
     const s = ethutil.toBuffer('0x' + sig.substring(64, 128)) as Buffer
     let v = parseInt(sig.substring(128, 130), 16)
@@ -81,7 +106,7 @@ export class Web3Signer implements IEthereumSigner {
     if (v === 0 || v === 1) {
       v += 27
     } else {
-      mode = 0 // indicate that msg wasn't prefixed before signing (MetaMask doesn't prefix!)
+      mode = SIGNATURE_TYPE.EIP712 // indicate that msg wasn't prefixed before signing (MetaMask doesn't prefix!)
     }
     return Buffer.concat([ethutil.toBuffer(mode) as Buffer, r, s, ethutil.toBuffer(v) as Buffer])
   }
@@ -114,12 +139,15 @@ export class OfflineWeb3Signer implements IEthereumSigner {
     const ret = await this._web3.eth.accounts.sign(msg, this._account.privateKey)
     // @ts-ignore
     const sig = ret.signature.slice(2)
-
-    let mode = 1 // Geth
     const r = ethutil.toBuffer('0x' + sig.substring(0, 64)) as Buffer
     const s = ethutil.toBuffer('0x' + sig.substring(64, 128)) as Buffer
     let v = parseInt(sig.substring(128, 130), 16)
 
-    return Buffer.concat([ethutil.toBuffer(mode) as Buffer, r, s, ethutil.toBuffer(v) as Buffer])
+    return Buffer.concat([
+      ethutil.toBuffer(SIGNATURE_TYPE.GETH) as Buffer,
+      r,
+      s,
+      ethutil.toBuffer(v) as Buffer
+    ])
   }
 }

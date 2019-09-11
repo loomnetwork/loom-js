@@ -103,12 +103,14 @@ message DelegateRequestV2 {
     Address validator_address = 1;
     BigUInt amount = 2;
     uint64 locktime_tier = 3;
+    string referrer = 4; //optional wallet that sent the delegation
 }
 
 message RedelegateRequestV2 {
     Address validator_address = 1;
     Address former_validator_address = 2;
     BigUInt amount = 3;
+    string referrer = 4; //optional wallet that sent the delegation
 }
 
 message CheckDelegationRequestV2 {
@@ -200,4 +202,54 @@ message SetOracleAddressRequestV2 {
 message SetSlashingPercentagesRequestV2 {
     BigUInt crash_slashing_percentage = 1;
     BigUInt byzantine_slashing_percentage = 2;
+}
+
+message TotalDelegationRequest {
+    Address delegator_address = 1;
+}
+
+message TotalDelegationResponse {
+    BigUInt amount = 1;
+    BigUInt weighted_amount = 2;
+}
+
+message CheckDistributionRequest {
+    Address address = 1;
+}
+
+message CheckDistributionResponse {
+    BigUInt amount = 1;
+}
+
+message TimeUntilElectionRequest {
+}
+
+message TimeUntilElectionResponse {
+    int64 time_until_election = 1 [jstype = JS_STRING];
+}
+
+message ListDelegationsRequest {
+    Address candidate = 1;
+}
+
+message ListDelegationsResponse {
+    repeated DelegationV2 delegations = 1;
+    BigUInt delegation_total = 2;
+}
+
+message ListAllDelegationsRequest {
+}
+
+message ListAllDelegationsResponse {
+    repeated ListDelegationsResponse listResponses = 1;
+}
+
+message CheckAllDelegationsRequest {
+    Address delegator_address = 1;
+}
+
+message CheckAllDelegationsResponse {
+    BigUInt amount = 1;
+    BigUInt weighted_amount = 2;
+    repeated DelegationV2 delegations = 3;
 }

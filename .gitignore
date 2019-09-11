@@ -14,3 +14,11 @@ package-lock.json
 loom.umd.js
 /.env.test
 /yarn-error.log
+
+e2e_support/app\.db/
+
+e2e_support/evm\.db/
+
+e2e_support/receipts_db/
+
+e2e_support/loom2\.log

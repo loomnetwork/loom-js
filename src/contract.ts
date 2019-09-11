@@ -1,5 +1,6 @@
 import { Message } from 'google-protobuf'
 import EventEmitter from 'events'
+import debug from 'debug'
 
 import { Client, ClientEvent, IChainEventArgs } from './client'
 import {
@@ -14,6 +15,8 @@ import {
 } from './proto/loom_pb'
 import { Address } from './address'
 import { bufferToProtobufBytes } from './crypto-utils'
+
+const debugLog = debug('contract')
 
 /**
  * The Contract class streamlines interaction with a contract that was deployed on a Loom DAppChain.
@@ -110,6 +113,8 @@ export class Contract extends EventEmitter {
     tx.setId(2)
     tx.setData(msgTx.serializeBinary())
 
+    debugLog(`call '${method} on ${this.address.toString()} from ${this.caller.toString()}`)
+
     const result = await this._client.commitTxAsync<Transaction>(tx)
     if (result && output) {
       const resp = Response.deserializeBinary(bufferToProtobufBytes(result))
@@ -130,6 +135,8 @@ export class Contract extends EventEmitter {
     const query = new ContractMethodCall()
     query.setMethod(method)
     query.setArgs(args.serializeBinary())
+
+    debugLog(`static call '${method} on ${this.address.toString()} from ${this.caller.toString()}`)
 
     const result = await this._client.queryAsync(
       this.address,

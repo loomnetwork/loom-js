@@ -199,7 +199,8 @@ test('LoomProvider method eth_blockNumber', async t => {
     )
 
     t.equal(ethBlockNumber.id, id, `Id for eth_blockNumber should be equal ${id}`)
-    t.assert(ethBlockNumber.result, 'Number identification should be returned on ethBlockNumber')
+    t.assert(ethBlockNumber.result, 'JSON RPC result should be set')
+    t.equal(ethBlockNumber.result.indexOf('0x'), 0, 'Block number should be hex-encoded')
   } catch (err) {
     console.log(err)
     t.error(err, 'Error found')
@@ -432,16 +433,33 @@ test('LoomProvider method eth_call', async t => {
 })
 
 test('LoomProvider method eth_getTransactionReceipt', async t => {
-  const { loomProvider, client, transactionHash } = await newContractAndClient()
+  const { loomProvider, client, contractAddress, from } = await newContractAndClient()
 
   try {
     const id = 1
+
+    const ethSendTransactionResult = await execAndWaitForMillisecondsAsync(
+      loomProvider.sendAsync({
+        id,
+        method: 'eth_sendTransaction',
+        params: [
+          {
+            to: contractAddress,
+            from,
+            data: '0x60fe47b10000000000000000000000000000000000000000000000000000000000000001',
+            gas: '0x0',
+            gasPrice: '0x0',
+            value: '0x0'
+          }
+        ]
+      })
+    )
 
     const ethGetTransactionReceiptResult = await execAndWaitForMillisecondsAsync(
       loomProvider.sendAsync({
         id,
         method: 'eth_getTransactionReceipt',
-        params: [transactionHash]
+        params: [ethSendTransactionResult.result]
       })
     )
 
