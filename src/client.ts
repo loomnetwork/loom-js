@@ -4,21 +4,16 @@ import EventEmitter from 'events'
 import retry from 'retry'
 
 import { VMType } from './proto/loom_pb'
+import { EvmQueries } from './evm-queries'
 import {
   EvmTxReceipt,
   EvmTxObject,
   EthBlockInfo,
-  EthFilterEnvelope,
   EthBlockHashList,
   EthFilterLogList,
   EthTxHashList
 } from './proto/evm_pb'
-import {
-  Uint8ArrayToB64,
-  B64ToUint8Array,
-  bufferToProtobufBytes,
-  hexToBytes
-} from './crypto-utils'
+import { Uint8ArrayToB64, B64ToUint8Array } from './crypto-utils'
 import { Address, LocalAddress } from './address'
 import { WSRPCClient, IJSONRPCEvent } from './internal/ws-rpc-client'
 import { RPCClientEvent, IJSONRPCClient } from './internal/json-rpc-client'
@@ -224,6 +219,11 @@ export class TxSyncBroadcaster implements ITxBroadcaster {
   }
 }
 
+const deprecatedEvmWarn = () =>
+  console.warn(
+    'Deprecated: use evm property in order to call evm functions, i.e: client.evm.getEvmTxByHashAsync'
+  )
+
 /**
  * Writes to & reads from a Loom DAppChain.
  *
@@ -242,6 +242,7 @@ export class Client extends EventEmitter {
 
   private _writeClient: IJSONRPCClient
   private _readClient!: IJSONRPCClient
+  private _evmQueries: EvmQueries
 
   /** Broadcaster to use to send txs & receive results. */
   txBroadcaster: ITxBroadcaster
@@ -255,6 +256,10 @@ export class Client extends EventEmitter {
 
   get writeUrl(): string {
     return this._writeClient.url
+  }
+
+  get evm(): EvmQueries {
+    return this._evmQueries
   }
 
   /**
@@ -314,6 +319,8 @@ export class Client extends EventEmitter {
         this._emitNetEvent(url, ClientEvent.Disconnected)
       )
     }
+
+    this._evmQueries = new EvmQueries(this._readClient)
 
     const emitContractEvent = (url: string, event: IJSONRPCEvent) =>
       this._emitContractEvent(url, event)
@@ -445,71 +452,53 @@ export class Client extends EventEmitter {
   /**
    * Queries the receipt corresponding to a transaction hash
    *
+   * @deprecated Use use `evm` property in order to call evm functions, i.e: client.evm.getEvmTxByHashAsync'
+   *
    * @param txHash Transaction hash returned by call transaction.
    * @return EvmTxReceipt The corresponding transaction receipt.
    */
   async getEvmTxReceiptAsync(txHash: Uint8Array): Promise<EvmTxReceipt | null> {
-    const result = await this._readClient.sendAsync<string>('evmtxreceipt', {
-      txHash: Uint8ArrayToB64(txHash)
-    })
-    if (result) {
-      return EvmTxReceipt.deserializeBinary(bufferToProtobufBytes(B64ToUint8Array(result)))
-    } else {
-      return null
-    }
+    deprecatedEvmWarn()
+    return this.evm.getEvmTxReceiptAsync(txHash)
   }
 
   /**
    * Returns the information about a transaction requested by transaction hash
    *
+   * @deprecated Use use `evm` property in order to call evm functions, i.e: client.evm.getEvmTxByHashAsync'
+   *
    * @param txHash Transaction hash returned by call transaction.
    * @return EvmTxObject The corresponding transaction object data.
    */
   async getEvmTxByHashAsync(txHash: Uint8Array): Promise<EvmTxObject | null> {
-    const result = await this._readClient.sendAsync<string>('getevmtransactionbyhash', {
-      txHash: Uint8ArrayToB64(txHash)
-    })
-    if (result) {
-      return EvmTxObject.deserializeBinary(bufferToProtobufBytes(B64ToUint8Array(result)))
-    } else {
-      return null
-    }
+    deprecatedEvmWarn()
+    return this.evm.getEvmTxByHashAsync(txHash)
   }
 
   /**
    * Queries the code corresponding to a contract
    *
+   * @deprecated Use use `evm` property in order to call evm functions, i.e: client.evm.getEvmTxByHashAsync'
+   *
    * @param contractAddress Contract address returned by deploy.
    * @return Uint8Array The corresponding contract code
    */
   async getEvmCodeAsync(contractAddress: Address): Promise<Uint8Array | null> {
-    const result = await this._readClient.sendAsync<string>('getevmcode', {
-      contract: contractAddress.toString()
-    })
-    if (result) {
-      return B64ToUint8Array(result)
-    } else {
-      return null
-    }
+    deprecatedEvmWarn()
+    return this.evm.getEvmCodeAsync(contractAddress)
   }
 
   /**
    * Queries logs with filter terms
    *
+   * @deprecated Use use `evm` property in order to call evm functions, i.e: client.evm.getEvmTxByHashAsync'
+   *
    * @param filter Filter terms
    * @return Uint8Array The corresponding result of the filter
    */
   async getEvmLogsAsync(filterObject: Object): Promise<Uint8Array | null> {
-    const filter = JSON.stringify(filterObject)
-    debugLog(`Send filter ${filter} to getlogs`)
-    const result = await this._readClient.sendAsync<string>('getevmlogs', {
-      filter
-    })
-    if (result) {
-      return B64ToUint8Array(result)
-    } else {
-      return null
-    }
+    deprecatedEvmWarn()
+    return this.evm.getEvmLogsAsync(filterObject)
   }
 
   /**
@@ -519,20 +508,14 @@ export class Client extends EventEmitter {
    *
    * Also for understand how filters works check https://github.com/ethereum/wiki/wiki/JSON-RPC#eth_newfilter
    *
+   * @deprecated Use use `evm` property in order to call evm functions, i.e: client.evm.getEvmTxByHashAsync'
+   *
    * @param filter Filter terms
    * @return Uint8Array The corresponding result of the filter
    */
   async newEvmFilterAsync(filterObject: Object): Promise<string | null> {
-    const filter = JSON.stringify(filterObject)
-    debugLog(`Send filter ${filter} to newfilter`)
-    const result = await this._readClient.sendAsync<string>('newevmfilter', {
-      filter
-    })
-    if (result) {
-      return result
-    } else {
-      return null
-    }
+    deprecatedEvmWarn()
+    return this.evm.newEvmFilterAsync(filterObject)
   }
 
   /**
@@ -540,36 +523,16 @@ export class Client extends EventEmitter {
    *
    * The ID used was requested from getEVMNewFilterChanges or getEVMNewBlockFilter
    *
+   * @deprecated Use use `evm` property in order to call evm functions, i.e: client.evm.getEvmTxByHashAsync'
+   *
    * @param id Id of filter previously created
    * @return Uint8Array The corresponding result of the request for given id
    */
   async getEvmFilterChangesAsync(
     id: string
   ): Promise<EthBlockHashList | EthFilterLogList | EthTxHashList | null> {
-    debugLog(`Get filter changes for ${JSON.stringify({ id }, null, 2)}`)
-    const result = await this._readClient.sendAsync<Uint8Array>('getevmfilterchanges', {
-      id
-    })
-
-    if (result) {
-      const envelope: EthFilterEnvelope = EthFilterEnvelope.deserializeBinary(
-        bufferToProtobufBytes(result)
-      )
-
-      switch (envelope.getMessageCase()) {
-        case EthFilterEnvelope.MessageCase.ETH_BLOCK_HASH_LIST:
-          return envelope.getEthBlockHashList() as EthBlockHashList
-        case EthFilterEnvelope.MessageCase.ETH_FILTER_LOG_LIST:
-          return envelope.getEthFilterLogList() as EthFilterLogList
-        case EthFilterEnvelope.MessageCase.ETH_TX_HASH_LIST:
-          return envelope.getEthTxHashList() as EthTxHashList
-        case EthFilterEnvelope.MessageCase.MESSAGE_NOT_SET:
-        default:
-          return null
-      }
-    } else {
-      return null
-    }
+    deprecatedEvmWarn()
+    return this.evm.getEvmFilterChangesAsync(id)
   }
 
   /**
@@ -577,15 +540,13 @@ export class Client extends EventEmitter {
    *
    * In order to check if the state has changed, call getEVMFilterChangesAsync
    *
+   * @deprecated Use use `evm` property in order to call evm functions, i.e: client.evm.getEvmTxByHashAsync'
+   *
    * @return String Filter ID in hex format to be used later with getEVMFilterChangesAsync
    */
   async newBlockEvmFilterAsync(): Promise<string | null> {
-    const result = await this._readClient.sendAsync<string>('newblockevmfilter', {})
-    if (result) {
-      return result.toString()
-    } else {
-      return null
-    }
+    deprecatedEvmWarn()
+    return this.evm.newBlockEvmFilterAsync()
   }
 
   /**
@@ -593,15 +554,13 @@ export class Client extends EventEmitter {
    *
    * In order to check if the state has changed, call getEVMFilterChangesAsync
    *
+   * @deprecated Use use `evm` property in order to call evm functions, i.e: client.evm.getEvmTxByHashAsync'
+   *
    * @return String Filter ID in hex format to be used later with getEVMFilterChangesAsync
    */
   async newPendingTransactionEvmFilterAsync(): Promise<string | null> {
-    const result = await this._readClient.sendAsync<string>('newpendingtransactionevmfilter', {})
-    if (result) {
-      return result.toString()
-    } else {
-      return null
-    }
+    deprecatedEvmWarn()
+    return this.evm.newPendingTransactionEvmFilterAsync()
   }
 
   /**
@@ -609,35 +568,33 @@ export class Client extends EventEmitter {
    *
    * The ID used was requested from getEVMNewFilterChanges or getEVMNewBlockFilter
    *
+   * @deprecated Use use `evm` property in order to call evm functions, i.e: client.evm.getEvmTxByHashAsync'
+   *
    * @param id Id of filter previously created
    * @return boolean If true the filter is removed with success
    */
   uninstallEvmFilterAsync(id: string): Promise<boolean | null> {
-    return this._readClient.sendAsync<boolean>('uninstallevmfilter', {
-      id
-    })
+    deprecatedEvmWarn()
+    return this.evm.uninstallEvmFilterAsync(id)
   }
 
   /**
    * Returns information about a block by block number.
    *
+   * @deprecated Use use `evm` property in order to call evm functions, i.e: client.evm.getEvmTxByHashAsync'
+   *
    * @param num Integer of a block number
    * @param full If true it returns the full transaction objects, if false only the hashes of the transactions
    */
   async getEvmBlockByNumberAsync(num: string, full: boolean = true): Promise<EthBlockInfo | null> {
-    const result = await this._readClient.sendAsync<string>('getevmblockbynumber', {
-      number: num,
-      full
-    })
-    if (result) {
-      return EthBlockInfo.deserializeBinary(bufferToProtobufBytes(B64ToUint8Array(result)))
-    } else {
-      return null
-    }
+    deprecatedEvmWarn()
+    return this.evm.getEvmBlockByNumberAsync(num, full)
   }
 
   /**
    * Returns the information about a transaction requested by transaction hash.
+   *
+   * @deprecated Use use `evm` property in order to call evm functions, i.e: client.evm.getEvmTxByHashAsync'
    *
    * @param hash String with the hash of the transaction
    * @param full If true it returns the full transaction objects, if false only the hashes of the transactions
@@ -646,15 +603,8 @@ export class Client extends EventEmitter {
     hashHexStr: string,
     full: boolean = true
   ): Promise<EthBlockInfo | null> {
-    const result = await this._readClient.sendAsync<string>('getevmblockbyhash', {
-      hash: Buffer.from(hashHexStr.slice(2), 'hex').toString('base64'),
-      full
-    })
-    if (result) {
-      return EthBlockInfo.deserializeBinary(bufferToProtobufBytes(B64ToUint8Array(result)))
-    } else {
-      return null
-    }
+    deprecatedEvmWarn()
+    return this.evm.getEvmBlockByHashAsync(hashHexStr)
   }
 
   /**
@@ -672,28 +622,28 @@ export class Client extends EventEmitter {
    *    "topics": ["0x238a0cb8bb633d06981248b822e7bd33c2a35a6089241d099fa519e361cab902"]
    *  }
    *
+   * @deprecated Use use `evm` property in order to call evm functions, i.e: client.evm.getEvmTxByHashAsync'
+   *
    * @param method Method selected to the filter, can be "newHeads" or "logs"
    * @param filter JSON string of the filter
    */
   evmSubscribeAsync(method: string, filterObject: Object): Promise<string> {
-    const filter = JSON.stringify(filterObject)
-    return this._readClient.sendAsync<string>('evmsubscribe', {
-      method,
-      filter
-    })
+    deprecatedEvmWarn()
+    return this.evm.evmSubscribeAsync(method, filterObject)
   }
 
   /**
    * Subscriptions are cancelled method and the subscription id as first parameter.
    * It returns a bool indicating if the subscription was cancelled successful.
    *
+   * @deprecated Use use `evm` property in order to call evm functions, i.e: client.evm.getEvmTxByHashAsync'
+   *
    * @param id Id of subscription previously created
    * @return boolean If true the subscription is removed with success
    */
   evmUnsubscribeAsync(id: string): Promise<boolean> {
-    return this._readClient.sendAsync<boolean>('evmunsubscribe', {
-      id
-    })
+    deprecatedEvmWarn()
+    return this.evm.evmUnsubscribeAsync(id)
   }
 
   /**

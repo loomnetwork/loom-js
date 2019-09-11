@@ -76,7 +76,7 @@ test('Client EVM Event test', async t => {
       address: result.contractAddress
     }
 
-    const filterCreated = await client.evmSubscribeAsync('logs', filter)
+    const filterCreated = await client.evm.evmSubscribeAsync('logs', filter)
 
     console.log('Filter created', filterCreated)
 
