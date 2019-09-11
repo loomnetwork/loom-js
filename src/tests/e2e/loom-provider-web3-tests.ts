@@ -80,11 +80,11 @@ const newContractAndClient = async () => {
     }
   ]
 
-  const result = await deployContract(loomProvider, contractData)
+  const { contractAddress } = await deployContract(loomProvider, contractData)
 
-  const contract = new web3.eth.Contract(ABI, result.contractAddress, { from })
+  const contract = new web3.eth.Contract(ABI, contractAddress, { from })
 
-  return { contract, client, web3, from, privKey }
+  return { contract, client, web3, from, privKey, ABI, contractAddress }
 }
 
 test('LoomProvider + Web3 + Event with not matching topic', async t => {
@@ -111,6 +111,50 @@ test('LoomProvider + Web3 + Event with not matching topic', async t => {
     await waitForMillisecondsAsync(1000)
   } catch (err) {
     console.log(err)
+  }
+
+  if (client) {
+    client.disconnect()
+  }
+})
+
+test('LoomProvider transaction without private key should fail', async t => {
+  t.plan(1)
+  const { client, ABI, contractAddress } = await newContractAndClient()
+  const loomProvider = new LoomProvider(client)
+  const web3 = new Web3(loomProvider)
+  const contract = new web3.eth.Contract(ABI, contractAddress)
+
+  try {
+    const newValue = 1
+    await contract.methods.get(newValue).send()
+    await waitForMillisecondsAsync(1000)
+  } catch (err) {
+    t.assert(err, 'Should fail on try to transaction without a private key set')
+  }
+
+  if (client) {
+    client.disconnect()
+  }
+})
+
+test('LoomProvider static call without private key should not fail', async t => {
+  t.plan(1)
+
+  const { client, ABI, contractAddress } = await newContractAndClient()
+  const loomProvider = new LoomProvider(client)
+  const web3 = new Web3(loomProvider)
+  const contract = new web3.eth.Contract(ABI, contractAddress)
+
+  // Some dummy address needed or the call will fail
+  const from = '0x0000000000000000000000000000000000000000'
+
+  try {
+    const resultOfGet = await contract.methods.get().call({ from })
+    t.equal(+resultOfGet, 10, `SimpleStore.get should return correct value`)
+    await waitForMillisecondsAsync(1000)
+  } catch (err) {
+    t.fail(err)
   }
 
   if (client) {
