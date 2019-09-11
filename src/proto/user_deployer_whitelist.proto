@@ -1,0 +1,80 @@
+syntax = "proto3";
+import "proto/loom.proto";
+
+enum TierID {
+    DEFAULT = 0;
+}
+
+message Tier {
+    TierID tier_id = 1;
+    BigUInt fee = 2;
+    string name = 3;
+}
+
+message TierInfo {
+    TierID tier_id = 1;
+    uint64 fee = 2;
+    string name = 3;
+}
+
+message InitRequest {
+    Address owner = 1;
+    repeated TierInfo tier_info = 2;
+}
+
+message DeployerContract {
+    Address contract_address = 1;
+}
+
+message WhitelistUserDeployerRequest {
+    Address deployer_addr = 1;
+    TierID tier_id = 2;
+}
+
+message UserState {
+    Address user_addr = 1;
+    repeated Address deployers = 2;
+}
+
+message UserDeployerState {
+    Address address = 1;
+    repeated DeployerContract contracts = 2;
+    TierID tier_id = 3 ;
+    bool inactive = 4;
+}
+
+message GetUserDeployersRequest {
+    Address user_addr = 1;
+    bool include_inactive = 2;
+}
+
+message GetUserDeployersResponse {
+    repeated UserDeployerState deployers = 1;
+
+}
+
+message GetDeployedContractsRequest {
+    Address deployer_addr = 1;
+}
+
+message GetDeployedContractsResponse {
+    repeated DeployerContract contract_addresses = 1;
+}
+
+message GetTierInfoRequest {
+    TierID id = 1;
+}
+
+message GetTierInfoResponse {
+    Tier tier = 1;
+}
+
+message SetTierInfoRequest {
+    TierID id = 1;
+    BigUInt fee = 2;
+    string name = 3;
+}
+
+message RemoveUserDeployerRequest {
+    Address deployer_addr = 1;
+}

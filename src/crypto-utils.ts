@@ -1,6 +1,6 @@
 import nacl from 'tweetnacl'
 
-export function bytesToHex(bytes: Uint8Array): string {
+export function bytesToHex(bytes: Readonly<Uint8Array>): string {
   return Buffer.from(bytes.buffer as ArrayBuffer, bytes.byteOffset, bytes.byteLength)
     .toString('hex')
     .toUpperCase()
@@ -12,6 +12,10 @@ export function numberToHex(num: number): string {
 
 export function hexToNumber(hex: string): number {
   return parseInt(hex, 16)
+}
+
+export function hexToBytes(hex: string): Uint8Array {
+  return Buffer.from(hex.startsWith('0x') ? hex.slice(2) : hex, 'hex')
 }
 
 export function bytesToHexAddr(bytes: Uint8Array): string {
@@ -30,7 +34,13 @@ export function getGUID(): string {
 export const SIGNATURE_LENGTH = nacl.sign.signatureLength
 export const PRIVATE_KEY_LENGTH = nacl.sign.secretKeyLength
 export const PUBLIC_KEY_LENGTH = nacl.sign.publicKeyLength
-
+export const enum SIGNATURE_TYPE {
+  EIP712 = 0,
+  GETH = 1,
+  TREZOR = 2,
+  TRON = 3,
+  BINANCE = 4
+}
 /**
  * Generates a private key for signing.
  * @returns 64-byte private key.

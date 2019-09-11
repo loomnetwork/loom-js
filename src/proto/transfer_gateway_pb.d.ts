@@ -176,6 +176,50 @@ export namespace TransferGatewayAddContractMappingRequest {
   }
 }
 
+export class TransferGatewayReclaimDepositorTokensRequest extends jspb.Message {
+  clearDepositorsList(): void;
+  getDepositorsList(): Array<proto_loom_pb.Address>;
+  setDepositorsList(value: Array<proto_loom_pb.Address>): void;
+  addDepositors(value?: proto_loom_pb.Address, index?: number): proto_loom_pb.Address;
+
+  serializeBinary(): Uint8Array;
+  toObject(includeInstance?: boolean): TransferGatewayReclaimDepositorTokensRequest.AsObject;
+  static toObject(includeInstance: boolean, msg: TransferGatewayReclaimDepositorTokensRequest): TransferGatewayReclaimDepositorTokensRequest.AsObject;
+  static extensions: {[key: number]: jspb.ExtensionFieldInfo<jspb.Message>};
+  static extensionsBinary: {[key: number]: jspb.ExtensionFieldBinaryInfo<jspb.Message>};
+  static serializeBinaryToWriter(message: TransferGatewayReclaimDepositorTokensRequest, writer: jspb.BinaryWriter): void;
+  static deserializeBinary(bytes: Uint8Array): TransferGatewayReclaimDepositorTokensRequest;
+  static deserializeBinaryFromReader(message: TransferGatewayReclaimDepositorTokensRequest, reader: jspb.BinaryReader): TransferGatewayReclaimDepositorTokensRequest;
+}
+
+export namespace TransferGatewayReclaimDepositorTokensRequest {
+  export type AsObject = {
+    depositorsList: Array<proto_loom_pb.Address.AsObject>,
+  }
+}
+
+export class TransferGatewayReclaimContractTokensRequest extends jspb.Message {
+  hasTokenContract(): boolean;
+  clearTokenContract(): void;
+  getTokenContract(): proto_loom_pb.Address | undefined;
+  setTokenContract(value?: proto_loom_pb.Address): void;
+
+  serializeBinary(): Uint8Array;
+  toObject(includeInstance?: boolean): TransferGatewayReclaimContractTokensRequest.AsObject;
+  static toObject(includeInstance: boolean, msg: TransferGatewayReclaimContractTokensRequest): TransferGatewayReclaimContractTokensRequest.AsObject;
+  static extensions: {[key: number]: jspb.ExtensionFieldInfo<jspb.Message>};
+  static extensionsBinary: {[key: number]: jspb.ExtensionFieldBinaryInfo<jspb.Message>};
+  static serializeBinaryToWriter(message: TransferGatewayReclaimContractTokensRequest, writer: jspb.BinaryWriter): void;
+  static deserializeBinary(bytes: Uint8Array): TransferGatewayReclaimContractTokensRequest;
+  static deserializeBinaryFromReader(message: TransferGatewayReclaimContractTokensRequest, reader: jspb.BinaryReader): TransferGatewayReclaimContractTokensRequest;
+}
+
+export namespace TransferGatewayReclaimContractTokensRequest {
+  export type AsObject = {
+    tokenContract?: proto_loom_pb.Address.AsObject,
+  }
+}
+
 export class TransferGatewayWithdrawTokenRequest extends jspb.Message {
   hasTokenContract(): boolean;
   clearTokenContract(): void;
@@ -366,11 +410,251 @@ export namespace TransferGatewayConfirmWithdrawalReceiptRequest {
   }
 }
 
+export class TransferGatewayTokenAmount extends jspb.Message {
+  hasTokenId(): boolean;
+  clearTokenId(): void;
+  getTokenId(): proto_loom_pb.BigUInt | undefined;
+  setTokenId(value?: proto_loom_pb.BigUInt): void;
+
+  hasTokenAmount(): boolean;
+  clearTokenAmount(): void;
+  getTokenAmount(): proto_loom_pb.BigUInt | undefined;
+  setTokenAmount(value?: proto_loom_pb.BigUInt): void;
+
+  serializeBinary(): Uint8Array;
+  toObject(includeInstance?: boolean): TransferGatewayTokenAmount.AsObject;
+  static toObject(includeInstance: boolean, msg: TransferGatewayTokenAmount): TransferGatewayTokenAmount.AsObject;
+  static extensions: {[key: number]: jspb.ExtensionFieldInfo<jspb.Message>};
+  static extensionsBinary: {[key: number]: jspb.ExtensionFieldBinaryInfo<jspb.Message>};
+  static serializeBinaryToWriter(message: TransferGatewayTokenAmount, writer: jspb.BinaryWriter): void;
+  static deserializeBinary(bytes: Uint8Array): TransferGatewayTokenAmount;
+  static deserializeBinaryFromReader(message: TransferGatewayTokenAmount, reader: jspb.BinaryReader): TransferGatewayTokenAmount;
+}
+
+export namespace TransferGatewayTokenAmount {
+  export type AsObject = {
+    tokenId?: proto_loom_pb.BigUInt.AsObject,
+    tokenAmount?: proto_loom_pb.BigUInt.AsObject,
+  }
+}
+
+export class TransferGatewayUnclaimedToken extends jspb.Message {
+  hasTokenContract(): boolean;
+  clearTokenContract(): void;
+  getTokenContract(): proto_loom_pb.Address | undefined;
+  setTokenContract(value?: proto_loom_pb.Address): void;
+
+  getTokenKind(): TransferGatewayTokenKind;
+  setTokenKind(value: TransferGatewayTokenKind): void;
+
+  clearAmountsList(): void;
+  getAmountsList(): Array<TransferGatewayTokenAmount>;
+  setAmountsList(value: Array<TransferGatewayTokenAmount>): void;
+  addAmounts(value?: TransferGatewayTokenAmount, index?: number): TransferGatewayTokenAmount;
+
+  serializeBinary(): Uint8Array;
+  toObject(includeInstance?: boolean): TransferGatewayUnclaimedToken.AsObject;
+  static toObject(includeInstance: boolean, msg: TransferGatewayUnclaimedToken): TransferGatewayUnclaimedToken.AsObject;
+  static extensions: {[key: number]: jspb.ExtensionFieldInfo<jspb.Message>};
+  static extensionsBinary: {[key: number]: jspb.ExtensionFieldBinaryInfo<jspb.Message>};
+  static serializeBinaryToWriter(message: TransferGatewayUnclaimedToken, writer: jspb.BinaryWriter): void;
+  static deserializeBinary(bytes: Uint8Array): TransferGatewayUnclaimedToken;
+  static deserializeBinaryFromReader(message: TransferGatewayUnclaimedToken, reader: jspb.BinaryReader): TransferGatewayUnclaimedToken;
+}
+
+export namespace TransferGatewayUnclaimedToken {
+  export type AsObject = {
+    tokenContract?: proto_loom_pb.Address.AsObject,
+    tokenKind: TransferGatewayTokenKind,
+    amountsList: Array<TransferGatewayTokenAmount.AsObject>,
+  }
+}
+
+export class TransferGatewayGetUnclaimedTokensRequest extends jspb.Message {
+  hasOwner(): boolean;
+  clearOwner(): void;
+  getOwner(): proto_loom_pb.Address | undefined;
+  setOwner(value?: proto_loom_pb.Address): void;
+
+  serializeBinary(): Uint8Array;
+  toObject(includeInstance?: boolean): TransferGatewayGetUnclaimedTokensRequest.AsObject;
+  static toObject(includeInstance: boolean, msg: TransferGatewayGetUnclaimedTokensRequest): TransferGatewayGetUnclaimedTokensRequest.AsObject;
+  static extensions: {[key: number]: jspb.ExtensionFieldInfo<jspb.Message>};
+  static extensionsBinary: {[key: number]: jspb.ExtensionFieldBinaryInfo<jspb.Message>};
+  static serializeBinaryToWriter(message: TransferGatewayGetUnclaimedTokensRequest, writer: jspb.BinaryWriter): void;
+  static deserializeBinary(bytes: Uint8Array): TransferGatewayGetUnclaimedTokensRequest;
+  static deserializeBinaryFromReader(message: TransferGatewayGetUnclaimedTokensRequest, reader: jspb.BinaryReader): TransferGatewayGetUnclaimedTokensRequest;
+}
+
+export namespace TransferGatewayGetUnclaimedTokensRequest {
+  export type AsObject = {
+    owner?: proto_loom_pb.Address.AsObject,
+  }
+}
+
+export class TransferGatewayGetUnclaimedTokensResponse extends jspb.Message {
+  clearUnclaimedTokensList(): void;
+  getUnclaimedTokensList(): Array<TransferGatewayUnclaimedToken>;
+  setUnclaimedTokensList(value: Array<TransferGatewayUnclaimedToken>): void;
+  addUnclaimedTokens(value?: TransferGatewayUnclaimedToken, index?: number): TransferGatewayUnclaimedToken;
+
+  serializeBinary(): Uint8Array;
+  toObject(includeInstance?: boolean): TransferGatewayGetUnclaimedTokensResponse.AsObject;
+  static toObject(includeInstance: boolean, msg: TransferGatewayGetUnclaimedTokensResponse): TransferGatewayGetUnclaimedTokensResponse.AsObject;
+  static extensions: {[key: number]: jspb.ExtensionFieldInfo<jspb.Message>};
+  static extensionsBinary: {[key: number]: jspb.ExtensionFieldBinaryInfo<jspb.Message>};
+  static serializeBinaryToWriter(message: TransferGatewayGetUnclaimedTokensResponse, writer: jspb.BinaryWriter): void;
+  static deserializeBinary(bytes: Uint8Array): TransferGatewayGetUnclaimedTokensResponse;
+  static deserializeBinaryFromReader(message: TransferGatewayGetUnclaimedTokensResponse, reader: jspb.BinaryReader): TransferGatewayGetUnclaimedTokensResponse;
+}
+
+export namespace TransferGatewayGetUnclaimedTokensResponse {
+  export type AsObject = {
+    unclaimedTokensList: Array<TransferGatewayUnclaimedToken.AsObject>,
+  }
+}
+
+export class TransferGatewayResubmitWithdrawalRequest extends jspb.Message {
+  serializeBinary(): Uint8Array;
+  toObject(includeInstance?: boolean): TransferGatewayResubmitWithdrawalRequest.AsObject;
+  static toObject(includeInstance: boolean, msg: TransferGatewayResubmitWithdrawalRequest): TransferGatewayResubmitWithdrawalRequest.AsObject;
+  static extensions: {[key: number]: jspb.ExtensionFieldInfo<jspb.Message>};
+  static extensionsBinary: {[key: number]: jspb.ExtensionFieldBinaryInfo<jspb.Message>};
+  static serializeBinaryToWriter(message: TransferGatewayResubmitWithdrawalRequest, writer: jspb.BinaryWriter): void;
+  static deserializeBinary(bytes: Uint8Array): TransferGatewayResubmitWithdrawalRequest;
+  static deserializeBinaryFromReader(message: TransferGatewayResubmitWithdrawalRequest, reader: jspb.BinaryReader): TransferGatewayResubmitWithdrawalRequest;
+}
+
+export namespace TransferGatewayResubmitWithdrawalRequest {
+  export type AsObject = {
+  }
+}
+
+export class TransferGatewayListContractMappingRequest extends jspb.Message {
+  serializeBinary(): Uint8Array;
+  toObject(includeInstance?: boolean): TransferGatewayListContractMappingRequest.AsObject;
+  static toObject(includeInstance: boolean, msg: TransferGatewayListContractMappingRequest): TransferGatewayListContractMappingRequest.AsObject;
+  static extensions: {[key: number]: jspb.ExtensionFieldInfo<jspb.Message>};
+  static extensionsBinary: {[key: number]: jspb.ExtensionFieldBinaryInfo<jspb.Message>};
+  static serializeBinaryToWriter(message: TransferGatewayListContractMappingRequest, writer: jspb.BinaryWriter): void;
+  static deserializeBinary(bytes: Uint8Array): TransferGatewayListContractMappingRequest;
+  static deserializeBinaryFromReader(message: TransferGatewayListContractMappingRequest, reader: jspb.BinaryReader): TransferGatewayListContractMappingRequest;
+}
+
+export namespace TransferGatewayListContractMappingRequest {
+  export type AsObject = {
+  }
+}
+
+export class TransferGatewayListContractMappingResponse extends jspb.Message {
+  clearConfimedMappingsList(): void;
+  getConfimedMappingsList(): Array<TransferGatewayContractAddressMapping>;
+  setConfimedMappingsList(value: Array<TransferGatewayContractAddressMapping>): void;
+  addConfimedMappings(value?: TransferGatewayContractAddressMapping, index?: number): TransferGatewayContractAddressMapping;
+
+  clearPendingMappingsList(): void;
+  getPendingMappingsList(): Array<TransferGatewayPendingContractMapping>;
+  setPendingMappingsList(value: Array<TransferGatewayPendingContractMapping>): void;
+  addPendingMappings(value?: TransferGatewayPendingContractMapping, index?: number): TransferGatewayPendingContractMapping;
+
+  serializeBinary(): Uint8Array;
+  toObject(includeInstance?: boolean): TransferGatewayListContractMappingResponse.AsObject;
+  static toObject(includeInstance: boolean, msg: TransferGatewayListContractMappingResponse): TransferGatewayListContractMappingResponse.AsObject;
+  static extensions: {[key: number]: jspb.ExtensionFieldInfo<jspb.Message>};
+  static extensionsBinary: {[key: number]: jspb.ExtensionFieldBinaryInfo<jspb.Message>};
+  static serializeBinaryToWriter(message: TransferGatewayListContractMappingResponse, writer: jspb.BinaryWriter): void;
+  static deserializeBinary(bytes: Uint8Array): TransferGatewayListContractMappingResponse;
+  static deserializeBinaryFromReader(message: TransferGatewayListContractMappingResponse, reader: jspb.BinaryReader): TransferGatewayListContractMappingResponse;
+}
+
+export namespace TransferGatewayListContractMappingResponse {
+  export type AsObject = {
+    confimedMappingsList: Array<TransferGatewayContractAddressMapping.AsObject>,
+    pendingMappingsList: Array<TransferGatewayPendingContractMapping.AsObject>,
+  }
+}
+
+export class TransferGatewayContractAddressMapping extends jspb.Message {
+  hasFrom(): boolean;
+  clearFrom(): void;
+  getFrom(): proto_loom_pb.Address | undefined;
+  setFrom(value?: proto_loom_pb.Address): void;
+
+  hasTo(): boolean;
+  clearTo(): void;
+  getTo(): proto_loom_pb.Address | undefined;
+  setTo(value?: proto_loom_pb.Address): void;
+
+  serializeBinary(): Uint8Array;
+  toObject(includeInstance?: boolean): TransferGatewayContractAddressMapping.AsObject;
+  static toObject(includeInstance: boolean, msg: TransferGatewayContractAddressMapping): TransferGatewayContractAddressMapping.AsObject;
+  static extensions: {[key: number]: jspb.ExtensionFieldInfo<jspb.Message>};
+  static extensionsBinary: {[key: number]: jspb.ExtensionFieldBinaryInfo<jspb.Message>};
+  static serializeBinaryToWriter(message: TransferGatewayContractAddressMapping, writer: jspb.BinaryWriter): void;
+  static deserializeBinary(bytes: Uint8Array): TransferGatewayContractAddressMapping;
+  static deserializeBinaryFromReader(message: TransferGatewayContractAddressMapping, reader: jspb.BinaryReader): TransferGatewayContractAddressMapping;
+}
+
+export namespace TransferGatewayContractAddressMapping {
+  export type AsObject = {
+    from?: proto_loom_pb.Address.AsObject,
+    to?: proto_loom_pb.Address.AsObject,
+  }
+}
+
+export class TransferGatewayPendingContractMapping extends jspb.Message {
+  getId(): number;
+  setId(value: number): void;
+
+  hasForeignContract(): boolean;
+  clearForeignContract(): void;
+  getForeignContract(): proto_loom_pb.Address | undefined;
+  setForeignContract(value?: proto_loom_pb.Address): void;
+
+  hasLocalContract(): boolean;
+  clearLocalContract(): void;
+  getLocalContract(): proto_loom_pb.Address | undefined;
+  setLocalContract(value?: proto_loom_pb.Address): void;
+
+  hasForeignContractCreator(): boolean;
+  clearForeignContractCreator(): void;
+  getForeignContractCreator(): proto_loom_pb.Address | undefined;
+  setForeignContractCreator(value?: proto_loom_pb.Address): void;
+
+  getForeignContractTxHash(): Uint8Array | string;
+  getForeignContractTxHash_asU8(): Uint8Array;
+  getForeignContractTxHash_asB64(): string;
+  setForeignContractTxHash(value: Uint8Array | string): void;
+
+  serializeBinary(): Uint8Array;
+  toObject(includeInstance?: boolean): TransferGatewayPendingContractMapping.AsObject;
+  static toObject(includeInstance: boolean, msg: TransferGatewayPendingContractMapping): TransferGatewayPendingContractMapping.AsObject;
+  static extensions: {[key: number]: jspb.ExtensionFieldInfo<jspb.Message>};
+  static extensionsBinary: {[key: number]: jspb.ExtensionFieldBinaryInfo<jspb.Message>};
+  static serializeBinaryToWriter(message: TransferGatewayPendingContractMapping, writer: jspb.BinaryWriter): void;
+  static deserializeBinary(bytes: Uint8Array): TransferGatewayPendingContractMapping;
+  static deserializeBinaryFromReader(message: TransferGatewayPendingContractMapping, reader: jspb.BinaryReader): TransferGatewayPendingContractMapping;
+}
+
+export namespace TransferGatewayPendingContractMapping {
+  export type AsObject = {
+    id: number,
+    foreignContract?: proto_loom_pb.Address.AsObject,
+    localContract?: proto_loom_pb.Address.AsObject,
+    foreignContractCreator?: proto_loom_pb.Address.AsObject,
+    foreignContractTxHash: Uint8Array | string,
+  }
+}
+
 export enum TransferGatewayTokenKind {
   ETH = 0,
   ERC20 = 1,
   ERC721 = 2,
   ERC721X = 3,
   LOOMCOIN = 4,
+  TRX = 5,
+  TRC20 = 6,
+  BEP2_LOOM = 7,
+  BEP2 = 8,
 }
 

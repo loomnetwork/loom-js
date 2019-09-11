@@ -34,6 +34,7 @@ import {
 } from './crypto-utils'
 import { soliditySha3 } from './solidity-helpers'
 import { marshalBigUIntPB } from './big-uint'
+import { SignedEthTxMiddleware } from './middleware'
 
 export interface IEthReceipt {
   transactionHash: string
@@ -117,7 +118,7 @@ export class LoomProvider {
   private _netVersionFromChainId: number
   private _ethRPCMethods: Map<string, EthRPCMethod>
   protected notificationCallbacks: Array<Function>
-  readonly accounts: Map<string, Uint8Array>
+  readonly accounts: Map<string, Uint8Array | null>
 
   /**
    * The retry strategy that should be used to retry some web3 requests.
@@ -133,6 +134,12 @@ export class LoomProvider {
   }
 
   /**
+   * Overrides the chain ID of the caller, when this is `null` the caller chain ID defaults
+   * to the client chain ID.
+   */
+  callerChainId: string | null = null
+
+  /**
    * Constructs the LoomProvider to bridges communication between Web3 and Loom DappChains
    *
    * @param client Client from LoomJS
@@ -144,7 +151,7 @@ export class LoomProvider {
     setupMiddlewaresFunction?: SetupMiddlewareFunction
   ) {
     this._client = client
-    this._netVersionFromChainId = this._chainIdToNetVersion()
+    this._netVersionFromChainId = LoomProvider.chainIdToNetVersion(this._client.chainId)
     this._setupMiddlewares = setupMiddlewaresFunction!
     this._accountMiddlewares = new Map<string, Array<ITxMiddlewareHandler>>()
     this._ethRPCMethods = new Map<string, EthRPCMethod>()
@@ -158,7 +165,7 @@ export class LoomProvider {
 
     if (!this._setupMiddlewares) {
       this._setupMiddlewares = (client: Client, privateKey: Uint8Array) => {
-        return createDefaultTxMiddleware(client, privateKey)
+        return createDefaultTxMiddleware(client, privateKey as Uint8Array)
       }
     }
 
@@ -185,6 +192,21 @@ export class LoomProvider {
       )
       log(`New account added ${accountAddress}`)
     })
+  }
+
+  /**
+   * Set an array of middlewares for a given account
+   *
+   * @param address Address to be register the middleware
+   * @param middlewares Array of middlewares for the address
+   */
+  setMiddlewaresForAddress(address: string, middlewares: Array<ITxMiddlewareHandler>) {
+    this.accounts.set(address.toLowerCase(), null)
+    this._accountMiddlewares.set(address.toLowerCase(), middlewares)
+  }
+
+  get accountMiddlewares(): Map<string, Array<ITxMiddlewareHandler>> {
+    return this._accountMiddlewares
   }
 
   // PUBLIC FUNCTION TO SUPPORT WEB3
@@ -271,6 +293,19 @@ export class LoomProvider {
     }
 
     this._ethRPCMethods.set(method, customMethodFn)
+  }
+
+  /**
+   * Return the numerical representation of the ChainId
+   * More details at: https://github.com/loomnetwork/loom-js/issues/110
+   */
+  static chainIdToNetVersion(chainId: string): number {
+    // Avoids the error "Number can only safely store up to 53 bits" on Web3
+    // Ensures the value less than 9007199254740991 (Number.MAX_SAFE_INTEGER)
+    const chainIdHash = soliditySha3(chainId)
+      .slice(2) // Removes 0x
+      .slice(0, 13) // Produces safe Number less than 9007199254740991
+    return new BN(chainIdHash).toNumber()
   }
 
   removeListener(type: string, callback: (...args: any[]) => void) {
@@ -365,16 +400,16 @@ export class LoomProvider {
 
     const accounts = new Array()
 
-    this.accounts.forEach((value: Uint8Array, key: string) => {
+    this.accounts.forEach((_value: Uint8Array | null, key: string) => {
       accounts.push(key)
     })
 
     return accounts
   }
 
-  private async _ethBlockNumber() {
+  private async _ethBlockNumber(): Promise<string> {
     const blockNumber = await this._client.getBlockHeightAsync()
-    return blockNumber
+    return numberToHexLC(+blockNumber)
   }
 
   private async _ethCall(payload: IEthRPCPayload) {
@@ -589,15 +624,6 @@ export class LoomProvider {
     return this._client.evm.evmUnsubscribeAsync(payload.params[0])
   }
 
-  private _chainIdToNetVersion() {
-    // Avoids the error "Number can only safely store up to 53 bits" on Web3
-    // Ensures the value less than 9007199254740991 (Number.MAX_SAFE_INTEGER)
-    const chainIdHash = soliditySha3(this._client.chainId)
-      .slice(2) // Removes 0x
-      .slice(0, 13) // Produces safe Number less than 9007199254740991
-    return new BN(chainIdHash).toNumber()
-  }
-
   private _netVersion() {
     return this._netVersionFromChainId
   }
@@ -642,7 +668,9 @@ export class LoomProvider {
     data: string
     value: string
   }): Promise<any> {
-    const caller = new Address(this._client.chainId, LocalAddress.fromHexString(payload.from))
+    const chainId = this.callerChainId === null ? this._client.chainId : this.callerChainId
+    const caller = new Address(chainId, LocalAddress.fromHexString(payload.from))
+    log('caller', caller.toString())
     const address = new Address(this._client.chainId, LocalAddress.fromHexString(payload.to))
     const data = Buffer.from(payload.data.slice(2), 'hex')
     const value = new BN((payload.value || '0x0').slice(2), 16)
@@ -665,7 +693,9 @@ export class LoomProvider {
   }
 
   private _callStaticAsync(payload: { to: string; from: string; data: string }): Promise<any> {
-    const caller = new Address(this._client.chainId, LocalAddress.fromHexString(payload.from))
+    const chainId = this.callerChainId === null ? this._client.chainId : this.callerChainId
+    const caller = new Address(chainId, LocalAddress.fromHexString(payload.from))
+    log('caller', caller.toString())
     const address = new Address(this._client.chainId, LocalAddress.fromHexString(payload.to))
     const data = Buffer.from(payload.data.slice(2), 'hex')
     return this._client.queryAsync(address, data, VMType.EVM, caller)
@@ -748,6 +778,7 @@ export class LoomProvider {
         address: contractAddress,
         blockHash,
         blockNumber,
+        blockTime: logEvent.getBlockTime(),
         transactionHash: bytesToHexAddrLC(logEvent.getTxHash_asU8()),
         transactionIndex,
         type: 'mined',
@@ -806,6 +837,7 @@ export class LoomProvider {
   private _createLogResult(log: EthFilterLog): IEthFilterLog {
     return {
       removed: log.getRemoved(),
+      blockTime: log.getBlockTime(),
       logIndex: numberToHexLC(log.getLogIndex()),
       transactionIndex: numberToHex(log.getTransactionIndex()),
       transactionHash: bytesToHexAddrLC(log.getTransactionHash_asU8()),

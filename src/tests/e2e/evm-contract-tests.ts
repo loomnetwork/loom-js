@@ -94,9 +94,13 @@ test('EVM Contract Calls', async t => {
     for (let i = 0; i < numRepeats; i++) {
       rtv = await evmContract.callAsync(inputSet987Array)
       if (rtv) {
+        let sameHash = false
         for (let result of results) {
-          t.notDeepEqual(result, rtv, 'A different tx hash sould be returned' + ' each time')
+          if (Buffer.compare(result as any, rtv as any) === 0) {
+            sameHash = true
+          }
         }
+        t.false(sameHash, 'A different tx hash sould be returned each time')
         results.push(rtv)
       } else {
         t.fail('Should return a tx hash, check loomchain is running')

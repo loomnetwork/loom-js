@@ -1,24 +1,21 @@
 import test from 'tape'
 
-import { NonceTxMiddleware, SignedTxMiddleware, CryptoUtils } from '../../index'
+import { CryptoUtils } from '../../index'
 import { createTestClient, execAndWaitForMillisecondsAsync } from '../helpers'
 import { EthBlockHashList, EthBlockInfo } from '../../proto/evm_pb'
 import { bytesToHexAddr } from '../../crypto-utils'
+import { createDefaultTxMiddleware } from '../../helpers'
 
 test('Client EVM test (newBlockEvmFilterAsync)', async t => {
   let client
 
   try {
     const privateKey = CryptoUtils.generatePrivateKey()
-    const publicKey = CryptoUtils.publicKeyFromPrivateKey(privateKey)
     client = createTestClient()
 
     client.on('error', err => t.error(err))
 
-    client.txMiddleware = [
-      new NonceTxMiddleware(publicKey, client),
-      new SignedTxMiddleware(privateKey)
-    ]
+    client.txMiddleware = createDefaultTxMiddleware(client, privateKey)
 
     // calls newblockevmfilter
     const filterId = await execAndWaitForMillisecondsAsync(client.evm.newBlockEvmFilterAsync())
@@ -69,10 +66,7 @@ test('Client EVM test (newPendingTransactionEvmFilterAsync)', async t => {
 
     client.on('error', err => t.error(err))
 
-    client.txMiddleware = [
-      new NonceTxMiddleware(publicKey, client),
-      new SignedTxMiddleware(privateKey)
-    ]
+    client.txMiddleware = createDefaultTxMiddleware(client, privateKey)
 
     // calls newblockevmfilter
     const filterId = await execAndWaitForMillisecondsAsync(
