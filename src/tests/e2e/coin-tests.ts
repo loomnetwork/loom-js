@@ -54,16 +54,17 @@ async function getClientAndContract(
   return { acct1Client, acct1Coin, acct1PubKey, acct2Client, acct2Coin, acct2PubKey }
 }
 
-async function testTotalSupply(t: test.Test, createClient: () => Client) {
-  const { acct1Client, acct1Coin } = await getClientAndContract(createClient)
+test('Should get total supply', async (t: test.Test) => {
+  const { acct1Client, acct1Coin } = await getClientAndContract(createTestHttpClient)
   const totalSupply = await acct1Coin.getTotalSupplyAsync()
 
   t.assert(totalSupply.eq(toCoinE18(100)), 'Total Supply should be 100e18')
 
   acct1Client.disconnect()
-}
+  t.end()
+})
 
-async function testBalanceOf(t: test.Test, createClient: () => Client) {
+test('Should get balanceOf', async (t: test.Test) => {
   const {
     acct1Client,
     acct1Coin,
@@ -71,7 +72,7 @@ async function testBalanceOf(t: test.Test, createClient: () => Client) {
     acct2Client,
     acct2Coin,
     acct2PubKey
-  } = await getClientAndContract(createClient)
+  } = await getClientAndContract(createTestHttpClient)
 
   const acct1Owner = new Address(acct1Client.chainId, LocalAddress.fromPublicKey(acct1PubKey))
   const acct1Balance = await acct1Coin.getBalanceOfAsync(acct1Owner)
@@ -85,9 +86,10 @@ async function testBalanceOf(t: test.Test, createClient: () => Client) {
 
   acct1Client.disconnect()
   acct2Client.disconnect()
-}
+  t.end()
+})
 
-async function testTransfer(t: test.Test, createClient: () => Client) {
+test('Should get correct balanceOf after transfer', async (t: test.Test) => {
   const {
     acct1Client,
     acct1Coin,
@@ -95,7 +97,7 @@ async function testTransfer(t: test.Test, createClient: () => Client) {
     acct2Client,
     acct2Coin,
     acct2PubKey
-  } = await getClientAndContract(createClient)
+  } = await getClientAndContract(createTestHttpClient)
 
   const from = new Address(acct1Client.chainId, LocalAddress.fromPublicKey(acct1PubKey))
   const to = new Address(acct2Client.chainId, LocalAddress.fromPublicKey(acct2PubKey))
@@ -110,41 +112,32 @@ async function testTransfer(t: test.Test, createClient: () => Client) {
 
   acct1Client.disconnect()
   acct2Client.disconnect()
-}
+  t.end()
+})
 
-async function testApprove(t: test.Test, createClient: () => Client) {
-  const { acct1Client, acct1Coin, acct2Client, acct2PubKey } = await getClientAndContract(
-    createClient
-  )
-
-  const spender = new Address(acct2Client.chainId, LocalAddress.fromPublicKey(acct2PubKey))
-
-  await acct1Coin.approveAsync(spender, toCoinE18(1))
-
-  acct1Client.disconnect()
-}
-
-async function testAllowance(t: test.Test, createClient: () => Client) {
+test('Should correctly approve transfer', async (t: test.Test) => {
   const {
     acct1Client,
     acct1Coin,
-    acct1PubKey,
     acct2Client,
+    acct1PubKey,
     acct2PubKey
-  } = await getClientAndContract(createClient)
+  } = await getClientAndContract(createTestHttpClient)
 
-  const spender = new Address(acct2Client.chainId, LocalAddress.fromPublicKey(acct2PubKey))
   const owner = new Address(acct1Client.chainId, LocalAddress.fromPublicKey(acct1PubKey))
+  const spender = new Address(acct2Client.chainId, LocalAddress.fromPublicKey(acct2PubKey))
 
-  const allowance = await acct1Coin.getAllowanceAsync(owner, spender)
+  await acct1Coin.approveAsync(spender, toCoinE18(1))
+  const bn = await acct1Coin.getAllowanceAsync(owner, spender)
 
-  t.assert(allowance.eq(toCoinE18(1)), 'Allowance should be 1')
+  t.isEqual(bn.toString(), toCoinE18(1).toString(), 'Approved the allowance correctly')
 
   acct1Client.disconnect()
   acct2Client.disconnect()
-}
+  t.end()
+})
 
-async function testTransferFrom(t: test.Test, createClient: () => Client) {
+test('Should correctly approve transfer', async (t: test.Test) => {
   const {
     acct1Client,
     acct1Coin,
@@ -152,7 +145,7 @@ async function testTransferFrom(t: test.Test, createClient: () => Client) {
     acct2Client,
     acct2Coin,
     acct2PubKey
-  } = await getClientAndContract(createClient)
+  } = await getClientAndContract(createTestHttpClient)
 
   const spender = new Address(acct2Client.chainId, LocalAddress.fromPublicKey(acct2PubKey))
   const owner = new Address(acct1Client.chainId, LocalAddress.fromPublicKey(acct1PubKey))
@@ -167,18 +160,5 @@ async function testTransferFrom(t: test.Test, createClient: () => Client) {
 
   acct1Client.disconnect()
   acct2Client.disconnect()
-}
-
-test('Coin', async t => {
-  try {
-    await testTotalSupply(t, createTestHttpClient)
-    await testBalanceOf(t, createTestHttpClient)
-    await testTransfer(t, createTestHttpClient)
-    await testApprove(t, createTestHttpClient)
-    await testAllowance(t, createTestHttpClient)
-    await testTransferFrom(t, createTestHttpClient)
-  } catch (err) {
-    t.fail(err)
-  }
   t.end()
 })
