@@ -147,7 +147,7 @@ export class LoomProvider {
    */
   constructor(
     client: Client,
-    privateKey: Uint8Array,
+    privateKey?: Uint8Array,
     setupMiddlewaresFunction?: SetupMiddlewareFunction
   ) {
     this._client = client
@@ -171,7 +171,10 @@ export class LoomProvider {
 
     this.addDefaultMethods()
     this.addDefaultEvents()
-    this.addAccounts([privateKey])
+
+    if (privateKey) {
+      this.addAccounts([privateKey])
+    }
   }
 
   /**
@@ -892,6 +895,11 @@ export class LoomProvider {
     txTransaction: Transaction
   ): Promise<Uint8Array | void> {
     const middleware = this._accountMiddlewares.get(fromPublicAddr)
+
+    if (!middleware) {
+      throw Error(`Middleware not found for public address ${fromPublicAddr}`)
+    }
+
     return this._client.commitTxAsync<Transaction>(txTransaction, { middleware })
   }
 
