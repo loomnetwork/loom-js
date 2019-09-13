@@ -4,7 +4,7 @@ import { LocalAddress, CryptoUtils } from '../../index'
 import { createTestClient, waitForMillisecondsAsync } from '../helpers'
 
 import { LoomProvider } from '../../loom-provider'
-import { deployContract } from '../evm-helpers'
+import { deployContract, deployContractGanache } from '../evm-helpers'
 
 const Web3 = require('web3')
 
@@ -108,28 +108,6 @@ async function testContracts(t: Test, contractB: any, contractA: any) {
   } catch (err) {
     console.log(err)
   }
-}
-
-async function deployContractGanache(web3Provider: any, contractData: string) {
-  const web3 = new Web3(web3Provider)
-  const fromAddr = '0x90F8bf6A479f320ead074411a4B0e7944Ea8c9C1'
-
-  const ethSendTransactionDeployResult = await web3.eth.sendTransaction({
-    from: fromAddr,
-    data: contractData,
-    gas: '300000',
-    gasPrice: '0x1'
-  })
-
-  if (!ethSendTransactionDeployResult.status) {
-    throw Error('Cant deploy contract on ganache')
-  }
-
-  const ethGetTransactionReceiptResult = await web3.eth.getTransactionReceipt(
-    ethSendTransactionDeployResult.transactionHash
-  )
-
-  return ethGetTransactionReceiptResult
 }
 
 async function testGanache(t: Test) {
