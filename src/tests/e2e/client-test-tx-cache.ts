@@ -16,42 +16,7 @@ import { deployContract } from '../evm-helpers'
 import { bufferToProtobufBytes } from '../../crypto-utils'
 import { Address, LocalAddress } from '../../address'
 import { sleep } from '../../helpers'
-
-/**
- * Requires the SimpleStore solidity contract deployed on a loomchain.
- * go-loom/examples/plugins/evmexample/contract/SimpleStore.sol
- *
- * pragma solidity ^0.4.22;
- *
- * contract SimpleStore {
- *   uint value;
- *
- *   constructor() public {
- *       value = 10;
- *   }
- *
- *   event NewValueSet(uint indexed _value);
- *   event NewValueSetAgain(uint indexed _value);
- *
- *   function set(uint _value) public {
- *     value = _value;
- *
- *     require(_value != 100, "Magic value");
- *
- *     emit NewValueSet(value);
- *   }
- *
- *   function setAgain(uint _value) public {
- *     value = _value;
- *     emit NewValueSetAgain(value);
- *   }
- *
- *   function get() public view returns (uint) {
- *     return value;
- *   }
- * }
- *
- */
+import { SimpleStore3 } from '../contracts_bytecode'
 
 async function deploySimpleStoreContract(): Promise<Address> {
   let privateKey = CryptoUtils.generatePrivateKey()
@@ -63,12 +28,8 @@ async function deploySimpleStoreContract(): Promise<Address> {
     // Only used for deploy the contract
     const loomProvider = new LoomProvider(client, privateKey)
 
-    // Contract bytecode to deploy
-    const contractData =
-      '608060405234801561001057600080fd5b50600a600081905550610201806100286000396000f300608060405260043610610057576000357c0100000000000000000000000000000000000000000000000000000000900463ffffffff16806360fe47b11461005c5780636d4ce63c14610089578063cf718921146100b4575b600080fd5b34801561006857600080fd5b50610087600480360381019080803590602001909291905050506100e1565b005b34801561009557600080fd5b5061009e610193565b6040518082815260200191505060405180910390f35b3480156100c057600080fd5b506100df6004803603810190808035906020019092919050505061019c565b005b8060008190555060648114151515610161576040517f08c379a000000000000000000000000000000000000000000000000000000000815260040180806020018281038252600b8152602001807f4d616769632076616c756500000000000000000000000000000000000000000081525060200191505060405180910390fd5b6000547fb922f092a64f1a076de6f21e4d7c6400b6e55791cc935e7bb8e7e90f7652f15b60405160405180910390a250565b60008054905090565b806000819055506000547fc151b22f26f815d64ae384647d49bc5655149c4b273318d8c3846086dae3835e60405160405180910390a2505600a165627a7a723058204c7af9b8100ac44b72d5498cd5d9034844c7b2249060740bafbe2876fbbcb6d40029'
-
     // Deploy
-    const result = await deployContract(loomProvider, contractData)
+    const result = await deployContract(loomProvider, SimpleStore3)
     contractAddress = new Address('default', LocalAddress.fromHexString(result.contractAddress))
   } catch (err) {
     throw err

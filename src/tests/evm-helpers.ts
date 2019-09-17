@@ -48,7 +48,7 @@ export async function deployContractGanache(
   const ethSendTransactionDeployResult = await web3.eth.sendTransaction({
     from: fromAddr,
     data: contractData,
-    gas: '300000',
+    gas: '6721975',
     gasPrice: '0x1'
   })
 

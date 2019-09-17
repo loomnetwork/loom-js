@@ -12,23 +12,7 @@ import { deployContract } from '../evm-helpers'
 import { ecrecover, privateToPublic, fromRpcSig, toBuffer } from 'ethereumjs-util'
 import { soliditySha3 } from '../../solidity-helpers'
 import { bytesToHexAddr } from '../../crypto-utils'
-
-/**
- * Requires the SimpleStore solidity contract deployed on a loomchain.
- * go-loom/examples/plugins/evmexample/contract/SimpleStore.sol
- *
- * pragma solidity ^0.4.18;
- * contract SimpleStore {
- *  function set(uint _value) public {
- *   value = _value;
- *  }
- * function get() public constant returns (uint) {
- *   return value;
- * }
- *  uint value;
- * }
- *
- */
+import { SimpleStore } from '../contracts_bytecode'
 
 const newContractAndClient = async () => {
   const privKey = CryptoUtils.generatePrivateKey()
@@ -36,10 +20,7 @@ const newContractAndClient = async () => {
   const from = LocalAddress.fromPublicKey(CryptoUtils.publicKeyFromPrivateKey(privKey)).toString()
   const loomProvider = new LoomProvider(client, privKey)
 
-  const contractData =
-    '608060405234801561001057600080fd5b50600a600081905550610118806100286000396000f3006080604052600436106049576000357c0100000000000000000000000000000000000000000000000000000000900463ffffffff16806360fe47b114604e5780636d4ce63c146078575b600080fd5b348015605957600080fd5b5060766004803603810190808035906020019092919050505060a0565b005b348015608357600080fd5b50608a60e3565b6040518082815260200191505060405180910390f35b806000819055507fb922f092a64f1a076de6f21e4d7c6400b6e55791cc935e7bb8e7e90f7652f15b6000546040518082815260200191505060405180910390a150565b600080549050905600a165627a7a72305820fabe42649c29e53c4b9fad19100d72a1e825603058e1678432a76f94a10d352a0029'
-
-  const { contractAddress, transactionHash } = await deployContract(loomProvider, contractData)
+  const { contractAddress, transactionHash } = await deployContract(loomProvider, SimpleStore)
 
   client.on('error', msg => console.error('Error on client:', msg))
 
