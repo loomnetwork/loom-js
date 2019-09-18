@@ -1,5 +1,4 @@
 import test, { Test } from 'tape'
-import BN from 'bn.js'
 import {
   Address,
   Contracts,
@@ -8,145 +7,225 @@ import {
   Client,
   LocalAddress
 } from '../../index'
-import { createTestHttpClient, getTestUrls, waitForMillisecondsAsync } from '../helpers'
+import { createTestHttpClient, waitForMillisecondsAsync } from '../helpers'
 import { B64ToUint8Array } from '../../crypto-utils'
 import { LoomProvider } from '../../loom-provider'
 import Web3 from 'web3'
 import { getJsonRPCSignerAsync, EthersSigner, soliditySha3 } from '../../solidity-helpers'
-import { deployContractGanache, deployContract } from '../evm-helpers'
-import { gateway, dappChainERC20, mainnetERC20 } from '../contracts_bytecode'
+import { resolve } from 'dns'
+import { rejects } from 'assert'
+
+const loomToken = require('./artifacts/LoomToken.json')
+const validatorManager = require('./artifacts/ValidatorManagerContract.json')
+const gateway = require('./artifacts/Gateway.json')
+const sampleERC20MintableToken = require('./artifacts/SampleERC20MintableToken.json')
+const sampleERC20Token = require('./artifacts/SampleERC20Token.json')
+
+// Deploy and return the contract also the txHash
+async function deployContract(
+  web3Contract: any,
+  from: string,
+  bytecode: any,
+  params: any[]
+): Promise<any> {
+  return new Promise((resolve, reject) => {
+    let txHash: any
+
+    web3Contract
+      .deploy({
+        data: bytecode,
+        arguments: params
+      })
+      .send({
+        from,
+        gas: '6721975'
+      })
+      .on('transactionHash', (txHashResult: string) => {
+        txHash = txHashResult
+      })
+      .then((contractDeployed: any) => {
+        contractDeployed.txHash = txHash
+        resolve(contractDeployed)
+      })
+      .catch(reject)
+  })
+}
 
 async function getClientAndContract(createClient: () => Client) {
-  const acct1PrivKey = B64ToUint8Array(
-    'Hz9P3aHH62mO75A6uMVW3mn0U1KkZSq3t03jfOZfyZxjyJoJctNDY6awaVqOpjCGTjHZZxkc23Z3l39EjLOIFQ=='
-  )
-
-  const acct2PrivKey = B64ToUint8Array(
+  // Dappchain private keys
+  const dappChainPrivKeys = [
+    'Hz9P3aHH62mO75A6uMVW3mn0U1KkZSq3t03jfOZfyZxjyJoJctNDY6awaVqOpjCGTjHZZxkc23Z3l39EjLOIFQ==',
     '3bpboaOX/8R2XPS6q6SmhGq+RBvs+3DDkWXayy58lIC+9k1Sj1K0BEQb82OcLZ8Ivkh9EL5/hWgXLKu3vNLc/g=='
-  )
+  ].map(B64ToUint8Array)
 
-  const acct1PubKey = CryptoUtils.publicKeyFromPrivateKey(acct1PrivKey)
-  const acct2PubKey = CryptoUtils.publicKeyFromPrivateKey(acct2PrivKey)
-  const acct1Client = createClient()
-  const acct2Client = createClient()
+  // Main net private keys (ganache)
+  const mainNetPrivKeys = [
+    '0x4f3edf983ac636a65a842ce7c78d9aa706d3b113bce9c46f30d7d21715b23b1d',
+    '0x6cbed15c793ce57650b9877cf6fa156fbef513c4e6134f022a85b1ffdd59b2a1'
+  ]
 
-  acct1Client.txMiddleware = createDefaultTxMiddleware(acct1Client, acct1PrivKey)
-  acct2Client.txMiddleware = createDefaultTxMiddleware(acct2Client, acct2PrivKey)
+  // Main net address (ganache)
+  const mainNetAddresses = [
+    '0x90F8bf6A479f320ead074411a4B0e7944Ea8c9C1',
+    '0xFFcf8FDEE72ac11b5c542428B35EEF5769C409f0'
+  ]
 
+  // Dappchain pub keys
+  const dappChainPubKeys = dappChainPrivKeys.map(CryptoUtils.publicKeyFromPrivateKey)
+
+  // Setting up clients with the middlewares
+  const clients = [createClient(), createClient()].map((client, idx) => {
+    client.txMiddleware = createDefaultTxMiddleware(client, dappChainPrivKeys[idx])
+    return client
+  })
+
+  // Bind to transfer gateway
   const transferGateway = await Contracts.TransferGateway.createAsync(
-    acct1Client,
-    new Address(acct1Client.chainId, LocalAddress.fromPublicKey(acct1PubKey))
+    clients[0],
+    new Address(clients[0].chainId, LocalAddress.fromPublicKey(dappChainPubKeys[0]))
   )
 
-  const addressMapper = await Contracts.AddressMapper.createAsync(
-    acct1Client,
-    new Address(acct1Client.chainId, LocalAddress.fromPublicKey(acct1PubKey))
+  // Creates Web3 for Loom
+  const web3Loom = new Web3(new LoomProvider(clients[0], dappChainPrivKeys[0]))
+
+  // Creates Web3 for Main net (ganache)
+  const web3MainNet = new Web3('http://localhost:8545')
+
+  // Creates contracts to deploy
+  const loomTokenContract = new web3MainNet.eth.Contract(loomToken.abi)
+  const validatorManagerContract = new web3MainNet.eth.Contract(validatorManager.abi)
+  const gatewayContract = new web3MainNet.eth.Contract(gateway.abi)
+  const sampleERC20MintableTokenContract = new web3MainNet.eth.Contract(
+    sampleERC20MintableToken.abi
+  )
+  const sampleERC20TokenContract = new web3Loom.eth.Contract(sampleERC20Token.abi)
+
+  // Deploy Loom token on main net
+  const loomTokenDeployed = await deployContract(
+    loomTokenContract,
+    mainNetAddresses[0],
+    loomToken.bytecode,
+    []
   )
 
-  const loomProvider = new LoomProvider(acct1Client, acct1PrivKey)
-  const web3Loom = new Web3(loomProvider)
-  const web3Ganache = new Web3('http://localhost:8545')
+  const validators = [mainNetAddresses[0]]
+  const powers = [1]
+  const threshold_num = 3
+  const threshold_denom = 4
 
-  const dappchainERC20DeployedContractResults = await deployContract(loomProvider, dappChainERC20)
-  const gatewayDeployedContractResults = await deployContractGanache(web3Ganache, gateway)
-  // const mainnetERC20DeployedContractResults = await deployContractGanache(
-  //   web3Ganache,
-  //   mainnetERC20
-  // )
+  const validatorManagerDeployed = await deployContract(
+    validatorManagerContract,
+    mainNetAddresses[0],
+    validatorManager.bytecode,
+    [validators, powers, threshold_num, threshold_denom, loomTokenDeployed.options.address]
+  )
 
-  // const mainnetERC20ContractAddress = mainnetERC20DeployedContractResults.contractAddress
-  // const gatewayContractAddress = gatewayDeployedContractResults.contractAddress
-  // const dappchainERC20ContractAddress = dappchainERC20DeployedContractResults.contractAddress
-  // const mainnetERC20ContractHash = mainnetERC20DeployedContractResults.transactionHash
+  const gatewayDeployed = await deployContract(
+    gatewayContract,
+    mainNetAddresses[0],
+    gateway.bytecode,
+    [validatorManagerDeployed.options.address]
+  )
+
+  const sampleERC20MintableTokenDeployed = await deployContract(
+    sampleERC20MintableTokenContract,
+    mainNetAddresses[0],
+    sampleERC20MintableToken.bytecode,
+    [gatewayDeployed.options.address]
+  )
+
+  const sampleERC20TokenDeployed = await deployContract(
+    sampleERC20TokenContract,
+    LocalAddress.fromPublicKey(
+      CryptoUtils.publicKeyFromPrivateKey(dappChainPrivKeys[0])
+    ).toString(),
+    sampleERC20Token.bytecode,
+    [gatewayDeployed.options.address]
+  )
 
   return {
-    acct1Client,
-    acct2Client,
-    transferGateway,
-    addressMapper,
-    acct1PubKey,
-    acct2PubKey,
-    web3Loom,
-    web3Ganache
-    // mainnetERC20ContractAddress
-    // gatewayContractAddress,
-    // dappchainERC20ContractAddress,
-    // mainnetERC20ContractHash
+    clients,
+    sampleERC20MintableTokenDeployed,
+    sampleERC20TokenDeployed,
+    transferGateway
   }
 }
 
 test('Should gateway owner authorize contract mapping', async (t: Test) => {
   const {
-    // acct1Client,
-    // dappchainERC20ContractAddress,
-    // mainnetERC20ContractAddress,
-    // transferGateway
+    clients,
+    sampleERC20MintableTokenDeployed,
+    sampleERC20TokenDeployed,
+    transferGateway
   } = await getClientAndContract(createTestHttpClient)
 
-  // const localContract = new Address(
-  //   acct1Client.chainId,
-  //   LocalAddress.fromHexString(dappchainERC20ContractAddress)
-  // )
-  // const foreignContract = new Address(
-  //   'eth',
-  //   LocalAddress.fromHexString(mainnetERC20ContractAddress)
-  // )
+  const localContract = new Address(
+    clients[0].chainId,
+    LocalAddress.fromHexString(sampleERC20TokenDeployed.options.address)
+  )
+  const foreignContract = new Address(
+    'eth',
+    LocalAddress.fromHexString(sampleERC20MintableTokenDeployed.options.address)
+  )
 
-  // await transferGateway.addAuthorizedContractMappingAsync({ foreignContract, localContract })
-  // const contractsAuthorized = await transferGateway.listContractMappingsAsync()
+  await transferGateway.addAuthorizedContractMappingAsync({ foreignContract, localContract })
+  const contractsAuthorized = await transferGateway.listContractMappingsAsync()
 
-  // const match = contractsAuthorized.confirmed.find(({ from, to }) => {
-  //   return (
-  //     `eth:${mainnetERC20ContractAddress.toLowerCase()}` == to.toString() &&
-  //     `default:${dappchainERC20ContractAddress.toLowerCase()}` == from.toString()
-  //   )
-  // })
+  const match = contractsAuthorized.confirmed.find(({ from, to }) => {
+    return (
+      `eth:${sampleERC20MintableTokenDeployed.options.address.toLowerCase()}` == to.toString() &&
+      `default:${sampleERC20TokenDeployed.options.address.toLowerCase()}` == from.toString()
+    )
+  })
 
-  // t.assert(match, 'Contracts should be confirmed')
+  t.assert(match, 'Contracts should be confirmed')
 
   t.end()
 })
 
-// test.only('Should user mapping contracts on gateway', async (t: Test) => {
-//   const {
-//     acct1Client,
-//     transferGateway,
-//     loomContractAddress,
-//     ganacheConctractAddress,
-//     ganacheContractHash
-//   } = await getClientAndContract(createTestHttpClient)
+test.only('Should user mapping contracts on gateway', async (t: Test) => {
+  const {
+    clients,
+    sampleERC20MintableTokenDeployed,
+    sampleERC20TokenDeployed,
+    transferGateway
+  } = await getClientAndContract(createTestHttpClient)
 
-//   const localContract = new Address(
-//     acct1Client.chainId,
-//     LocalAddress.fromHexString(loomContractAddress)
-//   )
+  const localContract = new Address(
+    clients[0].chainId,
+    LocalAddress.fromHexString(sampleERC20TokenDeployed.options.address)
+  )
 
-//   const foreignContract = new Address('eth', LocalAddress.fromHexString(ganacheConctractAddress))
+  const foreignContract = new Address(
+    'eth',
+    LocalAddress.fromHexString(sampleERC20MintableTokenDeployed.options.address)
+  )
 
-//   const ethers = await getJsonRPCSignerAsync('http://localhost:8545', 0)
-//   const ethersSigner = new EthersSigner(ethers)
-//   const hash = soliditySha3(
-//     { type: 'address', value: foreignContract.local.toString().slice(2) },
-//     { type: 'address', value: localContract.local.toString().slice(2) }
-//   )
+  const ethers = await getJsonRPCSignerAsync('http://localhost:8545', 0)
+  const ethersSigner = new EthersSigner(ethers)
+  const hash = soliditySha3(
+    { type: 'address', value: foreignContract.local.toString().slice(2) },
+    { type: 'address', value: localContract.local.toString().slice(2) }
+  )
 
-//   const foreignContractCreatorSig = await ethersSigner.signAsync(hash)
-//   const foreignContractCreatorTxHash = Buffer.from(ganacheContractHash.slice(2), 'hex')
+  const foreignContractCreatorSig = await ethersSigner.signAsync(hash)
+  const foreignContractCreatorTxHash = Buffer.from(
+    sampleERC20MintableTokenDeployed.hash.slice(2),
+    'hex'
+  )
 
-//   const params = {
-//     foreignContract,
-//     localContract,
-//     foreignContractCreatorSig,
-//     foreignContractCreatorTxHash
-//   }
+  const params = {
+    foreignContract,
+    localContract,
+    foreignContractCreatorSig,
+    foreignContractCreatorTxHash
+  }
 
-//   await transferGateway.addContractMappingAsync(params)
+  await transferGateway.addContractMappingAsync(params)
 
-//   waitForMillisecondsAsync(60000)
+  const contractsAuthorized = await transferGateway.listContractMappingsAsync()
 
-//   const contractsAuthorized = await transferGateway.listContractMappingsAsync()
+  console.log(JSON.stringify(contractsAuthorized))
 
-//   console.log(JSON.stringify(contractsAuthorized))
-
-//   t.end()
-// })
+  t.end()
+})

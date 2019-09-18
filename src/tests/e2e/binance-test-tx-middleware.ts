@@ -13,8 +13,10 @@ import { Address, LocalAddress } from '../../address'
 import { createDefaultTxMiddleware } from '../../helpers'
 import { createTestHttpClient } from '../helpers'
 import { AddressMapper } from '../../contracts'
+import Web3 from 'web3'
 
-const Web3 = require('web3')
+// Get JSON truffle artifact
+const SimpleStore = require('./truffle-artifacts/SimpleStore.json')
 
 async function bootstrapTest(
   createClient: () => Client
@@ -43,65 +45,11 @@ async function bootstrapTest(
   const loomProvider = new LoomProvider(client, privKey)
 
   // Contract data and ABI
-  const contractData =
-    '608060405234801561001057600080fd5b50600a60008190555061014e806100286000396000f30060806040526004361061004c576000357c0100000000000000000000000000000000000000000000000000000000900463ffffffff16806360fe47b1146100515780636d4ce63c1461007e575b600080fd5b34801561005d57600080fd5b5061007c600480360381019080803590602001909291905050506100a9565b005b34801561008a57600080fd5b50610093610119565b6040518082815260200191505060405180910390f35b806000819055506000547f7e0b7a35f017ec94e71d7012fe8fa8011f1dab6090674f92de08f8092ab30dda33604051808273ffffffffffffffffffffffffffffffffffffffff1673ffffffffffffffffffffffffffffffffffffffff16815260200191505060405180910390a250565b600080549050905600a165627a7a7230582041f33d6a8b78928e192affcb980ca6bef9b6f5b7da5aa4b2d75b1208720caeeb0029'
-
-  const ABI = [
-    {
-      constant: false,
-      inputs: [
-        {
-          name: '_value',
-          type: 'uint256'
-        }
-      ],
-      name: 'set',
-      outputs: [],
-      payable: false,
-      stateMutability: 'nonpayable',
-      type: 'function'
-    },
-    {
-      constant: true,
-      inputs: [],
-      name: 'get',
-      outputs: [
-        {
-          name: '',
-          type: 'uint256'
-        }
-      ],
-      payable: false,
-      stateMutability: 'view',
-      type: 'function'
-    },
-    {
-      inputs: [],
-      payable: false,
-      stateMutability: 'nonpayable',
-      type: 'constructor'
-    },
-    {
-      anonymous: false,
-      inputs: [
-        {
-          indexed: true,
-          name: '_value',
-          type: 'uint256'
-        },
-        {
-          indexed: false,
-          name: 'sender',
-          type: 'address'
-        }
-      ],
-      name: 'NewValueSet',
-      type: 'event'
-    }
-  ]
+  const contractBytecode = SimpleStore.bytecode
+  const ABI = SimpleStore.abi
 
   // Deploy the contract using loom provider
-  const result = await deployContract(loomProvider, contractData)
+  const result = await deployContract(loomProvider, contractBytecode)
 
   // Instantiate Contract using web3
   const web3 = new Web3(loomProvider)
@@ -110,7 +58,6 @@ async function bootstrapTest(
   })
 
   // Instantiate Binance signer
-  // const privateKey = crypto.generatePrivateKey()
   const privateKey = '276932de6251efb607422ec0860fca05cb0a32f1257d6f8759b24e8371e111c4'
   const signer = new BinanceSigner(privateKey)
 

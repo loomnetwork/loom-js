@@ -8,7 +8,9 @@ import { deployContract } from '../evm-helpers'
 import { bufferToProtobufBytes } from '../../crypto-utils'
 import { Address, LocalAddress } from '../../address'
 import { createDefaultTxMiddleware } from '../../helpers'
-import { SimpleStore2 } from '../contracts_bytecode'
+
+// Get JSON truffle artifact
+const SimpleStore = require('./truffle-artifacts/SimpleStore2.json')
 
 const callTransactionAsync = async (
   client: Client,
@@ -46,7 +48,7 @@ test('Client EVM Event test (two filters)', async t => {
     const loomProvider = new LoomProvider(client, privateKey)
 
     // Deploy
-    const result = await deployContract(loomProvider, SimpleStore2)
+    const result = await deployContract(loomProvider, SimpleStore.bytecode)
 
     // Middleware used for client
     client.txMiddleware = createDefaultTxMiddleware(client, privateKey)
