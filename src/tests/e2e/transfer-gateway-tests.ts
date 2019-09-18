@@ -12,8 +12,6 @@ import { B64ToUint8Array } from '../../crypto-utils'
 import { LoomProvider } from '../../loom-provider'
 import Web3 from 'web3'
 import { getJsonRPCSignerAsync, EthersSigner, soliditySha3 } from '../../solidity-helpers'
-import { resolve } from 'dns'
-import { rejects } from 'assert'
 
 const loomToken = require('./artifacts/LoomToken.json')
 const validatorManager = require('./artifacts/ValidatorManagerContract.json')
@@ -108,10 +106,11 @@ async function getClientAndContract(createClient: () => Client) {
     []
   )
 
+  // Deploy validator manager on main net
   const validators = [mainNetAddresses[0]]
   const powers = [1]
-  const threshold_num = 3
-  const threshold_denom = 4
+  const threshold_num = 2
+  const threshold_denom = 3
 
   const validatorManagerDeployed = await deployContract(
     validatorManagerContract,
@@ -120,6 +119,7 @@ async function getClientAndContract(createClient: () => Client) {
     [validators, powers, threshold_num, threshold_denom, loomTokenDeployed.options.address]
   )
 
+  // Deploy gateway on main net
   const gatewayDeployed = await deployContract(
     gatewayContract,
     mainNetAddresses[0],
@@ -127,6 +127,7 @@ async function getClientAndContract(createClient: () => Client) {
     [validatorManagerDeployed.options.address]
   )
 
+  // Deploy game token on main net
   const sampleERC20MintableTokenDeployed = await deployContract(
     sampleERC20MintableTokenContract,
     mainNetAddresses[0],
@@ -134,6 +135,7 @@ async function getClientAndContract(createClient: () => Client) {
     [gatewayDeployed.options.address]
   )
 
+  // Deploy game token on loomchain
   const sampleERC20TokenDeployed = await deployContract(
     sampleERC20TokenContract,
     LocalAddress.fromPublicKey(
@@ -210,7 +212,7 @@ test.only('Should user mapping contracts on gateway', async (t: Test) => {
 
   const foreignContractCreatorSig = await ethersSigner.signAsync(hash)
   const foreignContractCreatorTxHash = Buffer.from(
-    sampleERC20MintableTokenDeployed.hash.slice(2),
+    sampleERC20MintableTokenDeployed.txHash.slice(2),
     'hex'
   )
 
@@ -226,6 +228,15 @@ test.only('Should user mapping contracts on gateway', async (t: Test) => {
   const contractsAuthorized = await transferGateway.listContractMappingsAsync()
 
   console.log(JSON.stringify(contractsAuthorized))
+
+  const match = contractsAuthorized.confirmed.find(({ from, to }) => {
+    return (
+      `eth:${sampleERC20MintableTokenDeployed.options.address.toLowerCase()}` == to.toString() &&
+      `default:${sampleERC20TokenDeployed.options.address.toLowerCase()}` == from.toString()
+    )
+  })
+
+  t.assert(match, 'Contracts should be confirmed')
 
   t.end()
 })
