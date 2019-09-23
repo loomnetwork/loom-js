@@ -17,35 +17,10 @@ import { EthersSigner, getJsonRPCSignerAsync } from '../../solidity-helpers'
 import { createTestHttpClient } from '../helpers'
 import { AddressMapper, Coin } from '../../contracts'
 
+const SimpleStore = require('./artifacts/SimpleStore.json')
+
 // import Web3 from 'web3'
 const Web3 = require('web3')
-
-/**
- * Requires the SimpleStore solidity contract deployed on a loomchain.
- * go-loom/examples/plugins/evmexample/contract/SimpleStore.sol
- *
- * pragma solidity ^0.4.24;
- *
- * contract SimpleStore {
- *   uint256 value;
- *
- *   constructor() public {
- *       value = 10;
- *   }
- *
- *   event NewValueSet(uint indexed _value, address sender);
- *
- *   function set(uint _value) public {
- *     value = _value;
- *     emit NewValueSet(value, msg.sender);
- *   }
- *
- *   function get() public view returns (uint) {
- *     return value;
- *   }
- * }
- *
- */
 
 const toCoinE18 = (amount: number): BN => {
   return new BN(10).pow(new BN(18)).mul(new BN(amount))
@@ -77,70 +52,14 @@ async function bootstrapTest(
   // Create LoomProvider instance
   const loomProvider = new LoomProvider(client, privKey)
 
-  // Contract data and ABI
-  const contractData =
-    '608060405234801561001057600080fd5b50600a60008190555061014e806100286000396000f30060806040526004361061004c576000357c0100000000000000000000000000000000000000000000000000000000900463ffffffff16806360fe47b1146100515780636d4ce63c1461007e575b600080fd5b34801561005d57600080fd5b5061007c600480360381019080803590602001909291905050506100a9565b005b34801561008a57600080fd5b50610093610119565b6040518082815260200191505060405180910390f35b806000819055506000547f7e0b7a35f017ec94e71d7012fe8fa8011f1dab6090674f92de08f8092ab30dda33604051808273ffffffffffffffffffffffffffffffffffffffff1673ffffffffffffffffffffffffffffffffffffffff16815260200191505060405180910390a250565b600080549050905600a165627a7a7230582041f33d6a8b78928e192affcb980ca6bef9b6f5b7da5aa4b2d75b1208720caeeb0029'
-
-  const ABI = [
-    {
-      constant: false,
-      inputs: [
-        {
-          name: '_value',
-          type: 'uint256'
-        }
-      ],
-      name: 'set',
-      outputs: [],
-      payable: false,
-      stateMutability: 'nonpayable',
-      type: 'function'
-    },
-    {
-      constant: true,
-      inputs: [],
-      name: 'get',
-      outputs: [
-        {
-          name: '',
-          type: 'uint256'
-        }
-      ],
-      payable: false,
-      stateMutability: 'view',
-      type: 'function'
-    },
-    {
-      inputs: [],
-      payable: false,
-      stateMutability: 'nonpayable',
-      type: 'constructor'
-    },
-    {
-      anonymous: false,
-      inputs: [
-        {
-          indexed: true,
-          name: '_value',
-          type: 'uint256'
-        },
-        {
-          indexed: false,
-          name: 'sender',
-          type: 'address'
-        }
-      ],
-      name: 'NewValueSet',
-      type: 'event'
-    }
-  ]
+  const ABI = SimpleStore.abi
 
   // Deploy the contract using loom provider
-  const result = await deployContract(loomProvider, contractData)
+  const result = await deployContract(loomProvider, SimpleStore.bytecode)
 
   // Instantiate Contract using web3
   const web3 = new Web3(loomProvider)
-  const contract = new web3.eth.Contract(ABI, result.contractAddress, {
+  const contract = new web3.eth.Contract(SimpleStore.abi, result.contractAddress, {
     from: LocalAddress.fromPublicKey(pubKey).toString()
   })
 

@@ -27,6 +27,23 @@
     {
       "vm": "plugin",
       "format": "plugin",
+      "name": "ethcoin",
+      "location": "ethcoin:1.0.0",
+      "init": {
+        "accounts": [
+          {
+            "owner": {
+              "chain_id": "default",
+              "local": "dHVZ95Bqnn3dsget6tyq72cJS3E="
+            },
+            "balance": 100
+          }
+        ]
+      }
+    },
+    {
+      "vm": "plugin",
+      "format": "plugin",
       "name": "chainconfig",
       "location": "chainconfig:1.0.0",
       "init": {
@@ -69,13 +86,6 @@
     {
       "vm": "plugin",
       "format": "plugin",
-      "name": "ethcoin",
-      "location": "ethcoin:1.0.0",
-      "init": null
-    },
-    {
-      "vm": "plugin",
-      "format": "plugin",
       "name": "addressmapper",
       "location": "addressmapper:0.1.0",
       "init": null
@@ -88,7 +98,7 @@
       "init": {
         "owner": {
           "chain_id": "default",
-          "local": "c/IFoEFkm4+D3wdqLmFU9F3t3Sk="
+          "local": "dHVZ95Bqnn3dsget6tyq72cJS3E="
         },
         "oracles": [
           {
