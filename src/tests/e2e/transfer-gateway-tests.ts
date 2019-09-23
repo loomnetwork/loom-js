@@ -185,7 +185,7 @@ test('Should gateway owner authorize contract mapping', async (t: Test) => {
   t.end()
 })
 
-test.only('Should user mapping contracts on gateway', async (t: Test) => {
+test('Should user mapping contracts on gateway', async (t: Test) => {
   const {
     clients,
     sampleERC20MintableTokenDeployed,
@@ -224,6 +224,8 @@ test.only('Should user mapping contracts on gateway', async (t: Test) => {
   }
 
   await transferGateway.addContractMappingAsync(params)
+
+  await waitForMillisecondsAsync(60000)
 
   const contractsAuthorized = await transferGateway.listContractMappingsAsync()
 
