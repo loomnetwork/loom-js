@@ -16,7 +16,8 @@ import { createDefaultTxMiddleware } from '../../helpers'
 import { EthersSigner, getJsonRPCSignerAsync } from '../../solidity-helpers'
 import { createTestHttpClient } from '../helpers'
 import { AddressMapper, Coin } from '../../contracts'
-import { SimpleStore } from '../contracts_bytecode'
+
+const SimpleStore = require('./artifacts/SimpleStore.json')
 
 // import Web3 from 'web3'
 const Web3 = require('web3')
@@ -51,14 +52,14 @@ async function bootstrapTest(
   // Create LoomProvider instance
   const loomProvider = new LoomProvider(client, privKey)
 
-  const ABI = []
+  const ABI = SimpleStore.abi
 
   // Deploy the contract using loom provider
-  const result = await deployContract(loomProvider, SimpleStore)
+  const result = await deployContract(loomProvider, SimpleStore.bytecode)
 
   // Instantiate Contract using web3
   const web3 = new Web3(loomProvider)
-  const contract = new web3.eth.Contract(ABI, result.contractAddress, {
+  const contract = new web3.eth.Contract(SimpleStore.abi, result.contractAddress, {
     from: LocalAddress.fromPublicKey(pubKey).toString()
   })
 

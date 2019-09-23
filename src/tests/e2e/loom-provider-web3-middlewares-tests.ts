@@ -8,7 +8,8 @@ import { deployContract } from '../evm-helpers'
 import { SignedTxMiddleware } from '../../middleware'
 import { ITxMiddlewareHandler } from '../../client'
 import { NonceTx } from '../../proto/loom_pb'
-import { SimpleStore } from '../contracts_bytecode'
+
+const SimpleStore = require('./artifacts/SimpleStore.json')
 
 // import Web3 from 'web3'
 const Web3 = require('web3')
@@ -53,35 +54,9 @@ test('LoomProvider + Web3 + Middleware', async t => {
 
   client.on('error', console.log)
 
-  const ABI = [
-    {
-      constant: false,
-      inputs: [{ name: '_value', type: 'uint256' }],
-      name: 'set',
-      outputs: [],
-      payable: false,
-      stateMutability: 'nonpayable',
-      type: 'function'
-    },
-    {
-      constant: true,
-      inputs: [],
-      name: 'get',
-      outputs: [{ name: '', type: 'uint256' }],
-      payable: false,
-      stateMutability: 'view',
-      type: 'function'
-    },
-    { inputs: [], payable: false, stateMutability: 'nonpayable', type: 'constructor' },
-    {
-      anonymous: false,
-      inputs: [{ indexed: true, name: '_value', type: 'uint256' }],
-      name: 'NewValueSet',
-      type: 'event'
-    }
-  ]
+  const ABI = SimpleStore.abi
 
-  const result = await deployContract(loomProvider, SimpleStore)
+  const result = await deployContract(loomProvider, SimpleStore.bytecode)
 
   const contract = new web3.eth.Contract(ABI, result.contractAddress, { from })
 

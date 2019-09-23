@@ -2,17 +2,14 @@ import test from 'tape'
 
 import BN from 'bn.js'
 import { LocalAddress, CryptoUtils } from '../../index'
-import {
-  createTestClient,
-  execAndWaitForMillisecondsAsync,
-  waitForMillisecondsAsync
-} from '../helpers'
+import { createTestClient, execAndWaitForMillisecondsAsync } from '../helpers'
 import { LoomProvider } from '../../loom-provider'
 import { deployContract } from '../evm-helpers'
-import { ecrecover, privateToPublic, fromRpcSig, toBuffer } from 'ethereumjs-util'
+import { ecrecover, privateToPublic, fromRpcSig } from 'ethereumjs-util'
 import { soliditySha3 } from '../../solidity-helpers'
 import { bytesToHexAddr } from '../../crypto-utils'
-import { SimpleStore } from '../contracts_bytecode'
+
+const SimpleStore = require('./artifacts/SimpleStore.json')
 
 const newContractAndClient = async () => {
   const privKey = CryptoUtils.generatePrivateKey()
@@ -20,11 +17,14 @@ const newContractAndClient = async () => {
   const from = LocalAddress.fromPublicKey(CryptoUtils.publicKeyFromPrivateKey(privKey)).toString()
   const loomProvider = new LoomProvider(client, privKey)
 
-  const { contractAddress, transactionHash } = await deployContract(loomProvider, SimpleStore)
+  const { contractAddress, transactionHash } = await deployContract(
+    loomProvider,
+    SimpleStore.bytecode
+  )
 
   client.on('error', msg => console.error('Error on client:', msg))
 
-  return { privKey, client, contractData, contractAddress, transactionHash, from, loomProvider }
+  return { privKey, client, contractAddress, transactionHash, from, loomProvider }
 }
 
 test('LoomProvider method eth_sign', async t => {

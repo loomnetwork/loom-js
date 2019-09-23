@@ -4,7 +4,8 @@ import { CryptoUtils } from '../../index'
 import { createTestClient, execAndWaitForMillisecondsAsync } from '../helpers'
 import { LoomProvider } from '../../loom-provider'
 import { deployContract } from '../evm-helpers'
-import { SimpleStore } from '../contracts_bytecode'
+
+const SimpleStore = require('./artifacts/SimpleStore.json')
 
 test('LoomProvider + Filters', async t => {
   let client
@@ -15,7 +16,7 @@ test('LoomProvider + Filters', async t => {
     client.on('error', msg => console.error('Error on client:', msg))
     const loomProvider = new LoomProvider(client, privKey)
 
-    await deployContract(loomProvider, SimpleStore)
+    await deployContract(loomProvider, SimpleStore.bytecode)
 
     // Transaction receipt in order to obtain the topic of the event NewValueSet
     const ethNewFilterResult = await execAndWaitForMillisecondsAsync(

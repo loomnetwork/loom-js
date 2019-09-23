@@ -16,7 +16,8 @@ import { deployContract } from '../evm-helpers'
 import { bufferToProtobufBytes } from '../../crypto-utils'
 import { Address, LocalAddress } from '../../address'
 import { sleep } from '../../helpers'
-import { SimpleStore3 } from '../contracts_bytecode'
+
+const SimpleStore = require('./artifacts/SimpleStore3.json')
 
 async function deploySimpleStoreContract(): Promise<Address> {
   let privateKey = CryptoUtils.generatePrivateKey()
@@ -29,7 +30,7 @@ async function deploySimpleStoreContract(): Promise<Address> {
     const loomProvider = new LoomProvider(client, privateKey)
 
     // Deploy
-    const result = await deployContract(loomProvider, SimpleStore3)
+    const result = await deployContract(loomProvider, SimpleStore.bytecode)
     contractAddress = new Address('default', LocalAddress.fromHexString(result.contractAddress))
   } catch (err) {
     throw err

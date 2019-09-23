@@ -8,8 +8,8 @@ import { createDefaultTxMiddleware } from '../../helpers'
 import { TronWebSigner } from '../../tron-web-signer'
 import { createTestHttpClient } from '../helpers'
 import { AddressMapper } from '../../contracts'
+import Web3 from 'web3'
 
-const Web3 = require('web3')
 const TronWeb = require('tronweb')
 
 async function bootstrapTest(

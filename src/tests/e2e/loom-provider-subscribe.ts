@@ -4,7 +4,8 @@ import { LocalAddress, CryptoUtils } from '../../index'
 import { createTestClient, execAndWaitForMillisecondsAsync } from '../helpers'
 import { LoomProvider } from '../../loom-provider'
 import { deployContract } from '../evm-helpers'
-import { SimpleStore } from '../contracts_bytecode'
+
+const SimpleStore = require('./artifacts/SimpleStore.json')
 
 test('LoomProvider + Subscribe', async t => {
   let client
@@ -17,7 +18,7 @@ test('LoomProvider + Subscribe', async t => {
     ).toString()
     const loomProvider = new LoomProvider(client, privKey)
 
-    const contractDeployResult = await deployContract(loomProvider, SimpleStore)
+    await deployContract(loomProvider, SimpleStore.bytecode)
     const id = 1
 
     const ethSubscribeNewHardsResult = await execAndWaitForMillisecondsAsync(

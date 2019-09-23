@@ -5,10 +5,11 @@ import { createTestClient, execAndWaitForMillisecondsAsync } from '../helpers'
 import { LoomProvider } from '../../loom-provider'
 import { deployContract } from '../evm-helpers'
 import { numberToHex } from '../../crypto-utils'
-import { SimpleStore } from '../contracts_bytecode'
+
+const SimpleStore = require('./artifacts/SimpleStore.json')
 
 async function newTransactionToSetState(loomProvider: LoomProvider, fromAddr: string) {
-  const contractDeployResult = await deployContract(loomProvider, SimpleStore)
+  const contractDeployResult = await deployContract(loomProvider, SimpleStore.bytecode)
   const contractAddress = contractDeployResult.contractAddress
 
   // Send transaction to function set in order dispatch event NewValueSet
