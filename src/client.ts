@@ -22,7 +22,7 @@ import {
 import { Address, LocalAddress } from './address'
 import { WSRPCClient, IJSONRPCEvent } from './internal/ws-rpc-client'
 import { RPCClientEvent, IJSONRPCClient } from './internal/json-rpc-client'
-import { sleep, parseUrl } from './helpers'
+import { sleep } from './helpers'
 
 export interface ITxHandlerResult {
   code?: number
@@ -295,15 +295,10 @@ export class Client extends EventEmitter {
       this._emitNetEvent(url, ClientEvent.Disconnected)
     )
 
-    if (!readClient && typeof writeClient === 'string') {
-      readClient = overrideReadUrl(writeClient)
-    }
-
     if (!readClient || writeClient === readClient) {
       this._readClient = this._writeClient
     } else {
-      this._readClient =
-        typeof readClient === 'string' ? new WSRPCClient(overrideReadUrl(readClient)) : readClient
+      this._readClient = typeof readClient === 'string' ? new WSRPCClient(readClient) : readClient
       this._readClient.on(RPCClientEvent.Error, (url: string, err: any) =>
         this._emitNetEvent(url, ClientEvent.Error, err)
       )
@@ -794,13 +789,4 @@ export class Client extends EventEmitter {
       this.emit(kind, eventArgs)
     }
   }
-}
-
-export function overrideReadUrl(readUrl: string): string {
-  const origUrl = parseUrl(readUrl)
-  if (origUrl.hostname === 'plasma.dappchains.com') {
-    origUrl.hostname = 'plasma-readonly.dappchains.com'
-    return origUrl.toString()
-  }
-  return readUrl
 }
