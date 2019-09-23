@@ -9,7 +9,7 @@ import { bufferToProtobufBytes } from '../../crypto-utils'
 import { Address, LocalAddress } from '../../address'
 import { createDefaultTxMiddleware } from '../../helpers'
 
-const SimpleStore = require('./truffle-artifacts/SimpleStore2.json')
+const SimpleStore = require('./artifacts/SimpleStore2.json')
 
 const callTransactionAsync = async (
   client: Client,

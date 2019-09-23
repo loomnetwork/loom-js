@@ -16,7 +16,7 @@ import { AddressMapper } from '../../contracts'
 import Web3 from 'web3'
 
 // Get JSON truffle artifact
-const SimpleStore = require('./truffle-artifacts/SimpleStore.json')
+const SimpleStore = require('./artifacts/SimpleStore.json')
 
 async function bootstrapTest(
   createClient: () => Client

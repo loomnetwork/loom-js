@@ -9,7 +9,7 @@ import { bufferToProtobufBytes } from '../../crypto-utils'
 import { Address, LocalAddress } from '../../address'
 
 // Get JSON truffle artifact
-const SimpleStore = require('./truffle-artifacts/SimpleStore.json')
+const SimpleStore = require('./artifacts/SimpleStore.json')
 
 test('Client EVM Event test', async t => {
   let client
