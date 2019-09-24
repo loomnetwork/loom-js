@@ -1,7 +1,7 @@
 import test from 'tape'
 
 import { LocalAddress, CryptoUtils } from '../../index'
-import { createTestClient, waitForMillisecondsAsync } from '../helpers'
+import { createTestClient, waitForMillisecondsAsync, createWeb3TestClient } from '../helpers'
 
 import { LoomProvider } from '../../loom-provider'
 import { deployContract } from '../evm-helpers'
@@ -32,9 +32,9 @@ const Web3 = require('web3')
  *
  */
 
-const newContractAndClient = async () => {
+const newContractAndClient = async (useEthEndpoint: boolean) => {
   const privKey = CryptoUtils.generatePrivateKey()
-  const client = createTestClient()
+  const client = useEthEndpoint ? createWeb3TestClient() : createTestClient()
   const from = LocalAddress.fromPublicKey(CryptoUtils.publicKeyFromPrivateKey(privKey)).toString()
   const loomProvider = new LoomProvider(client, privKey)
   const web3 = new Web3(loomProvider)
@@ -261,9 +261,9 @@ const newContractAndClient = async () => {
   }
 }
 
-test('LoomProvider + Web3', async t => {
+async function testMultipleContractEvents(t: any, useEthEndpoint: boolean) {
   t.plan(3) // EXPECTS 3 ASSERTIONS
-  const { contract, client } = await newContractAndClient()
+  const { contract, client } = await newContractAndClient(useEthEndpoint)
 
   try {
     contract.events.Transfer({}, (err: any, event: any) => {
@@ -290,4 +290,7 @@ test('LoomProvider + Web3', async t => {
   }
 
   t.end()
-})
+}
+
+test('LoomProvider + Web3 (/query)', (t: any) => testMultipleContractEvents(t, false))
+test('LoomProvider + Web3 (/eth)', (t: any) => testMultipleContractEvents(t, true))

@@ -25,7 +25,7 @@ export class DualRPCClient extends WSRPCClient {
     requestTimeout?: number
     reconnectInterval?: number
     maxReconnects?: number
-    generateRequestId?: (method: string, params: object | any[]) => string
+    generateRequestId?: (method: string, params: object | any[]) => string | number
   }) {
     super(opts.wsUrl, opts)
     const {

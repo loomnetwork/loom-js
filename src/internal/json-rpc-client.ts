@@ -10,19 +10,19 @@ export interface IJSONRPCRequest {
   jsonrpc: '2.0'
   method: string
   params?: any
-  id?: string
+  id?: string | number
 }
 
 export interface IJSONRPCResultResponse<T> {
   jsonrpc: '2.0'
   result: T
-  id: string
+  id: string | number
 }
 
 export interface IJSONRPCErrorResponse {
   jsonrpc: '2.0'
   error: IJSONRPCError
-  id: string
+  id: string | number
 }
 
 export interface IJSONRPCResponse<T> extends IJSONRPCResultResponse<T>, IJSONRPCErrorResponse {}

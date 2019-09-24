@@ -127,11 +127,16 @@ export function parseUrl(rawUrl: string): URL {
 }
 
 export function setupProtocolsFromEndpoint(
-  endpoint: string
+  endpoint: string,
+  useWeb3Endpoint: boolean = false
 ): { writer: IJSONRPCClient; reader: IJSONRPCClient } {
   const protocol = selectProtocol(endpoint)
   const writerSuffix = protocol === JSONRPCProtocol.HTTP ? '/rpc' : '/websocket'
-  const readerSuffix = protocol === JSONRPCProtocol.HTTP ? '/query' : '/queryws'
+  const readerSuffix = useWeb3Endpoint
+    ? '/eth'
+    : protocol === JSONRPCProtocol.HTTP
+      ? '/query'
+      : '/queryws'
 
   const writer = createJSONRPCClient({
     protocols: [{ url: endpoint + writerSuffix }]

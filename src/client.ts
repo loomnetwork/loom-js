@@ -21,7 +21,7 @@ import {
 } from './crypto-utils'
 import { Address, LocalAddress } from './address'
 import { WSRPCClient, IJSONRPCEvent } from './internal/ws-rpc-client'
-import { RPCClientEvent, IJSONRPCClient } from './internal/json-rpc-client'
+import { RPCClientEvent, IJSONRPCClient, IJSONRPCResponse } from './internal/json-rpc-client'
 import { sleep, parseUrl } from './helpers'
 
 export interface ITxHandlerResult {
@@ -243,6 +243,13 @@ export class Client extends EventEmitter {
   private _writeClient: IJSONRPCClient
   private _readClient!: IJSONRPCClient
 
+  /**
+   * Indicates whether the client is configured to use the /eth endpoint on Loom nodes.
+   * When this is enabled the client can only be used to interact with EVM contracts.
+   * NOTE: This limitation will be removed in the near future.
+   */
+  readonly isWeb3EndpointEnabled: boolean
+
   /** Broadcaster to use to send txs & receive results. */
   txBroadcaster: ITxBroadcaster
 
@@ -314,6 +321,8 @@ export class Client extends EventEmitter {
         this._emitNetEvent(url, ClientEvent.Disconnected)
       )
     }
+
+    this.isWeb3EndpointEnabled = true === /eth$/.test(this._readClient.url)
 
     const emitContractEvent = (url: string, event: IJSONRPCEvent) =>
       this._emitContractEvent(url, event)
@@ -443,6 +452,17 @@ export class Client extends EventEmitter {
   }
 
   /**
+   * Sends a Web3 JSON-RPC message to the /eth endpoint on a Loom node.
+   * @param method RPC method name.
+   * @param params Parameter object or array.
+   * @returns A promise that will be resolved with the value of the result field (if any) in the
+   *          JSON-RPC response message.
+   */
+  async sendWeb3MsgAsync<T>(method: string, params: object | any[]): Promise<IJSONRPCResponse<T>> {
+    return this._readClient.sendAsync<IJSONRPCResponse<T>>(method, params)
+  }
+
+  /**
    * Queries the receipt corresponding to a transaction hash
    *
    * @param txHash Transaction hash returned by call transaction.
@@ -555,7 +575,6 @@ export class Client extends EventEmitter {
       const envelope: EthFilterEnvelope = EthFilterEnvelope.deserializeBinary(
         bufferToProtobufBytes(result)
       )
-
       switch (envelope.getMessageCase()) {
         case EthFilterEnvelope.MessageCase.ETH_BLOCK_HASH_LIST:
           return envelope.getEthBlockHashList() as EthBlockHashList
@@ -675,8 +694,12 @@ export class Client extends EventEmitter {
    * @param method Method selected to the filter, can be "newHeads" or "logs"
    * @param filter JSON string of the filter
    */
-  evmSubscribeAsync(method: string, filterObject: Object): Promise<string> {
-    const filter = JSON.stringify(filterObject)
+  evmSubscribeAsync(method: string, params: Object | any[]): Promise<string> {
+    if (this.isWeb3EndpointEnabled) {
+      return this._readClient.sendAsync<string>('eth_subscribe', params)
+    }
+
+    const filter = JSON.stringify(params)
     return this._readClient.sendAsync<string>('evmsubscribe', {
       method,
       filter
@@ -691,9 +714,11 @@ export class Client extends EventEmitter {
    * @return boolean If true the subscription is removed with success
    */
   evmUnsubscribeAsync(id: string): Promise<boolean> {
-    return this._readClient.sendAsync<boolean>('evmunsubscribe', {
-      id
-    })
+    if (this.isWeb3EndpointEnabled) {
+      return this._readClient.sendAsync<boolean>('eth_unsubscribe', [id])
+    }
+
+    return this._readClient.sendAsync<boolean>('evmunsubscribe', { id })
   }
 
   /**
@@ -748,13 +773,14 @@ export class Client extends EventEmitter {
   }
 
   private _emitContractEvent(url: string, event: IJSONRPCEvent, isEVM: boolean = false): void {
+    debugLog('_emitContractEvent', arguments)
     const { error, result } = event
     if (error) {
       const eventArgs: IClientErrorEventArgs = { kind: ClientEvent.Error, url, error }
       this.emit(ClientEvent.Error, eventArgs)
+    } else if (this.isWeb3EndpointEnabled && isEVM) {
+      this.emit(ClientEvent.EVMEvent, event)
     } else if (result) {
-      debugLog('Event', event.id, result)
-
       // Ugh, no built-in JSON->Protobuf marshaller apparently
       // https://github.com/google/protobuf/issues/1591 so gotta do this manually
       const eventArgs: IChainEventArgs = {
@@ -776,8 +802,11 @@ export class Client extends EventEmitter {
         transactionHashBytes: result.tx_hash ? B64ToUint8Array(result.tx_hash) : new Uint8Array([])
       }
 
-      if (isEVM) this.emit(ClientEvent.EVMEvent, eventArgs)
-      else this.emit(ClientEvent.Contract, eventArgs)
+      if (isEVM) {
+        this.emit(ClientEvent.EVMEvent, eventArgs)
+      } else {
+        this.emit(ClientEvent.Contract, eventArgs)
+      }
     }
   }
 
