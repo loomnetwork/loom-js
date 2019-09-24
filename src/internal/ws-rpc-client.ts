@@ -38,7 +38,7 @@ export class WSRPCClient extends EventEmitter {
 
   protected _getNextRequestId = () => {
     const id = ++this._rpcId
-    return this.isLegacy ? id.toString() : id
+    return this.isWeb3EndpointEnabled ? id.toString() : id
   }
 
   requestTimeout: number
