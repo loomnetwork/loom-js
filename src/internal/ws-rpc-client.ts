@@ -219,18 +219,12 @@ export class WSRPCClient extends EventEmitter {
     const msgStr = message instanceof ArrayBuffer ? Buffer.from(message).toString() : message
     const msg = JSON.parse(msgStr)
 
-    if (this.isWeb3EndpointEnabled) {
-      // EVM Event eth endpoint
-      if (msg.method === 'eth_subscription') {
-        log('EVM Event arrived', msg)
-        this.emit(RPCClientEvent.EVMMessage, this.url, msg)
-      }
-      return
-    }
-
-    // Events from native loomchain have id 0
-    if (msg.id === '0') {
-      log('Loom Event arrived', msg)
+    if (msg.method === 'eth_subscription') {
+      log('EVM contract event arrived', msg)
+      this.emit(RPCClientEvent.EVMMessage, this.url, msg)
+    } else if (msg.id === '0') {
+      // Events from native loomchain have id 0
+      log('Go contract event arrived', msg)
       this.emit(RPCClientEvent.Message, this.url, msg)
     } else if (/^0x.+$/.test(msg.id)) {
       // Events from EVM have the id from the evmsubscribe command
