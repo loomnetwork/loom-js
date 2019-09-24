@@ -4,7 +4,6 @@ import { createJSONRPCClient } from '../../index'
 import { HTTPRPCClient } from '../../internal/http-rpc-client'
 import { WSRPCClient } from '../../internal/ws-rpc-client'
 import { DualRPCClient } from '../../internal/dual-rpc-client'
-import { RPCClientEvent } from '../../internal/json-rpc-client'
 
 test('RPC Client Factory', t => {
   try {
