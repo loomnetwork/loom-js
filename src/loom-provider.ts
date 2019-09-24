@@ -247,7 +247,7 @@ export class LoomProvider {
     this._ethRPCMethods.set('eth_call', this._ethCallSupportedMethod)
     this._ethRPCMethods.set('eth_estimateGas', this._ethEstimateGas)
     this._ethRPCMethods.set('eth_gasPrice', this._ethGasPrice)
-    this._ethRPCMethods.set('eth_getBalance', this._ethGetBalance)
+    this._ethRPCMethods.set('eth_getBalance', this._ethCallSupportedMethod)
     this._ethRPCMethods.set('eth_getBlockByHash', this._ethCallSupportedMethod)
     this._ethRPCMethods.set('eth_getBlockByNumber', this._ethCallSupportedMethod)
     this._ethRPCMethods.set('eth_getCode', this._ethCallSupportedMethod)
