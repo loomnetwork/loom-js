@@ -118,7 +118,9 @@ export class LoomProvider {
   private _setupMiddlewares: SetupMiddlewareFunction
   private _netVersionFromChainId: number
   private _ethRPCMethods: Map<string, EthRPCMethod>
+
   protected notificationCallbacks: Array<Function>
+
   readonly accounts: Map<string, Uint8Array | null>
 
   /**
@@ -170,12 +172,12 @@ export class LoomProvider {
       }
     }
     if (client.isWeb3EndpointEnabled) {
-      this.addDefaultMethods()
+      this._addDefaultMethods()
     } else {
-      this.addLegacyDefaultMethods()
+      this._addLegacyDefaultMethods()
     }
 
-    this.addDefaultEvents()
+    this._addDefaultEvents()
     this.addAccounts([privateKey])
   }
 
@@ -234,14 +236,18 @@ export class LoomProvider {
     }
   }
 
-  addDefaultEvents() {
+  private _addDefaultEvents() {
     this._client.addListener(ClientEvent.Disconnected, () => {
       // reset all requests and callbacks
-      this.reset()
+      this.notificationCallbacks = []
     })
   }
 
-  addDefaultMethods() {
+  /**
+   * Sets up the provider to interact with the Loom /eth endpoint.
+   * This endpoint emulates the Web3 JSON-RPC API so most messages don't require transformation.
+   */
+  private _addDefaultMethods() {
     this._ethRPCMethods.set('eth_accounts', this._ethAccounts)
     this._ethRPCMethods.set('eth_blockNumber', this._ethCallSupportedMethod)
     this._ethRPCMethods.set('eth_call', this._ethCallSupportedMethod)
@@ -269,7 +275,11 @@ export class LoomProvider {
     this._ethRPCMethods.set('net_version', this._netVersion)
   }
 
-  addLegacyDefaultMethods() {
+  /**
+   * Sets up the provider to interact with the Loom /query endpoint, which requires Web3 JSON-RPC
+   * messages to be marshalled to protobufs.
+   */
+  private _addLegacyDefaultMethods() {
     this._ethRPCMethods.set('eth_accounts', this._ethAccounts)
     this._ethRPCMethods.set('eth_blockNumber', this._ethBlockNumber)
     this._ethRPCMethods.set('eth_call', this._ethCall)
@@ -367,10 +377,6 @@ export class LoomProvider {
         }
       })
     }
-  }
-
-  reset() {
-    this.notificationCallbacks = []
   }
 
   disconnect() {

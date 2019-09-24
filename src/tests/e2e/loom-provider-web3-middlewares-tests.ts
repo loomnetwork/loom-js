@@ -141,5 +141,5 @@ async function testWeb3Middleware(t: any, useEthEndpoint: boolean) {
   }
 }
 
-test('LoomProvider + Web3 + Middleware (legacy)', (t: any) => testWeb3Middleware(t, false))
-test('LoomProvider + Web3 + Middleware', (t: any) => testWeb3Middleware(t, true))
+test('LoomProvider + Web3 + Middleware (/query)', (t: any) => testWeb3Middleware(t, false))
+test('LoomProvider + Web3 + Middleware (/eth)', (t: any) => testWeb3Middleware(t, true))

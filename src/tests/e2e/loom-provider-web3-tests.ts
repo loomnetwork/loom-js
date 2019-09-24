@@ -341,31 +341,32 @@ async function testWeb3PastEvents(t: any, useEthEndpoint: boolean) {
   t.end()
 }
 
-test('LoomProvider + Web3 + Event with not matching topic (legacy)', (t: any) =>
+test('LoomProvider + Web3 + Event with not matching topic (/query)', (t: any) =>
   testWeb3MismatchedTopic(t, false))
-test('LoomProvider + Web3 + Event with not matching topic', (t: any) =>
+test('LoomProvider + Web3 + Event with not matching topic (/eth)', (t: any) =>
   testWeb3MismatchedTopic(t, true))
-test('LoomProvider + Web3 + Multiple event topics (legacy)', (t: any) =>
+test('LoomProvider + Web3 + Multiple event topics (/query)', (t: any) =>
   testWeb3MultipleTopics(t, false))
-test('LoomProvider + Web3 + Multiple event topics', (t: any) => testWeb3MultipleTopics(t, true))
-test('LoomProvider + Web3 + Eth Sign (legacy)', (t: any) => testWeb3Sign(t, false))
-test('LoomProvider + Web3 + Eth Sign', (t: any) => testWeb3Sign(t, true))
-test('LoomProvider + Web3 + Get version (legacy)', (t: any) => testWeb3NetId(t, false))
-test('LoomProvider + Web3 + Get version', (t: any) => testWeb3NetId(t, true))
-test('LoomProvider + Web3 + getBlockNumber (legacy)', (t: any) => testWeb3BlockNumber(t, false))
-test('LoomProvider + Web3 + getBlockNumber', (t: any) => testWeb3BlockNumber(t, true))
-test('LoomProvider + Web3 + getBlockByNumber (legacy)', (t: any) =>
+test('LoomProvider + Web3 + Multiple event topics (/eth)', (t: any) =>
+  testWeb3MultipleTopics(t, true))
+test('LoomProvider + Web3 + Eth Sign (/query)', (t: any) => testWeb3Sign(t, false))
+test('LoomProvider + Web3 + Eth Sign (/eth)', (t: any) => testWeb3Sign(t, true))
+test('LoomProvider + Web3 + Get version (/query)', (t: any) => testWeb3NetId(t, false))
+test('LoomProvider + Web3 + Get version (/eth)', (t: any) => testWeb3NetId(t, true))
+test('LoomProvider + Web3 + getBlockNumber (/query)', (t: any) => testWeb3BlockNumber(t, false))
+test('LoomProvider + Web3 + getBlockNumber (/eth)', (t: any) => testWeb3BlockNumber(t, true))
+test('LoomProvider + Web3 + getBlockByNumber (/query)', (t: any) =>
   testWeb3BlockByNumber(t, false))
-test('LoomProvider + Web3 + getBlockByNumber', (t: any) => testWeb3BlockByNumber(t, true))
-test('LoomProvider + Web3 + getBlock by hash (legacy)', (t: any) => testWeb3BlockByHash(t, false))
-test('LoomProvider + Web3 + getBlock by hash', (t: any) => testWeb3BlockByHash(t, true))
-test('LoomProvider + Web3 + getGasPrice (legacy)', (t: any) => testWeb3GasPrice(t, false))
-test('LoomProvider + Web3 + getGasPrice', (t: any) => testWeb3GasPrice(t, true))
-test('LoomProvider + Web3 + getBalance (legacy)', (t: any) => testWeb3Balance(t, false))
-test('LoomProvider + Web3 + getBalance', (t: any) => testWeb3Balance(t, true))
-test('LoomProvider + Web3 + getTransactionReceipt (legacy)', (t: any) =>
+test('LoomProvider + Web3 + getBlockByNumber (/eth)', (t: any) => testWeb3BlockByNumber(t, true))
+test('LoomProvider + Web3 + getBlock by hash (/query)', (t: any) => testWeb3BlockByHash(t, false))
+test('LoomProvider + Web3 + getBlock by hash (/eth)', (t: any) => testWeb3BlockByHash(t, true))
+test('LoomProvider + Web3 + getGasPrice (/query)', (t: any) => testWeb3GasPrice(t, false))
+test('LoomProvider + Web3 + getGasPrice (/eth)', (t: any) => testWeb3GasPrice(t, true))
+test('LoomProvider + Web3 + getBalance (/query)', (t: any) => testWeb3Balance(t, false))
+test('LoomProvider + Web3 + getBalance (/eth)', (t: any) => testWeb3Balance(t, true))
+test('LoomProvider + Web3 + getTransactionReceipt (/query)', (t: any) =>
   testWeb3TransactionReceipt(t, false))
-test('LoomProvider + Web3 + getTransactionReceipt', (t: any) =>
+test('LoomProvider + Web3 + getTransactionReceipt (/eth)', (t: any) =>
   testWeb3TransactionReceipt(t, true))
-test('LoomProvider + Web3 + Logs (legacy)', (t: any) => testWeb3PastEvents(t, false))
-test('LoomProvider + Web3 + Logs', (t: any) => testWeb3PastEvents(t, true))
+test('LoomProvider + Web3 + Logs (/query)', (t: any) => testWeb3PastEvents(t, false))
+test('LoomProvider + Web3 + Logs (/eth)', (t: any) => testWeb3PastEvents(t, true))

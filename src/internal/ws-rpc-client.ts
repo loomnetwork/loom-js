@@ -50,6 +50,7 @@ export class WSRPCClient extends EventEmitter {
   /**
    * Indicates whether the client is configured to use the /eth endpoint on Loom nodes.
    * When this is enabled the client can only be used to interact with EVM contracts.
+   * NOTE: This limitation will be removed in the near future.
    */
   readonly isWeb3EndpointEnabled: boolean
 

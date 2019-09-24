@@ -180,7 +180,7 @@ async function testWeb3ChildContractEvents(t: any, useEthEndpoint: boolean) {
   t.end()
 }
 
-test('LoomProvider + Web3 + Child contracts events (legacy)', (t: any) =>
+test('LoomProvider + Web3 + Child contracts events (/query)', (t: any) =>
   testWeb3ChildContractEvents(t, false))
-test('LoomProvider + Web3 + Child contracts events', (t: any) =>
+test('LoomProvider + Web3 + Child contracts events (/eth)', (t: any) =>
   testWeb3ChildContractEvents(t, true))
