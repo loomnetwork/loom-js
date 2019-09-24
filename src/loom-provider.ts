@@ -34,7 +34,7 @@ import {
 } from './crypto-utils'
 import { soliditySha3 } from './solidity-helpers'
 import { marshalBigUIntPB } from './big-uint'
-import { SignedEthTxMiddleware } from './middleware'
+import { IJSONRPCEvent } from './internal/ws-rpc-client'
 
 export interface IEthReceipt {
   transactionHash: string
@@ -113,11 +113,14 @@ const numberToHexLC = (num: number): string => {
 export class LoomProvider {
   private _client: Client
   private _subscribed: boolean = false
+  private _ethSubscriptions: { [id: string]: any } = {}
   private _accountMiddlewares: Map<string, Array<ITxMiddlewareHandler>>
   private _setupMiddlewares: SetupMiddlewareFunction
   private _netVersionFromChainId: number
   private _ethRPCMethods: Map<string, EthRPCMethod>
+
   protected notificationCallbacks: Array<Function>
+
   readonly accounts: Map<string, Uint8Array | null>
 
   /**
@@ -159,18 +162,22 @@ export class LoomProvider {
     this.accounts = new Map<string, Uint8Array>()
 
     // Only subscribe for event emitter do not call subevents
-    this._client.addListener(ClientEvent.EVMEvent, (msg: IChainEventArgs) =>
+    this._client.addListener(ClientEvent.EVMEvent, (msg: IChainEventArgs | IJSONRPCEvent) =>
       this._onWebSocketMessage(msg)
     )
 
     if (!this._setupMiddlewares) {
       this._setupMiddlewares = (client: Client, privateKey: Uint8Array) => {
-        return createDefaultTxMiddleware(client, privateKey as Uint8Array)
+        return createDefaultTxMiddleware(client, privateKey)
       }
     }
+    if (client.isWeb3EndpointEnabled) {
+      this._addDefaultMethods()
+    } else {
+      this._addLegacyDefaultMethods()
+    }
 
-    this.addDefaultMethods()
-    this.addDefaultEvents()
+    this._addDefaultEvents()
     this.addAccounts([privateKey])
   }
 
@@ -212,6 +219,7 @@ export class LoomProvider {
   // PUBLIC FUNCTION TO SUPPORT WEB3
 
   on(type: string, callback: any) {
+    log('on', type)
     switch (type) {
       case 'data':
         this.notificationCallbacks.push(callback)
@@ -228,14 +236,50 @@ export class LoomProvider {
     }
   }
 
-  addDefaultEvents() {
+  private _addDefaultEvents() {
     this._client.addListener(ClientEvent.Disconnected, () => {
       // reset all requests and callbacks
-      this.reset()
+      this.notificationCallbacks = []
     })
   }
 
-  addDefaultMethods() {
+  /**
+   * Sets up the provider to interact with the Loom /eth endpoint.
+   * This endpoint emulates the Web3 JSON-RPC API so most messages don't require transformation.
+   */
+  private _addDefaultMethods() {
+    this._ethRPCMethods.set('eth_accounts', this._ethAccounts)
+    this._ethRPCMethods.set('eth_blockNumber', this._ethCallSupportedMethod)
+    this._ethRPCMethods.set('eth_call', this._ethCallSupportedMethod)
+    this._ethRPCMethods.set('eth_estimateGas', this._ethEstimateGas)
+    this._ethRPCMethods.set('eth_gasPrice', this._ethGasPrice)
+    this._ethRPCMethods.set('eth_getBalance', this._ethCallSupportedMethod)
+    this._ethRPCMethods.set('eth_getBlockByHash', this._ethCallSupportedMethod)
+    this._ethRPCMethods.set('eth_getBlockByNumber', this._ethCallSupportedMethod)
+    this._ethRPCMethods.set('eth_getCode', this._ethCallSupportedMethod)
+    this._ethRPCMethods.set('eth_getFilterChanges', this._ethCallSupportedMethod)
+    this._ethRPCMethods.set('eth_getLogs', this._ethCallSupportedMethod)
+    this._ethRPCMethods.set('eth_getTransactionByHash', this._ethCallSupportedMethod)
+    this._ethRPCMethods.set('eth_getTransactionReceipt', this._ethCallSupportedMethod)
+    this._ethRPCMethods.set('eth_newBlockFilter', this._ethCallSupportedMethod)
+    this._ethRPCMethods.set('eth_newFilter', this._ethCallSupportedMethod)
+    this._ethRPCMethods.set(
+      'eth_newPendingTransactionFilter',
+      this._ethNewPendingTransactionFilter
+    )
+    this._ethRPCMethods.set('eth_sendTransaction', this._ethSendTransaction)
+    this._ethRPCMethods.set('eth_sign', this._ethSign)
+    this._ethRPCMethods.set('eth_subscribe', this._ethSubscribe)
+    this._ethRPCMethods.set('eth_uninstallFilter', this._ethCallSupportedMethod)
+    this._ethRPCMethods.set('eth_unsubscribe', this._ethUnsubscribe)
+    this._ethRPCMethods.set('net_version', this._netVersion)
+  }
+
+  /**
+   * Sets up the provider to interact with the Loom /query endpoint, which requires Web3 JSON-RPC
+   * messages to be marshalled to protobufs.
+   */
+  private _addLegacyDefaultMethods() {
     this._ethRPCMethods.set('eth_accounts', this._ethAccounts)
     this._ethRPCMethods.set('eth_blockNumber', this._ethBlockNumber)
     this._ethRPCMethods.set('eth_call', this._ethCall)
@@ -257,9 +301,9 @@ export class LoomProvider {
     )
     this._ethRPCMethods.set('eth_sendTransaction', this._ethSendTransaction)
     this._ethRPCMethods.set('eth_sign', this._ethSign)
-    this._ethRPCMethods.set('eth_subscribe', this._ethSubscribe)
+    this._ethRPCMethods.set('eth_subscribe', this._ethSubscribeLegacy)
     this._ethRPCMethods.set('eth_uninstallFilter', this._ethUninstallFilter)
-    this._ethRPCMethods.set('eth_unsubscribe', this._ethUnsubscribe)
+    this._ethRPCMethods.set('eth_unsubscribe', this._ethUnsubscribeLegacy)
     this._ethRPCMethods.set('net_version', this._netVersion)
   }
 
@@ -335,10 +379,6 @@ export class LoomProvider {
     }
   }
 
-  reset() {
-    this.notificationCallbacks = []
-  }
-
   disconnect() {
     this._client.disconnect()
   }
@@ -392,6 +432,10 @@ export class LoomProvider {
   }
 
   // PRIVATE FUNCTIONS EVM CALLS
+
+  private _ethCallSupportedMethod(payload: IEthRPCPayload): Promise<any> {
+    return this._client.sendWeb3MsgAsync(payload.method, payload.params)
+  }
 
   private _ethAccounts() {
     if (this.accounts.size === 0) {
@@ -484,17 +528,11 @@ export class LoomProvider {
     }
 
     if (result instanceof EthBlockHashList) {
-      return (result as EthBlockHashList)
-        .getEthBlockHashList_asU8()
-        .map((hash: Uint8Array) => bytesToHexAddrLC(hash))
+      return result.getEthBlockHashList_asU8().map((hash: Uint8Array) => bytesToHexAddrLC(hash))
     } else if (result instanceof EthTxHashList) {
-      return (result as EthTxHashList)
-        .getEthTxHashList_asU8()
-        .map((hash: Uint8Array) => bytesToHexAddrLC(hash))
+      return result.getEthTxHashList_asU8().map((hash: Uint8Array) => bytesToHexAddrLC(hash))
     } else if (result instanceof EthFilterLogList) {
-      return (result as EthFilterLogList)
-        .getEthBlockLogsList()
-        .map((log: EthFilterLog) => this._createLogResult(log))
+      return result.getEthBlockLogsList().map((log: EthFilterLog) => this._createLogResult(log))
     }
   }
 
@@ -596,10 +634,10 @@ export class LoomProvider {
     return bytesToHexAddrLC(Buffer.concat([sig.r, sig.s, toBuffer(sig.v)]))
   }
 
-  private async _ethSubscribe(payload: IEthRPCPayload) {
+  private async _ethSubscribeLegacy(payload: IEthRPCPayload) {
     if (!this._subscribed) {
       this._subscribed = true
-      this._client.addListenerForTopics()
+      this._client.addListenerForTopics().catch(console.error)
     }
 
     const method = payload.params[0]
@@ -613,12 +651,44 @@ export class LoomProvider {
     return result
   }
 
+  private async _ethSubscribe(payload: IEthRPCPayload) {
+    if (!this._subscribed) {
+      this._subscribed = true
+      this._client.addListenerForTopics().catch(console.error)
+    }
+    const { method, params } = payload
+    const subscriptionId: string = await this._client.evmSubscribeAsync(method, params)
+    log('subscribed', subscriptionId, params)
+    this._ethSubscriptions[subscriptionId] = {
+      id: subscriptionId,
+      method,
+      params
+    }
+
+    return subscriptionId
+  }
+
   private _ethUninstallFilter(payload: IEthRPCPayload) {
     return this._client.uninstallEvmFilterAsync(payload.params[0])
   }
 
-  private _ethUnsubscribe(payload: IEthRPCPayload) {
+  private _ethUnsubscribeLegacy(payload: IEthRPCPayload) {
     return this._client.evmUnsubscribeAsync(payload.params[0])
+  }
+
+  private async _ethUnsubscribe(payload: IEthRPCPayload) {
+    const subscriptionId = payload.params[0]
+    const unsubscribeMethod = payload.params[1] || 'eth_unsubscribe'
+    const subscription = this._ethSubscriptions[subscriptionId]
+    if (subscription !== undefined) {
+      const response = await this._client.sendWeb3MsgAsync(unsubscribeMethod, [subscriptionId])
+      if (response) {
+        delete this._ethSubscriptions[subscriptionId]
+      }
+      return response
+    }
+
+    throw new Error(`Provider error: Subscription with ID ${subscriptionId} does not exist.`)
   }
 
   private _netVersion() {
@@ -716,6 +786,7 @@ export class LoomProvider {
 
     return {
       blockNumber,
+      number: blockNumber,
       transactionHash,
       parentHash,
       logsBloom,
@@ -723,8 +794,7 @@ export class LoomProvider {
       transactions,
       gasLimit: '0x0',
       gasUsed: '0x0',
-      size: '0x0',
-      number: '0x0'
+      size: '0x0'
     }
   }
 
@@ -859,31 +929,35 @@ export class LoomProvider {
     })
   }
 
-  private _onWebSocketMessage(msgEvent: IChainEventArgs) {
-    if (msgEvent.kind === ClientEvent.EVMEvent) {
-      log(`Socket message arrived ${JSON.stringify(msgEvent)}`)
-      this.notificationCallbacks.forEach((callback: Function) => {
-        const JSONRPCResult = {
-          jsonrpc: '2.0',
-          method: 'eth_subscription',
-          params: {
-            subscription: msgEvent.id,
-            result: {
-              transactionHash: bytesToHexAddrLC(msgEvent.transactionHashBytes),
-              logIndex: '0x0',
-              transactionIndex: '0x0',
-              blockHash: '0x0',
-              blockNumber: numberToHexLC(+msgEvent.blockHeight),
-              address: msgEvent.contractAddress.local.toString(),
-              type: 'mined',
-              data: bytesToHexAddrLC(msgEvent.data),
-              topics: msgEvent.topics
-            }
+  private _onWebSocketMessage(msgEvent: IChainEventArgs | IJSONRPCEvent) {
+    if (this._client.isWeb3EndpointEnabled) {
+      log('Socket message arrived (web3)', JSON.stringify(msgEvent, null, 2))
+      this.notificationCallbacks.forEach(callback => callback(msgEvent))
+      return
+    }
+
+    const eventArgs = msgEvent as IChainEventArgs
+    if (eventArgs.kind === ClientEvent.EVMEvent) {
+      const JSONRPCResult = {
+        jsonrpc: '2.0',
+        method: 'eth_subscription',
+        params: {
+          subscription: msgEvent.id,
+          result: {
+            transactionHash: bytesToHexAddrLC(eventArgs.transactionHashBytes),
+            logIndex: '0x0',
+            transactionIndex: '0x0',
+            blockHash: '0x0',
+            blockNumber: numberToHexLC(+eventArgs.blockHeight),
+            address: eventArgs.contractAddress.local.toString(),
+            type: 'mined',
+            data: bytesToHexAddrLC(eventArgs.data),
+            topics: eventArgs.topics
           }
         }
-
-        callback(JSONRPCResult)
-      })
+      }
+      log('Socket message arrived', JSON.stringify(JSONRPCResult, null, 2))
+      this.notificationCallbacks.forEach(callback => callback(JSONRPCResult))
     }
   }
 
