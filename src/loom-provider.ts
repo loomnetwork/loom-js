@@ -682,7 +682,9 @@ export class LoomProvider {
       return response
     }
 
-    throw new Error(`Provider error: Subscription with ID ${subscriptionId} does not exist.`)
+    return Promise.reject(
+      new Error(`Provider error: Subscription with ID ${subscriptionId} does not exist.`)
+    )
   }
 
   private _netVersion() {
