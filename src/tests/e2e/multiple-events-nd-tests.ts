@@ -294,4 +294,3 @@ async function testMultipleContractEvents(t: any, useEthEndpoint: boolean) {
 
 test('LoomProvider + Web3 (legacy)', (t: any) => testMultipleContractEvents(t, false))
 test('LoomProvider + Web3', (t: any) => testMultipleContractEvents(t, true))
-

@@ -34,7 +34,7 @@ import {
 } from './crypto-utils'
 import { soliditySha3 } from './solidity-helpers'
 import { marshalBigUIntPB } from './big-uint'
-import { RPCClientEvent } from './internal/json-rpc-client'
+import { IJSONRPCEvent } from './internal/ws-rpc-client'
 
 export interface IEthReceipt {
   transactionHash: string
@@ -159,7 +159,8 @@ export class LoomProvider {
     this.notificationCallbacks = new Array()
     this.accounts = new Map<string, Uint8Array>()
 
-    this._client.addListener(ClientEvent.EVMEvent, (msg: IChainEventArgs) =>
+    // Only subscribe for event emitter do not call subevents
+    this._client.addListener(ClientEvent.EVMEvent, (msg: IChainEventArgs | IJSONRPCEvent) =>
       this._onWebSocketMessage(msg)
     )
 
@@ -168,10 +169,10 @@ export class LoomProvider {
         return createDefaultTxMiddleware(client, privateKey)
       }
     }
-    if (client.isLegacy) {
-      this.addLegacyDefaultMethods()
-    } else {
+    if (client.isWeb3EndpointEnabled) {
       this.addDefaultMethods()
+    } else {
+      this.addLegacyDefaultMethods()
     }
 
     this.addDefaultEvents()
@@ -426,7 +427,7 @@ export class LoomProvider {
 
   // PRIVATE FUNCTIONS EVM CALLS
 
-  private _ethCallSupportedMethod(payload: IEthRPCPayload): Promise<any | null> {
+  private _ethCallSupportedMethod(payload: IEthRPCPayload): Promise<any> {
     return this._client.sendWeb3MsgAsync(payload.method, payload.params)
   }
 
@@ -681,9 +682,7 @@ export class LoomProvider {
       return response
     }
 
-    return Promise.reject(
-      new Error(`Provider error: Subscription with ID ${subscriptionId} does not exist.`)
-    )
+    throw new Error(`Provider error: Subscription with ID ${subscriptionId} does not exist.`)
   }
 
   private _netVersion() {
@@ -924,34 +923,35 @@ export class LoomProvider {
     })
   }
 
-  private _onWebSocketMessage(msgEvent: any) {
-    if (this._client.isLegacy) {
-      if (msgEvent.kind === ClientEvent.EVMEvent) {
-        const JSONRPCResult = {
-          jsonrpc: '2.0',
-          method: 'eth_subscription',
-          params: {
-            subscription: msgEvent.id,
-            result: {
-              transactionHash: bytesToHexAddrLC(msgEvent.transactionHashBytes),
-              logIndex: '0x0',
-              transactionIndex: '0x0',
-              blockHash: '0x0',
-              blockNumber: numberToHexLC(+msgEvent.blockHeight),
-              address: msgEvent.contractAddress.local.toString(),
-              type: 'mined',
-              data: bytesToHexAddrLC(msgEvent.data),
-              topics: msgEvent.topics
-            }
-          }
-        }
-        log('Socket message arrived', JSON.stringify(JSONRPCResult, null, 2))
-        this.notificationCallbacks.forEach(callback => callback(JSONRPCResult))
-      }
-
-    } else {
+  private _onWebSocketMessage(msgEvent: IChainEventArgs | IJSONRPCEvent) {
+    if (this._client.isWeb3EndpointEnabled) {
       log('Socket message arrived (web3)', JSON.stringify(msgEvent, null, 2))
       this.notificationCallbacks.forEach(callback => callback(msgEvent))
+      return
+    }
+
+    const eventArgs = msgEvent as IChainEventArgs
+    if (eventArgs.kind === ClientEvent.EVMEvent) {
+      const JSONRPCResult = {
+        jsonrpc: '2.0',
+        method: 'eth_subscription',
+        params: {
+          subscription: msgEvent.id,
+          result: {
+            transactionHash: bytesToHexAddrLC(eventArgs.transactionHashBytes),
+            logIndex: '0x0',
+            transactionIndex: '0x0',
+            blockHash: '0x0',
+            blockNumber: numberToHexLC(+eventArgs.blockHeight),
+            address: eventArgs.contractAddress.local.toString(),
+            type: 'mined',
+            data: bytesToHexAddrLC(eventArgs.data),
+            topics: eventArgs.topics
+          }
+        }
+      }
+      log('Socket message arrived', JSON.stringify(JSONRPCResult, null, 2))
+      this.notificationCallbacks.forEach(callback => callback(JSONRPCResult))
     }
   }
 

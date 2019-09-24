@@ -127,11 +127,16 @@ export function parseUrl(rawUrl: string): URL {
 }
 
 export function setupProtocolsFromEndpoint(
-  endpoint: string
+  endpoint: string,
+  useWeb3Endpoint: boolean = false
 ): { writer: IJSONRPCClient; reader: IJSONRPCClient } {
   const protocol = selectProtocol(endpoint)
   const writerSuffix = protocol === JSONRPCProtocol.HTTP ? '/rpc' : '/websocket'
-  const readerSuffix = '/eth'
+  const readerSuffix = useWeb3Endpoint
+    ? '/eth'
+    : protocol === JSONRPCProtocol.HTTP
+      ? '/query'
+      : '/queryws'
 
   const writer = createJSONRPCClient({
     protocols: [{ url: endpoint + writerSuffix }]
@@ -193,7 +198,7 @@ export async function createDefaultEthSignClientAsync(
   chainId: string,
   wallet: ethers.Signer
 ): Promise<{ client: Client; callerAddress: Address }> {
-  const { writer, reader } = setupProtocolsFromEndpoint(dappchainEndpoint)
+  const { writer, reader } = setupProtocolsFromEndpoint(dappchainEndpoint, true)
 
   const client = new Client(chainId, writer, reader)
   log('Initialized', dappchainEndpoint)

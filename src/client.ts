@@ -242,7 +242,12 @@ export class Client extends EventEmitter {
 
   private _writeClient: IJSONRPCClient
   private _readClient!: IJSONRPCClient
-  readonly isLegacy: boolean
+
+  /**
+   * Indicates whether the client is configured to use the /eth endpoint on Loom nodes.
+   * When this is enabled the client can only be used to interact with EVM contracts.
+   */
+  readonly isWeb3EndpointEnabled: boolean
 
   /** Broadcaster to use to send txs & receive results. */
   txBroadcaster: ITxBroadcaster
@@ -316,11 +321,10 @@ export class Client extends EventEmitter {
       )
     }
 
-    this.isLegacy = false === /eth$/.test(this._readClient.url)
+    this.isWeb3EndpointEnabled = true === /eth$/.test(this._readClient.url)
 
-    const emitContractEvent = this.isLegacy
-      ? (url: string, event: IJSONRPCEvent) => this._emitContractEvent(url, event)
-      : (event: IJSONRPCEvent) => this._emitContractEvent('', event)
+    const emitContractEvent = (url: string, event: IJSONRPCEvent) =>
+      this._emitContractEvent(url, event)
 
     this.on('newListener', (event: string) => {
       if (event === ClientEvent.Contract && this.listenerCount(ClientEvent.Contract) === 0) {
@@ -417,9 +421,9 @@ export class Client extends EventEmitter {
    * addListenerForTopics
    */
   async addListenerForTopics() {
-    const emitContractEvent = this.isLegacy
-      ? (url: string, event: IJSONRPCEvent) => this._emitContractEvent(url, event, true)
-      : (event: IJSONRPCEvent) => this._emitContractEvent('', event, true)
+    const emitContractEvent = (url: string, event: IJSONRPCEvent) => {
+      this._emitContractEvent(url, event, true)
+    }
 
     this._readClient.on(RPCClientEvent.EVMMessage, emitContractEvent)
   }
@@ -690,15 +694,15 @@ export class Client extends EventEmitter {
    * @param filter JSON string of the filter
    */
   evmSubscribeAsync(method: string, params: Object | any[]): Promise<string> {
-    if (this.isLegacy) {
-      const filter = JSON.stringify(params)
-      return this._readClient.sendAsync<string>('evmsubscribe', {
-        method,
-        filter
-      })
-    } else {
+    if (this.isWeb3EndpointEnabled) {
       return this._readClient.sendAsync<string>('eth_subscribe', params)
     }
+
+    const filter = JSON.stringify(params)
+    return this._readClient.sendAsync<string>('evmsubscribe', {
+      method,
+      filter
+    })
   }
 
   /**
@@ -709,10 +713,11 @@ export class Client extends EventEmitter {
    * @return boolean If true the subscription is removed with success
    */
   evmUnsubscribeAsync(id: string): Promise<boolean> {
-    if (this.isLegacy) {
-      return this._readClient.sendAsync<boolean>('evmunsubscribe', { id })
+    if (this.isWeb3EndpointEnabled) {
+      return this._readClient.sendAsync<boolean>('eth_unsubscribe', [id])
     }
-    return this._readClient.sendAsync<boolean>('eth_unsubscribe', [id])
+
+    return this._readClient.sendAsync<boolean>('evmunsubscribe', { id })
   }
 
   /**
@@ -772,7 +777,7 @@ export class Client extends EventEmitter {
     if (error) {
       const eventArgs: IClientErrorEventArgs = { kind: ClientEvent.Error, url, error }
       this.emit(ClientEvent.Error, eventArgs)
-    } else if (!this.isLegacy && isEVM) {
+    } else if (this.isWeb3EndpointEnabled && isEVM) {
       this.emit(ClientEvent.EVMEvent, event)
     } else if (result) {
       // Ugh, no built-in JSON->Protobuf marshaller apparently

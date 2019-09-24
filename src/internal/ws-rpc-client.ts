@@ -47,9 +47,11 @@ export class WSRPCClient extends EventEmitter {
     return this._isSubcribed
   }
 
-  get isLegacy() {
-    return /eth$/.test(this.url) === false
-  }
+  /**
+   * Indicates whether the client is configured to use the /eth endpoint on Loom nodes.
+   * When this is enabled the client can only be used to interact with EVM contracts.
+   */
+  readonly isWeb3EndpointEnabled: boolean
 
   /**
    *
@@ -71,6 +73,9 @@ export class WSRPCClient extends EventEmitter {
     } = {}
   ) {
     super()
+
+    this.isWeb3EndpointEnabled = true === /eth$/.test(url)
+
     const {
       autoConnect = true,
       requestTimeout = 15000, // 15s
@@ -214,22 +219,22 @@ export class WSRPCClient extends EventEmitter {
     const msgStr = message instanceof ArrayBuffer ? Buffer.from(message).toString() : message
     const msg = JSON.parse(msgStr)
 
-    if (this.isLegacy) {
-      // Events from native loomchain have id 0
-      if (msg.id === '0') {
-        log('Loom Event arrived', msg)
-        this.emit(RPCClientEvent.Message, this.url, msg)
-      }
-      // EVM Event old endpoint
-      else if (/^0x.+$/.test(msg.id)) {
-        this.emit(RPCClientEvent.EVMMessage, this.url, msg)
-      }
-    } else {
+    if (this.isWeb3EndpointEnabled) {
       // EVM Event eth endpoint
       if (msg.method === 'eth_subscription') {
         log('EVM Event arrived', msg)
-        this.emit(RPCClientEvent.EVMMessage, msg)
+        this.emit(RPCClientEvent.EVMMessage, this.url, msg)
       }
+      return
+    }
+
+    // Events from native loomchain have id 0
+    if (msg.id === '0') {
+      log('Loom Event arrived', msg)
+      this.emit(RPCClientEvent.Message, this.url, msg)
+    } else if (/^0x.+$/.test(msg.id)) {
+      // Events from EVM have the id from the evmsubscribe command
+      this.emit(RPCClientEvent.EVMMessage, this.url, msg)
     }
   }
 }

@@ -124,15 +124,12 @@ async function testWeb3MultipleTopics(t: any, useEthEndpoint: boolean) {
   try {
     const newValue = 1
 
-    contract.events.NewValueSet(
-      { filter: { _value: [1, 2, 3] } },
-      (err: Error, event: any) => {
-        if (err) t.error(err)
-        else {
-          t.equal(+event.returnValues._value, newValue, `Return value should be ${newValue}`)
-        }
+    contract.events.NewValueSet({ filter: { _value: [1, 2, 3] } }, (err: Error, event: any) => {
+      if (err) t.error(err)
+      else {
+        t.equal(+event.returnValues._value, newValue, `Return value should be ${newValue}`)
       }
-    )
+    })
     await waitForMillisecondsAsync(1000)
 
     const tx = await contract.methods.set(newValue).send()
@@ -344,9 +341,12 @@ async function testWeb3PastEvents(t: any, useEthEndpoint: boolean) {
   t.end()
 }
 
-test('LoomProvider + Web3 + Event with not matching topic (legacy)', (t: any) => testWeb3MismatchedTopic(t, false))
-test('LoomProvider + Web3 + Event with not matching topic', (t: any) => testWeb3MismatchedTopic(t, true))
-test('LoomProvider + Web3 + Multiple event topics (legacy)', (t: any) => testWeb3MultipleTopics(t, false))
+test('LoomProvider + Web3 + Event with not matching topic (legacy)', (t: any) =>
+  testWeb3MismatchedTopic(t, false))
+test('LoomProvider + Web3 + Event with not matching topic', (t: any) =>
+  testWeb3MismatchedTopic(t, true))
+test('LoomProvider + Web3 + Multiple event topics (legacy)', (t: any) =>
+  testWeb3MultipleTopics(t, false))
 test('LoomProvider + Web3 + Multiple event topics', (t: any) => testWeb3MultipleTopics(t, true))
 test('LoomProvider + Web3 + Eth Sign (legacy)', (t: any) => testWeb3Sign(t, false))
 test('LoomProvider + Web3 + Eth Sign', (t: any) => testWeb3Sign(t, true))
@@ -354,7 +354,8 @@ test('LoomProvider + Web3 + Get version (legacy)', (t: any) => testWeb3NetId(t, 
 test('LoomProvider + Web3 + Get version', (t: any) => testWeb3NetId(t, true))
 test('LoomProvider + Web3 + getBlockNumber (legacy)', (t: any) => testWeb3BlockNumber(t, false))
 test('LoomProvider + Web3 + getBlockNumber', (t: any) => testWeb3BlockNumber(t, true))
-test('LoomProvider + Web3 + getBlockByNumber (legacy)', (t: any) => testWeb3BlockByNumber(t, false))
+test('LoomProvider + Web3 + getBlockByNumber (legacy)', (t: any) =>
+  testWeb3BlockByNumber(t, false))
 test('LoomProvider + Web3 + getBlockByNumber', (t: any) => testWeb3BlockByNumber(t, true))
 test('LoomProvider + Web3 + getBlock by hash (legacy)', (t: any) => testWeb3BlockByHash(t, false))
 test('LoomProvider + Web3 + getBlock by hash', (t: any) => testWeb3BlockByHash(t, true))
@@ -362,7 +363,9 @@ test('LoomProvider + Web3 + getGasPrice (legacy)', (t: any) => testWeb3GasPrice(
 test('LoomProvider + Web3 + getGasPrice', (t: any) => testWeb3GasPrice(t, true))
 test('LoomProvider + Web3 + getBalance (legacy)', (t: any) => testWeb3Balance(t, false))
 test('LoomProvider + Web3 + getBalance', (t: any) => testWeb3Balance(t, true))
-test('LoomProvider + Web3 + getTransactionReceipt (legacy)', (t: any) => testWeb3TransactionReceipt(t, false))
-test('LoomProvider + Web3 + getTransactionReceipt', (t: any) => testWeb3TransactionReceipt(t, true))
+test('LoomProvider + Web3 + getTransactionReceipt (legacy)', (t: any) =>
+  testWeb3TransactionReceipt(t, false))
+test('LoomProvider + Web3 + getTransactionReceipt', (t: any) =>
+  testWeb3TransactionReceipt(t, true))
 test('LoomProvider + Web3 + Logs (legacy)', (t: any) => testWeb3PastEvents(t, false))
 test('LoomProvider + Web3 + Logs', (t: any) => testWeb3PastEvents(t, true))
