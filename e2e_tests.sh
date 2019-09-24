@@ -79,7 +79,7 @@ run_tests() {
   yarn test:node
   # Disabled temporarily because it dies for some unknown reason on Travis
   #yarn test:browser
-  DEBUG=* yarn e2e:node
+  yarn e2e:node
 }
 
 cleanup() {
