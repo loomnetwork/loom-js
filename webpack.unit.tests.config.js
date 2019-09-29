@@ -1,7 +1,5 @@
 // This config is used to run tests in the browser.
-
 const path = require('path')
-const exec = require('child_process').exec
 
 module.exports = {
   mode: 'production',
@@ -11,7 +9,6 @@ module.exports = {
     filename: 'browser_unit_tests.js',
     libraryTarget: 'umd',
     globalObject: 'this',
-    // libraryExport: 'default',
     library: 'loom_unit_tests'
   },
   node: {
