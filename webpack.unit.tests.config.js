@@ -1,6 +1,7 @@
 // This config is used to run tests in the browser.
 
 const path = require('path')
+const exec = require('child_process').exec
 
 module.exports = {
   mode: 'production',

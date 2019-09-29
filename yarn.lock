@@ -5644,7 +5644,7 @@ performance-now@^2.1.0:
   resolved "https://registry.yarnpkg.com/performance-now/-/performance-now-2.1.0.tgz#6309f4e0e5fa913ec1c69307ae364b4b377c9e7b"
   integrity sha1-Ywn04OX6kT7BxpMHrjZLSzd8nns=
 
-phantomjs-prebuilt@^2.1.16, phantomjs-prebuilt@^2.1.7:
+phantomjs-prebuilt@^2.1.7:
   version "2.1.16"
   resolved "https://registry.yarnpkg.com/phantomjs-prebuilt/-/phantomjs-prebuilt-2.1.16.tgz#efd212a4a3966d3647684ea8ba788549be2aefef"
   integrity sha1-79ISpKOWbTZHaE6ouniFSb4q7+8=
@@ -5925,7 +5925,7 @@ punycode@^2.1.0:
   resolved "https://registry.yarnpkg.com/punycode/-/punycode-2.1.1.tgz#b58b010ac40c22c5657616c8d2c2c02c7bf479ec"
   integrity sha512-XRsRjdf+j5ml+y/6GKHPZbrF/8p2Yga0JPtdqTIY2Xe5ohJPD9saDJJLPvp9+NSBprVvevdXZybnj2cv8OEd0A==
 
-puppeteer@^1.7.0:
+puppeteer@^1.20.0:
   version "1.20.0"
   resolved "https://registry.yarnpkg.com/puppeteer/-/puppeteer-1.20.0.tgz#e3d267786f74e1d87cf2d15acc59177f471bbe38"
   integrity sha512-bt48RDBy2eIwZPrkgbcwHtb51mj2nKvHOPMaSH2IsWiv7lOG9k9zhaRzpDZafrk05ajMc3cu+lSQYYOfH2DkVQ==
@@ -7038,14 +7038,6 @@ swarm-js@0.1.39:
     tar "^4.0.2"
     xhr-request-promise "^0.1.2"
 
-tap-finished@0.0.1:
-  version "0.0.1"
-  resolved "https://registry.yarnpkg.com/tap-finished/-/tap-finished-0.0.1.tgz#08b5b543fdc04830290c6c561279552e71c4bd67"
-  integrity sha1-CLW1Q/3ASDApDGxWEnlVLnHEvWc=
-  dependencies:
-    tap-parser "~0.2.0"
-    through "~2.3.4"
-
 tap-out@^2.1.0:
   version "2.1.0"
   resolved "https://registry.yarnpkg.com/tap-out/-/tap-out-2.1.0.tgz#c093079a915036de8b835bfa3297f14458b15358"
@@ -7081,15 +7073,6 @@ tapable@^1.0.0, tapable@^1.1.0:
   version "1.1.1"
   resolved "https://registry.yarnpkg.com/tapable/-/tapable-1.1.1.tgz#4d297923c5a72a42360de2ab52dadfaaec00018e"
   integrity sha512-9I2ydhj8Z9veORCw5PRm4u9uebCn0mcCa6scWoNcbZ6dAtoo2618u9UUzxgmsCOreJpqDDuv61LvwofW7hLcBA==
-
-"tape-puppet@git+https://git@github.com/eduardonunesp/tape-puppet.git#9c1ed208391957de40e90962e89730417be1a30e":
-  version "0.1.7"
-  resolved "git+https://git@github.com/eduardonunesp/tape-puppet.git#9c1ed208391957de40e90962e89730417be1a30e"
-  dependencies:
-    minimist "^1.2.0"
-    pump "^3.0.0"
-    puppeteer "^1.7.0"
-    tap-finished "0.0.1"
 
 tape-run@^3.0.0:
   version "3.0.4"
