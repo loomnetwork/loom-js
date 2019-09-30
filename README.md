@@ -124,7 +124,9 @@ LoomProvider combined with Web3 supports the following `JSON RPC` calls
 - [x] net_version
 
 #### Should
+
 - [ ] eth_getFilterLogs (Returns an array of all logs matching filter with given id)
+- [ ] eth_estimateGas (Currently, it always returns zero)
 
 #### Maybe
 
