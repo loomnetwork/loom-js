@@ -106,7 +106,6 @@ LoomProvider combined with Web3 supports the following `JSON RPC` calls
 - [x] eth_accounts
 - [x] eth_blockNumber
 - [x] eth_call
-- [x] eth_estimateGas
 - [x] eth_gasPrice
 - [x] eth_getBlockByHash
 - [x] eth_getBlockByNumber
