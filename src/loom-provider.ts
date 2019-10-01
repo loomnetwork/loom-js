@@ -89,6 +89,12 @@ export interface IEthFilterLog {
   topics: Array<string>
 }
 
+export interface IEthSubscription {
+  id: string
+  method: string
+  params: Array<any>
+}
+
 export type SetupMiddlewareFunction = (
   client: Client,
   privateKey: Uint8Array
@@ -113,7 +119,7 @@ const numberToHexLC = (num: number): string => {
 export class LoomProvider {
   private _client: Client
   private _subscribed: boolean = false
-  private _ethSubscriptions: { [id: string]: any } = {}
+  private _ethSubscriptions: Map<string, IEthSubscription>
   private _accountMiddlewares: Map<string, Array<ITxMiddlewareHandler>>
   private _setupMiddlewares: SetupMiddlewareFunction
   private _netVersionFromChainId: number
@@ -156,6 +162,7 @@ export class LoomProvider {
     this._client = client
     this._netVersionFromChainId = LoomProvider.chainIdToNetVersion(this._client.chainId)
     this._setupMiddlewares = setupMiddlewaresFunction!
+    this._ethSubscriptions = new Map<string, IEthSubscription>()
     this._accountMiddlewares = new Map<string, Array<ITxMiddlewareHandler>>()
     this._ethRPCMethods = new Map<string, EthRPCMethod>()
     this.notificationCallbacks = new Array()
@@ -171,8 +178,10 @@ export class LoomProvider {
         return createDefaultTxMiddleware(client, privateKey)
       }
     }
+    this._addDefaultMethods()
+
     if (client.isWeb3EndpointEnabled) {
-      this._addDefaultMethods()
+      this._addWeb3EndpointMethods()
     } else {
       this._addLegacyDefaultMethods()
     }
@@ -239,47 +248,11 @@ export class LoomProvider {
   private _addDefaultEvents() {
     this._client.addListener(ClientEvent.Disconnected, () => {
       // reset all requests and callbacks
-      this.notificationCallbacks = []
+      this.reset()
     })
   }
 
-  /**
-   * Sets up the provider to interact with the Loom /eth endpoint.
-   * This endpoint emulates the Web3 JSON-RPC API so most messages don't require transformation.
-   */
   private _addDefaultMethods() {
-    this._ethRPCMethods.set('eth_accounts', this._ethAccounts)
-    this._ethRPCMethods.set('eth_blockNumber', this._ethCallSupportedMethod)
-    this._ethRPCMethods.set('eth_call', this._ethCallSupportedMethod)
-    this._ethRPCMethods.set('eth_estimateGas', this._ethEstimateGas)
-    this._ethRPCMethods.set('eth_gasPrice', this._ethGasPrice)
-    this._ethRPCMethods.set('eth_getBalance', this._ethCallSupportedMethod)
-    this._ethRPCMethods.set('eth_getBlockByHash', this._ethCallSupportedMethod)
-    this._ethRPCMethods.set('eth_getBlockByNumber', this._ethCallSupportedMethod)
-    this._ethRPCMethods.set('eth_getCode', this._ethCallSupportedMethod)
-    this._ethRPCMethods.set('eth_getFilterChanges', this._ethCallSupportedMethod)
-    this._ethRPCMethods.set('eth_getLogs', this._ethCallSupportedMethod)
-    this._ethRPCMethods.set('eth_getTransactionByHash', this._ethCallSupportedMethod)
-    this._ethRPCMethods.set('eth_getTransactionReceipt', this._ethCallSupportedMethod)
-    this._ethRPCMethods.set('eth_newBlockFilter', this._ethCallSupportedMethod)
-    this._ethRPCMethods.set('eth_newFilter', this._ethCallSupportedMethod)
-    this._ethRPCMethods.set(
-      'eth_newPendingTransactionFilter',
-      this._ethNewPendingTransactionFilter
-    )
-    this._ethRPCMethods.set('eth_sendTransaction', this._ethSendTransaction)
-    this._ethRPCMethods.set('eth_sign', this._ethSign)
-    this._ethRPCMethods.set('eth_subscribe', this._ethSubscribe)
-    this._ethRPCMethods.set('eth_uninstallFilter', this._ethCallSupportedMethod)
-    this._ethRPCMethods.set('eth_unsubscribe', this._ethUnsubscribe)
-    this._ethRPCMethods.set('net_version', this._netVersion)
-  }
-
-  /**
-   * Sets up the provider to interact with the Loom /query endpoint, which requires Web3 JSON-RPC
-   * messages to be marshalled to protobufs.
-   */
-  private _addLegacyDefaultMethods() {
     this._ethRPCMethods.set('eth_accounts', this._ethAccounts)
     this._ethRPCMethods.set('eth_blockNumber', this._ethBlockNumber)
     this._ethRPCMethods.set('eth_call', this._ethCall)
@@ -301,10 +274,26 @@ export class LoomProvider {
     )
     this._ethRPCMethods.set('eth_sendTransaction', this._ethSendTransaction)
     this._ethRPCMethods.set('eth_sign', this._ethSign)
-    this._ethRPCMethods.set('eth_subscribe', this._ethSubscribeLegacy)
     this._ethRPCMethods.set('eth_uninstallFilter', this._ethUninstallFilter)
-    this._ethRPCMethods.set('eth_unsubscribe', this._ethUnsubscribeLegacy)
     this._ethRPCMethods.set('net_version', this._netVersion)
+  }
+
+  /**
+   * Sets up the provider to interact with the Loom /query endpoint, which requires Web3 JSON-RPC
+   * messages to be marshalled to protobufs.
+   */
+  private _addLegacyDefaultMethods() {
+    this._ethRPCMethods.set('eth_subscribe', this._ethSubscribeLegacy)
+    this._ethRPCMethods.set('eth_unsubscribe', this._ethUnsubscribeLegacy)
+  }
+
+  /**
+   * Sets up the provider to interact with the Loom /eth endpoint.
+   * This endpoint emulates the Web3 JSON-RPC API so most messages don't require transformation.
+   */
+  private _addWeb3EndpointMethods() {
+    this._ethRPCMethods.set('eth_subscribe', this._ethSubscribe)
+    this._ethRPCMethods.set('eth_uninstallFilter', this._ethUnsubscribe)
   }
 
   /**
@@ -381,6 +370,10 @@ export class LoomProvider {
 
   disconnect() {
     this._client.disconnect()
+  }
+
+  reset() {
+    this.notificationCallbacks = []
   }
 
   // Adapter function for sendAsync from truffle provider
@@ -656,14 +649,17 @@ export class LoomProvider {
       this._subscribed = true
       this._client.addListenerForTopics().catch(console.error)
     }
+
     const { method, params } = payload
     const subscriptionId: string = await this._client.evmSubscribeAsync(method, params)
+
     log('subscribed', subscriptionId, params)
-    this._ethSubscriptions[subscriptionId] = {
+
+    this._ethSubscriptions.set(subscriptionId, {
       id: subscriptionId,
       method,
       params
-    }
+    })
 
     return subscriptionId
   }
@@ -679,12 +675,13 @@ export class LoomProvider {
   private async _ethUnsubscribe(payload: IEthRPCPayload) {
     const subscriptionId = payload.params[0]
     const unsubscribeMethod = payload.params[1] || 'eth_unsubscribe'
-    const subscription = this._ethSubscriptions[subscriptionId]
-    if (subscription !== undefined) {
+
+    if (this._ethSubscriptions.has(subscriptionId)) {
       const response = await this._client.sendWeb3MsgAsync(unsubscribeMethod, [subscriptionId])
       if (response) {
-        delete this._ethSubscriptions[subscriptionId]
+        this._ethSubscriptions.delete(subscriptionId)
       }
+
       return response
     }
 
