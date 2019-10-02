@@ -254,10 +254,24 @@ export class LoomProvider {
 
   private _addDefaultMethods() {
     this._ethRPCMethods.set('eth_accounts', this._ethAccounts)
-    this._ethRPCMethods.set('eth_blockNumber', this._ethBlockNumber)
-    this._ethRPCMethods.set('eth_call', this._ethCall)
     this._ethRPCMethods.set('eth_estimateGas', this._ethEstimateGas)
     this._ethRPCMethods.set('eth_gasPrice', this._ethGasPrice)
+    this._ethRPCMethods.set(
+      'eth_newPendingTransactionFilter',
+      this._ethNewPendingTransactionFilter
+    )
+    this._ethRPCMethods.set('eth_sendTransaction', this._ethSendTransaction)
+    this._ethRPCMethods.set('eth_sign', this._ethSign)
+    this._ethRPCMethods.set('net_version', this._netVersion)
+  }
+
+  /**
+   * Sets up the provider to interact with the Loom /query endpoint, which requires Web3 JSON-RPC
+   * messages to be marshalled to protobufs.
+   */
+  private _addLegacyDefaultMethods() {
+    this._ethRPCMethods.set('eth_blockNumber', this._ethBlockNumber)
+    this._ethRPCMethods.set('eth_call', this._ethCall)
     this._ethRPCMethods.set('eth_getBalance', this._ethGetBalance)
     this._ethRPCMethods.set('eth_getBlockByHash', this._ethGetBlockByHash)
     this._ethRPCMethods.set('eth_getBlockByNumber', this._ethGetBlockByNumber)
@@ -268,21 +282,7 @@ export class LoomProvider {
     this._ethRPCMethods.set('eth_getTransactionReceipt', this._ethGetTransactionReceipt)
     this._ethRPCMethods.set('eth_newBlockFilter', this._ethNewBlockFilter)
     this._ethRPCMethods.set('eth_newFilter', this._ethNewFilter)
-    this._ethRPCMethods.set(
-      'eth_newPendingTransactionFilter',
-      this._ethNewPendingTransactionFilter
-    )
-    this._ethRPCMethods.set('eth_sendTransaction', this._ethSendTransaction)
-    this._ethRPCMethods.set('eth_sign', this._ethSign)
     this._ethRPCMethods.set('eth_uninstallFilter', this._ethUninstallFilter)
-    this._ethRPCMethods.set('net_version', this._netVersion)
-  }
-
-  /**
-   * Sets up the provider to interact with the Loom /query endpoint, which requires Web3 JSON-RPC
-   * messages to be marshalled to protobufs.
-   */
-  private _addLegacyDefaultMethods() {
     this._ethRPCMethods.set('eth_subscribe', this._ethSubscribeLegacy)
     this._ethRPCMethods.set('eth_unsubscribe', this._ethUnsubscribeLegacy)
   }
@@ -292,8 +292,21 @@ export class LoomProvider {
    * This endpoint emulates the Web3 JSON-RPC API so most messages don't require transformation.
    */
   private _addWeb3EndpointMethods() {
+    this._ethRPCMethods.set('eth_blockNumber', this._ethCallSupportedMethod)
+    this._ethRPCMethods.set('eth_call', this._ethCallSupportedMethod)
+    this._ethRPCMethods.set('eth_getBalance', this._ethCallSupportedMethod)
+    this._ethRPCMethods.set('eth_getBlockByHash', this._ethCallSupportedMethod)
+    this._ethRPCMethods.set('eth_getBlockByNumber', this._ethCallSupportedMethod)
+    this._ethRPCMethods.set('eth_getCode', this._ethCallSupportedMethod)
+    this._ethRPCMethods.set('eth_getFilterChanges', this._ethCallSupportedMethod)
+    this._ethRPCMethods.set('eth_getLogs', this._ethCallSupportedMethod)
+    this._ethRPCMethods.set('eth_getTransactionByHash', this._ethCallSupportedMethod)
+    this._ethRPCMethods.set('eth_getTransactionReceipt', this._ethCallSupportedMethod)
+    this._ethRPCMethods.set('eth_newBlockFilter', this._ethCallSupportedMethod)
+    this._ethRPCMethods.set('eth_newFilter', this._ethCallSupportedMethod)
+    this._ethRPCMethods.set('eth_uninstallFilter', this._ethCallSupportedMethod)
     this._ethRPCMethods.set('eth_subscribe', this._ethSubscribe)
-    this._ethRPCMethods.set('eth_uninstallFilter', this._ethUnsubscribe)
+    this._ethRPCMethods.set('eth_unsubscribe', this._ethUnsubscribe)
   }
 
   /**
