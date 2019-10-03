@@ -385,6 +385,9 @@ export class LoomProvider {
     this._client.disconnect()
   }
 
+  /**
+   * This function is invoked internally by Web3
+   */
   reset() {
     this.notificationCallbacks = []
   }
