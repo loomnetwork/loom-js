@@ -5,7 +5,7 @@
     "name": "Loom Network",
     "url": "https://loomx.io"
   },
-  "version": "1.59.0",
+  "version": "1.60.1",
   "keywords": [
     "blockchain",
     "dappchain"
@@ -26,7 +26,8 @@
     "proto": "node ./scripts/gen-proto.js",
     "abi": "node ./scripts/abi.js && bash ./scripts/fix_types.sh",
     "copy-contracts": "node ./scripts/copy-contracts.js",
-    "prepublish": "yarn proto && yarn abi && yarn build && webpack"
+    "prepublish": "yarn proto && yarn abi && yarn build && webpack",
+    "gen-contract-types": "typechain \"src/mainnet-contracts/*.json\" --target=ethers --outDir src/mainnet-contracts"
   },
   "dependencies": {
     "@binance-chain/javascript-sdk": "^2.14.5",
@@ -77,7 +78,7 @@
     "tslint": "^5.9.1",
     "tslint-config-prettier": "^1.12.0",
     "tslint-config-standard": "^7.0.0",
-    "typechain": "^0.3.11",
+    "typechain": "^0.3.21",
     "typescript": "^2.9.2",
     "webpack": "^4.6.0",
     "webpack-cli": "^3.1.1",

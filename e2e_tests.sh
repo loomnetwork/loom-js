@@ -28,7 +28,7 @@ fi
 
 download_dappchain() {
   cd $LOOM_DIR
-  wget -O loom https://private.delegatecall.com/loom/$PLATFORM/$BUILD_ID/loom-gateway
+  wget -O loom https://downloads.loomx.io/loom/$PLATFORM/$BUILD_ID/loom-gateway
   chmod +x loom
   LOOM_BIN=`pwd`/loom
 }

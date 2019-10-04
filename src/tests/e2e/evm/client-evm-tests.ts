@@ -23,7 +23,6 @@ test('Client EVM test (newBlockEvmFilterAsync)', async t => {
     if (!filterId) {
       t.fail('Filter Id cannot be null')
     }
-
     // calls getevmfilterchanges
     const hash = await execAndWaitForMillisecondsAsync(
       client.getEvmFilterChangesAsync(filterId as string)
@@ -61,7 +60,6 @@ test('Client EVM test (newPendingTransactionEvmFilterAsync)', async t => {
   let client
   try {
     const privateKey = CryptoUtils.generatePrivateKey()
-    const publicKey = CryptoUtils.publicKeyFromPrivateKey(privateKey)
     client = createTestClient()
 
     client.on('error', err => t.error(err))

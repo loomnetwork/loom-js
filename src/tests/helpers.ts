@@ -10,6 +10,15 @@ export function getTestUrls() {
   }
 }
 
+export function getWeb3TestUrls() {
+  return {
+    wsWriteUrl: process.env.TEST_LOOM_DAPP_WS_WRITE_URL || 'ws://127.0.0.1:46658/websocket',
+    wsReadUrl: process.env.TEST_LOOM_DAPP_WS_READ_URL || 'ws://127.0.0.1:46658/eth',
+    httpWriteUrl: process.env.TEST_LOOM_DAPP_HTTP_WRITE_URL || 'http://127.0.0.1:46658/rpc',
+    httpReadUrl: process.env.TEST_LOOM_DAPP_HTTP_READ_URL || 'http://127.0.0.1:46658/eth'
+  }
+}
+
 /**
  * Creates a client for tests, the default read/write URLs can be overridden by setting the env vars
  * TEST_LOOM_DAPP_WRITE_URL and TEST_LOOM_DAPP_READ_URL. These env vars can be set by modifying
@@ -17,6 +26,13 @@ export function getTestUrls() {
  */
 export function createTestClient(): Client {
   return new Client('default', getTestUrls().wsWriteUrl, getTestUrls().wsReadUrl)
+}
+
+/**
+ * Creates a client for tests that use the /eth endpoint to query EVM contracts.
+ */
+export function createWeb3TestClient(): Client {
+  return new Client('default', getWeb3TestUrls().wsWriteUrl, getWeb3TestUrls().wsReadUrl)
 }
 
 export function createTestHttpClient(): Client {
