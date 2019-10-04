@@ -51,23 +51,28 @@ export class EthereumGatewayV1 implements EthereumGateway {
 
     switch (receipt.tokenKind) {
       case TokenKind.ETH:
-          result = this.contract.functions.withdrawETH(amount, signature)
+        result = this.contract.functions.withdrawETH(amount, signature)
         break
 
       case TokenKind.LOOMCOIN:
-          result = this.contract.functions.withdrawERC20(amount, signature, tokenAddr)
+        result = this.contract.functions.withdrawERC20(amount, signature, tokenAddr)
         break
 
       case TokenKind.ERC20:
-          result = this.contract.functions.withdrawERC20(amount, signature, tokenAddr)
+        result = this.contract.functions.withdrawERC20(amount, signature, tokenAddr)
         break
 
       case TokenKind.ERC721:
-          result = this.contract.functions.withdrawERC721(amount, signature, tokenAddr)
+        result = this.contract.functions.withdrawERC721(amount, signature, tokenAddr)
         break
 
       case TokenKind.ERC721X:
-          result = this.contract.functions.withdrawERC721X(receipt.tokenId.toString(), amount, signature, tokenAddr)
+        result = this.contract.functions.withdrawERC721X(
+          receipt.tokenId.toString(),
+          amount,
+          signature,
+          tokenAddr
+        )
         break
 
       default:
@@ -123,7 +128,13 @@ export class EthereumGatewayV2 implements EthereumGateway {
     let result
     switch (receipt.tokenKind) {
       case TokenKind.ETH:
-        result = this.contract.functions.withdrawETH(receipt.tokenAmount.toString(), valIndexes, vs, rs, ss)
+        result = this.contract.functions.withdrawETH(
+          receipt.tokenAmount.toString(),
+          valIndexes,
+          vs,
+          rs,
+          ss
+        )
         break
 
       case TokenKind.LOOMCOIN:
@@ -262,37 +273,50 @@ function createWithdrawalHash(receipt: IWithdrawalReceipt, gatewayAddress: strin
       )
       break
 
-      case TokenKind.ERC721X:
-        prefix = MessagePrefix.ERC721X
-        amountHashed = ethers.utils.solidityKeccak256(
-          ['uint256', 'uint256', 'address'],
-          [receipt.tokenId ? receipt.tokenId.toString(): 0, receipt.tokenAmount ? receipt.tokenAmount.toString() : 0, receipt.tokenContract.local.toString()]
-        )
-        break
+    case TokenKind.ERC721X:
+      prefix = MessagePrefix.ERC721X
+      amountHashed = ethers.utils.solidityKeccak256(
+        ['uint256', 'uint256', 'address'],
+        [
+          receipt.tokenId ? receipt.tokenId.toString() : 0,
+          receipt.tokenAmount ? receipt.tokenAmount.toString() : 0,
+          receipt.tokenContract.local.toString()
+        ]
+      )
+      break
 
-      case TokenKind.LOOMCOIN:
-      case TokenKind.ERC20:
-        prefix = MessagePrefix.ERC20
-        amountHashed = ethers.utils.solidityKeccak256(
-          ['uint256', 'address'],
-          [receipt.tokenAmount ? receipt.tokenAmount.toString() : 0, receipt.tokenContract.local.toString()]
-        )
-        break
+    case TokenKind.LOOMCOIN:
+    case TokenKind.ERC20:
+      prefix = MessagePrefix.ERC20
+      amountHashed = ethers.utils.solidityKeccak256(
+        ['uint256', 'address'],
+        [
+          receipt.tokenAmount ? receipt.tokenAmount.toString() : 0,
+          receipt.tokenContract.local.toString()
+        ]
+      )
+      break
 
-      case TokenKind.ETH:
-        prefix = MessagePrefix.ETH
-        amountHashed = ethers.utils.solidityKeccak256(
-          ['uint256'],
-          [receipt.tokenAmount ? receipt.tokenAmount.toString() : 0]
-        )
-        break
+    case TokenKind.ETH:
+      prefix = MessagePrefix.ETH
+      amountHashed = ethers.utils.solidityKeccak256(
+        ['uint256'],
+        [receipt.tokenAmount ? receipt.tokenAmount.toString() : 0]
+      )
+      break
 
-      default:
-        throw new Error("Unsupported token kind")
+    default:
+      throw new Error('Unsupported token kind')
   }
 
   return ethers.utils.solidityKeccak256(
     ['string', 'address', 'uint256', 'address', 'bytes32'],
-    [prefix, receipt.tokenOwner.local.toString(), receipt.withdrawalNonce.toString(), gatewayAddress, amountHashed]
+    [
+      prefix,
+      receipt.tokenOwner.local.toString(),
+      receipt.withdrawalNonce.toString(),
+      gatewayAddress,
+      amountHashed
+    ]
   )
 }
