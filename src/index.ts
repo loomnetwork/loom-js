@@ -51,3 +51,10 @@ export { CrossChainUser } from './crosschain-user'
 
 export { TronWebSigner } from './tron-web-signer'
 export { BinanceSigner } from './binance-signer'
+
+export {
+  createEthereumGateway,
+  EthereumGatewayV1,
+  EthereumGatewayV2,
+  IEthereumGateway
+} from './ethereum-gateways'

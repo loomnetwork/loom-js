@@ -18,7 +18,7 @@ const log = debug('loom.ethereum')
 /**
  * Thin wrapper over Ethereum Gateway contracts that hides differences between versions.
  */
-interface EthereumGateway {
+export interface IEthereumGateway {
   readonly version: number
 
   /**
@@ -34,7 +34,7 @@ interface EthereumGateway {
   ): Promise<ContractTransaction>
 }
 
-export class EthereumGatewayV1 implements EthereumGateway {
+export class EthereumGatewayV1 implements IEthereumGateway {
   readonly version = 1
 
   constructor(readonly contract: EthereumGatewayV1Contract) {}
@@ -45,7 +45,7 @@ export class EthereumGatewayV1 implements EthereumGateway {
    */
   async withdrawAsync(receipt: IWithdrawalReceipt) {
     const signature = CryptoUtils.bytesToHexAddr(receipt.oracleSignature)
-    const amount = receipt.tokenAmount.toString()
+    const amount = receipt.tokenAmount!.toString()
     const tokenAddr = receipt.tokenContract.local.toString()
     let result
 
@@ -68,7 +68,7 @@ export class EthereumGatewayV1 implements EthereumGateway {
 
       case TokenKind.ERC721X:
         result = this.contract.functions.withdrawERC721X(
-          receipt.tokenId.toString(),
+          receipt.tokenId!.toString(),
           amount,
           signature,
           tokenAddr
@@ -93,20 +93,9 @@ export class EthereumGatewayV1 implements EthereumGateway {
 }
 
 /**
- * WARNING: keep order the same as {loom-js/dist/contracts/transfer-gateway/GatewayTokenKind}
- */
-const WithdrawalPrefixes = new Map<TokenKind, string>([
-  [TokenKind.ETH, '\x0eWithdraw ETH:\n'],
-  [TokenKind.LOOMCOIN, '\x10Withdraw ERC20:\n'],
-  [TokenKind.ERC721, '\x11Withdraw ERC721:\n'],
-  [TokenKind.ERC721X, '\x12Withdraw ERC721X:\n'],
-  [TokenKind.ERC20, '\x10Withdraw ERC20:\n']
-])
-
-/**
  *
  */
-export class EthereumGatewayV2 implements EthereumGateway {
+export class EthereumGatewayV2 implements IEthereumGateway {
   readonly version = 2
 
   constructor(
@@ -129,7 +118,7 @@ export class EthereumGatewayV2 implements EthereumGateway {
     switch (receipt.tokenKind) {
       case TokenKind.ETH:
         result = this.contract.functions.withdrawETH(
-          receipt.tokenAmount.toString(),
+          receipt.tokenAmount!.toString(),
           valIndexes,
           vs,
           rs,
@@ -139,7 +128,7 @@ export class EthereumGatewayV2 implements EthereumGateway {
 
       case TokenKind.LOOMCOIN:
         result = this.contract.functions.withdrawERC20(
-          receipt.tokenAmount.toString(),
+          receipt.tokenAmount!.toString(),
           tokenAddr,
           valIndexes,
           vs,
@@ -150,7 +139,7 @@ export class EthereumGatewayV2 implements EthereumGateway {
 
       case TokenKind.ERC20:
         result = this.contract.functions.withdrawERC20(
-          receipt.tokenAmount.toString(),
+          receipt.tokenAmount!.toString(),
           tokenAddr,
           valIndexes,
           vs,
@@ -161,7 +150,7 @@ export class EthereumGatewayV2 implements EthereumGateway {
 
       case TokenKind.ERC721:
         result = this.contract.functions.withdrawERC721(
-          receipt.tokenId.toString(),
+          receipt.tokenId!.toString(),
           tokenAddr,
           valIndexes,
           vs,
@@ -172,9 +161,9 @@ export class EthereumGatewayV2 implements EthereumGateway {
 
       case TokenKind.ERC721X:
         result = this.contract.functions.withdrawERC721X(
-          receipt.tokenAmount.toString(),
+          receipt.tokenAmount!.toString(),
           tokenAddr,
-          receipt.tokenId.toString(),
+          receipt.tokenId!.toString(),
           valIndexes,
           vs,
           rs,
@@ -198,38 +187,6 @@ export class EthereumGatewayV2 implements EthereumGateway {
   ): Promise<ContractTransaction> {
     return this.contract.functions.depositERC20(amount.toString(), contractAddress, overrides)
   }
-
-  /**
-   *
-   * @param receipt
-   */
-  async withdrawalHash(receipt: IWithdrawalReceipt): Promise<string> {
-    const prefix = WithdrawalPrefixes.get(receipt.tokenKind)
-    if (prefix === undefined) {
-      throw new Error("Don't know prefix for token kind " + receipt.tokenKind)
-    }
-
-    const ownerAddr = receipt.tokenOwner.local.toString()
-    const tokenAddr = receipt.tokenContract.local.toString()
-    const gatewayAddr = this.contract.address
-    // how do we pick the amount? this random code works...
-    const amount = receipt.value.isZero()
-      ? receipt.tokenAmount.toString()
-      : receipt.value.toString()
-
-    const amountHashed =
-      receipt.tokenKind === TokenKind.ETH
-        ? ethers.utils.solidityKeccak256(['uint256'], [amount])
-        : ethers.utils.solidityKeccak256(['uint256', 'address'], [amount, ownerAddr])
-
-    const nonce = await this.contract.functions.nonces(ownerAddr)
-    log('Hashing', [prefix, ownerAddr, nonce, gatewayAddr, amountHashed])
-
-    return ethers.utils.solidityKeccak256(
-      ['string', 'address', 'uint256', 'address', 'bytes32'],
-      [prefix, ownerAddr, nonce, gatewayAddr, amountHashed]
-    )
-  }
 }
 
 /**
@@ -240,7 +197,7 @@ export class EthereumGatewayV2 implements EthereumGateway {
 export async function createEthereumGateway(
   address: string,
   provider: ethers.Signer | ethers.providers.Provider
-): Promise<EthereumGateway> {
+): Promise<IEthereumGateway> {
   const gatewayContract = EthereumGatewayV2Factory.connect(address, provider)
 
   try {
