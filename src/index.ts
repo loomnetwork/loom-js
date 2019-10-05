@@ -53,7 +53,7 @@ export { TronWebSigner } from './tron-web-signer'
 export { BinanceSigner } from './binance-signer'
 
 export {
-  createEthereumGateway,
+  createEthereumGatewayAsync,
   EthereumGatewayV1,
   EthereumGatewayV2,
   IEthereumGateway

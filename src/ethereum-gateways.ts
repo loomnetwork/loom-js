@@ -25,7 +25,10 @@ export interface IEthereumGateway {
    * Uses receipt.tokenKind to call the right withdrawal functions
    * @param receipt
    */
-  withdrawAsync(receipt: IWithdrawalReceipt): Promise<ContractTransaction>
+  withdrawAsync(
+    receipt: IWithdrawalReceipt,
+    overrides?: TransactionOverrides
+  ): Promise<ContractTransaction>
 
   depositERC20Async(
     amount: number | string | BN,
@@ -43,7 +46,7 @@ export class EthereumGatewayV1 implements IEthereumGateway {
    *
    * @param receipt
    */
-  async withdrawAsync(receipt: IWithdrawalReceipt) {
+  async withdrawAsync(receipt: IWithdrawalReceipt, overrides?: TransactionOverrides) {
     const signature = CryptoUtils.bytesToHexAddr(receipt.oracleSignature)
     const amount = receipt.tokenAmount!.toString()
     const tokenAddr = receipt.tokenContract.local.toString()
@@ -51,19 +54,19 @@ export class EthereumGatewayV1 implements IEthereumGateway {
 
     switch (receipt.tokenKind) {
       case TokenKind.ETH:
-        result = this.contract.functions.withdrawETH(amount, signature)
+        result = this.contract.functions.withdrawETH(amount, signature, overrides)
         break
 
       case TokenKind.LOOMCOIN:
-        result = this.contract.functions.withdrawERC20(amount, signature, tokenAddr)
+        result = this.contract.functions.withdrawERC20(amount, signature, tokenAddr, overrides)
         break
 
       case TokenKind.ERC20:
-        result = this.contract.functions.withdrawERC20(amount, signature, tokenAddr)
+        result = this.contract.functions.withdrawERC20(amount, signature, tokenAddr, overrides)
         break
 
       case TokenKind.ERC721:
-        result = this.contract.functions.withdrawERC721(amount, signature, tokenAddr)
+        result = this.contract.functions.withdrawERC721(amount, signature, tokenAddr, overrides)
         break
 
       case TokenKind.ERC721X:
@@ -71,7 +74,8 @@ export class EthereumGatewayV1 implements IEthereumGateway {
           receipt.tokenId!.toString(),
           amount,
           signature,
-          tokenAddr
+          tokenAddr,
+          overrides
         )
         break
 
@@ -103,7 +107,7 @@ export class EthereumGatewayV2 implements IEthereumGateway {
     private readonly vmc: ValidatorManagerContractV2
   ) {}
 
-  async withdrawAsync(receipt: IWithdrawalReceipt) {
+  async withdrawAsync(receipt: IWithdrawalReceipt, overrides?: TransactionOverrides) {
     const tokenAddr = receipt.tokenContract.local.toString()
     const validators = await this.vmc.functions.getValidators()
     const hash = createWithdrawalHash(receipt, this.contract.address)
@@ -122,7 +126,8 @@ export class EthereumGatewayV2 implements IEthereumGateway {
           valIndexes,
           vs,
           rs,
-          ss
+          ss,
+          overrides
         )
         break
 
@@ -133,7 +138,8 @@ export class EthereumGatewayV2 implements IEthereumGateway {
           valIndexes,
           vs,
           rs,
-          ss
+          ss,
+          overrides
         )
         break
 
@@ -144,7 +150,8 @@ export class EthereumGatewayV2 implements IEthereumGateway {
           valIndexes,
           vs,
           rs,
-          ss
+          ss,
+          overrides
         )
         break
 
@@ -155,7 +162,8 @@ export class EthereumGatewayV2 implements IEthereumGateway {
           valIndexes,
           vs,
           rs,
-          ss
+          ss,
+          overrides
         )
         break
 
@@ -167,7 +175,8 @@ export class EthereumGatewayV2 implements IEthereumGateway {
           valIndexes,
           vs,
           rs,
-          ss
+          ss,
+          overrides
         )
         break
 
@@ -194,7 +203,7 @@ export class EthereumGatewayV2 implements IEthereumGateway {
  * @param address Ethereum Gateway address
  * @param provider web3 provider
  */
-export async function createEthereumGateway(
+export async function createEthereumGatewayAsync(
   address: string,
   provider: ethers.Signer | ethers.providers.Provider
 ): Promise<IEthereumGateway> {
