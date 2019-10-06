@@ -1,6 +1,6 @@
 import BN from 'bn.js'
 import debug from 'debug'
-import { ethers, ContractTransaction } from 'ethers'
+import { ethers, Contract, ContractTransaction } from 'ethers'
 import { CryptoUtils } from '.'
 import { parseSigs } from './helpers'
 import { IWithdrawalReceipt } from './contracts/transfer-gateway'
@@ -16,25 +16,42 @@ import { EthereumGatewayV2 as EthereumGatewayV2Contract } from './mainnet-contra
 const log = debug('loom.ethereum')
 
 /**
- * Thin wrapper over Ethereum Gateway contracts that hides differences between versions.
+ * Thin wrapper over Ethereum Gateway contracts that smoothes over differences between versions.
+ * Each instance of the wrapper is connected to a single Ethereum account.
  */
 export interface IEthereumGateway {
-  readonly version: number
+  readonly version: 1 | 2
+  /** Underlying ethers.js contract instance. */
+  readonly contract: Contract
 
   /**
-   * Uses receipt.tokenKind to call the right withdrawal functions
-   * @param receipt
+   * Withdraws ERC20, ERC721, ERC721X tokens, or ETH from the Ethereum Gateway.
+   * @param receipt Withdrawal receipt from the DAppChain.
+   * @param overrides ethers.js transaction overrides.
    */
   withdrawAsync(
     receipt: IWithdrawalReceipt,
     overrides?: TransactionOverrides
   ): Promise<ContractTransaction>
 
+  /**
+   * Deposits ERC20 tokens into the Ethereum Gateway.
+   * @note Before calling this function the user that intends to make the deposit must allow the
+   *       Ethereum Gateway to transfer the desired amount via the standard ERC20 approve function.
+   * @param amount Amount of tokens to deposit.
+   * @param contractAddress Ethereum token contract address.
+   * @param overrides ethers.js transaction overrides.
+   */
   depositERC20Async(
     amount: number | string | BN,
     contractAddress: string,
     overrides?: TransactionOverrides
   ): Promise<ContractTransaction>
+
+  /**
+   * @returns A new instance of the wrapper connected to the given Ethereum account.
+   */
+  withSigner(signer: ethers.Signer): IEthereumGateway
 }
 
 export class EthereumGatewayV1 implements IEthereumGateway {
@@ -42,37 +59,38 @@ export class EthereumGatewayV1 implements IEthereumGateway {
 
   constructor(readonly contract: EthereumGatewayV1Contract) {}
 
-  /**
-   *
-   * @param receipt
-   */
-  async withdrawAsync(receipt: IWithdrawalReceipt, overrides?: TransactionOverrides) {
+  async withdrawAsync(
+    receipt: IWithdrawalReceipt,
+    overrides?: TransactionOverrides
+  ): Promise<ethers.ContractTransaction> {
     const signature = CryptoUtils.bytesToHexAddr(receipt.oracleSignature)
-    const amount = receipt.tokenAmount!.toString()
     const tokenAddr = receipt.tokenContract.local.toString()
-    let result
 
+    let result
     switch (receipt.tokenKind) {
       case TokenKind.ETH:
-        result = this.contract.functions.withdrawETH(amount, signature, overrides)
+        result = this.contract.functions.withdrawETH(
+          receipt.tokenAmount!.toString(), signature, overrides
+        )
         break
 
       case TokenKind.LOOMCOIN:
-        result = this.contract.functions.withdrawERC20(amount, signature, tokenAddr, overrides)
-        break
-
       case TokenKind.ERC20:
-        result = this.contract.functions.withdrawERC20(amount, signature, tokenAddr, overrides)
+        result = this.contract.functions.withdrawERC20(
+          receipt.tokenAmount!.toString(), signature, tokenAddr, overrides
+        )
         break
 
       case TokenKind.ERC721:
-        result = this.contract.functions.withdrawERC721(amount, signature, tokenAddr, overrides)
+        result = this.contract.functions.withdrawERC721(
+          receipt.tokenId!.toString(), signature, tokenAddr, overrides
+        )
         break
 
       case TokenKind.ERC721X:
         result = this.contract.functions.withdrawERC721X(
           receipt.tokenId!.toString(),
-          amount,
+          receipt.tokenAmount!.toString(),
           signature,
           tokenAddr,
           overrides
@@ -83,7 +101,6 @@ export class EthereumGatewayV1 implements IEthereumGateway {
         throw new Error('Unsupported token kind ' + receipt.tokenKind)
     }
 
-    // as is or transform?
     return result
   }
 
@@ -94,11 +111,12 @@ export class EthereumGatewayV1 implements IEthereumGateway {
   ): Promise<ContractTransaction> {
     return this.contract.functions.depositERC20(amount.toString(), contractAddress, overrides)
   }
+
+  withSigner(signer: ethers.Signer): IEthereumGateway {
+    return new EthereumGatewayV1(this.contract.connect(signer))
+  }
 }
 
-/**
- *
- */
 export class EthereumGatewayV2 implements IEthereumGateway {
   readonly version = 2
 
@@ -107,7 +125,10 @@ export class EthereumGatewayV2 implements IEthereumGateway {
     private readonly vmc: ValidatorManagerContractV2
   ) {}
 
-  async withdrawAsync(receipt: IWithdrawalReceipt, overrides?: TransactionOverrides) {
+  async withdrawAsync(
+    receipt: IWithdrawalReceipt,
+    overrides?: TransactionOverrides
+  ): Promise<ethers.ContractTransaction> {
     const tokenAddr = receipt.tokenContract.local.toString()
     const validators = await this.vmc.functions.getValidators()
     const hash = createWithdrawalHash(receipt, this.contract.address)
@@ -132,17 +153,6 @@ export class EthereumGatewayV2 implements IEthereumGateway {
         break
 
       case TokenKind.LOOMCOIN:
-        result = this.contract.functions.withdrawERC20(
-          receipt.tokenAmount!.toString(),
-          tokenAddr,
-          valIndexes,
-          vs,
-          rs,
-          ss,
-          overrides
-        )
-        break
-
       case TokenKind.ERC20:
         result = this.contract.functions.withdrawERC20(
           receipt.tokenAmount!.toString(),
@@ -169,9 +179,9 @@ export class EthereumGatewayV2 implements IEthereumGateway {
 
       case TokenKind.ERC721X:
         result = this.contract.functions.withdrawERC721X(
+          receipt.tokenId!.toString(),
           receipt.tokenAmount!.toString(),
           tokenAddr,
-          receipt.tokenId!.toString(),
           valIndexes,
           vs,
           rs,
@@ -184,9 +194,7 @@ export class EthereumGatewayV2 implements IEthereumGateway {
         throw new Error('Unsupported token kind ' + receipt.tokenKind)
     }
 
-    const tx = await result
-    // return this object or just hash or other?
-    return tx
+    return result
   }
 
   async depositERC20Async(
@@ -195,6 +203,10 @@ export class EthereumGatewayV2 implements IEthereumGateway {
     overrides?: TransactionOverrides
   ): Promise<ContractTransaction> {
     return this.contract.functions.depositERC20(amount.toString(), contractAddress, overrides)
+  }
+
+  withSigner(signer: ethers.Signer): IEthereumGateway {
+    return new EthereumGatewayV2(this.contract.connect(signer), this.vmc)
   }
 }
 
@@ -209,12 +221,11 @@ export async function createEthereumGatewayAsync(
 ): Promise<IEthereumGateway> {
   const gatewayContract = EthereumGatewayV2Factory.connect(address, provider)
 
-  try {
+  if (gatewayContract.functions && gatewayContract.functions.vmc) {
     const vmcAddress = await gatewayContract.functions.vmc()
     const vmcContract = ValidatorManagerContractV2Factory.connect(vmcAddress, provider)
     return new EthereumGatewayV2(gatewayContract, vmcContract)
-  } catch (error) {
-    // TODO: need to check if error is effectively "function not found"...
+  } else {
     return new EthereumGatewayV1(EthereumGatewayV1Factory.connect(address, provider))
   }
 }

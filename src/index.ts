@@ -58,3 +58,6 @@ export {
   EthereumGatewayV2,
   IEthereumGateway
 } from './ethereum-gateways'
+
+import * as EthereumContracts from './mainnet-contracts'
+export { EthereumContracts }
