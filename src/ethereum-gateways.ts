@@ -70,20 +70,28 @@ export class EthereumGatewayV1 implements IEthereumGateway {
     switch (receipt.tokenKind) {
       case TokenKind.ETH:
         result = this.contract.functions.withdrawETH(
-          receipt.tokenAmount!.toString(), signature, overrides
+          receipt.tokenAmount!.toString(),
+          signature,
+          overrides
         )
         break
 
       case TokenKind.LOOMCOIN:
       case TokenKind.ERC20:
         result = this.contract.functions.withdrawERC20(
-          receipt.tokenAmount!.toString(), signature, tokenAddr, overrides
+          receipt.tokenAmount!.toString(),
+          signature,
+          tokenAddr,
+          overrides
         )
         break
 
       case TokenKind.ERC721:
         result = this.contract.functions.withdrawERC721(
-          receipt.tokenId!.toString(), signature, tokenAddr, overrides
+          receipt.tokenId!.toString(),
+          signature,
+          tokenAddr,
+          overrides
         )
         break
 
@@ -212,21 +220,28 @@ export class EthereumGatewayV2 implements IEthereumGateway {
 
 /**
  * Creates an Ethereum Gateway contract wrapper.
- * @param address Ethereum Gateway address
- * @param provider web3 provider
+ * @param version Ethereum Gateway contract version, must be 1, or 2.
+ * @param address Ethereum Gateway address.
+ * @param provider web3 provider.
  */
 export async function createEthereumGatewayAsync(
+  version: 1 | 2,
   address: string,
   provider: ethers.Signer | ethers.providers.Provider
 ): Promise<IEthereumGateway> {
   const gatewayContract = EthereumGatewayV2Factory.connect(address, provider)
 
-  if (gatewayContract.functions && gatewayContract.functions.vmc) {
-    const vmcAddress = await gatewayContract.functions.vmc()
-    const vmcContract = ValidatorManagerContractV2Factory.connect(vmcAddress, provider)
-    return new EthereumGatewayV2(gatewayContract, vmcContract)
-  } else {
-    return new EthereumGatewayV1(EthereumGatewayV1Factory.connect(address, provider))
+  switch (version) {
+    case 2:
+      const vmcAddress = await gatewayContract.functions.vmc()
+      const vmcContract = ValidatorManagerContractV2Factory.connect(vmcAddress, provider)
+      return new EthereumGatewayV2(gatewayContract, vmcContract)
+
+    case 1:
+      return new EthereumGatewayV1(EthereumGatewayV1Factory.connect(address, provider))
+
+    default:
+      throw new Error('Invalid Ethereum Gateway version: ' + version)
   }
 }
 
