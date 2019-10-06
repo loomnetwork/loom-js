@@ -97,7 +97,7 @@ export class GatewayUser extends CrossChainUser {
         break
 
       default:
-        throw new Error("Invalid Ethereum Gateway version " + version)
+        throw new Error('Invalid Ethereum Gateway version ' + version)
     }
 
     const loomAddress = await gateway.functions.loomAddress()
