@@ -6,10 +6,10 @@ import { parseSigs } from './helpers'
 import { IWithdrawalReceipt } from './contracts/transfer-gateway'
 import { TransferGatewayTokenKind as TokenKind } from './proto/transfer_gateway_pb.js'
 import { TransactionOverrides } from './mainnet-contracts'
-import { ValidatorManagerContractV2Factory } from './mainnet-contracts/ValidatorManagerContractV2Factory'
+import { ValidatorManagerV2Factory } from './mainnet-contracts/ValidatorManagerV2Factory'
 import { EthereumGatewayV2Factory } from './mainnet-contracts/EthereumGatewayV2Factory'
 import { EthereumGatewayV1Factory } from './mainnet-contracts/EthereumGatewayV1Factory'
-import { ValidatorManagerContractV2 } from './mainnet-contracts/ValidatorManagerContractV2'
+import { ValidatorManagerV2 as ValidatorManagerContractV2 } from './mainnet-contracts/ValidatorManagerV2'
 import { EthereumGatewayV1 as EthereumGatewayV1Contract } from './mainnet-contracts/EthereumGatewayV1'
 import { EthereumGatewayV2 as EthereumGatewayV2Contract } from './mainnet-contracts/EthereumGatewayV2'
 
@@ -234,7 +234,7 @@ export async function createEthereumGatewayAsync(
   switch (version) {
     case 2:
       const vmcAddress = await gatewayContract.functions.vmc()
-      const vmcContract = ValidatorManagerContractV2Factory.connect(vmcAddress, provider)
+      const vmcContract = ValidatorManagerV2Factory.connect(vmcAddress, provider)
       return new EthereumGatewayV2(gatewayContract, vmcContract)
 
     case 1:

@@ -4,18 +4,14 @@
 import { Contract, Signer } from "ethers";
 import { Provider } from "ethers/providers";
 
-import { ValidatorManagerContractV2 } from "./ValidatorManagerContractV2";
+import { ValidatorManagerV2 } from "./ValidatorManagerV2";
 
-export class ValidatorManagerContractV2Factory {
+export class ValidatorManagerV2Factory {
   static connect(
     address: string,
     signerOrProvider: Signer | Provider
-  ): ValidatorManagerContractV2 {
-    return new Contract(
-      address,
-      _abi,
-      signerOrProvider
-    ) as ValidatorManagerContractV2;
+  ): ValidatorManagerV2 {
+    return new Contract(address, _abi, signerOrProvider) as ValidatorManagerV2;
   }
 }
 

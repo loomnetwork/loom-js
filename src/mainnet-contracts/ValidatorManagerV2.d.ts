@@ -10,7 +10,7 @@ import {
   TypedFunctionDescription
 } from ".";
 
-interface ValidatorManagerContractV2Interface extends Interface {
+interface ValidatorManagerV2Interface extends Interface {
   functions: {
     setLoom: TypedFunctionDescription<{
       encode([_loomAddress, _signersIndexes, _v, _r, _s]: [
@@ -52,34 +52,21 @@ interface ValidatorManagerContractV2Interface extends Interface {
   };
 }
 
-export class ValidatorManagerContractV2 extends Contract {
-  connect(
-    signerOrProvider: Signer | Provider | string
-  ): ValidatorManagerContractV2;
-  attach(addressOrName: string): ValidatorManagerContractV2;
-  deployed(): Promise<ValidatorManagerContractV2>;
+export class ValidatorManagerV2 extends Contract {
+  connect(signerOrProvider: Signer | Provider | string): ValidatorManagerV2;
+  attach(addressOrName: string): ValidatorManagerV2;
+  deployed(): Promise<ValidatorManagerV2>;
 
-  on(
-    event: EventFilter | string,
-    listener: Listener
-  ): ValidatorManagerContractV2;
-  once(
-    event: EventFilter | string,
-    listener: Listener
-  ): ValidatorManagerContractV2;
+  on(event: EventFilter | string, listener: Listener): ValidatorManagerV2;
+  once(event: EventFilter | string, listener: Listener): ValidatorManagerV2;
   addListener(
     eventName: EventFilter | string,
     listener: Listener
-  ): ValidatorManagerContractV2;
-  removeAllListeners(
-    eventName: EventFilter | string
-  ): ValidatorManagerContractV2;
-  removeListener(
-    eventName: any,
-    listener: Listener
-  ): ValidatorManagerContractV2;
+  ): ValidatorManagerV2;
+  removeAllListeners(eventName: EventFilter | string): ValidatorManagerV2;
+  removeListener(eventName: any, listener: Listener): ValidatorManagerV2;
 
-  interface: ValidatorManagerContractV2Interface;
+  interface: ValidatorManagerV2Interface;
 
   functions: {
     validators(arg0: BigNumberish): Promise<string>;
