@@ -202,6 +202,22 @@ test('LoomProvider + Web3 + getGasPrice', async t => {
   t.end()
 })
 
+test('LoomProvider + Web3 + estimateGas', async t => {
+  const { loomProvider, contract } = await newContractAndClient()
+  try {
+    const estimateGas = await contract.methods.set(10).estimateGas()
+    t.equal(estimateGas, 0, "Gas price isn't used on Loomchain")
+  } catch (err) {
+    t.error(err)
+  }
+
+  if (loomProvider) {
+    loomProvider.disconnect()
+  }
+
+  t.end()
+})
+
 test('LoomProvider + Web3 + getBalance', async t => {
   const { loomProvider, web3, from } = await newContractAndClient()
   try {
