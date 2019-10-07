@@ -58,7 +58,7 @@ async function newTransactionToSetState(loomProvider: LoomProvider2, fromAddr: s
     ]
   })
 
-  await waitForMillisecondsAsync(1000)
+  await waitForMillisecondsAsync(2000)
 
   // Transaction receipt in order to obtain the topic of the event NewValueSet
   const ethGetTransactionReceiptResult = await execAndWaitForMillisecondsAsync(
@@ -133,7 +133,7 @@ async function testGetLogsAny(t: test.Test, loomProvider: LoomProvider2, fromAdd
     params: [{ fromBlock }]
   })
 
-  t.equal(ethGetLogs.result.length, 1, 'Should return one log for anything filter')
+  t.equal(ethGetLogs.result.length, 1, ' LoomProvider.getEVMLogsAsync one log for anything filter')
 }
 
 async function testGetLogsAnyPending(t: test.Test, loomProvider: LoomProvider2, fromAddr: string) {

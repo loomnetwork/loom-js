@@ -1,7 +1,7 @@
-// // Client WS-RPC
+// Client WS-RPC
 import './e2e/ws-rpc-client-tests'
 
-// // Loom Provider
+// Loom Provider
 import './e2e/loom-provider/loom-provider-tests'
 import './e2e/loom-provider/loom-provider-web3-tests'
 import './e2e/loom-provider/loom-provider-eth-get-logs'
@@ -38,4 +38,4 @@ import './e2e/contracts/address-mapper-tests'
 import './e2e/contracts/contract-tests'
 
 // TODO: Re-enable once this is updated to DPOSv2
-import './e2e/contracts/dpos-tests'
+// import './e2e/contracts/dpos-tests'
