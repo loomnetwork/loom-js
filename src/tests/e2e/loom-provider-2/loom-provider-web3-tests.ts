@@ -206,7 +206,27 @@ test('LoomProvider + Web3 + estimateGas', async t => {
   const { loomProvider, contract } = await newContractAndClient()
   try {
     const estimateGas = await contract.methods.set(10).estimateGas()
-    t.equal(estimateGas, 0, "Gas price isn't used on Loomchain")
+    t.equal(estimateGas, 0, 'Gas price estimate for current call')
+  } catch (err) {
+    t.error(err)
+  }
+
+  if (loomProvider) {
+    loomProvider.disconnect()
+  }
+
+  t.end()
+})
+
+test('LoomProvider + Web3 + getStorageAt', async t => {
+  const { loomProvider, web3, contract } = await newContractAndClient()
+  try {
+    const storageValue = await web3.eth.getStorageAt(contract.options.address, 0x0, 'latest')
+    t.equal(
+      storageValue,
+      '0x000000000000000000000000000000000000000000000000000000000000000a',
+      'Storage value at 0x0 for contract SimpleStore'
+    )
   } catch (err) {
     t.error(err)
   }
