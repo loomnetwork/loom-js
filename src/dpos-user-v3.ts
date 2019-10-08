@@ -3,11 +3,7 @@ import debug from 'debug'
 import { ethers } from 'ethers'
 import { LocalAddress, Address, Contracts } from '.'
 import { DPOS3 } from './contracts'
-import {
-  GatewayUser,
-  GatewayUserConstructorParams,
-  GatewayUserParams,
-} from './gateway-user'
+import { GatewayUser, GatewayUserConstructorParams, GatewayUserParams } from './gateway-user'
 import {
   IValidator,
   ICandidate,
@@ -23,6 +19,9 @@ export interface DPOSUserV3ConstructorParams extends GatewayUserConstructorParam
   dappchainDPOS: Contracts.DPOS3
 }
 
+/**
+ * @deprecated Will be removed in loom-js v2.0.0
+ */
 export class DPOSUserV3 extends GatewayUser {
   private _dappchainDPOS: Contracts.DPOS3
 

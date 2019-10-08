@@ -33,6 +33,9 @@ export interface CrossChainUserConstructorParams {
   addressMapper?: Contracts.AddressMapper
 }
 
+/**
+ * @deprecated Will be removed in loom-js v2.0.0
+ */
 export class CrossChainUser {
   private _wallet: ethers.Signer
   private _client: Client
@@ -54,7 +57,7 @@ export class CrossChainUser {
   static async createMetamaskCrossChainUserAsync(
     params: CrossChainUserParams
   ): Promise<CrossChainUser> {
-    const provider = new ethers.providers.Web3Provider(params.web3!.currentProvider)
+    const provider = new ethers.providers.Web3Provider(params.web3!.currentProvider as any)
     const wallet = provider.getSigner()
     return CrossChainUser.createCrossChainUserAsync({
       wallet,

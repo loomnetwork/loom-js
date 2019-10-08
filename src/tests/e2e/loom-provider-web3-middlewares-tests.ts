@@ -1,7 +1,7 @@
 import test from 'tape'
 
 import { LocalAddress, CryptoUtils, Client } from '../../index'
-import { createTestClient, waitForMillisecondsAsync } from '../helpers'
+import { createTestClient, waitForMillisecondsAsync, createWeb3TestClient } from '../helpers'
 
 import { LoomProvider } from '../../loom-provider'
 import { deployContract } from '../evm-helpers'
@@ -54,11 +54,11 @@ class SuperSimpleMiddlware implements ITxMiddlewareHandler {
   }
 }
 
-test('LoomProvider + Web3 + Middleware', async t => {
+async function testWeb3Middleware(t: any, useEthEndpoint: boolean) {
   t.plan(2)
 
   const privKey = CryptoUtils.generatePrivateKey()
-  const client = createTestClient()
+  const client = useEthEndpoint ? createWeb3TestClient() : createTestClient()
   const from = LocalAddress.fromPublicKey(CryptoUtils.publicKeyFromPrivateKey(privKey)).toString()
 
   // Using a super simple custom middleware
@@ -126,7 +126,7 @@ test('LoomProvider + Web3 + Middleware', async t => {
     })
 
     const tx = await contract.methods.set(newValue).send()
-    t.equal(tx.status, '0x1', 'SimpleStore.set should return correct status')
+    t.equal(tx.status, true, 'SimpleStore.set should return correct status')
 
     const resultOfGet = await contract.methods.get().call()
     t.equal(+resultOfGet, newValue, `SimpleStore.get should return correct value`)
@@ -139,4 +139,7 @@ test('LoomProvider + Web3 + Middleware', async t => {
   if (client) {
     client.disconnect()
   }
-})
+}
+
+test('LoomProvider + Web3 + Middleware (/query)', (t: any) => testWeb3Middleware(t, false))
+test('LoomProvider + Web3 + Middleware (/eth)', (t: any) => testWeb3Middleware(t, true))

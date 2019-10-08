@@ -10,6 +10,8 @@ enum TransferGatewayTokenKind {
     LOOMCOIN = 4;
     TRX = 5;
     TRC20 = 6;
+    BEP2_LOOM = 7;
+    BEP2 = 8;
 }
 
 message TransferGatewayWithdrawalReceipt {
@@ -115,7 +117,7 @@ message TransferGatewayWithdrawLoomCoinRequest {
     // Amount of Loomcoin to withdraw
     BigUInt amount = 1;
     // Address of Mainnet Loomcoin contract
-     Address token_contract = 2;
+    Address token_contract = 2;
     // Ethereum address of the account that should receive the Loomcoin.
     // If this field is omitted the Gateway will attempt to obtain the recipient address from a
     // previously created mapping between the sender's DAppChain address and their Ethereum address,
@@ -162,4 +164,34 @@ message TransferGatewayGetUnclaimedTokensRequest {
 
 message TransferGatewayGetUnclaimedTokensResponse {
     repeated TransferGatewayUnclaimedToken unclaimed_tokens = 1;
+}
+
+message TransferGatewayResubmitWithdrawalRequest {
+}
+
+message TransferGatewayListContractMappingRequest {
+}
+
+message TransferGatewayListContractMappingResponse {
+    repeated TransferGatewayContractAddressMapping confimed_mappings = 1;
+    repeated TransferGatewayPendingContractMapping pending_mappings = 2;
+}
+
+message TransferGatewayContractAddressMapping {
+    // Address on a blockchain
+    Address from = 1;
+    // Corresponding address on another blockchain
+    Address to = 2;
+}
+
+message TransferGatewayPendingContractMapping {
+    uint64 ID = 1;
+    // Address on foreign blockchain
+    Address foreign_contract = 2;
+    // Corresponding address on local blockchain
+    Address local_contract = 3;
+    // Foreign address of the creator of the foreign contract
+    Address foreign_contract_creator = 4;
+    // Hash of the transaction which created the foreign contract
+    bytes foreign_contract_tx_hash = 5;
 }

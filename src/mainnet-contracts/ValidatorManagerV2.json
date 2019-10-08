@@ -16,8 +16,7 @@
     ],
     "payable": false,
     "stateMutability": "view",
-    "type": "function",
-    "signature": "0x35aa2e44"
+    "type": "function"
   },
   {
     "constant": true,
@@ -31,8 +30,7 @@
     ],
     "payable": false,
     "stateMutability": "view",
-    "type": "function",
-    "signature": "0x37179db8"
+    "type": "function"
   },
   {
     "constant": true,
@@ -51,8 +49,7 @@
     ],
     "payable": false,
     "stateMutability": "view",
-    "type": "function",
-    "signature": "0x40c1bfab"
+    "type": "function"
   },
   {
     "constant": true,
@@ -66,28 +63,7 @@
     ],
     "payable": false,
     "stateMutability": "view",
-    "type": "function",
-    "signature": "0x57d717d1"
-  },
-  {
-    "constant": true,
-    "inputs": [
-      {
-        "name": "",
-        "type": "address"
-      }
-    ],
-    "name": "nonces",
-    "outputs": [
-      {
-        "name": "",
-        "type": "uint256"
-      }
-    ],
-    "payable": false,
-    "stateMutability": "view",
-    "type": "function",
-    "signature": "0x7ecebe00"
+    "type": "function"
   },
   {
     "constant": true,
@@ -101,8 +77,7 @@
     ],
     "payable": false,
     "stateMutability": "view",
-    "type": "function",
-    "signature": "0xaffed0e0"
+    "type": "function"
   },
   {
     "constant": true,
@@ -116,8 +91,7 @@
     ],
     "payable": false,
     "stateMutability": "view",
-    "type": "function",
-    "signature": "0xc57829d2"
+    "type": "function"
   },
   {
     "constant": true,
@@ -131,28 +105,7 @@
     ],
     "payable": false,
     "stateMutability": "view",
-    "type": "function",
-    "signature": "0xdb3ad22c"
-  },
-  {
-    "constant": true,
-    "inputs": [
-      {
-        "name": "",
-        "type": "address"
-      }
-    ],
-    "name": "allowedTokens",
-    "outputs": [
-      {
-        "name": "",
-        "type": "bool"
-      }
-    ],
-    "payable": false,
-    "stateMutability": "view",
-    "type": "function",
-    "signature": "0xe744092e"
+    "type": "function"
   },
   {
     "inputs": [
@@ -179,8 +132,7 @@
     ],
     "payable": false,
     "stateMutability": "nonpayable",
-    "type": "constructor",
-    "signature": "constructor"
+    "type": "constructor"
   },
   {
     "anonymous": false,
@@ -197,8 +149,7 @@
       }
     ],
     "name": "ValidatorSetChanged",
-    "type": "event",
-    "signature": "0x323c51e0ad42c317ff3b00c6ce354d799a4b5eaf3a25cf3169cf2efd339d4d54"
+    "type": "event"
   },
   {
     "constant": true,
@@ -212,8 +163,7 @@
     ],
     "payable": false,
     "stateMutability": "view",
-    "type": "function",
-    "signature": "0xff13a1ac"
+    "type": "function"
   },
   {
     "constant": true,
@@ -227,8 +177,71 @@
     ],
     "payable": false,
     "stateMutability": "view",
-    "type": "function",
-    "signature": "0xb7ab4db5"
+    "type": "function"
+  },
+  {
+    "constant": false,
+    "inputs": [
+      {
+        "name": "_loomAddress",
+        "type": "address"
+      },
+      {
+        "name": "_signersIndexes",
+        "type": "uint256[]"
+      },
+      {
+        "name": "_v",
+        "type": "uint8[]"
+      },
+      {
+        "name": "_r",
+        "type": "bytes32[]"
+      },
+      {
+        "name": "_s",
+        "type": "bytes32[]"
+      }
+    ],
+    "name": "setLoom",
+    "outputs": [],
+    "payable": false,
+    "stateMutability": "nonpayable",
+    "type": "function"
+  },
+  {
+    "constant": false,
+    "inputs": [
+      {
+        "name": "_num",
+        "type": "uint8"
+      },
+      {
+        "name": "_denom",
+        "type": "uint8"
+      },
+      {
+        "name": "_signersIndexes",
+        "type": "uint256[]"
+      },
+      {
+        "name": "_v",
+        "type": "uint8[]"
+      },
+      {
+        "name": "_r",
+        "type": "bytes32[]"
+      },
+      {
+        "name": "_s",
+        "type": "bytes32[]"
+      }
+    ],
+    "name": "setQuorum",
+    "outputs": [],
+    "payable": false,
+    "stateMutability": "nonpayable",
+    "type": "function"
   },
   {
     "constant": false,
@@ -242,7 +255,7 @@
         "type": "uint64[]"
       },
       {
-        "name": "_signIndexes",
+        "name": "_signersIndexes",
         "type": "uint256[]"
       },
       {
@@ -262,8 +275,7 @@
     "outputs": [],
     "payable": false,
     "stateMutability": "nonpayable",
-    "type": "function",
-    "signature": "0xeb2eb0ef"
+    "type": "function"
   },
   {
     "constant": true,
@@ -273,7 +285,7 @@
         "type": "bytes32"
       },
       {
-        "name": "signersIndex",
+        "name": "_signersIndex",
         "type": "uint256"
       },
       {
@@ -293,8 +305,7 @@
     "outputs": [],
     "payable": false,
     "stateMutability": "view",
-    "type": "function",
-    "signature": "0xc47c479a"
+    "type": "function"
   },
   {
     "constant": true,
@@ -304,7 +315,7 @@
         "type": "bytes32"
       },
       {
-        "name": "signersIndex",
+        "name": "_signersIndexes",
         "type": "uint256[]"
       },
       {
@@ -324,69 +335,6 @@
     "outputs": [],
     "payable": false,
     "stateMutability": "view",
-    "type": "function",
-    "signature": "0x0fba29c3"
-  },
-  {
-    "constant": true,
-    "inputs": [
-      {
-        "name": "tokenAddress",
-        "type": "address"
-      }
-    ],
-    "name": "isTokenAllowed",
-    "outputs": [
-      {
-        "name": "",
-        "type": "bool"
-      }
-    ],
-    "payable": false,
-    "stateMutability": "view",
-    "type": "function",
-    "signature": "0xf9eaee0d"
-  },
-  {
-    "constant": false,
-    "inputs": [
-      {
-        "name": "allow",
-        "type": "bool"
-      },
-      {
-        "name": "validatorIndex",
-        "type": "uint256"
-      }
-    ],
-    "name": "toggleAllowAnyToken",
-    "outputs": [],
-    "payable": false,
-    "stateMutability": "nonpayable",
-    "type": "function",
-    "signature": "0x1a6be287"
-  },
-  {
-    "constant": false,
-    "inputs": [
-      {
-        "name": "tokenAddress",
-        "type": "address"
-      },
-      {
-        "name": "allow",
-        "type": "bool"
-      },
-      {
-        "name": "validatorIndex",
-        "type": "uint256"
-      }
-    ],
-    "name": "toggleAllowToken",
-    "outputs": [],
-    "payable": false,
-    "stateMutability": "nonpayable",
-    "type": "function",
-    "signature": "0xe3ece440"
+    "type": "function"
   }
 ]

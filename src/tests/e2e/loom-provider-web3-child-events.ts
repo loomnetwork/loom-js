@@ -1,7 +1,7 @@
 import test, { Test } from 'tape'
 
 import { LocalAddress, CryptoUtils } from '../../index'
-import { createTestClient, waitForMillisecondsAsync } from '../helpers'
+import { createTestClient, waitForMillisecondsAsync, createWeb3TestClient } from '../helpers'
 
 import { LoomProvider } from '../../loom-provider'
 import { deployContract } from '../evm-helpers'
@@ -90,16 +90,16 @@ async function testContracts(t: Test, contractB: any, contractA: any) {
     const value = 5
 
     contractA.events.ContractAEvent({}, (_err: Error, event: any) => {
-      t.equal(event.returnValues.v, '5', 'Value returned should be 5')
+      t.equal(event.returnValues.v, '5', 'Value returned should be 5 (A)')
     })
 
     contractB.events.ContractBEvent({}, (_err: Error, event: any) => {
-      t.equal(event.returnValues.v, '5', 'Value returned should be 5')
+      t.equal(event.returnValues.v, '5', 'Value returned should be 5 (B)')
     })
 
     let tx = await contractA.methods.doEmit(value, contractB.options.address).send()
     t.equal(
-      tx.status === '0x1' ? true : tx.status,
+      tx.status === true ? true : tx.status,
       true,
       `doEmit should return correct status for ${value}`
     )
@@ -152,9 +152,9 @@ async function testGanache(t: Test) {
   web3.currentProvider.connection.close()
 }
 
-async function testLoomProvider(t: Test) {
+async function testLoomProvider(t: Test, useEthEndpoint: boolean) {
   const privKey = CryptoUtils.generatePrivateKey()
-  const client = createTestClient()
+  const client = useEthEndpoint ? createWeb3TestClient() : createTestClient()
   const from = LocalAddress.fromPublicKey(CryptoUtils.publicKeyFromPrivateKey(privKey)).toString()
   const loomProvider = new LoomProvider(client, privKey)
   const web3 = new Web3(loomProvider)
@@ -173,9 +173,14 @@ async function testLoomProvider(t: Test) {
   client.disconnect()
 }
 
-test('LoomProvider + Web3 + Child contracts events', async t => {
+async function testWeb3ChildContractEvents(t: any, useEthEndpoint: boolean) {
   t.plan(6)
   await testGanache(t)
-  await testLoomProvider(t)
+  await testLoomProvider(t, useEthEndpoint)
   t.end()
-})
+}
+
+test('LoomProvider + Web3 + Child contracts events (/query)', (t: any) =>
+  testWeb3ChildContractEvents(t, false))
+test('LoomProvider + Web3 + Child contracts events (/eth)', (t: any) =>
+  testWeb3ChildContractEvents(t, true))

@@ -1,9 +1,8 @@
 import BN from 'bn.js'
 import debug from 'debug'
 import { ethers } from 'ethers'
-import Web3 from 'web3'
 
-import { LocalAddress, CryptoUtils, Address, Client, Contracts } from '.'
+import { LocalAddress, CryptoUtils, Address, Contracts } from '.'
 import { Coin, LoomCoinTransferGateway } from './contracts'
 import { IWithdrawalReceipt } from './contracts/transfer-gateway'
 import { sleep, parseSigs } from './helpers'
@@ -20,26 +19,23 @@ const log = debug('gateway-user')
 const coinMultiplier = new BN(10).pow(new BN(18))
 
 import { ERC20 } from './mainnet-contracts/ERC20'
-import { ValidatorManagerContract } from './mainnet-contracts/ValidatorManagerContract'
-import { ERC20Gateway_v2 } from './mainnet-contracts/ERC20Gateway_v2'
+import { ERC20Factory } from './mainnet-contracts/ERC20Factory'
+import { EthereumGatewayV2Factory } from './mainnet-contracts/EthereumGatewayV2Factory'
+import { EthereumGatewayV1Factory } from './mainnet-contracts/EthereumGatewayV1Factory'
+import { EthereumGatewayV2 as EthereumGatewayV2Contract } from './mainnet-contracts/EthereumGatewayV2'
+import { ValidatorManagerV2Factory } from './mainnet-contracts/ValidatorManagerV2Factory'
+import { ValidatorManagerV2 as ValidatorManagerContractV2 } from './mainnet-contracts/ValidatorManagerV2'
 
-const ValidatorManagerContractABI = require('./mainnet-contracts/ValidatorManagerContract.json')
-const ERC20GatewayABI = require('./mainnet-contracts/ERC20Gateway.json')
-const ERC20GatewayABI_v2 = require('./mainnet-contracts/ERC20Gateway_v2.json')
-const ERC20ABI = require('./mainnet-contracts/ERC20.json')
 const ERC20Prefix = '\x10Withdraw ERC20:\n'
 
-const V2_GATEWAYS = ['oracle-dev', 'asia1']
+const V2_GATEWAYS = ['asia1', 'test-z-us-1', 'extdev-plasma-us1']
 
-export enum GatewayVersion {
-  SINGLESIG = 1,
-  MULTISIG = 2
-}
+export type GatewayVersion = 1 | 2
 
 export interface EthereumContracts {
-  gateway: ERC20Gateway_v2
+  gateway: EthereumGatewayV2Contract
   loomToken: ERC20
-  vmc?: ValidatorManagerContract
+  vmc?: ValidatorManagerContractV2
 }
 
 export interface GatewayUserParams extends CrossChainUserParams {
@@ -48,19 +44,22 @@ export interface GatewayUserParams extends CrossChainUserParams {
 }
 
 export interface GatewayUserConstructorParams extends CrossChainUserConstructorParams {
-  gateway: ERC20Gateway_v2
+  gateway: EthereumGatewayV2Contract
   loomToken: ERC20
-  vmc?: ValidatorManagerContract
+  vmc?: ValidatorManagerContractV2
 
   dappchainGateway: Contracts.LoomCoinTransferGateway
   dappchainLoom: Contracts.Coin
   version: GatewayVersion
 }
 
+/**
+ * @deprecated Will be removed in loom-js v2.0.0
+ */
 export class GatewayUser extends CrossChainUser {
-  private _ethereumGateway: ERC20Gateway_v2
+  private _ethereumGateway: EthereumGatewayV2Contract
   private _ethereumLoom: ERC20
-  private _ethereumVMC?: ValidatorManagerContract
+  private _ethereumVMC?: ValidatorManagerContractV2
   private _dappchainGateway: Contracts.LoomCoinTransferGateway
   private _dappchainLoom: Contracts.Coin
   private _version: GatewayVersion
@@ -87,31 +86,43 @@ export class GatewayUser extends CrossChainUser {
     gatewayAddress: string,
     version?: GatewayVersion
   ): Promise<EthereumContracts> {
-    const gatewayABI = version == GatewayVersion.MULTISIG ? ERC20GatewayABI_v2 : ERC20GatewayABI
-    const gateway = new ethers.Contract(gatewayAddress, gatewayABI, wallet)
+    let gateway: any
+    switch (version) {
+      case 2:
+        gateway = EthereumGatewayV2Factory.connect(gatewayAddress, wallet)
+        break
+
+      case 1:
+        gateway = EthereumGatewayV1Factory.connect(gatewayAddress, wallet)
+        break
+
+      default:
+        throw new Error('Invalid Ethereum Gateway version ' + version)
+    }
+
     const loomAddress = await gateway.functions.loomAddress()
-    const loomToken = new ethers.Contract(loomAddress, ERC20ABI, wallet)
+    const loomToken = ERC20Factory.connect(loomAddress, wallet)
     let vmc
-    if (version === GatewayVersion.MULTISIG) {
+    if (version === 2) {
       const vmcAddress = await gateway.functions.vmc()
-      vmc = new ethers.Contract(vmcAddress, ValidatorManagerContractABI, wallet)
+      vmc = ValidatorManagerV2Factory.connect(vmcAddress, wallet)
     }
 
     return {
-      gateway: gateway as ERC20Gateway_v2,
+      gateway: gateway as EthereumGatewayV2Contract,
       loomToken: loomToken as ERC20,
-      vmc: vmc as ValidatorManagerContract
+      vmc: vmc as ValidatorManagerContractV2
     }
   }
 
   private static getGatewayVersion(endpoint: string, version?: GatewayVersion): GatewayVersion {
     // If no gateway version is provided, pick based on the chain URL prefix
-    let retVersion = GatewayVersion.SINGLESIG
+    let retVersion: GatewayVersion = 1
     if (typeof version === undefined) {
       const chainName = endpoint.split('.')[0]
       for (let chainPrefix of V2_GATEWAYS) {
         if (chainName.indexOf(chainPrefix) != -1) {
-          retVersion = GatewayVersion.MULTISIG
+          retVersion = 2
         }
       }
     }
@@ -205,11 +216,11 @@ export class GatewayUser extends CrossChainUser {
     this._dappchainGateway = params.dappchainGateway
   }
 
-  get ethereumVMC(): ValidatorManagerContract | undefined {
+  get ethereumVMC(): ValidatorManagerContractV2 | undefined {
     return this._ethereumVMC
   }
 
-  get ethereumGateway(): ERC20Gateway_v2 {
+  get ethereumGateway(): EthereumGatewayV2Contract {
     return this._ethereumGateway
   }
 
@@ -342,7 +353,7 @@ export class GatewayUser extends CrossChainUser {
     amount: BN,
     sig: string
   ): Promise<ethers.ContractTransaction> {
-    if (this._version === GatewayVersion.MULTISIG && this._ethereumVMC !== undefined) {
+    if (this._version === 2 && this._ethereumVMC !== undefined) {
       const hash = await this.createWithdrawalHash(amount)
       const validators = await this._ethereumVMC!.functions.getValidators()
       const { vs, rs, ss, valIndexes } = parseSigs(sig, hash, validators)

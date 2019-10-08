@@ -16,9 +16,9 @@ import {
   IDelegatorDelegations
 } from './contracts/dpos2'
 import { getMetamaskSigner } from './solidity-helpers'
-import { ERC20Gateway_v2 } from './mainnet-contracts/ERC20Gateway_v2'
+import { EthereumGatewayV2 as EthereumGatewayV2Contract } from './mainnet-contracts/EthereumGatewayV2'
 import { ERC20 } from './mainnet-contracts/ERC20'
-import { ValidatorManagerContract } from './mainnet-contracts/ValidatorManagerContract'
+import { ValidatorManagerV2 as ValidatorManagerV2Contract } from './mainnet-contracts/ValidatorManagerV2'
 
 const log = debug('dpos-user')
 
@@ -77,7 +77,7 @@ export class DPOSUser extends GatewayUser {
       dappchainEndpoint,
       chainId,
       gatewayAddress,
-      version: version ? version : GatewayVersion.SINGLESIG
+      version: version ? version : 1
     })
 
     const dappchainEthAddress = new Address(
@@ -117,7 +117,7 @@ export class DPOSUser extends GatewayUser {
       dappchainPrivateKey: dappchainKey,
       chainId,
       gatewayAddress,
-      version: version ? version : GatewayVersion.SINGLESIG
+      version: version ? version : 1
     })
 
     const { client, address } = createDefaultClient(dappchainKey, dappchainEndpoint, chainId)
@@ -144,14 +144,14 @@ export class DPOSUser extends GatewayUser {
     client: Client,
     loomAddress: Address,
     ethAddress: string,
-    gateway: ERC20Gateway_v2,
+    gateway: EthereumGatewayV2Contract,
     loomToken: ERC20,
-    vmc: ValidatorManagerContract | undefined,
+    vmc: ValidatorManagerV2Contract | undefined,
     dappchainGateway: Contracts.LoomCoinTransferGateway,
     dappchainLoom: Contracts.Coin,
     dappchainDPOS: Contracts.DPOS2,
     dappchainMapper: Contracts.AddressMapper | null,
-    version: GatewayVersion = GatewayVersion.SINGLESIG
+    version: GatewayVersion = 1
   ) {
     super({
       wallet,
