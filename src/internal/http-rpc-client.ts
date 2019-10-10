@@ -30,7 +30,7 @@ export class HTTPRPCClient extends EventEmitter implements IJSONRPCClient {
     public url: string,
     opts: {
       requestTimeout?: number
-      generateRequestId?: (method: string, params: object | any[]) => string
+      generateRequestId?: (method: string, params: object | any[]) => string | number
     } = {}
   ) {
     super()
@@ -40,6 +40,7 @@ export class HTTPRPCClient extends EventEmitter implements IJSONRPCClient {
     } = opts
 
     this.requestTimeout = requestTimeout
+    // FIXME: generateRequestId doesn't actually override this._getNextRequestId at the moment
   }
 
   disconnect() {

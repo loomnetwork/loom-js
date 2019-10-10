@@ -1,11 +1,11 @@
 {
   "contracts": [
-    {	
-      "vm": "plugin",	
-      "format": "plugin",	
-      "name": "BluePrint",	
-      "location": "blueprint:0.0.1",	
-      "init": {}	
+    {
+      "vm": "plugin",
+      "format": "plugin",
+      "name": "BluePrint",
+      "location": "blueprint:0.0.1",
+      "init": {}
     },
     {
       "vm": "plugin",
@@ -61,6 +61,22 @@
           },
           {
             "name": "tg:binance-cm",
+            "status": "WAITING"
+          },
+          {
+            "name": "receipts:v3",
+            "status": "WAITING"
+          },
+          {
+            "name": "receipts:v3.1",
+            "status": "WAITING"
+          },
+          {
+            "name": "receipts:v3.2",
+            "status": "WAITING"
+          },
+          {
+            "name": "evm:constantinople",
             "status": "WAITING"
           }
         ]
