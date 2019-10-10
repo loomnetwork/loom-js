@@ -89,6 +89,8 @@ async function testContracts(t: Test, contractB: any, contractA: any) {
   try {
     const value = 5
 
+    await waitForMillisecondsAsync(2000)
+
     let tx = await contractA.methods.doEmit(value, contractB.options.address).send()
     t.equal(
       tx.status === '0x1' ? true : tx.status,
@@ -182,7 +184,7 @@ async function testLoomProvider(t: Test) {
   client.disconnect()
 }
 
-test('Test Web3 + PastEvents', async t => {
+test.only('Test Web3 + PastEvents', async t => {
   await testGanache(t)
   await testLoomProvider(t)
   t.end()
