@@ -8,6 +8,10 @@ enum TransferGatewayTokenKind {
     ERC721 = 2;
     ERC721X = 3;
     LOOMCOIN = 4;
+    TRX = 5;
+    TRC20 = 6;
+    BEP2_LOOM = 7;
+    BEP2 = 8;
 }
 
 message TransferGatewayWithdrawalReceipt {
@@ -53,7 +57,6 @@ message TransferGatewayTokenWithdrawalSigned {
 // Request & Response
 
 // Contract Mapping
-
 message TransferGatewayAddContractMappingRequest {
     // Address on foreign blockchain
     Address foreign_contract = 1;
@@ -63,6 +66,20 @@ message TransferGatewayAddContractMappingRequest {
     bytes foreign_contract_creator_sig = 3;
     // Hash of the transaction which created the foreign contract
     bytes foreign_contract_tx_hash = 4;
+}
+
+// Recovery
+
+// Transfer unclaimed tokens to the sender, or to the specified depositors
+message TransferGatewayReclaimDepositorTokensRequest {
+    // Foreign address of depositors
+    repeated Address depositors = 1;
+}
+
+// Transfer any unclaimed tokens originating from a specific contract to their depositors
+message TransferGatewayReclaimContractTokensRequest {
+    // Foreign address of token contract
+    Address token_contract = 1;
 }
 
 // Withdrawal Management
@@ -100,7 +117,7 @@ message TransferGatewayWithdrawLoomCoinRequest {
     // Amount of Loomcoin to withdraw
     BigUInt amount = 1;
     // Address of Mainnet Loomcoin contract
-     Address token_contract = 2;
+    Address token_contract = 2;
     // Ethereum address of the account that should receive the Loomcoin.
     // If this field is omitted the Gateway will attempt to obtain the recipient address from a
     // previously created mapping between the sender's DAppChain address and their Ethereum address,
@@ -123,4 +140,58 @@ message TransferGatewayConfirmWithdrawalReceiptRequest {
     bytes oracle_signature = 2;
     // 32-byte hash of the withdrawal details
     bytes withdrawal_hash = 3; // TODO: figure out if there's any point passing this around
+}
+
+message TransferGatewayTokenAmount {
+    BigUInt token_id = 1;
+    BigUInt token_amount = 2;
+}
+
+// Stores all unclaimed tokens of a depositor for a single contract.
+message TransferGatewayUnclaimedToken {
+    // Foreign address of token contract
+    Address token_contract = 1;
+    TransferGatewayTokenKind token_kind = 2;
+    // For ERC721 this is a list of token IDs (amount is omitted because it should always be 1).
+    // For ERC721X this is a list of token IDs with the corresponding amount of each token.
+    // For ERC20/ETH this list will contain a single value containing the total unclaimed ERC20/ETH amount.
+    repeated TransferGatewayTokenAmount amounts = 3;
+}
+
+message TransferGatewayGetUnclaimedTokensRequest {
+    Address owner = 1;
+}
+
+message TransferGatewayGetUnclaimedTokensResponse {
+    repeated TransferGatewayUnclaimedToken unclaimed_tokens = 1;
+}
+
+message TransferGatewayResubmitWithdrawalRequest {
+}
+
+message TransferGatewayListContractMappingRequest {
+}
+
+message TransferGatewayListContractMappingResponse {
+    repeated TransferGatewayContractAddressMapping confimed_mappings = 1;
+    repeated TransferGatewayPendingContractMapping pending_mappings = 2;
+}
+
+message TransferGatewayContractAddressMapping {
+    // Address on a blockchain
+    Address from = 1;
+    // Corresponding address on another blockchain
+    Address to = 2;
+}
+
+message TransferGatewayPendingContractMapping {
+    uint64 ID = 1;
+    // Address on foreign blockchain
+    Address foreign_contract = 2;
+    // Corresponding address on local blockchain
+    Address local_contract = 3;
+    // Foreign address of the creator of the foreign contract
+    Address foreign_contract_creator = 4;
+    // Hash of the transaction which created the foreign contract
+    bytes foreign_contract_tx_hash = 5;
 }

@@ -7,6 +7,7 @@ import {
   ListCandidateResponseV2,
   CandidateV2,
   ClaimDistributionRequestV2,
+  CheckDistributionRequest,
   ListValidatorsRequestV2,
   ListValidatorsResponseV2,
   DelegateRequestV2,
@@ -15,20 +16,43 @@ import {
   CheckDelegationResponseV2,
   RegisterCandidateRequestV2,
   UnregisterCandidateRequestV2,
-  ValidatorStatisticV2
+  ValidatorStatisticV2,
+  CheckDistributionResponse,
+  TotalDelegationRequest,
+  TotalDelegationResponse,
+  TimeUntilElectionRequest,
+  TimeUntilElectionResponse,
+  RedelegateRequestV2,
+  ListAllDelegationsRequest,
+  ListAllDelegationsResponse,
+  ListDelegationsRequest,
+  ListDelegationsResponse,
+  DelegationV2,
+  CheckAllDelegationsResponse,
+  CheckAllDelegationsRequest
 } from '../proto/dposv2_pb'
 import { unmarshalBigUIntPB, marshalBigUIntPB } from '../big-uint'
 
 export enum DelegationState {
   BONDING = 0,
   BONDED = 1,
-  UNBONDING = 2
+  UNBONDING = 2,
+  REDELEGATING = 3
+}
+
+export enum LockTimeTier {
+  Tier0 = 0,
+  Tier1 = 1,
+  Tier2 = 2,
+  Tier3 = 3
 }
 
 export interface ICandidate {
   pubKey: Uint8Array
   address: Address
   fee: BN
+  newFee: BN
+  feeDelayCounter: BN
   name: string
   description: string
   website: string
@@ -42,16 +66,36 @@ export interface IValidator {
   slashPct: BN
   distributionTotal: BN
   delegationTotal: BN
+  whitelistAmount: BN
+  whitelistLockTime: BN
 }
 
 export interface IDelegation {
   validator: Address
+  updateValidator?: Address
   delegator: Address
   height: BN
   amount: BN
   updateAmount: BN
   lockTime: number
+  lockTimeTier: number
   state: DelegationState
+}
+
+export interface ITotalDelegation {
+  amount: BN
+  weightedAmount: BN
+}
+
+export interface ICandidateDelegations {
+  delegationTotal: BN
+  delegationsArray: Array<IDelegation>
+}
+
+export interface IDelegatorDelegations {
+  amount: BN
+  weightedAmount: BN
+  delegationsArray: Array<IDelegation>
 }
 
 export class DPOS2 extends Contract {
@@ -68,6 +112,17 @@ export class DPOS2 extends Contract {
     super(params)
   }
 
+  async getTimeUntilElectionAsync(): Promise<BN> {
+    const timeUntilElectionRequest = new TimeUntilElectionRequest()
+    const result = await this.staticCallAsync(
+      'TimeUntilElection',
+      timeUntilElectionRequest,
+      new TimeUntilElectionResponse()
+    )
+
+    return new BN(result.getTimeUntilElection())
+  }
+
   async getCandidatesAsync(): Promise<Array<ICandidate>> {
     const listCandidatesReq = new ListCandidateRequestV2()
     const result = await this.staticCallAsync(
@@ -78,8 +133,10 @@ export class DPOS2 extends Contract {
 
     return result.getCandidatesList().map((candidate: CandidateV2) => ({
       pubKey: candidate.getPubKey_asU8()!,
-      address: Address.UmarshalPB(candidate.getAddress()!),
+      address: Address.UnmarshalPB(candidate.getAddress()!),
       fee: new BN(candidate.getFee()!),
+      newFee: new BN(candidate.getNewfee()!),
+      feeDelayCounter: new BN(candidate.getFeedelaycounter()!),
       name: candidate.getName(),
       description: candidate.getDescription(),
       website: candidate.getWebsite()
@@ -95,16 +152,106 @@ export class DPOS2 extends Contract {
     )
 
     return result.getStatisticsList().map((validator: ValidatorStatisticV2) => ({
-      address: Address.UmarshalPB(validator.getAddress()!),
+      address: Address.UnmarshalPB(validator.getAddress()!),
       pubKey: validator.getPubKey_asU8()!,
       upblockCount: validator.getUpblockCount(),
       blockCount: validator.getBlockCount(),
-      slashPct: validator.getSlashPercentage() ? unmarshalBigUIntPB(validator.getSlashPercentage()!) : new BN(0),
-      distributionTotal: validator.getDistributionTotal() ? unmarshalBigUIntPB(validator.getDistributionTotal()!) : new BN(0),
-      delegationTotal: validator.getDelegationTotal() ? unmarshalBigUIntPB(validator.getDelegationTotal()!) : new BN(0)
+      whitelistAmount: validator.getWhitelistAmount()
+        ? unmarshalBigUIntPB(validator.getWhitelistAmount()!)
+        : new BN(0),
+      whitelistLockTime: new BN(validator.getWhitelistLocktime()!),
+      slashPct: validator.getSlashPercentage()
+        ? unmarshalBigUIntPB(validator.getSlashPercentage()!)
+        : new BN(0),
+      distributionTotal: validator.getDistributionTotal()
+        ? unmarshalBigUIntPB(validator.getDistributionTotal()!)
+        : new BN(0),
+      delegationTotal: validator.getDelegationTotal()
+        ? unmarshalBigUIntPB(validator.getDelegationTotal()!)
+        : new BN(0)
     }))
   }
 
+  async getDelegations(candidate: Address): Promise<ICandidateDelegations> {
+    const listDelegationsReq = new ListDelegationsRequest()
+    listDelegationsReq.setCandidate(candidate.MarshalPB())
+    const result = await this.staticCallAsync(
+      'ListDelegations',
+      listDelegationsReq,
+      new ListDelegationsResponse()
+    )
+
+    return {
+      delegationTotal: result.getDelegationTotal()
+        ? unmarshalBigUIntPB(result.getDelegationTotal()!)
+        : new BN(0),
+      delegationsArray: result.getDelegationsList().map(this.getDelegation)
+    }
+  }
+
+  async getAllDelegations(): Promise<Array<ICandidateDelegations>> {
+    const listAllDelegationsReq = new ListAllDelegationsRequest()
+    const result = await this.staticCallAsync(
+      'ListAllDelegations',
+      listAllDelegationsReq,
+      new ListAllDelegationsResponse()
+    )
+
+    return result.getListresponsesList().map(d => {
+      return {
+        delegationTotal: d.getDelegationTotal()
+          ? unmarshalBigUIntPB(d.getDelegationTotal()!)
+          : new BN(0),
+        delegationsArray: d.getDelegationsList().map(this.getDelegation)
+      }
+    })
+  }
+
+  async checkDelegatorDelegations(delegator: Address): Promise<IDelegatorDelegations> {
+    const checkDelegatorDelegationsReq = new CheckAllDelegationsRequest()
+    checkDelegatorDelegationsReq.setDelegatorAddress(delegator.MarshalPB())
+    const result = await this.staticCallAsync(
+      'CheckAllDelegations',
+      checkDelegatorDelegationsReq,
+      new CheckAllDelegationsResponse()
+    )
+
+    return {
+      amount: result.getAmount() ? unmarshalBigUIntPB(result.getAmount()!) : new BN(0),
+      weightedAmount: result.getWeightedAmount()
+        ? unmarshalBigUIntPB(result.getWeightedAmount()!)
+        : new BN(0),
+      delegationsArray: result.getDelegationsList().map(this.getDelegation)
+    }
+  }
+
+  async checkDistributionAsync(owner: Address): Promise<BN> {
+    const checkDistributionReq = new CheckDistributionRequest()
+    checkDistributionReq.setAddress(owner.MarshalPB())
+    const result = await this.staticCallAsync(
+      'CheckDistribution',
+      checkDistributionReq,
+      new CheckDistributionResponse()
+    )
+    return result.getAmount() ? unmarshalBigUIntPB(result.getAmount()!) : new BN(0)
+  }
+
+  async totalDelegationAsync(delegator: Address): Promise<ITotalDelegation | null> {
+    const totalDelegationReq = new TotalDelegationRequest()
+    totalDelegationReq.setDelegatorAddress(delegator.MarshalPB())
+    const result = await this.staticCallAsync(
+      'TotalDelegation',
+      totalDelegationReq,
+      new TotalDelegationResponse()
+    )
+
+    return {
+      amount: result.getAmount() ? unmarshalBigUIntPB(result.getAmount()!) : new BN(0),
+      weightedAmount: result.getWeightedAmount()
+        ? unmarshalBigUIntPB(result.getWeightedAmount()!)
+        : new BN(0)
+    } as ITotalDelegation
+  }
 
   async checkDelegationAsync(validator: Address, delegator: Address): Promise<IDelegation | null> {
     const checkDelegationReq = new CheckDelegationRequestV2()
@@ -117,31 +264,22 @@ export class DPOS2 extends Contract {
     )
 
     const delegation = result.getDelegation()
-    return delegation
-      ? {
-          validator: Address.UmarshalPB(delegation.getValidator()!),
-          delegator: Address.UmarshalPB(delegation.getDelegator()!),
-          amount: delegation.getAmount() ? unmarshalBigUIntPB(delegation.getAmount()!) : new BN(0),
-          updateAmount: delegation.getUpdateAmount() ? unmarshalBigUIntPB(delegation.getAmount()!) : new BN(0),
-          height: new BN(delegation.getHeight()),
-          lockTime: delegation.getLockTime(),
-          state: delegation.getState()
-        }
-      : null
+    return delegation ? this.getDelegation(delegation) : null
   }
 
-  async claimDistributionAsync(withdrawalAddress: Address): Promise<void> {
+  claimDistributionAsync(withdrawalAddress: Address): Promise<void> {
     const claimDistributionRequest = new ClaimDistributionRequestV2()
     claimDistributionRequest.setWithdrawalAddress(withdrawalAddress.MarshalPB())
     return this.callAsync<void>('ClaimDistribution', claimDistributionRequest)
   }
 
-  async registerCandidateAsync(
+  registerCandidateAsync(
     pubKey: string,
     fee: BN,
     name: string,
     description: string,
-    website: string
+    website: string,
+    tier: LockTimeTier
   ): Promise<void> {
     const registerCandidateRequest = new RegisterCandidateRequestV2()
     registerCandidateRequest.setPubKey(pubKey)
@@ -149,25 +287,69 @@ export class DPOS2 extends Contract {
     registerCandidateRequest.setName(name)
     registerCandidateRequest.setDescription(description)
     registerCandidateRequest.setWebsite(website)
+    registerCandidateRequest.setLocktimeTier(tier)
     return this.callAsync<void>('RegisterCandidate', registerCandidateRequest)
   }
 
-  async unregisterCandidateAsync(): Promise<void> {
+  unregisterCandidateAsync(): Promise<void> {
     const unregisterCandidateRequest = new UnregisterCandidateRequestV2()
     return this.callAsync<void>('UnregisterCandidate', unregisterCandidateRequest)
   }
 
-  async delegateAsync(validator: Address, amount: BN): Promise<void> {
+  delegateAsync(
+    validator: Address,
+    amount: BN,
+    tier: LockTimeTier,
+    referrer?: string
+  ): Promise<void> {
     const delegateRequest = new DelegateRequestV2()
     delegateRequest.setValidatorAddress(validator.MarshalPB())
     delegateRequest.setAmount(marshalBigUIntPB(amount))
-    return this.callAsync<void>('Delegate', delegateRequest)
+    delegateRequest.setLocktimeTier(tier)
+    if (referrer) {
+      delegateRequest.setReferrer(referrer)
+    }
+    return this.callAsync<void>('Delegate2', delegateRequest)
   }
 
-  async unbondAsync(validator: Address, amount: BN | number | string): Promise<void> {
+  redelegateAsync(
+    oldValidator: Address,
+    validator: Address,
+    amount: BN,
+    referrer?: string
+  ): Promise<void> {
+    const redelegateRequest = new RedelegateRequestV2()
+    redelegateRequest.setFormerValidatorAddress(oldValidator.MarshalPB())
+    redelegateRequest.setValidatorAddress(validator.MarshalPB())
+    redelegateRequest.setAmount(marshalBigUIntPB(amount))
+    if (referrer) {
+      redelegateRequest.setReferrer(referrer)
+    }
+    return this.callAsync<void>('Redelegate', redelegateRequest)
+  }
+
+  unbondAsync(validator: Address, amount: BN | number | string): Promise<void> {
     const unbondRequest = new UnbondRequestV2()
     unbondRequest.setValidatorAddress(validator.MarshalPB())
     unbondRequest.setAmount(marshalBigUIntPB(new BN(amount)))
     return this.callAsync<void>('Unbond', unbondRequest)
+  }
+
+  private getDelegation(delegation: DelegationV2): IDelegation {
+    return {
+      validator: Address.UnmarshalPB(delegation.getValidator()!),
+      updateValidator: delegation.getUpdateValidator()
+        ? Address.UnmarshalPB(delegation.getUpdateValidator()!)
+        : undefined,
+      delegator: Address.UnmarshalPB(delegation.getDelegator()!),
+      amount: delegation.getAmount() ? unmarshalBigUIntPB(delegation.getAmount()!) : new BN(0),
+      updateAmount: delegation.getUpdateAmount()
+        ? unmarshalBigUIntPB(delegation.getUpdateAmount()!)
+        : new BN(0),
+      height: new BN(delegation.getHeight()),
+      lockTime: delegation.getLockTime(),
+      lockTimeTier: delegation.getLocktimeTier(),
+      state: delegation.getState()
+    }
   }
 }

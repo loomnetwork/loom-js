@@ -43,10 +43,32 @@ export class AddressMapper extends Contract {
         type: 'address',
         value: from.local.toString().slice(2)
       },
-      { type: 'address', value: to.local.toString().slice(2) }
+      {
+        type: 'address',
+        value: to.local.toString().slice(2)
+      }
     )
 
     const sign = await ethersSigner.signAsync(hash)
+    mappingIdentityRequest.setSignature(sign)
+
+    return this.callAsync<void>('AddIdentityMapping', mappingIdentityRequest)
+  }
+
+  /**
+   * Similar to addIdentityMappingAsync but for Binance
+   */
+  async addBinanceIdentityMappingAsync(
+    from: Address,
+    to: Address,
+    ethersSigner: IEthereumSigner
+  ): Promise<Uint8Array | void> {
+    const mappingIdentityRequest = new AddressMapperAddIdentityMappingRequest()
+    mappingIdentityRequest.setFrom(from.MarshalPB())
+    mappingIdentityRequest.setTo(to.MarshalPB())
+
+    const msg = from.local.toString().slice(2) + to.local.toString().slice(2)
+    const sign = await ethersSigner.signAsync('0x' + msg)
     mappingIdentityRequest.setSignature(sign)
 
     return this.callAsync<void>('AddIdentityMapping', mappingIdentityRequest)
@@ -76,8 +98,8 @@ export class AddressMapper extends Contract {
     )
 
     return {
-      from: Address.UmarshalPB(result.getFrom()!),
-      to: Address.UmarshalPB(result.getTo()!)
+      from: Address.UnmarshalPB(result.getFrom()!),
+      to: Address.UnmarshalPB(result.getTo()!)
     } as IAddressMapping
   }
 }

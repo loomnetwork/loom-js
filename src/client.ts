@@ -13,10 +13,15 @@ import {
   EthFilterLogList,
   EthTxHashList
 } from './proto/evm_pb'
-import { Uint8ArrayToB64, B64ToUint8Array, bufferToProtobufBytes } from './crypto-utils'
+import {
+  Uint8ArrayToB64,
+  B64ToUint8Array,
+  bufferToProtobufBytes,
+  hexToBytes
+} from './crypto-utils'
 import { Address, LocalAddress } from './address'
 import { WSRPCClient, IJSONRPCEvent } from './internal/ws-rpc-client'
-import { RPCClientEvent, IJSONRPCClient } from './internal/json-rpc-client'
+import { RPCClientEvent, IJSONRPCClient, IJSONRPCResponse } from './internal/json-rpc-client'
 import { sleep } from './helpers'
 
 export interface ITxHandlerResult {
@@ -61,6 +66,8 @@ const debugLog = debug('client')
 export interface ITxMiddlewareHandler {
   // Transforms and returns tx data.
   Handle(txData: Readonly<Uint8Array>): Promise<Uint8Array>
+  // Handles an error that occured when the tx was broadcast to the chain.
+  handleError?(err: any): void
   // Checks the tx results and throws an error if needed.
   HandleResults?(results: ITxResults): ITxResults
 }
@@ -132,10 +139,15 @@ export interface IChainEventArgs extends IClientEventArgs {
   topics: Array<string>
 }
 
-const TX_ALREADY_EXISTS_ERROR = 'Tx already exists in cache'
+export const TX_ALREADY_EXISTS_ERROR = 'Tx already exists in cache'
 
 export function isTxAlreadyInCacheError(err: any): boolean {
-  return err instanceof Error && err.message === TX_ALREADY_EXISTS_ERROR
+  // TODO: Need to update the WS client to throw the same errors as the HTTP client, so don't
+  //       have to detect two different errors everywhere.
+  return (
+    (err instanceof Error && err.message.indexOf(TX_ALREADY_EXISTS_ERROR) !== -1) || // HTTP
+    (err.data && err.data.indexOf(TX_ALREADY_EXISTS_ERROR) !== -1) // WS
+  )
 }
 
 export interface ITxBroadcaster {
@@ -231,6 +243,13 @@ export class Client extends EventEmitter {
   private _writeClient: IJSONRPCClient
   private _readClient!: IJSONRPCClient
 
+  /**
+   * Indicates whether the client is configured to use the /eth endpoint on Loom nodes.
+   * When this is enabled the client can only be used to interact with EVM contracts.
+   * NOTE: This limitation will be removed in the near future.
+   */
+  readonly isWeb3EndpointEnabled: boolean
+
   /** Broadcaster to use to send txs & receive results. */
   txBroadcaster: ITxBroadcaster
 
@@ -298,6 +317,8 @@ export class Client extends EventEmitter {
       )
     }
 
+    this.isWeb3EndpointEnabled = true === /eth$/.test(this._readClient.url)
+
     const emitContractEvent = (url: string, event: IJSONRPCEvent) =>
       this._emitContractEvent(url, event)
 
@@ -350,10 +371,14 @@ export class Client extends EventEmitter {
     try {
       result = await this.txBroadcaster.broadcast(this._writeClient, txBytes)
     } catch (err) {
-      if (
-        (err instanceof Error && err.message.indexOf(TX_ALREADY_EXISTS_ERROR) !== -1) || // HTTP
-        (err.data && err.data.indexOf(TX_ALREADY_EXISTS_ERROR) !== -1) // WS
-      ) {
+      // Allow the middleware to handle errors. They're applied in reverse order so that the last
+      // middleware that was applied to the tx that was sent will be get to handle the error first.
+      for (let i = middleware.length - 1; i >= 0; i--) {
+        if (middleware[i].handleError) {
+          middleware[i].handleError!(err)
+        }
+      }
+      if (isTxAlreadyInCacheError(err)) {
         throw new Error(TX_ALREADY_EXISTS_ERROR)
       }
       throw err
@@ -419,6 +444,17 @@ export class Client extends EventEmitter {
     if (result) {
       return B64ToUint8Array(result)
     }
+  }
+
+  /**
+   * Sends a Web3 JSON-RPC message to the /eth endpoint on a Loom node.
+   * @param method RPC method name.
+   * @param params Parameter object or array.
+   * @returns A promise that will be resolved with the value of the result field (if any) in the
+   *          JSON-RPC response message.
+   */
+  async sendWeb3MsgAsync<T>(method: string, params: object | any[]): Promise<IJSONRPCResponse<T>> {
+    return this._readClient.sendAsync<IJSONRPCResponse<T>>(method, params)
   }
 
   /**
@@ -654,8 +690,12 @@ export class Client extends EventEmitter {
    * @param method Method selected to the filter, can be "newHeads" or "logs"
    * @param filter JSON string of the filter
    */
-  evmSubscribeAsync(method: string, filterObject: Object): Promise<string> {
-    const filter = JSON.stringify(filterObject)
+  evmSubscribeAsync(method: string, params: Object | any[]): Promise<string> {
+    if (this.isWeb3EndpointEnabled) {
+      return this._readClient.sendAsync<string>('eth_subscribe', params)
+    }
+
+    const filter = JSON.stringify(params)
     return this._readClient.sendAsync<string>('evmsubscribe', {
       method,
       filter
@@ -670,9 +710,11 @@ export class Client extends EventEmitter {
    * @return boolean If true the subscription is removed with success
    */
   evmUnsubscribeAsync(id: string): Promise<boolean> {
-    return this._readClient.sendAsync<boolean>('evmunsubscribe', {
-      id
-    })
+    if (this.isWeb3EndpointEnabled) {
+      return this._readClient.sendAsync<boolean>('eth_unsubscribe', [id])
+    }
+
+    return this._readClient.sendAsync<boolean>('evmunsubscribe', { id })
   }
 
   /**
@@ -685,15 +727,29 @@ export class Client extends EventEmitter {
   }
 
   /**
-   * Gets a nonce for the given public key.
+   * Gets a nonce for the account identified by the given public key.
    *
-   * This should only be called by NonceTxMiddleware.
+   * This should only be called by middleware.
    *
    * @param key A hex encoded public key.
    * @return The nonce.
    */
   async getNonceAsync(key: string): Promise<number> {
-    return parseInt(await this._writeClient.sendAsync<string>('nonce', { key }), 10)
+    return this.getAccountNonceAsync({ key })
+  }
+
+  /**
+   * Gets a nonce for the account identified by the given public key or address.
+   *
+   * Only the key or the account needs to be provided, if both are provided the key is ignored.
+   * This should only be called by middleware.
+   *
+   * @param key A hex encoded public key.
+   * @parma account Account address prefixed by the chain ID, in the form chainID:0xdeadbeef
+   * @return The nonce.
+   */
+  async getAccountNonceAsync(params: { key?: string; account?: string }): Promise<number> {
+    return parseInt(await this._writeClient.sendAsync<string>('nonce', params), 10)
   }
 
   /**
@@ -707,17 +763,20 @@ export class Client extends EventEmitter {
     if (!addrStr) {
       return null
     }
+
+    debugLog(`Found contract ${contractName} with address ${Address.fromString(addrStr)}`)
     return Address.fromString(addrStr)
   }
 
   private _emitContractEvent(url: string, event: IJSONRPCEvent, isEVM: boolean = false): void {
+    debugLog('_emitContractEvent', arguments)
     const { error, result } = event
     if (error) {
       const eventArgs: IClientErrorEventArgs = { kind: ClientEvent.Error, url, error }
       this.emit(ClientEvent.Error, eventArgs)
+    } else if (this.isWeb3EndpointEnabled && isEVM) {
+      this.emit(ClientEvent.EVMEvent, event)
     } else if (result) {
-      debugLog('Event', event.id, result)
-
       // Ugh, no built-in JSON->Protobuf marshaller apparently
       // https://github.com/google/protobuf/issues/1591 so gotta do this manually
       const eventArgs: IChainEventArgs = {
@@ -739,8 +798,11 @@ export class Client extends EventEmitter {
         transactionHashBytes: result.tx_hash ? B64ToUint8Array(result.tx_hash) : new Uint8Array([])
       }
 
-      if (isEVM) this.emit(ClientEvent.EVMEvent, eventArgs)
-      else this.emit(ClientEvent.Contract, eventArgs)
+      if (isEVM) {
+        this.emit(ClientEvent.EVMEvent, eventArgs)
+      } else {
+        this.emit(ClientEvent.Contract, eventArgs)
+      }
     }
   }
 

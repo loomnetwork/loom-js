@@ -1,8 +1,9 @@
 import debug from 'debug'
 import { NonceTx } from '../proto/loom_pb'
-import { ITxMiddlewareHandler, Client, ITxResults } from '../client'
+import { ITxMiddlewareHandler, Client, ITxResults, isTxAlreadyInCacheError } from '../client'
 import { bytesToHex } from '../crypto-utils'
 import { INVALID_TX_NONCE_ERROR } from './nonce-tx-middleware'
+import { Address } from '../address'
 
 const log = debug('cached-nonce-tx-middleware')
 
@@ -13,22 +14,31 @@ const log = debug('cached-nonce-tx-middleware')
  * latest nonce.
  */
 export class CachedNonceTxMiddleware implements ITxMiddlewareHandler {
-  private _publicKey: Uint8Array
+  private _publicKey: Uint8Array | null = null
+  private _account: Address | null = null
   private _client: Client
-  private _lastNonce: number | null
+  private _lastNonce: number
 
-  constructor(publicKey: Uint8Array, client: Client) {
-    this._publicKey = publicKey
+  constructor(publicKey: Uint8Array, client: Client)
+  constructor(account: Address, client: Client)
+  constructor(publicKeyOrAccount: Uint8Array | Address, client: Client) {
+    if (publicKeyOrAccount instanceof Address) {
+      this._account = publicKeyOrAccount
+    } else {
+      this._publicKey = publicKeyOrAccount
+    }
+
     this._client = client
-    this._lastNonce = null
+    this._lastNonce = -1
   }
 
   async Handle(txData: Readonly<Uint8Array>): Promise<Uint8Array> {
-    if (this._lastNonce === null) {
-      log('Nonce not found getting from loomchain')
+    if (this._lastNonce === -1) {
+      log('Nonce not cached')
       try {
-        const key = bytesToHex(this._publicKey)
-        this._lastNonce = await this._client.getNonceAsync(key)
+        const key = this._publicKey ? bytesToHex(this._publicKey) : undefined
+        const account = this._account ? this._account.toString() : undefined
+        this._lastNonce = await this._client.getAccountNonceAsync({ key, account })
       } catch (err) {
         throw Error('Failed to obtain latest nonce')
       }
@@ -45,10 +55,11 @@ export class CachedNonceTxMiddleware implements ITxMiddlewareHandler {
   HandleResults(results: ITxResults): ITxResults {
     const { validation, commit } = results
     const isInvalidTx = validation && validation.code !== 0
-    const isFailedTx = commit && commit.code !== 0
+    const isFailedTx = commit && commit.code
     if (isInvalidTx || isFailedTx) {
       // Nonce has to be reset regardless of the cause of the tx failure.
-      this._lastNonce = null
+      log(`Reset cached nonce due to failed tx`)
+      this._lastNonce = -1
       // Throw a specific error for a nonce mismatch
       const isCheckTxNonceInvalid =
         validation &&
@@ -62,10 +73,21 @@ export class CachedNonceTxMiddleware implements ITxMiddlewareHandler {
       if (isCheckTxNonceInvalid || isDeliverTxNonceInvalid) {
         throw new Error(INVALID_TX_NONCE_ERROR)
       }
-    } else if (this._lastNonce !== null) {
+    } else if (this._lastNonce !== -1) {
       // Only increment the nonce if the tx is valid
       this._lastNonce++
+      log(`Incremented cached nonce to ${this._lastNonce}`)
     }
     return results
+  }
+
+  handleError(err: any): void {
+    if (isTxAlreadyInCacheError(err)) {
+      // This error indicates the tx payload & nonce were identical to a previously sent tx,
+      // which means the cached nonce has diverged from the nonce on the node, need to clear it out
+      // so it's refetched for the next tx.
+      this._lastNonce = -1
+      log('Reset cached nonce due to dupe tx')
+    }
   }
 }

@@ -35,13 +35,24 @@ export class WSRPCClient extends EventEmitter {
   private _isSubcribed: boolean = false
 
   protected _rpcId: number = 0
-  protected _getNextRequestId = () => (++this._rpcId).toString()
+
+  protected _getNextRequestId = () => {
+    const id = ++this._rpcId
+    return this.isWeb3EndpointEnabled ? id.toString() : id
+  }
 
   requestTimeout: number
 
   get isSubscribed(): boolean {
     return this._isSubcribed
   }
+
+  /**
+   * Indicates whether the client is configured to use the /eth endpoint on Loom nodes.
+   * When this is enabled the client can only be used to interact with EVM contracts.
+   * NOTE: This limitation will be removed in the near future.
+   */
+  readonly isWeb3EndpointEnabled: boolean
 
   /**
    *
@@ -59,10 +70,13 @@ export class WSRPCClient extends EventEmitter {
       requestTimeout?: number
       reconnectInterval?: number
       maxReconnects?: number
-      generateRequestId?: (method: string, params: object | any[]) => string
+      generateRequestId?: (method: string, params: object | any[]) => string | number
     } = {}
   ) {
     super()
+
+    this.isWeb3EndpointEnabled = true === /eth$/.test(url)
+
     const {
       autoConnect = true,
       requestTimeout = 15000, // 15s
@@ -206,15 +220,15 @@ export class WSRPCClient extends EventEmitter {
     const msgStr = message instanceof ArrayBuffer ? Buffer.from(message).toString() : message
     const msg = JSON.parse(msgStr)
 
-    // Events from native loomchain have the id equals 0
-    if (msg.id === '0') {
-      log('Loom Event arrived', msg)
+    if (msg.method === 'eth_subscription') {
+      log('EVM contract event arrived', msg)
+      this.emit(RPCClientEvent.EVMMessage, this.url, msg)
+    } else if (msg.id === '0') {
+      // Events from native loomchain have id 0
+      log('Go contract event arrived', msg)
       this.emit(RPCClientEvent.Message, this.url, msg)
-    }
-
-    // Events from EVM have the id from the evmsubscribe command
-    if (/^0x.+$/.test(msg.id)) {
-      log('EVM Event arrived', msg)
+    } else if (/^0x.+$/.test(msg.id)) {
+      // Events from EVM have the id from the evmsubscribe command
       this.emit(RPCClientEvent.EVMMessage, this.url, msg)
     }
   }
