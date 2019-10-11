@@ -32,12 +32,9 @@ export const ORACLE_SIG_SIZE = 132 // '0x'.length + 65 * 2
  * @returns Sorted array of v/r/s split signatures to be passed in the Gateway multisig
  */
 export function parseSigs(sig: string, hash: string, validators: string[]): IParsedSigsArray {
-  let vs: Array<number> = []
-  let rs: Array<string> = []
-  let ss: Array<string> = []
-  let valIndexes: Array<number> = []
 
-  let sigs: Array<string>
+
+  let sigs: string[]
   if (sig.length === ORACLE_SIG_SIZE_WITH_MODE) {
     // using old oracle but new mainnet contract requires removing the 'mode' bit from the signature
     sigs = ['0x' + sig.slice(4)]
@@ -52,30 +49,30 @@ export function parseSigs(sig: string, hash: string, validators: string[]): IPar
       .map(s => '0x' + s)
   }
 
+  const sigsMap = new Map<number, { vs: any; rs: any; ss: any }>()
+
   // Split signature in v,r,s arrays
   // Store the ordering of the validators' signatures in `valIndexes`
-  for (let i in sigs) {
+  for (let i = 0; i < sigs.length; i++) {
     const _hash = ethers.utils.arrayify(ethers.utils.hashMessage(ethers.utils.arrayify(hash)))
-
     const recAddress = ethers.utils.recoverAddress(_hash, sigs[i])
-    const ind = validators.indexOf(recAddress)
-    if (ind == -1) {
+    const signerInd = validators.indexOf(recAddress)
+    if (signerInd === -1) {
       // skip if invalid signature
       continue
     }
-
-    valIndexes.push(validators.indexOf(recAddress))
-
     const s = ethers.utils.splitSignature(sigs[i])
-    vs.push(s.v!)
-    rs.push(s.r)
-    ss.push(s.s)
+    sigsMap.set(signerInd, {
+      vs: s.v!,
+      rs: s.r,
+      ss: s.s
+    })
   }
 
-  vs = mapOrder(vs, valIndexes)
-  rs = mapOrder(rs, valIndexes)
-  ss = mapOrder(ss, valIndexes)
-  valIndexes.sort()
+  const valIndexes = Array.from(sigsMap.keys()).sort()
+  const vs: number[] = valIndexes.map(valIndex => sigsMap.get(valIndex)!.vs)
+  const rs: string[] = valIndexes.map(valIndex => sigsMap.get(valIndex)!.rs)
+  const ss: string[] = valIndexes.map(valIndex => sigsMap.get(valIndex)!.ss)
   return { vs, rs, ss, valIndexes }
 }
 
