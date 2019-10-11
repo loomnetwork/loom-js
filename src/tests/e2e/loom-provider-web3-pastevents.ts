@@ -1,7 +1,7 @@
 import test, { Test } from 'tape'
 
 import { LocalAddress, CryptoUtils } from '../../index'
-import { createTestClient, waitForMillisecondsAsync } from '../helpers'
+import { createTestClient, waitForMillisecondsAsync, createWeb3TestClient } from '../helpers'
 
 import { LoomProvider } from '../../loom-provider'
 import { deployContract } from '../evm-helpers'
@@ -165,7 +165,7 @@ async function testGanache(t: Test) {
 
 async function testLoomProvider(t: Test) {
   const privKey = CryptoUtils.generatePrivateKey()
-  const client = createTestClient()
+  const client = createWeb3TestClient()
   const from = LocalAddress.fromPublicKey(CryptoUtils.publicKeyFromPrivateKey(privKey)).toString()
   const loomProvider = new LoomProvider(client, privKey)
   const web3 = new Web3(loomProvider)
@@ -184,7 +184,7 @@ async function testLoomProvider(t: Test) {
   client.disconnect()
 }
 
-test.only('Test Web3 + PastEvents', async t => {
+test('Test Web3 + PastEvents', async t => {
   await testGanache(t)
   await testLoomProvider(t)
   t.end()
