@@ -12,7 +12,7 @@ export function soliditySha3(...values: any[]): string {
 /**
  * Signs messages using a foreign chain's private key.
  */
-export interface IBasechainSigner {
+export interface IForeignChainSigner {
   signAsync(msg: string): Promise<Uint8Array>
 }
 
@@ -20,7 +20,7 @@ export interface IBasechainSigner {
  * Signs messages using an Ethereum private key.
  * @deprecated use {IBasechainSigner}
  */
-export interface IEthereumSigner extends IBasechainSigner {}
+export interface IEthereumSigner extends IForeignChainSigner { }
 
 /**
  * Returns the Metamask signer from web3 current provider
@@ -50,7 +50,7 @@ export async function getJsonRPCSignerAsync(
  * Signs message using a Web3 account.
  * This signer should be used for interactive signing in the browser with MetaMask.
  */
-export class EthersSigner implements IBasechainSigner {
+export class EthersSigner implements IForeignChainSigner {
   private _signer: ethers.Signer
 
   /**
@@ -82,7 +82,7 @@ export class EthersSigner implements IBasechainSigner {
  * Signs message using a Web3 account.
  * This signer should be used for interactive signing in the browser with MetaMask.
  */
-export class Web3Signer implements IBasechainSigner {
+export class Web3Signer implements IForeignChainSigner {
   private _web3: Web3
   private _address: string
 
