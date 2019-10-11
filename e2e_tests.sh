@@ -61,6 +61,8 @@ start_chains() {
   sleep 5
 
   $LOOM_BIN deploy -a public_key_acc_1 -k private_key_acc_1 -n SimpleStore -b ./SimpleStore.bin
+
+  sleep 5
 }
 
 stop_chains() {

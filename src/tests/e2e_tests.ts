@@ -10,6 +10,7 @@ import './e2e/loom-provider-subscribe'
 import './e2e/loom-provider-web3-tests'
 import './e2e/loom-provider-web3-middlewares-tests'
 import './e2e/loom-provider-web3-child-events'
+import './e2e/loom-provider-web3-pastevents'
 
 // EVM
 import './e2e/client-evm-tests'
@@ -24,6 +25,7 @@ import './e2e/binance-test-tx-middleware'
 
 // Events
 import './e2e/multiple-events-nd-tests'
+import './e2e/client-test-tx-cache'
 
 // Contracts
 import './e2e/coin-tests'
