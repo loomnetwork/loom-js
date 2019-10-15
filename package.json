@@ -5,7 +5,7 @@
     "name": "Loom Network",
     "url": "https://loomx.io"
   },
-  "version": "1.60.1",
+  "version": "1.70.0",
   "keywords": [
     "blockchain",
     "dappchain"
@@ -18,15 +18,14 @@
     "build:dev": "tsc --project es2017.tsconfig.json",
     "format": "prettier --write \"src/**/*.ts\"",
     "test": "yarn test:node && yarn test:browser",
-    "test:node": "yarn proto && yarn abi && tsc && tape dist/tests/unit_tests.js | tap-spec",
-    "test:browser": "yarn proto && yarn abi && tsc && webpack --config webpack.unit.tests.config.js | tap-spec",
+    "test:node": "yarn proto && yarn gen-contract-types && tsc && tape dist/tests/unit_tests.js | tap-spec",
+    "test:browser": "yarn proto && yarn gen-contract-types && tsc && webpack --config webpack.unit.tests.config.js | tap-spec",
     "test:e2e:local": "bash e2e_tests.sh",
-    "e2e:node": "yarn proto && yarn abi && tsc && tape -r dotenv/config dotenv_config_path=./.env.test dist/tests/e2e_tests.js | tap-spec",
-    "e2e:browser": "yarn proto && yarn abi && tsc && webpack --config webpack.e2e.test.config.js | tap-spec",
+    "e2e:node": "yarn proto && yarn gen-contract-types && tsc && tape -r dotenv/config dotenv_config_path=./.env.test dist/tests/e2e_tests.js | tap-spec",
+    "e2e:browser": "yarn proto && yarn gen-contract-types && tsc && webpack --config webpack.e2e.test.config.js | tap-spec",
     "proto": "node ./scripts/gen-proto.js",
-    "abi": "node ./scripts/abi.js && bash ./scripts/fix_types.sh",
     "copy-contracts": "node ./scripts/copy-contracts.js",
-    "prepublish": "yarn proto && yarn abi && yarn build && webpack",
+    "prepublish": "yarn proto && yarn gen-contract-types && yarn build && webpack",
     "gen-contract-types": "typechain \"src/mainnet-contracts/*.json\" --target=ethers --outDir src/mainnet-contracts"
   },
   "dependencies": {

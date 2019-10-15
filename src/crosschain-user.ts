@@ -33,6 +33,9 @@ export interface CrossChainUserConstructorParams {
   addressMapper?: Contracts.AddressMapper
 }
 
+/**
+ * @deprecated Will be removed in loom-js v2.0.0
+ */
 export class CrossChainUser {
   private _wallet: ethers.Signer
   private _client: Client

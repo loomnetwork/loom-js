@@ -19,6 +19,9 @@ export interface DPOSUserV3ConstructorParams extends GatewayUserConstructorParam
   dappchainDPOS: Contracts.DPOS3
 }
 
+/**
+ * @deprecated Will be removed in loom-js v2.0.0
+ */
 export class DPOSUserV3 extends GatewayUser {
   private _dappchainDPOS: Contracts.DPOS3
 
