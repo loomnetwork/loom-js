@@ -236,8 +236,12 @@ async function testWeb3BlockByHash(t: any, useEthEndpoint: boolean) {
   const { client, web3 } = await newContractAndClient(useEthEndpoint)
   try {
     const blockNumber = await web3.eth.getBlockNumber()
+
     const blockInfo = await web3.eth.getBlock(blockNumber, false)
-    const blockInfoByHash = await web3.eth.getBlock(blockInfo.hash, false)
+    const blockInfoByHash = await web3.eth.getBlock(
+      blockInfo.transactionHash | blockInfo.hash,
+      false
+    )
     t.assert(blockInfoByHash, 'Should return block info by hash')
   } catch (err) {
     t.error(err)
