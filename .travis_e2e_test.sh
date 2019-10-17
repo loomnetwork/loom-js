@@ -2,7 +2,7 @@
 
 set -euxo pipefail
 
-eval "$(GIMME_GO_VERSION=1.10.2 gimme)"
+eval "$(GIMME_GO_VERSION=1.12.7 gimme)"
 
 export BUILD_ID=build-1313
 
