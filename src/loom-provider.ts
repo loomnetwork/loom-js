@@ -306,6 +306,7 @@ export class LoomProvider {
     this._ethRPCMethods.set('eth_newFilter', this._ethCallSupportedMethod)
     this._ethRPCMethods.set('eth_uninstallFilter', this._ethCallSupportedMethod)
     this._ethRPCMethods.set('debug_traceTransaction', this._ethCallSupportedMethod)
+    this._ethRPCMethods.set('eth_getStorageAt', this._ethCallSupportedMethod)
     this._ethRPCMethods.set('eth_subscribe', this._ethSubscribe)
     this._ethRPCMethods.set('eth_unsubscribe', this._ethUnsubscribe)
   }
