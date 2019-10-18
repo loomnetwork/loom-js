@@ -1,10 +1,13 @@
 import test from 'tape'
 
-import { LocalAddress, CryptoUtils } from '../../../index'
+import { LocalAddress, CryptoUtils, Contracts } from '../../../index'
 import { createTestClient, execAndWaitForMillisecondsAsync, getTestUrls } from '../../helpers'
 import { LoomProvider } from '../../../loom-provider'
 import { deployContract } from '../../evm-helpers'
 import { LoomProvider2 } from '../../../loom-provider-2'
+import { Address } from '../../../address'
+import { getJsonRPCSignerAsync, EthersSigner } from '../../../solidity-helpers'
+import { createDefaultTxMiddleware } from '../../../helpers'
 
 /**
  * Requires the SimpleStore solidity contract deployed on a loomchain.
@@ -23,25 +26,56 @@ import { LoomProvider2 } from '../../../loom-provider-2'
  *
  */
 
-const newContractAndClient = async () => {
+const bootstrapLoomProviderTest = async () => {
   const privKey = CryptoUtils.generatePrivateKey()
+  const pubKey = CryptoUtils.publicKeyFromPrivateKey(privKey)
   const client = createTestClient()
-  const from = LocalAddress.fromPublicKey(CryptoUtils.publicKeyFromPrivateKey(privKey)).toString()
-  const loomProvider = new LoomProvider(client, privKey)
+  client.txMiddleware = createDefaultTxMiddleware(client, privKey)
+  const loomProviderLegacy = new LoomProvider(client, privKey)
 
   const contractData =
     '608060405234801561001057600080fd5b50600a600081905550610118806100286000396000f3006080604052600436106049576000357c0100000000000000000000000000000000000000000000000000000000900463ffffffff16806360fe47b114604e5780636d4ce63c146078575b600080fd5b348015605957600080fd5b5060766004803603810190808035906020019092919050505060a0565b005b348015608357600080fd5b50608a60e3565b6040518082815260200191505060405180910390f35b806000819055507fb922f092a64f1a076de6f21e4d7c6400b6e55791cc935e7bb8e7e90f7652f15b6000546040518082815260200191505060405180910390a150565b600080549050905600a165627a7a72305820fabe42649c29e53c4b9fad19100d72a1e825603058e1678432a76f94a10d352a0029'
 
-  const { contractAddress, transactionHash } = await deployContract(loomProvider, contractData)
+  const { contractAddress, transactionHash } = await deployContract(
+    loomProviderLegacy,
+    contractData
+  )
 
   client.on('error', msg => console.error('Error on client:', msg))
 
-  return { privKey, client, contractData, contractAddress, transactionHash, from, loomProvider }
+  const addressMapper = await Contracts.AddressMapper.createAsync(
+    client,
+    new Address(client.chainId, LocalAddress.fromPublicKey(pubKey))
+  )
+
+  const ethAddress = '0x90F8bf6A479f320ead074411a4B0e7944Ea8c9C1'
+  const ecdsaKey = '0x4f3edf983ac636a65a842ce7c78d9aa706d3b113bce9c46f30d7d21715b23b1d'
+  const ethFrom = new Address('eth', LocalAddress.fromHexString(ethAddress))
+  const to = new Address(client.chainId, LocalAddress.fromPublicKey(pubKey))
+
+  const ethers = await getJsonRPCSignerAsync('http://localhost:8545', 0)
+  const ethersSigner = new EthersSigner(ethers)
+
+  if (!(await addressMapper.hasMappingAsync(ethFrom))) {
+    await addressMapper.addIdentityMappingAsync(ethFrom, to, ethersSigner)
+  }
+
+  client.disconnect()
+
+  const { wsEth } = getTestUrls()
+  const loomProvider = new LoomProvider2(wsEth, ecdsaKey)
+  const from = await loomProvider.wallet.getAddress()
+
+  return {
+    from,
+    contractAddress,
+    transactionHash,
+    loomProvider
+  }
 }
 
 test('LoomProvider2 method eth_blockNumber', async t => {
-  const { wsEth } = getTestUrls()
-  const loomProvider = new LoomProvider2(wsEth)
+  const { loomProvider } = await bootstrapLoomProviderTest()
 
   try {
     const id = 1
@@ -63,10 +97,8 @@ test('LoomProvider2 method eth_blockNumber', async t => {
   t.end()
 })
 
-test('LoomProvider method eth_accounts', async t => {
-  const { wsEth } = getTestUrls()
-  const loomProvider = new LoomProvider2(wsEth)
-  const from = await loomProvider.wallet.getAddress()
+test('LoomProvider2 method eth_accounts', async t => {
+  const { loomProvider, from } = await bootstrapLoomProviderTest()
 
   try {
     const id = 1
@@ -95,9 +127,8 @@ test('LoomProvider method eth_accounts', async t => {
   t.end()
 })
 
-test('LoomProvider method eth_getBlockByNumber (0x1)', async t => {
-  const { wsEth } = getTestUrls()
-  const loomProvider = new LoomProvider2(wsEth)
+test('LoomProvider2 method eth_getBlockByNumber (0x1)', async t => {
+  const { loomProvider } = await bootstrapLoomProviderTest()
 
   try {
     const id = 1
@@ -121,9 +152,8 @@ test('LoomProvider method eth_getBlockByNumber (0x1)', async t => {
   t.end()
 })
 
-test('LoomProvider method eth_getBlockByNumber (latest)', async t => {
-  const { wsEth } = getTestUrls()
-  const loomProvider = new LoomProvider2(wsEth)
+test('LoomProvider2 method eth_getBlockByNumber (latest)', async t => {
+  const { loomProvider } = await bootstrapLoomProviderTest()
 
   try {
     const id = 1
@@ -153,11 +183,8 @@ test('LoomProvider method eth_getBlockByNumber (latest)', async t => {
   t.end()
 })
 
-test('LoomProvider method eth_sendTransaction', async t => {
-  const { from, contractAddress, client } = await newContractAndClient()
-
-  const { wsEth } = getTestUrls()
-  const loomProvider = new LoomProvider2(wsEth)
+test('LoomProvider2 method eth_sendTransaction', async t => {
+  const { loomProvider, contractAddress, from } = await bootstrapLoomProviderTest()
 
   try {
     const id = 1
@@ -188,16 +215,12 @@ test('LoomProvider method eth_sendTransaction', async t => {
     t.error(err, 'Error found')
   }
 
-  client.disconnect()
   loomProvider.disconnect()
   t.end()
 })
 
-test('LoomProvider method eth_sendTransaction (deploy)', async t => {
-  const { from, client } = await newContractAndClient()
-
-  const { wsEth } = getTestUrls()
-  const loomProvider = new LoomProvider2(wsEth)
+test('LoomProvider2 method eth_sendTransaction (deploy)', async t => {
+  const { from, loomProvider } = await bootstrapLoomProviderTest()
 
   try {
     const id = 1
@@ -233,16 +256,12 @@ test('LoomProvider method eth_sendTransaction (deploy)', async t => {
     t.error(err, 'Error found')
   }
 
-  client.disconnect()
   loomProvider.disconnect()
   t.end()
 })
 
-test('LoomProvider method eth_getCode', async t => {
-  const { contractAddress, client } = await newContractAndClient()
-
-  const { wsEth } = getTestUrls()
-  const loomProvider = new LoomProvider2(wsEth)
+test('LoomProvider2 method eth_getCode', async t => {
+  const { contractAddress, loomProvider } = await bootstrapLoomProviderTest()
 
   try {
     const id = 1
@@ -263,16 +282,12 @@ test('LoomProvider method eth_getCode', async t => {
     t.error(err, 'Error found')
   }
 
-  client.disconnect()
   loomProvider.disconnect()
   t.end()
 })
 
-test('LoomProvider method eth_call', async t => {
-  const { from, contractAddress, client } = await newContractAndClient()
-
-  const { wsEth } = getTestUrls()
-  const loomProvider = new LoomProvider2(wsEth)
+test('LoomProvider2 method eth_call', async t => {
+  const { from, contractAddress, loomProvider } = await bootstrapLoomProviderTest()
 
   try {
     const id = 1
@@ -304,15 +319,11 @@ test('LoomProvider method eth_call', async t => {
   }
 
   loomProvider.disconnect()
-  client.disconnect()
   t.end()
 })
 
-test('LoomProvider method eth_getTransactionReceipt', async t => {
-  const { client, contractAddress, from } = await newContractAndClient()
-
-  const { wsEth } = getTestUrls()
-  const loomProvider = new LoomProvider2(wsEth)
+test('LoomProvider2 method eth_getTransactionReceipt', async t => {
+  const { loomProvider, contractAddress, from } = await bootstrapLoomProviderTest()
 
   try {
     const id = 1
@@ -352,15 +363,11 @@ test('LoomProvider method eth_getTransactionReceipt', async t => {
   }
 
   loomProvider.disconnect()
-  client.disconnect()
   t.end()
 })
 
-test('LoomProvider method eth_getTransactionByHash', async t => {
-  const { transactionHash, client } = await newContractAndClient()
-
-  const { wsEth } = getTestUrls()
-  const loomProvider = new LoomProvider2(wsEth)
+test('LoomProvider2 method eth_getTransactionByHash', async t => {
+  const { transactionHash, loomProvider } = await bootstrapLoomProviderTest()
 
   try {
     const id = 1
@@ -383,15 +390,11 @@ test('LoomProvider method eth_getTransactionByHash', async t => {
   }
 
   loomProvider.disconnect()
-  client.disconnect()
   t.end()
 })
 
-test('LoomProvider method eth_subscribe', async t => {
-  const { client } = await newContractAndClient()
-
-  const { wsEth } = getTestUrls()
-  const loomProvider = new LoomProvider2(wsEth)
+test('LoomProvider2 method eth_subscribe', async t => {
+  const { loomProvider } = await bootstrapLoomProviderTest()
 
   try {
     const id = 1
@@ -414,15 +417,11 @@ test('LoomProvider method eth_subscribe', async t => {
   }
 
   loomProvider.disconnect()
-  client.disconnect()
   t.end()
 })
 
-test('LoomProvider method eth_uninstallFilter', async t => {
-  const { client } = await newContractAndClient()
-
-  const { wsEth } = getTestUrls()
-  const loomProvider = new LoomProvider2(wsEth)
+test('LoomProvider2 method eth_uninstallFilter', async t => {
+  const { loomProvider } = await bootstrapLoomProviderTest()
 
   try {
     const id = 1
@@ -441,6 +440,5 @@ test('LoomProvider method eth_uninstallFilter', async t => {
   }
 
   loomProvider.disconnect()
-  client.disconnect()
   t.end()
 })

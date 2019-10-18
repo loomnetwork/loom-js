@@ -1,14 +1,13 @@
 import test, { Test } from 'tape'
 
-import {
-  execAndWaitForMillisecondsAsync,
-  getTestUrls,
-  waitForMillisecondsAsync
-} from '../../helpers'
+import { LocalAddress, CryptoUtils, Contracts } from '../../../index'
+import { createTestClient, getTestUrls, waitForMillisecondsAsync } from '../../helpers'
 import { deployContract2 } from '../../evm-helpers'
 import { LoomProvider2 } from '../../../loom-provider-2'
-
-const Web3 = require('web3')
+import { Address } from '../../../address'
+import { getJsonRPCSignerAsync, EthersSigner } from '../../../solidity-helpers'
+import { createDefaultTxMiddleware } from '../../../helpers'
+import Web3 from 'web3'
 
 /**
  * Requires the SimpleStore solidity contract deployed on a loomchain.
@@ -87,6 +86,43 @@ function contractABIAndBinary() {
   return { contractBData, contractAData, ABIContractB, ABIContractA }
 }
 
+const bootstrapLoomProviderTest = async () => {
+  const privKey = CryptoUtils.generatePrivateKey()
+  const pubKey = CryptoUtils.publicKeyFromPrivateKey(privKey)
+  const client = createTestClient()
+  client.txMiddleware = createDefaultTxMiddleware(client, privKey)
+
+  client.on('error', msg => console.error('Error on client:', msg))
+
+  const addressMapper = await Contracts.AddressMapper.createAsync(
+    client,
+    new Address(client.chainId, LocalAddress.fromPublicKey(pubKey))
+  )
+
+  const ethAddress = '0x90F8bf6A479f320ead074411a4B0e7944Ea8c9C1'
+  const ecdsaKey = '0x4f3edf983ac636a65a842ce7c78d9aa706d3b113bce9c46f30d7d21715b23b1d'
+  const ethFrom = new Address('eth', LocalAddress.fromHexString(ethAddress))
+  const to = new Address(client.chainId, LocalAddress.fromPublicKey(pubKey))
+
+  const ethers = await getJsonRPCSignerAsync('http://localhost:8545', 0)
+  const ethersSigner = new EthersSigner(ethers)
+
+  if (!(await addressMapper.hasMappingAsync(ethFrom))) {
+    await addressMapper.addIdentityMappingAsync(ethFrom, to, ethersSigner)
+  }
+
+  client.disconnect()
+
+  const { wsEth } = getTestUrls()
+  const loomProvider = new LoomProvider2(wsEth, ecdsaKey)
+  const from = await loomProvider.wallet.getAddress()
+
+  return {
+    from,
+    loomProvider
+  }
+}
+
 async function testContracts(t: Test, contractB: any, contractA: any) {
   try {
     const value = 5
@@ -151,14 +187,13 @@ async function testGanache(t: Test) {
   t.comment('Testing Ganache')
   await testContracts(t, contractB, contractA)
 
+  // @ts-ignore
   web3.currentProvider.connection.close()
 }
 
 async function testLoomProvider(t: Test) {
-  const { wsEth } = getTestUrls()
-  const loomProvider = new LoomProvider2(wsEth)
+  const { loomProvider, from } = await bootstrapLoomProviderTest()
   const web3 = new Web3(loomProvider)
-  const from = await loomProvider.wallet.getAddress()
 
   const { contractBData, contractAData, ABIContractB, ABIContractA } = contractABIAndBinary()
 
