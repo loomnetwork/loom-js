@@ -40,6 +40,10 @@
             "status": "WAITING"
           },
           {
+            "name": "auth:sigtx:eth0",
+            "status": "WAITING"
+          },
+          {
             "name": "auth:sigtx:eth1",
             "status": "WAITING"
           },
