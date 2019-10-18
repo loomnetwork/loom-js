@@ -78,6 +78,10 @@
           {
             "name": "evm:constantinople",
             "status": "WAITING"
+          },
+          {
+            "name": "tx:eth",
+            "status": "WAITING"
           }
         ]
       }
