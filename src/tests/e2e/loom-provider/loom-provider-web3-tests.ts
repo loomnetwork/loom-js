@@ -346,6 +346,26 @@ async function testWeb3PastEvents(t: any, useEthEndpoint: boolean) {
   t.end()
 }
 
+async function testWeb3GetStorageAt(t: any, useEthEndpoint: boolean) {
+  const { client, web3, contract } = await newContractAndClient(useEthEndpoint)
+  try {
+    const storageValue = await web3.eth.getStorageAt(contract.options.address, 0x0, 'latest')
+    t.equal(
+      storageValue,
+      '0x000000000000000000000000000000000000000000000000000000000000000a',
+      'Storage value at 0x0 for contract SimpleStore'
+    )
+  } catch (err) {
+    t.error(err)
+  }
+
+  if (client) {
+    client.disconnect()
+  }
+
+  t.end()
+}
+
 test('LoomProvider + Web3 + Event with not matching topic (/query)', (t: any) =>
   testWeb3MismatchedTopic(t, false))
 test('LoomProvider + Web3 + Event with not matching topic (/eth)', (t: any) =>
@@ -375,3 +395,4 @@ test('LoomProvider + Web3 + getTransactionReceipt (/query)', (t: any) =>
 //  testWeb3TransactionReceipt(t, true))
 test('LoomProvider + Web3 + Logs (/query)', (t: any) => testWeb3PastEvents(t, false))
 test('LoomProvider + Web3 + Logs (/eth)', (t: any) => testWeb3PastEvents(t, true))
+test('LoomProvider + Web3 + getStorageAt (/eth)', (t: any) => testWeb3GetStorageAt(t, true))
