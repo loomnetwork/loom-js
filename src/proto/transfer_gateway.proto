@@ -195,3 +195,20 @@ message TransferGatewayPendingContractMapping {
     // Hash of the transaction which created the foreign contract
     bytes foreign_contract_tx_hash = 5;
 }
+
+message TransferGatewayGetLocalAccountInfoRequest {
+    // Owner address
+    Address owner = 1;
+}
+
+message TransferGatewayGetLocalAccountInfoResponse {
+    // Local owner of the account
+    Address owner = 1;
+    // Pending withdrawal receipt (if any)
+    TransferGatewayWithdrawalReceipt withdrawal_receipt = 2;
+    // Total amount of ETH or LOOM (depending on the Gateway) withdrawn by this account within the
+    // last 24 hour withdrawal period (which started at last_withdrawal_limit_reset_time)
+    BigUInt total_withdrawal_amount = 3;
+    // Last time the 24 hour withdrawal period was reset for this account
+    int64 last_withdrawal_limit_reset_time = 4;
+}
