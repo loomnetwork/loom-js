@@ -5,6 +5,7 @@ import { Address } from '../address'
 import {
   TransferGatewayWithdrawTokenRequest,
   TransferGatewayWithdrawETHRequest,
+  TransferGatewayWithdrawalReceipt,
   TransferGatewayWithdrawalReceiptRequest,
   TransferGatewayWithdrawalReceiptResponse,
   TransferGatewayTokenKind,
@@ -16,7 +17,9 @@ import {
   TransferGatewayGetUnclaimedTokensRequest,
   TransferGatewayGetUnclaimedTokensResponse,
   TransferGatewayListContractMappingRequest,
-  TransferGatewayListContractMappingResponse
+  TransferGatewayListContractMappingResponse,
+  TransferGatewayGetLocalAccountInfoRequest,
+  TransferGatewayGetLocalAccountInfoResponse
 } from '../proto/transfer_gateway_pb'
 import { marshalBigUIntPB, unmarshalBigUIntPB } from '../big-uint'
 import { B64ToUint8Array } from '../crypto-utils'
@@ -69,6 +72,12 @@ export interface IContractMappingConfirmedEventArgs {
   foreignContract: Address
   // Address of corresponding contract on the local blockchain
   localContract: Address
+}
+
+export interface ILocalAccountInfo {
+  withdrawalReceipt: IWithdrawalReceipt | null
+  totalWithdrawalAmount: BN
+  lastWithdrawalLimitResetTime: number
 }
 
 export class TransferGateway extends Contract {
@@ -383,37 +392,41 @@ export class TransferGateway extends Contract {
     const receipt = result.getReceipt()
 
     if (receipt) {
-      let tokenId: BN | undefined
-      let tokenAmount: BN | undefined
-      let value: BN
-
-      const tokenKind = receipt.getTokenKind()
-      switch (tokenKind) {
-        case TransferGatewayTokenKind.ERC721:
-          tokenId = unmarshalBigUIntPB(receipt.getTokenId()!)
-          value = tokenId
-          break
-        case TransferGatewayTokenKind.ERC721X:
-          tokenId = unmarshalBigUIntPB(receipt.getTokenId()!)
-        // fallthrough
-        // tslint:disable-next-line: no-switch-case-fall-through
-        default:
-          tokenAmount = unmarshalBigUIntPB(receipt.getTokenAmount()!)
-          value = tokenAmount
-          break
-      }
-      return {
-        tokenOwner: Address.UnmarshalPB(receipt.getTokenOwner()!),
-        tokenContract: Address.UnmarshalPB(receipt.getTokenContract()!),
-        tokenKind,
-        tokenId,
-        tokenAmount,
-        withdrawalNonce: new BN(receipt.getWithdrawalNonce()!),
-        oracleSignature: receipt.getOracleSignature_asU8(),
-        value
-      }
+      return this.getWithdrawalReceipt(receipt)
     }
     return null
+  }
+
+  private getWithdrawalReceipt(receipt: TransferGatewayWithdrawalReceipt): IWithdrawalReceipt {
+    let tokenId: BN | undefined
+    let tokenAmount: BN | undefined
+    let value: BN
+
+    const tokenKind = receipt.getTokenKind()
+    switch (tokenKind) {
+      case TransferGatewayTokenKind.ERC721:
+        tokenId = unmarshalBigUIntPB(receipt.getTokenId()!)
+        value = tokenId
+        break
+      case TransferGatewayTokenKind.ERC721X:
+        tokenId = unmarshalBigUIntPB(receipt.getTokenId()!)
+      // fallthrough
+      // tslint:disable-next-line: no-switch-case-fall-through
+      default:
+        tokenAmount = unmarshalBigUIntPB(receipt.getTokenAmount()!)
+        value = tokenAmount
+        break
+    }
+    return {
+      tokenOwner: Address.UnmarshalPB(receipt.getTokenOwner()!),
+      tokenContract: Address.UnmarshalPB(receipt.getTokenContract()!),
+      tokenKind,
+      tokenId,
+      tokenAmount,
+      withdrawalNonce: new BN(receipt.getWithdrawalNonce()!),
+      oracleSignature: receipt.getOracleSignature_asU8(),
+      value
+    }
   }
 
   /**
@@ -490,5 +503,35 @@ export class TransferGateway extends Contract {
       req.setDepositorsList(depositors.map((address: Address) => address.MarshalPB()))
     }
     return this.callAsync<void>('ReclaimDepositorTokens', req)
+  }
+
+  /**
+   * Retrieves the local account info for the given DAppChain account.
+   * @param owner DAppChain address of a user account.
+   * @returns A promise that will be resolved with the local account info
+   */
+  async getLocalAccountInfoAsync(owner: Address): Promise<ILocalAccountInfo> {
+    const req = new TransferGatewayGetLocalAccountInfoRequest()
+    req.setOwner(owner.MarshalPB())
+
+    const result = await this.staticCallAsync(
+      'GetLocalAccountInfo',
+      req,
+      new TransferGatewayGetLocalAccountInfoResponse()
+    )
+
+    const receipt = result.getWithdrawalReceipt()
+    const withdrawalReceipt = receipt ? this.getWithdrawalReceipt(receipt) : null
+
+    const amount = result.getTotalWithdrawalAmount()
+    const totalWithdrawalAmount = amount ? unmarshalBigUIntPB(amount) : new BN(0)
+
+    const lastWithdrawalLimitResetTime = result.getLastWithdrawalLimitResetTime()
+
+    return {
+      withdrawalReceipt,
+      totalWithdrawalAmount,
+      lastWithdrawalLimitResetTime
+    }
   }
 }
