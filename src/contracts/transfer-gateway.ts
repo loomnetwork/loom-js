@@ -16,7 +16,9 @@ import {
   TransferGatewayGetUnclaimedTokensRequest,
   TransferGatewayGetUnclaimedTokensResponse,
   TransferGatewayListContractMappingRequest,
-  TransferGatewayListContractMappingResponse
+  TransferGatewayListContractMappingResponse,
+  TransferGatewayGetContractMappingRequest,
+  TransferGatewayGetContractMappingResponse
 } from '../proto/transfer_gateway_pb'
 import { marshalBigUIntPB, unmarshalBigUIntPB } from '../big-uint'
 import { B64ToUint8Array } from '../crypto-utils'
@@ -490,5 +492,36 @@ export class TransferGateway extends Contract {
       req.setDepositorsList(depositors.map((address: Address) => address.MarshalPB()))
     }
     return this.callAsync<void>('ReclaimDepositorTokens', req)
+  }
+
+  async getContractMappingAsync(from: Address): Promise<{
+    mappedAddress: Address
+    pending: boolean
+    found: boolean
+  }> {
+    const request = new TransferGatewayGetContractMappingRequest()
+    request.setFrom(from.MarshalPB())
+    
+    const response = await this.staticCallAsync<TransferGatewayGetContractMappingResponse>(
+      'GetContractMapping',
+      request,
+      new TransferGatewayGetContractMappingResponse(),
+    )
+
+    const hasMappedaddress = response.hasMappedAddress()
+
+    if (!hasMappedaddress) {
+      throw Error("Given address not found / didn't mapping before")
+    }
+    
+    const mappedAddress = Address.UnmarshalPB(response.getMappedAddress()!)
+    const pending = response.getIsPending()
+    const found = response.getFound()
+
+    return {
+      mappedAddress,
+      pending,
+      found
+    }
   }
 }

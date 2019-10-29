@@ -169,6 +169,17 @@ message TransferGatewayGetUnclaimedTokensResponse {
 message TransferGatewayResubmitWithdrawalRequest {
 }
 
+//Request for fetching Contract Mapping for given Address
+message TransferGatewayGetContractMappingRequest {
+    Address from = 1;
+}
+
+message TransferGatewayGetContractMappingResponse {
+    Address mapped_address = 1;
+    bool is_pending = 2;
+    bool found = 3;
+}
+
 message TransferGatewayListContractMappingRequest {
 }
 
