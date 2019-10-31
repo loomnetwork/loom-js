@@ -392,12 +392,12 @@ export class TransferGateway extends Contract {
     const receipt = result.getReceipt()
 
     if (receipt) {
-      return this.getWithdrawalReceipt(receipt)
+      return this._getWithdrawalReceipt(receipt)
     }
     return null
   }
 
-  private getWithdrawalReceipt(receipt: TransferGatewayWithdrawalReceipt): IWithdrawalReceipt {
+  private _getWithdrawalReceipt(receipt: TransferGatewayWithdrawalReceipt): IWithdrawalReceipt {
     let tokenId: BN | undefined
     let tokenAmount: BN | undefined
     let value: BN
@@ -521,7 +521,7 @@ export class TransferGateway extends Contract {
     )
 
     const receipt = result.getWithdrawalReceipt()
-    const withdrawalReceipt = receipt ? this.getWithdrawalReceipt(receipt) : null
+    const withdrawalReceipt = receipt ? this._getWithdrawalReceipt(receipt) : null
 
     const amount = result.getTotalWithdrawalAmount()
     const totalWithdrawalAmount = amount ? unmarshalBigUIntPB(amount) : new BN(0)
