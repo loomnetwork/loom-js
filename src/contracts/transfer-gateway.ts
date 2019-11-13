@@ -390,43 +390,7 @@ export class TransferGateway extends Contract {
     )
 
     const receipt = result.getReceipt()
-
-    if (receipt) {
-      return this._getWithdrawalReceipt(receipt)
-    }
-    return null
-  }
-
-  private _getWithdrawalReceipt(receipt: TransferGatewayWithdrawalReceipt): IWithdrawalReceipt {
-    let tokenId: BN | undefined
-    let tokenAmount: BN | undefined
-    let value: BN
-
-    const tokenKind = receipt.getTokenKind()
-    switch (tokenKind) {
-      case TransferGatewayTokenKind.ERC721:
-        tokenId = unmarshalBigUIntPB(receipt.getTokenId()!)
-        value = tokenId
-        break
-      case TransferGatewayTokenKind.ERC721X:
-        tokenId = unmarshalBigUIntPB(receipt.getTokenId()!)
-      // fallthrough
-      // tslint:disable-next-line: no-switch-case-fall-through
-      default:
-        tokenAmount = unmarshalBigUIntPB(receipt.getTokenAmount()!)
-        value = tokenAmount
-        break
-    }
-    return {
-      tokenOwner: Address.UnmarshalPB(receipt.getTokenOwner()!),
-      tokenContract: Address.UnmarshalPB(receipt.getTokenContract()!),
-      tokenKind,
-      tokenId,
-      tokenAmount,
-      withdrawalNonce: new BN(receipt.getWithdrawalNonce()!),
-      oracleSignature: receipt.getOracleSignature_asU8(),
-      value
-    }
+    return receipt ? unmarshalWithdrawalReceipt(receipt) : null
   }
 
   /**
@@ -506,32 +470,59 @@ export class TransferGateway extends Contract {
   }
 
   /**
-   * Retrieves the local account info for the given DAppChain account.
+   * Retrieves the information stored by the Gateway for the given DAppChain account.
    * @param owner DAppChain address of a user account.
-   * @returns A promise that will be resolved with the local account info
+   * @returns A promise that will be resolved with the local account info.
    */
   async getLocalAccountInfoAsync(owner: Address): Promise<ILocalAccountInfo> {
     const req = new TransferGatewayGetLocalAccountInfoRequest()
     req.setOwner(owner.MarshalPB())
 
-    const result = await this.staticCallAsync(
+    const resp = await this.staticCallAsync(
       'GetLocalAccountInfo',
       req,
       new TransferGatewayGetLocalAccountInfoResponse()
     )
 
-    const receipt = result.getWithdrawalReceipt()
-    const withdrawalReceipt = receipt ? this._getWithdrawalReceipt(receipt) : null
-
-    const amount = result.getTotalWithdrawalAmount()
-    const totalWithdrawalAmount = amount ? unmarshalBigUIntPB(amount) : new BN(0)
-
-    const lastWithdrawalLimitResetTime = result.getLastWithdrawalLimitResetTime()
+    const receipt = resp.getWithdrawalReceipt()
+    const amount = resp.getTotalWithdrawalAmount()
 
     return {
-      withdrawalReceipt,
-      totalWithdrawalAmount,
-      lastWithdrawalLimitResetTime
+      withdrawalReceipt: receipt ? unmarshalWithdrawalReceipt(receipt) : null,
+      totalWithdrawalAmount: amount ? unmarshalBigUIntPB(amount) : new BN(0),
+      lastWithdrawalLimitResetTime: resp.getLastWithdrawalLimitResetTime()
     }
+  }
+}
+
+function unmarshalWithdrawalReceipt(receipt: TransferGatewayWithdrawalReceipt): IWithdrawalReceipt {
+  let tokenId: BN | undefined
+  let tokenAmount: BN | undefined
+  let value: BN
+
+  const tokenKind = receipt.getTokenKind()
+  switch (tokenKind) {
+    case TransferGatewayTokenKind.ERC721:
+      tokenId = unmarshalBigUIntPB(receipt.getTokenId()!)
+      value = tokenId
+      break
+    case TransferGatewayTokenKind.ERC721X:
+      tokenId = unmarshalBigUIntPB(receipt.getTokenId()!)
+    // fallthrough
+    // tslint:disable-next-line: no-switch-case-fall-through
+    default:
+      tokenAmount = unmarshalBigUIntPB(receipt.getTokenAmount()!)
+      value = tokenAmount
+      break
+  }
+  return {
+    tokenOwner: Address.UnmarshalPB(receipt.getTokenOwner()!),
+    tokenContract: Address.UnmarshalPB(receipt.getTokenContract()!),
+    tokenKind,
+    tokenId,
+    tokenAmount,
+    withdrawalNonce: new BN(receipt.getWithdrawalNonce()!),
+    oracleSignature: receipt.getOracleSignature_asU8(),
+    value
   }
 }
