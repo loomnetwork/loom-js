@@ -494,34 +494,30 @@ export class TransferGateway extends Contract {
     return this.callAsync<void>('ReclaimDepositorTokens', req)
   }
 
-  async getContractMappingAsync(from: Address): Promise<{
-    mappedAddress: Address
-    pending: boolean
-    found: boolean
-  }> {
+  /**
+   * Looks up the contract mapping for the given contract address.
+   * @param from Contract address.
+   * @returns null if no mapping was found for the given contract, otherwise an object that contains
+   *          the address of the contract the `from` contract is mapped to, and the current status of
+   *          the mapping (pending or confirmed).
+   */
+  async getContractMappingAsync(from: Address): Promise<{ to: Address; pending: boolean } | null> {
     const request = new TransferGatewayGetContractMappingRequest()
     request.setFrom(from.MarshalPB())
-    
+
     const response = await this.staticCallAsync<TransferGatewayGetContractMappingResponse>(
       'GetContractMapping',
       request,
-      new TransferGatewayGetContractMappingResponse(),
+      new TransferGatewayGetContractMappingResponse()
     )
 
-    const hasMappedaddress = response.hasMappedAddress()
-
-    if (!hasMappedaddress) {
-      throw Error("Given address not found / didn't mapping before")
+    if (!response.getFound()) {
+      return null
     }
-    
-    const mappedAddress = Address.UnmarshalPB(response.getMappedAddress()!)
-    const pending = response.getIsPending()
-    const found = response.getFound()
 
     return {
-      mappedAddress,
-      pending,
-      found
+      to: Address.UnmarshalPB(response.getMappedAddress()!),
+      pending: response.getIsPending()
     }
   }
 }
