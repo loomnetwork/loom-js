@@ -169,7 +169,7 @@ message TransferGatewayGetUnclaimedTokensResponse {
 message TransferGatewayResubmitWithdrawalRequest {
 }
 
-//Request for fetching Contract Mapping for given Address
+// Fetches a specific contract mapping.
 message TransferGatewayGetContractMappingRequest {
     Address from = 1;
 }
