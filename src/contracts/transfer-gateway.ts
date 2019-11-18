@@ -19,7 +19,9 @@ import {
   TransferGatewayListContractMappingRequest,
   TransferGatewayListContractMappingResponse,
   TransferGatewayGetLocalAccountInfoRequest,
-  TransferGatewayGetLocalAccountInfoResponse
+  TransferGatewayGetLocalAccountInfoResponse,
+  TransferGatewayGetContractMappingRequest,
+  TransferGatewayGetContractMappingResponse
 } from '../proto/transfer_gateway_pb'
 import { marshalBigUIntPB, unmarshalBigUIntPB } from '../big-uint'
 import { B64ToUint8Array } from '../crypto-utils'
@@ -34,8 +36,8 @@ export interface IUnclaimedToken {
 
 export interface IWithdrawalReceipt {
   tokenOwner: Address
-  // Mainnet address of token contract
-  tokenContract: Address
+  // Mainnet address of token contract (NOTE: not set when withdrawing LOOM via Binance Gateway)
+  tokenContract?: Address
   tokenKind: TransferGatewayTokenKind
   // ERC721/X token ID
   tokenId?: BN
@@ -493,9 +495,38 @@ export class TransferGateway extends Contract {
       lastWithdrawalLimitResetTime: resp.getLastWithdrawalLimitResetTime()
     }
   }
+
+  /**
+   * Looks up the contract mapping for the given contract address.
+   * @param from Contract address.
+   * @returns null if no mapping was found for the given contract, otherwise an object that contains
+   *          the address of the contract the `from` contract is mapped to, and the current status of
+   *          the mapping (pending or confirmed).
+   */
+  async getContractMappingAsync(from: Address): Promise<{ to: Address; pending: boolean } | null> {
+    const request = new TransferGatewayGetContractMappingRequest()
+    request.setFrom(from.MarshalPB())
+
+    const response = await this.staticCallAsync<TransferGatewayGetContractMappingResponse>(
+      'GetContractMapping',
+      request,
+      new TransferGatewayGetContractMappingResponse()
+    )
+
+    if (!response.getFound()) {
+      return null
+    }
+
+    return {
+      to: Address.UnmarshalPB(response.getMappedAddress()!),
+      pending: response.getIsPending()
+    }
+  }
 }
 
-function unmarshalWithdrawalReceipt(receipt: TransferGatewayWithdrawalReceipt): IWithdrawalReceipt {
+function unmarshalWithdrawalReceipt(
+  receipt: TransferGatewayWithdrawalReceipt
+): IWithdrawalReceipt {
   let tokenId: BN | undefined
   let tokenAmount: BN | undefined
   let value: BN
