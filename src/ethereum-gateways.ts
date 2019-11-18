@@ -64,7 +64,6 @@ export class EthereumGatewayV1 implements IEthereumGateway {
     overrides?: TransactionOverrides
   ): Promise<ethers.ContractTransaction> {
     const signature = CryptoUtils.bytesToHexAddr(receipt.oracleSignature)
-    const tokenAddr = receipt.tokenContract.local.toString()
 
     let result
     switch (receipt.tokenKind) {
@@ -81,7 +80,7 @@ export class EthereumGatewayV1 implements IEthereumGateway {
         result = this.contract.functions.withdrawERC20(
           receipt.tokenAmount!.toString(),
           signature,
-          tokenAddr,
+          receipt.tokenContract!.local.toString(),
           overrides
         )
         break
@@ -90,7 +89,7 @@ export class EthereumGatewayV1 implements IEthereumGateway {
         result = this.contract.functions.withdrawERC721(
           receipt.tokenId!.toString(),
           signature,
-          tokenAddr,
+          receipt.tokenContract!.local.toString(),
           overrides
         )
         break
@@ -100,7 +99,7 @@ export class EthereumGatewayV1 implements IEthereumGateway {
           receipt.tokenId!.toString(),
           receipt.tokenAmount!.toString(),
           signature,
-          tokenAddr,
+          receipt.tokenContract!.local.toString(),
           overrides
         )
         break
@@ -137,7 +136,6 @@ export class EthereumGatewayV2 implements IEthereumGateway {
     receipt: IWithdrawalReceipt,
     overrides?: TransactionOverrides
   ): Promise<ethers.ContractTransaction> {
-    const tokenAddr = receipt.tokenContract.local.toString()
     const validators = await this.vmc.functions.getValidators()
     const hash = createWithdrawalHash(receipt, this.contract.address)
 
@@ -164,7 +162,7 @@ export class EthereumGatewayV2 implements IEthereumGateway {
       case TokenKind.ERC20:
         result = this.contract.functions.withdrawERC20(
           receipt.tokenAmount!.toString(),
-          tokenAddr,
+          receipt.tokenContract!.local.toString(),
           valIndexes,
           vs,
           rs,
@@ -176,7 +174,7 @@ export class EthereumGatewayV2 implements IEthereumGateway {
       case TokenKind.ERC721:
         result = this.contract.functions.withdrawERC721(
           receipt.tokenId!.toString(),
-          tokenAddr,
+          receipt.tokenContract!.local.toString(),
           valIndexes,
           vs,
           rs,
@@ -189,7 +187,7 @@ export class EthereumGatewayV2 implements IEthereumGateway {
         result = this.contract.functions.withdrawERC721X(
           receipt.tokenId!.toString(),
           receipt.tokenAmount!.toString(),
-          tokenAddr,
+          receipt.tokenContract!.local.toString(),
           valIndexes,
           vs,
           rs,
@@ -261,7 +259,7 @@ function createWithdrawalHash(receipt: IWithdrawalReceipt, gatewayAddress: strin
       prefix = MessagePrefix.ERC721
       amountHashed = ethers.utils.solidityKeccak256(
         ['uint256', 'address'],
-        [receipt.tokenId ? receipt.tokenId.toString() : 0, receipt.tokenContract.local.toString()]
+        [receipt.tokenId ? receipt.tokenId.toString() : 0, receipt.tokenContract!.local.toString()]
       )
       break
 
@@ -272,7 +270,7 @@ function createWithdrawalHash(receipt: IWithdrawalReceipt, gatewayAddress: strin
         [
           receipt.tokenId ? receipt.tokenId.toString() : 0,
           receipt.tokenAmount ? receipt.tokenAmount.toString() : 0,
-          receipt.tokenContract.local.toString()
+          receipt.tokenContract!.local.toString()
         ]
       )
       break
@@ -284,7 +282,7 @@ function createWithdrawalHash(receipt: IWithdrawalReceipt, gatewayAddress: strin
         ['uint256', 'address'],
         [
           receipt.tokenAmount ? receipt.tokenAmount.toString() : 0,
-          receipt.tokenContract.local.toString()
+          receipt.tokenContract!.local.toString()
         ]
       )
       break
