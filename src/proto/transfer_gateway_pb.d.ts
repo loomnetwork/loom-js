@@ -698,6 +698,66 @@ export namespace TransferGatewayPendingContractMapping {
   }
 }
 
+export class TransferGatewayGetLocalAccountInfoRequest extends jspb.Message {
+  hasOwner(): boolean;
+  clearOwner(): void;
+  getOwner(): proto_loom_pb.Address | undefined;
+  setOwner(value?: proto_loom_pb.Address): void;
+
+  serializeBinary(): Uint8Array;
+  toObject(includeInstance?: boolean): TransferGatewayGetLocalAccountInfoRequest.AsObject;
+  static toObject(includeInstance: boolean, msg: TransferGatewayGetLocalAccountInfoRequest): TransferGatewayGetLocalAccountInfoRequest.AsObject;
+  static extensions: {[key: number]: jspb.ExtensionFieldInfo<jspb.Message>};
+  static extensionsBinary: {[key: number]: jspb.ExtensionFieldBinaryInfo<jspb.Message>};
+  static serializeBinaryToWriter(message: TransferGatewayGetLocalAccountInfoRequest, writer: jspb.BinaryWriter): void;
+  static deserializeBinary(bytes: Uint8Array): TransferGatewayGetLocalAccountInfoRequest;
+  static deserializeBinaryFromReader(message: TransferGatewayGetLocalAccountInfoRequest, reader: jspb.BinaryReader): TransferGatewayGetLocalAccountInfoRequest;
+}
+
+export namespace TransferGatewayGetLocalAccountInfoRequest {
+  export type AsObject = {
+    owner?: proto_loom_pb.Address.AsObject,
+  }
+}
+
+export class TransferGatewayGetLocalAccountInfoResponse extends jspb.Message {
+  hasOwner(): boolean;
+  clearOwner(): void;
+  getOwner(): proto_loom_pb.Address | undefined;
+  setOwner(value?: proto_loom_pb.Address): void;
+
+  hasWithdrawalReceipt(): boolean;
+  clearWithdrawalReceipt(): void;
+  getWithdrawalReceipt(): TransferGatewayWithdrawalReceipt | undefined;
+  setWithdrawalReceipt(value?: TransferGatewayWithdrawalReceipt): void;
+
+  hasTotalWithdrawalAmount(): boolean;
+  clearTotalWithdrawalAmount(): void;
+  getTotalWithdrawalAmount(): proto_loom_pb.BigUInt | undefined;
+  setTotalWithdrawalAmount(value?: proto_loom_pb.BigUInt): void;
+
+  getLastWithdrawalLimitResetTime(): number;
+  setLastWithdrawalLimitResetTime(value: number): void;
+
+  serializeBinary(): Uint8Array;
+  toObject(includeInstance?: boolean): TransferGatewayGetLocalAccountInfoResponse.AsObject;
+  static toObject(includeInstance: boolean, msg: TransferGatewayGetLocalAccountInfoResponse): TransferGatewayGetLocalAccountInfoResponse.AsObject;
+  static extensions: {[key: number]: jspb.ExtensionFieldInfo<jspb.Message>};
+  static extensionsBinary: {[key: number]: jspb.ExtensionFieldBinaryInfo<jspb.Message>};
+  static serializeBinaryToWriter(message: TransferGatewayGetLocalAccountInfoResponse, writer: jspb.BinaryWriter): void;
+  static deserializeBinary(bytes: Uint8Array): TransferGatewayGetLocalAccountInfoResponse;
+  static deserializeBinaryFromReader(message: TransferGatewayGetLocalAccountInfoResponse, reader: jspb.BinaryReader): TransferGatewayGetLocalAccountInfoResponse;
+}
+
+export namespace TransferGatewayGetLocalAccountInfoResponse {
+  export type AsObject = {
+    owner?: proto_loom_pb.Address.AsObject,
+    withdrawalReceipt?: TransferGatewayWithdrawalReceipt.AsObject,
+    totalWithdrawalAmount?: proto_loom_pb.BigUInt.AsObject,
+    lastWithdrawalLimitResetTime: number,
+  }
+}
+
 export enum TransferGatewayTokenKind {
   ETH = 0,
   ERC20 = 1,
