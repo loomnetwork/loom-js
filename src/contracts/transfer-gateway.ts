@@ -551,9 +551,12 @@ function unmarshalWithdrawalReceipt(
       value = tokenAmount
       break
   }
+
   return {
     tokenOwner: Address.UnmarshalPB(receipt.getTokenOwner()!),
-    tokenContract: Address.UnmarshalPB(receipt.getTokenContract()!),
+    tokenContract: receipt.getTokenContract()
+      ? Address.UnmarshalPB(receipt.getTokenContract()!)
+      : undefined,
     tokenKind,
     tokenId,
     tokenAmount,
