@@ -36,6 +36,14 @@ export class TransferGatewayWithdrawalReceipt extends jspb.Message {
   getOracleSignature_asB64(): string;
   setOracleSignature(value: Uint8Array | string): void;
 
+  getTxHash(): Uint8Array | string;
+  getTxHash_asU8(): Uint8Array;
+  getTxHash_asB64(): string;
+  setTxHash(value: Uint8Array | string): void;
+
+  getTxStatus(): TransferGatewayTxStatus;
+  setTxStatus(value: TransferGatewayTxStatus): void;
+
   serializeBinary(): Uint8Array;
   toObject(includeInstance?: boolean): TransferGatewayWithdrawalReceipt.AsObject;
   static toObject(includeInstance: boolean, msg: TransferGatewayWithdrawalReceipt): TransferGatewayWithdrawalReceipt.AsObject;
@@ -55,6 +63,8 @@ export namespace TransferGatewayWithdrawalReceipt {
     tokenAmount?: proto_loom_pb.BigUInt.AsObject,
     withdrawalNonce: number,
     oracleSignature: Uint8Array | string,
+    txHash: Uint8Array | string,
+    txStatus: TransferGatewayTxStatus,
   }
 }
 
@@ -768,5 +778,12 @@ export enum TransferGatewayTokenKind {
   TRC20 = 6,
   BEP2_LOOM = 7,
   BEP2 = 8,
+}
+
+export enum TransferGatewayTxStatus {
+  PENDING = 0,
+  PROCESSED = 1,
+  CONFIRMED = 2,
+  REJECTED = 3,
 }
 
