@@ -31,8 +31,8 @@ export interface IUnclaimedToken {
 
 export interface IWithdrawalReceipt {
   tokenOwner: Address
-  // Mainnet address of token contract
-  tokenContract: Address
+  // Mainnet address of token contract (NOTE: not set when withdrawing LOOM via Binance Gateway)
+  tokenContract?: Address
   tokenKind: TransferGatewayTokenKind
   // ERC721/X token ID
   tokenId?: BN
@@ -402,9 +402,12 @@ export class TransferGateway extends Contract {
           value = tokenAmount
           break
       }
+
       return {
         tokenOwner: Address.UnmarshalPB(receipt.getTokenOwner()!),
-        tokenContract: Address.UnmarshalPB(receipt.getTokenContract()!),
+        tokenContract: receipt.getTokenContract()
+          ? Address.UnmarshalPB(receipt.getTokenContract()!)
+          : undefined,
         tokenKind,
         tokenId,
         tokenAmount,
