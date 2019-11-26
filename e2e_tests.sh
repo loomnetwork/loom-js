@@ -23,7 +23,7 @@ elif [[ "$unamestr" == 'Darwin' ]]; then
   PLATFORM='osx'
 else
   echo "Platform not supported on this script yet"
-  exit -1
+  exit 1
 fi
 
 download_dappchain() {
