@@ -77,8 +77,7 @@ stop_chains() {
 
 run_tests() {
   yarn test:node
-  # Disabled temporarily because it dies for some unknown reason on Travis
-  #yarn test:browser
+  yarn test:browser
   yarn e2e:node
 }
 

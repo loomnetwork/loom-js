@@ -1,7 +1,5 @@
 // This config is used to run tests in the browser.
-
-const path = require('path');
-const WebpackTapeRun = require('webpack-tape-run');
+const path = require('path')
 
 module.exports = {
   mode: 'production',
@@ -11,7 +9,6 @@ module.exports = {
     filename: 'browser_unit_tests.js',
     libraryTarget: 'umd',
     globalObject: 'this',
-    // libraryExport: 'default',
     library: 'loom_unit_tests'
   },
   node: {
@@ -19,10 +16,10 @@ module.exports = {
     crypto: true,
     util: true,
     stream: true,
-    path: 'empty',
+    path: 'empty'
   },
   externals: {
-    shelljs: 'commonjs shelljs',
+    shelljs: 'commonjs shelljs'
   },
   module: {
     rules: [
@@ -33,14 +30,9 @@ module.exports = {
       }
     ]
   },
-  plugins: [
-    // Be default tests will run in Electron, but can use other browsers too,
-    // see https://github.com/syarul/webpack-tape-run for plugin settings.
-    new WebpackTapeRun()
-  ],
   // silence irrelevant messages
   performance: {
     hints: false
   },
   stats: 'errors-only'
-};
+}
