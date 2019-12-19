@@ -538,16 +538,13 @@ export class TransferGateway extends Contract {
   }
 
   /**
-   * Retrieves the transfer gateway state
-   * @returns A promise that will be resolved the transfer gateway state.
-   * return default state if state is undefined.
+   * Retrieves the current transfer gateway state.
+   * @returns A promise that will be resolved with the state info.
    */
   async getStateAsync(): Promise<ITransferGatewayState> {
-    const request = new TransferGatewayStateRequest()
-
     const response = await this.staticCallAsync<TransferGatewayStateResponse>(
       'GetState',
-      request,
+      new TransferGatewayStateRequest(),
       new TransferGatewayStateResponse()
     )
 
