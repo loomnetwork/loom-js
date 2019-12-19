@@ -40,7 +40,7 @@ export interface IUnclaimedToken {
 export interface ITransferGatewayState {
   maxTotalDailyWithdrawalAmount: BN
   maxPerAccountDailyWithdrawalAmount: BN
-  lastWithdrawalLimitResetTime: number
+  lastWithdrawalLimitResetTime: Date
   totalWithdrawalAmount: BN
 }
 
@@ -540,9 +540,9 @@ export class TransferGateway extends Contract {
   /**
    * Retrieves the transfer gateway state
    * @returns A promise that will be resolved the transfer gateway state.
-   * return null when state is undefined.
+   * return default state if state is undefined.
    */
-  async getStateAsync(): Promise<ITransferGatewayState | null> {
+  async getStateAsync(): Promise<ITransferGatewayState> {
     const request = new TransferGatewayStateRequest()
 
     const response = await this.staticCallAsync<TransferGatewayStateResponse>(
@@ -554,7 +554,12 @@ export class TransferGateway extends Contract {
     const state = response.getState()
 
     if (!state) {
-      return null
+      return {
+        maxTotalDailyWithdrawalAmount: new BN(0),
+        maxPerAccountDailyWithdrawalAmount: new BN(0),
+        lastWithdrawalLimitResetTime: new Date(0),
+        totalWithdrawalAmount: new BN(0)
+      }
     }
 
     const maxTotalDailyWithdrawalAmount = state.getMaxTotalDailyWithdrawalAmount()
@@ -570,8 +575,8 @@ export class TransferGateway extends Contract {
         ? unmarshalBigUIntPB(maxPerAccountDailyWithdrawalAmount)
         : new BN(0),
       lastWithdrawalLimitResetTime: lastWithdrawalLimitResetTime
-        ? lastWithdrawalLimitResetTime
-        : 0,
+        ? new Date(lastWithdrawalLimitResetTime * 1000)
+        : new Date(0),
       totalWithdrawalAmount: totalWithdrawalAmount
         ? unmarshalBigUIntPB(totalWithdrawalAmount)
         : new BN(0)
