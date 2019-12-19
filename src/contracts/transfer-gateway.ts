@@ -38,9 +38,9 @@ export interface IUnclaimedToken {
 }
 
 export interface ITransferGatewayState {
-  maxTotalDailyWithdrawalAmount: BN,
-  maxPerAccountDailyWithdrawalAmount: BN,
-  lastWithdrawalLimitResetTime: number,
+  maxTotalDailyWithdrawalAmount: BN
+  maxPerAccountDailyWithdrawalAmount: BN
+  lastWithdrawalLimitResetTime: number
   totalWithdrawalAmount: BN
 }
 
@@ -550,9 +550,9 @@ export class TransferGateway extends Contract {
       request,
       new TransferGatewayStateResponse()
     )
-    
+
     const state = response.getState()
-    
+
     if (!state) {
       return null
     }
@@ -563,13 +563,20 @@ export class TransferGateway extends Contract {
     const totalWithdrawalAmount = state.getTotalWithdrawalAmount()
 
     return {
-      maxTotalDailyWithdrawalAmount: maxTotalDailyWithdrawalAmount ? unmarshalBigUIntPB(maxTotalDailyWithdrawalAmount) : new BN(0),
-      maxPerAccountDailyWithdrawalAmount: maxPerAccountDailyWithdrawalAmount ? unmarshalBigUIntPB(maxPerAccountDailyWithdrawalAmount) : new BN(0),
-      lastWithdrawalLimitResetTime: lastWithdrawalLimitResetTime ? lastWithdrawalLimitResetTime : 0,
-      totalWithdrawalAmount: totalWithdrawalAmount ? unmarshalBigUIntPB(totalWithdrawalAmount) : new BN(0),
+      maxTotalDailyWithdrawalAmount: maxTotalDailyWithdrawalAmount
+        ? unmarshalBigUIntPB(maxTotalDailyWithdrawalAmount)
+        : new BN(0),
+      maxPerAccountDailyWithdrawalAmount: maxPerAccountDailyWithdrawalAmount
+        ? unmarshalBigUIntPB(maxPerAccountDailyWithdrawalAmount)
+        : new BN(0),
+      lastWithdrawalLimitResetTime: lastWithdrawalLimitResetTime
+        ? lastWithdrawalLimitResetTime
+        : 0,
+      totalWithdrawalAmount: totalWithdrawalAmount
+        ? unmarshalBigUIntPB(totalWithdrawalAmount)
+        : new BN(0)
     }
   }
-
 }
 
 function unmarshalWithdrawalReceipt(
