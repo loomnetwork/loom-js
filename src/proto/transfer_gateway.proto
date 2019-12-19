@@ -21,6 +21,38 @@ enum TransferGatewayTxStatus {
     REJECTED = 3;
 }
 
+message TransferGatewayState {
+    Address owner = 1;
+    // Last Mainnet block processed by the Transfer Gateway contract
+    uint64 last_mainnet_block_num = 2;
+    // ID that should be used for the next pending contract mapping
+    uint64 next_contract_mapping_id = 3;
+    // Token owners that have initiated (but have not as yet completed) a withdrawal to Mainnet.
+    repeated Address token_withdrawers = 4;
+    // Binance Dex transfer fee. This will be used for binance gateway
+    BigUInt transfer_fee = 5;
+    // Mainnet Gateway address
+    Address mainnet_gateway_address = 6;
+    // Mainnet Hot Wallet address
+    Address mainnet_hot_wallet_address = 7;
+    // Max total ETH or LOOM withdrawal amount the gateway will allow in a 24 hour withdrawal period
+    BigUInt max_total_daily_withdrawal_amount = 8;
+    // Max per-account ETH or LOOM withdrawal amount the gateway will allow in a 24 hour withdrawal period
+    BigUInt max_per_account_daily_withdrawal_amount = 9;
+    // Last time the 24 hour withdrawal period was reset
+    int64 last_withdrawal_limit_reset_time = 10;
+    // Total amount of ETH or LOOM (depending on the Gateway) withdrawn through this gateway within
+    // the last 24 hour withdrawal period (which started at last_withdrawal_limit_reset_time)
+    BigUInt total_withdrawal_amount = 11;
+}
+
+message TransferGatewayStateRequest {
+}
+
+message TransferGatewayStateResponse {
+    TransferGatewayState state = 1;
+}
+
 message TransferGatewayWithdrawalReceipt {
     // Mainnet address of token owner
     Address token_owner = 1;

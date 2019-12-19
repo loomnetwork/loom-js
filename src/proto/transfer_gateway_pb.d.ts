@@ -4,6 +4,120 @@
 import * as jspb from "google-protobuf";
 import * as proto_loom_pb from "../proto/loom_pb";
 
+export class TransferGatewayState extends jspb.Message {
+  hasOwner(): boolean;
+  clearOwner(): void;
+  getOwner(): proto_loom_pb.Address | undefined;
+  setOwner(value?: proto_loom_pb.Address): void;
+
+  getLastMainnetBlockNum(): number;
+  setLastMainnetBlockNum(value: number): void;
+
+  getNextContractMappingId(): number;
+  setNextContractMappingId(value: number): void;
+
+  clearTokenWithdrawersList(): void;
+  getTokenWithdrawersList(): Array<proto_loom_pb.Address>;
+  setTokenWithdrawersList(value: Array<proto_loom_pb.Address>): void;
+  addTokenWithdrawers(value?: proto_loom_pb.Address, index?: number): proto_loom_pb.Address;
+
+  hasTransferFee(): boolean;
+  clearTransferFee(): void;
+  getTransferFee(): proto_loom_pb.BigUInt | undefined;
+  setTransferFee(value?: proto_loom_pb.BigUInt): void;
+
+  hasMainnetGatewayAddress(): boolean;
+  clearMainnetGatewayAddress(): void;
+  getMainnetGatewayAddress(): proto_loom_pb.Address | undefined;
+  setMainnetGatewayAddress(value?: proto_loom_pb.Address): void;
+
+  hasMainnetHotWalletAddress(): boolean;
+  clearMainnetHotWalletAddress(): void;
+  getMainnetHotWalletAddress(): proto_loom_pb.Address | undefined;
+  setMainnetHotWalletAddress(value?: proto_loom_pb.Address): void;
+
+  hasMaxTotalDailyWithdrawalAmount(): boolean;
+  clearMaxTotalDailyWithdrawalAmount(): void;
+  getMaxTotalDailyWithdrawalAmount(): proto_loom_pb.BigUInt | undefined;
+  setMaxTotalDailyWithdrawalAmount(value?: proto_loom_pb.BigUInt): void;
+
+  hasMaxPerAccountDailyWithdrawalAmount(): boolean;
+  clearMaxPerAccountDailyWithdrawalAmount(): void;
+  getMaxPerAccountDailyWithdrawalAmount(): proto_loom_pb.BigUInt | undefined;
+  setMaxPerAccountDailyWithdrawalAmount(value?: proto_loom_pb.BigUInt): void;
+
+  getLastWithdrawalLimitResetTime(): number;
+  setLastWithdrawalLimitResetTime(value: number): void;
+
+  hasTotalWithdrawalAmount(): boolean;
+  clearTotalWithdrawalAmount(): void;
+  getTotalWithdrawalAmount(): proto_loom_pb.BigUInt | undefined;
+  setTotalWithdrawalAmount(value?: proto_loom_pb.BigUInt): void;
+
+  serializeBinary(): Uint8Array;
+  toObject(includeInstance?: boolean): TransferGatewayState.AsObject;
+  static toObject(includeInstance: boolean, msg: TransferGatewayState): TransferGatewayState.AsObject;
+  static extensions: {[key: number]: jspb.ExtensionFieldInfo<jspb.Message>};
+  static extensionsBinary: {[key: number]: jspb.ExtensionFieldBinaryInfo<jspb.Message>};
+  static serializeBinaryToWriter(message: TransferGatewayState, writer: jspb.BinaryWriter): void;
+  static deserializeBinary(bytes: Uint8Array): TransferGatewayState;
+  static deserializeBinaryFromReader(message: TransferGatewayState, reader: jspb.BinaryReader): TransferGatewayState;
+}
+
+export namespace TransferGatewayState {
+  export type AsObject = {
+    owner?: proto_loom_pb.Address.AsObject,
+    lastMainnetBlockNum: number,
+    nextContractMappingId: number,
+    tokenWithdrawersList: Array<proto_loom_pb.Address.AsObject>,
+    transferFee?: proto_loom_pb.BigUInt.AsObject,
+    mainnetGatewayAddress?: proto_loom_pb.Address.AsObject,
+    mainnetHotWalletAddress?: proto_loom_pb.Address.AsObject,
+    maxTotalDailyWithdrawalAmount?: proto_loom_pb.BigUInt.AsObject,
+    maxPerAccountDailyWithdrawalAmount?: proto_loom_pb.BigUInt.AsObject,
+    lastWithdrawalLimitResetTime: number,
+    totalWithdrawalAmount?: proto_loom_pb.BigUInt.AsObject,
+  }
+}
+
+export class TransferGatewayStateRequest extends jspb.Message {
+  serializeBinary(): Uint8Array;
+  toObject(includeInstance?: boolean): TransferGatewayStateRequest.AsObject;
+  static toObject(includeInstance: boolean, msg: TransferGatewayStateRequest): TransferGatewayStateRequest.AsObject;
+  static extensions: {[key: number]: jspb.ExtensionFieldInfo<jspb.Message>};
+  static extensionsBinary: {[key: number]: jspb.ExtensionFieldBinaryInfo<jspb.Message>};
+  static serializeBinaryToWriter(message: TransferGatewayStateRequest, writer: jspb.BinaryWriter): void;
+  static deserializeBinary(bytes: Uint8Array): TransferGatewayStateRequest;
+  static deserializeBinaryFromReader(message: TransferGatewayStateRequest, reader: jspb.BinaryReader): TransferGatewayStateRequest;
+}
+
+export namespace TransferGatewayStateRequest {
+  export type AsObject = {
+  }
+}
+
+export class TransferGatewayStateResponse extends jspb.Message {
+  hasState(): boolean;
+  clearState(): void;
+  getState(): TransferGatewayState | undefined;
+  setState(value?: TransferGatewayState): void;
+
+  serializeBinary(): Uint8Array;
+  toObject(includeInstance?: boolean): TransferGatewayStateResponse.AsObject;
+  static toObject(includeInstance: boolean, msg: TransferGatewayStateResponse): TransferGatewayStateResponse.AsObject;
+  static extensions: {[key: number]: jspb.ExtensionFieldInfo<jspb.Message>};
+  static extensionsBinary: {[key: number]: jspb.ExtensionFieldBinaryInfo<jspb.Message>};
+  static serializeBinaryToWriter(message: TransferGatewayStateResponse, writer: jspb.BinaryWriter): void;
+  static deserializeBinary(bytes: Uint8Array): TransferGatewayStateResponse;
+  static deserializeBinaryFromReader(message: TransferGatewayStateResponse, reader: jspb.BinaryReader): TransferGatewayStateResponse;
+}
+
+export namespace TransferGatewayStateResponse {
+  export type AsObject = {
+    state?: TransferGatewayState.AsObject,
+  }
+}
+
 export class TransferGatewayWithdrawalReceipt extends jspb.Message {
   hasTokenOwner(): boolean;
   clearTokenOwner(): void;

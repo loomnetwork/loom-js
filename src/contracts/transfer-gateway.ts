@@ -22,7 +22,9 @@ import {
   TransferGatewayGetLocalAccountInfoResponse,
   TransferGatewayGetContractMappingRequest,
   TransferGatewayGetContractMappingResponse,
-  TransferGatewayTxStatus
+  TransferGatewayTxStatus,
+  TransferGatewayStateRequest,
+  TransferGatewayStateResponse
 } from '../proto/transfer_gateway_pb'
 import { marshalBigUIntPB, unmarshalBigUIntPB } from '../big-uint'
 import { B64ToUint8Array } from '../crypto-utils'
@@ -33,6 +35,13 @@ export interface IUnclaimedToken {
   tokenKind: TransferGatewayTokenKind
   tokenIds?: Array<BN>
   tokenAmounts?: Array<BN>
+}
+
+export interface ITransferGatewayState {
+  maxTotalDailyWithdrawalAmount: BN,
+  maxPerAccountDailyWithdrawalAmount: BN,
+  lastWithdrawalLimitResetTime: number,
+  totalWithdrawalAmount: BN
 }
 
 export interface IWithdrawalReceipt {
@@ -527,6 +536,40 @@ export class TransferGateway extends Contract {
       pending: response.getIsPending()
     }
   }
+
+  /**
+   * Retrieves the transfer gateway state
+   * @returns A promise that will be resolved the transfer gateway state.
+   * return null when state is undefined.
+   */
+  async getStateAsync(): Promise<ITransferGatewayState | null> {
+    const request = new TransferGatewayStateRequest()
+
+    const response = await this.staticCallAsync<TransferGatewayStateResponse>(
+      'GetState',
+      request,
+      new TransferGatewayStateResponse()
+    )
+    
+    const state = response.getState()
+    
+    if (!state) {
+      return null
+    }
+
+    const maxTotalDailyWithdrawalAmount = state.getMaxTotalDailyWithdrawalAmount()
+    const maxPerAccountDailyWithdrawalAmount = state.getMaxPerAccountDailyWithdrawalAmount()
+    const lastWithdrawalLimitResetTime = state.getLastWithdrawalLimitResetTime()
+    const totalWithdrawalAmount = state.getTotalWithdrawalAmount()
+
+    return {
+      maxTotalDailyWithdrawalAmount: maxTotalDailyWithdrawalAmount ? unmarshalBigUIntPB(maxTotalDailyWithdrawalAmount) : new BN(0),
+      maxPerAccountDailyWithdrawalAmount: maxPerAccountDailyWithdrawalAmount ? unmarshalBigUIntPB(maxPerAccountDailyWithdrawalAmount) : new BN(0),
+      lastWithdrawalLimitResetTime: lastWithdrawalLimitResetTime ? lastWithdrawalLimitResetTime : 0,
+      totalWithdrawalAmount: totalWithdrawalAmount ? unmarshalBigUIntPB(totalWithdrawalAmount) : new BN(0),
+    }
+  }
+
 }
 
 function unmarshalWithdrawalReceipt(
