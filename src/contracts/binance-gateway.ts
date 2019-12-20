@@ -1,6 +1,6 @@
 import { TransferGateway } from './transfer-gateway'
 import { Client } from '../client'
-import { Address } from '../address'
+import { Address, LocalAddress } from '../address'
 import {
   TransferGatewayResubmitWithdrawalRequest,
   TransferGatewayWithdrawLoomCoinRequest,
@@ -9,6 +9,11 @@ import {
 } from '../proto/transfer_gateway_pb'
 import { marshalBigUIntPB } from '../big-uint'
 import BN from 'bn.js'
+
+const binanceRootAddress = new Address(
+  'binance',
+  LocalAddress.fromHexString('0x0000000000000000000000000000000000000000')
+)
 
 export class BinanceTransferGateway extends TransferGateway {
   static async createAsync(client: Client, callerAddr: Address): Promise<BinanceTransferGateway> {
@@ -34,6 +39,10 @@ export class BinanceTransferGateway extends TransferGateway {
     const req = new TransferGatewayWithdrawLoomCoinRequest()
     req.setAmount(marshalBigUIntPB(amount))
     req.setRecipient(recipient.MarshalPB())
+    // TODO: It should be necessary to specify the token contract in the request, but validation
+    //       checks in the gateway contract will fail if it's missing, so until the contract is
+    //       fixed up we need to specify some kind of address.
+    req.setTokenContract(binanceRootAddress.MarshalPB())
     return this.callAsync<void>('WithdrawLoomCoin', req)
   }
 
