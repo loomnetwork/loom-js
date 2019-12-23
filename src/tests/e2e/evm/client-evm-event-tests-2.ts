@@ -1,13 +1,13 @@
 import test from 'tape'
 
-import { CryptoUtils, Client } from '../../index'
-import { createTestClient, waitForMillisecondsAsync } from '../helpers'
-import { CallTx, VMType, MessageTx, Transaction } from '../../proto/loom_pb'
-import { LoomProvider } from '../../loom-provider'
-import { deployContract } from '../evm-helpers'
-import { bufferToProtobufBytes } from '../../crypto-utils'
-import { Address, LocalAddress } from '../../address'
-import { createDefaultTxMiddleware } from '../../helpers'
+import { CryptoUtils, Client } from '../../../index'
+import { createTestClient, waitForMillisecondsAsync } from '../../helpers'
+import { CallTx, VMType, MessageTx, Transaction } from '../../../proto/loom_pb'
+import { LoomProvider } from '../../../loom-provider'
+import { deployContract } from '../../evm-helpers'
+import { bufferToProtobufBytes } from '../../../crypto-utils'
+import { Address, LocalAddress } from '../../../address'
+import { createDefaultTxMiddleware } from '../../../helpers'
 
 /**
  * Requires the SimpleStore solidity contract deployed on a loomchain.
@@ -100,11 +100,8 @@ test('Client EVM Event test (two filters)', async t => {
       address: result.contractAddress
     }
 
-    const filterCreated1 = await client.evmSubscribeAsync('logs', filter1)
-    const filterCreated2 = await client.evmSubscribeAsync('logs', filter2)
-
-    console.log('Filter 1 created', filterCreated1)
-    console.log('Filter 2 created', filterCreated2)
+    await client.evmSubscribeAsync('logs', filter1)
+    await client.evmSubscribeAsync('logs', filter2)
 
     const caller = new Address('default', LocalAddress.fromPublicKey(publicKey))
     const address = new Address('default', LocalAddress.fromHexString(result.contractAddress))
@@ -124,7 +121,6 @@ test('Client EVM Event test (two filters)', async t => {
 
     waitForMillisecondsAsync(2000)
   } catch (err) {
-    console.error(err)
     t.fail(err.message)
   }
 

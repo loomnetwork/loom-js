@@ -8,14 +8,14 @@ import {
   IChainEventArgs,
   CryptoUtils,
   createDefaultTxMiddleware
-} from '../../index'
-import { MapEntry } from '../tests_pb'
+} from '../../../index'
+import { MapEntry } from '../../tests_pb'
 import {
   createTestClient,
   createTestHttpClient,
   createTestWSClient,
   createTestHttpWSClient
-} from '../helpers'
+} from '../../helpers'
 
 async function getClientAndContract(
   createClient: () => Client

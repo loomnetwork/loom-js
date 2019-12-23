@@ -1,5 +1,4 @@
 import test from 'tape'
-import BN from 'bn.js'
 import {
   Address,
   Contracts,
@@ -7,9 +6,9 @@ import {
   createDefaultTxMiddleware,
   Client,
   LocalAddress
-} from '../../index'
-import { createTestHttpClient, waitForMillisecondsAsync } from '../helpers'
-import { B64ToUint8Array } from '../../crypto-utils'
+} from '../../../index'
+import { createTestHttpClient, waitForMillisecondsAsync } from '../../helpers'
+import { B64ToUint8Array } from '../../../crypto-utils'
 
 async function getClientAndContract(
   createClient: () => Client

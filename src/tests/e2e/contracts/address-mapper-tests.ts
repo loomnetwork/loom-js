@@ -7,10 +7,9 @@ import {
   CryptoUtils,
   createDefaultTxMiddleware,
   Contracts
-} from '../../index'
-import { createTestHttpClient } from '../helpers'
-import { EthersSigner, getJsonRPCSignerAsync } from '../../solidity-helpers'
-import { ethers, Signer } from 'ethers'
+} from '../../../index'
+import { createTestHttpClient } from '../../helpers'
+import { EthersSigner, getJsonRPCSignerAsync } from '../../../solidity-helpers'
 
 async function getClientAndContract(
   createClient: () => Client

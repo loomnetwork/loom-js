@@ -8,14 +8,14 @@ import {
   Client,
   ITxMiddlewareHandler,
   SpeculativeNonceTxMiddleware
-} from '../../index'
-import { createTestWSClient, createTestHttpClient } from '../helpers'
-import { CallTx, VMType, MessageTx, Transaction, NonceTx } from '../../proto/loom_pb'
-import { LoomProvider } from '../../loom-provider'
-import { deployContract } from '../evm-helpers'
-import { bufferToProtobufBytes } from '../../crypto-utils'
-import { Address, LocalAddress } from '../../address'
-import { sleep } from '../../helpers'
+} from '../../../index'
+import { createTestWSClient, createTestHttpClient } from '../../helpers'
+import { CallTx, VMType, MessageTx, Transaction, NonceTx } from '../../../proto/loom_pb'
+import { LoomProvider } from '../../../loom-provider'
+import { deployContract } from '../../evm-helpers'
+import { bufferToProtobufBytes } from '../../../crypto-utils'
+import { Address, LocalAddress } from '../../../address'
+import { sleep } from '../../../helpers'
 
 /**
  * Requires the SimpleStore solidity contract deployed on a loomchain.
@@ -107,13 +107,11 @@ class DuplicateNonceTxMiddleware implements ITxMiddlewareHandler {
 
   async Handle(txData: Readonly<Uint8Array>): Promise<Uint8Array> {
     if (this.nextNonce > 0) {
-      console.log('Sending tx with nonce ' + this.nextNonce)
       const tx = new NonceTx()
       tx.setInner(txData as Uint8Array)
       tx.setSequence(this.nextNonce)
       return tx.serializeBinary()
     } else {
-      console.log('Sending tx with nonce 1')
       this.nextNonce = 1
       return this._mw.Handle(txData)
     }
@@ -155,7 +153,6 @@ test('Client tx already in cache error (Websocket)', async t => {
     }
     t.equal(cacheErrCount, 1, 'expect to receive cache error')
   } catch (err) {
-    console.error(err)
     t.fail(err.message)
   }
 
@@ -198,7 +195,6 @@ test('Client tx already in cache error (HTTP)', async t => {
     }
     t.equal(cacheErrCount, 1, 'expect to receive cache error')
   } catch (err) {
-    console.error(err)
     t.fail(err.message)
   }
 
@@ -338,7 +334,6 @@ test('Test CachedNonceTxMiddleware - duplicate tx', async t => {
 
     t.equal(cacheErrCount, 1, 'expect to receive only one cache error')
   } catch (err) {
-    console.error(err)
     t.fail(err.message)
   }
 
@@ -409,7 +404,6 @@ test('Test SpeculativeNonceTxMiddleware - failed tx', async t => {
 
     t.equal(cacheErrCount, 1, 'expect to receive only one cache error')
   } catch (err) {
-    console.error(err)
     t.fail(err.message)
   }
 
@@ -494,7 +488,6 @@ test('Test SpeculativeNonceTxMiddleware - duplicate tx', async t => {
 
     t.equal(cacheErrCount, 1, 'expect to receive only one cache error')
   } catch (err) {
-    console.error(err)
     t.fail(err.message)
   }
 
@@ -548,7 +541,6 @@ test('Test SpeculativeNonceTxMiddleware - rapid txs', async t => {
 
     t.equal(errCount, 0, 'expect to receive no errors')
   } catch (err) {
-    console.error(err)
     t.fail(err.message)
   }
 

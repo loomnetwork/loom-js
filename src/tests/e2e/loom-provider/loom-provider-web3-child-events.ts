@@ -1,10 +1,10 @@
 import test, { Test } from 'tape'
 
-import { LocalAddress, CryptoUtils } from '../../index'
-import { createTestClient, waitForMillisecondsAsync, createWeb3TestClient } from '../helpers'
+import { LocalAddress, CryptoUtils } from '../../../index'
+import { createTestClient, waitForMillisecondsAsync, createWeb3TestClient } from '../../helpers'
 
-import { LoomProvider } from '../../loom-provider'
-import { deployContract } from '../evm-helpers'
+import { LoomProvider } from '../../../loom-provider'
+import { deployContract } from '../../evm-helpers'
 
 const Web3 = require('web3')
 
@@ -106,7 +106,7 @@ async function testContracts(t: Test, contractB: any, contractA: any) {
 
     await waitForMillisecondsAsync(1000)
   } catch (err) {
-    console.log(err)
+    t.error(err)
   }
 }
 

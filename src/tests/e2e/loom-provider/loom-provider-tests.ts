@@ -1,17 +1,17 @@
 import test from 'tape'
 
 import BN from 'bn.js'
-import { LocalAddress, CryptoUtils } from '../../index'
+import { LocalAddress, CryptoUtils } from '../../../index'
 import {
   createTestClient,
   execAndWaitForMillisecondsAsync,
   waitForMillisecondsAsync
-} from '../helpers'
-import { LoomProvider } from '../../loom-provider'
-import { deployContract } from '../evm-helpers'
+} from '../../helpers'
+import { LoomProvider } from '../../../loom-provider'
+import { deployContract } from '../../evm-helpers'
 import { ecrecover, privateToPublic, fromRpcSig, toBuffer } from 'ethereumjs-util'
-import { soliditySha3 } from '../../solidity-helpers'
-import { bytesToHexAddr } from '../../crypto-utils'
+import { soliditySha3 } from '../../../solidity-helpers'
+import { bytesToHexAddr } from '../../../crypto-utils'
 
 /**
  * Requires the SimpleStore solidity contract deployed on a loomchain.
@@ -73,7 +73,6 @@ test('LoomProvider method eth_sign', async t => {
       'Should pubKey from ecrecover been valid'
     )
   } catch (err) {
-    console.log(err)
     t.error(err, 'Error found')
   }
 
@@ -111,7 +110,6 @@ test('LoomProvider method net_version', async t => {
       'net_version should match the chain id'
     )
   } catch (err) {
-    console.log(err)
     t.error(err, 'Error found')
   }
 
@@ -145,7 +143,6 @@ test('LoomProvider method eth_accounts', async t => {
       'accounts should be available on eth_accounts command'
     )
   } catch (err) {
-    console.log(err)
     t.error(err, 'Error found')
   }
 
@@ -175,7 +172,6 @@ test('LoomProvider method eth_newBlockFilter', async t => {
       'Hex identification should be returned on eth_newBlockFilter'
     )
   } catch (err) {
-    console.log(err)
     t.error(err, 'Error found')
   }
 
@@ -202,7 +198,6 @@ test('LoomProvider method eth_blockNumber', async t => {
     t.assert(ethBlockNumber.result, 'JSON RPC result should be set')
     t.equal(ethBlockNumber.result.indexOf('0x'), 0, 'Block number should be hex-encoded')
   } catch (err) {
-    console.log(err)
     t.error(err, 'Error found')
   }
 
@@ -231,7 +226,6 @@ test('LoomProvider method eth_getBlockByNumber (0x1)', async t => {
       'Block should be returned from eth_getBlockByNumber'
     )
   } catch (err) {
-    console.log(err)
     t.error(err, 'Error found')
   }
 
@@ -266,7 +260,6 @@ test('LoomProvider method eth_getBlockByNumber (latest)', async t => {
       'Block should be returned from eth_getBlockByNumber'
     )
   } catch (err) {
-    console.log(err)
     t.error(err, 'Error found')
   }
 
@@ -306,7 +299,6 @@ test('LoomProvider method eth_sendTransaction', async t => {
       'Hex identification should be returned for eth_sendTransaction command (contract transaction)'
     )
   } catch (err) {
-    console.log(err)
     t.error(err, 'Error found')
   }
 
@@ -351,7 +343,6 @@ test('LoomProvider method eth_sendTransaction (deploy)', async t => {
       'Hex identification should be returned for eth_sendTransaction command (deploy new contract)'
     )
   } catch (err) {
-    console.log(err)
     t.error(err, 'Error found')
   }
 
@@ -381,7 +372,6 @@ test('LoomProvider method eth_getCode', async t => {
       'Hex identification should be returned for eth_getCode command'
     )
   } catch (err) {
-    console.log(err)
     t.error(err, 'Error found')
   }
 
@@ -421,7 +411,6 @@ test('LoomProvider method eth_call', async t => {
       'Return from eth_call should be 0x000000000000000000000000000000000000000000000000000000000000000a'
     )
   } catch (err) {
-    console.log(err)
     t.error(err, 'Error found')
   }
 
@@ -469,7 +458,6 @@ test('LoomProvider method eth_getTransactionReceipt', async t => {
       'Status for eth_getTransactionReceipt should be 0x1'
     )
   } catch (err) {
-    console.log(err)
     t.error(err, 'Error found')
   }
 
@@ -500,7 +488,6 @@ test('LoomProvider method eth_getTransactionByHash', async t => {
       'Hex identification should be returned for eth_getTransactionByHash command'
     )
   } catch (err) {
-    console.log(err)
     t.error(err, 'Error found')
   }
 
@@ -531,7 +518,6 @@ test('LoomProvider method eth_subscribe', async t => {
       'Hex identification should be returned for eth_subscribe command'
     )
   } catch (err) {
-    console.log(err)
     t.error(err, 'Error found')
   }
 
@@ -558,7 +544,6 @@ test('LoomProvider method eth_uninstallFilter', async t => {
     t.equal(ethUninstallFilter.id, id, `Id for eth_subscribe should be equal ${id}`)
     t.equal(ethUninstallFilter.result, true, 'Uninstall filter should return true')
   } catch (err) {
-    console.log(err)
     t.error(err, 'Error found')
   }
 
@@ -591,7 +576,6 @@ test('LoomProvider adding custom method', async t => {
 
     t.equal(ethBalanceResult.result, '0x1', 'Balance should be 0x1')
   } catch (err) {
-    console.log(err)
     t.error(err, 'Error found')
   }
 
@@ -622,7 +606,6 @@ test('LoomProvider overwriting existing method', async t => {
 
     t.equal(ethEstimateGasResult.result, '0x123', 'Estimate gas should be 0x123')
   } catch (err) {
-    console.log(err)
     t.error(err, 'Error found')
   }
 

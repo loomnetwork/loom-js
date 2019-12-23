@@ -8,14 +8,14 @@ import {
   SignedEthTxMiddleware,
   CryptoUtils,
   Client
-} from '../../index'
-import { LoomProvider } from '../../loom-provider'
-import { deployContract } from '../evm-helpers'
-import { Address, LocalAddress } from '../../address'
-import { createDefaultTxMiddleware } from '../../helpers'
-import { EthersSigner, getJsonRPCSignerAsync } from '../../solidity-helpers'
-import { createTestHttpClient } from '../helpers'
-import { AddressMapper, Coin } from '../../contracts'
+} from '../../../index'
+import { LoomProvider } from '../../../loom-provider'
+import { deployContract } from '../../evm-helpers'
+import { Address, LocalAddress } from '../../../address'
+import { createDefaultTxMiddleware } from '../../../helpers'
+import { EthersSigner, getJsonRPCSignerAsync } from '../../../solidity-helpers'
+import { createTestHttpClient } from '../../helpers'
+import { AddressMapper, Coin } from '../../../contracts'
 
 // import Web3 from 'web3'
 const Web3 = require('web3')
@@ -150,13 +150,13 @@ async function bootstrapTest(
   return { client, pubKey, privKey, signer, loomProvider, contract, ABI, account }
 }
 
-test('Test Signed Eth Tx Middleware Type 1', async t => {
+test('Test Signed Eth Tx Middleware Type 0', async t => {
   try {
     const { client, signer, loomProvider, contract } = await bootstrapTest(createTestHttpClient)
 
     // Get address of the account 0 = 0x90f8bf6a479f320ead074411a4b0e7944ea8c9c1
     const ethAddress = await signer.getAddress()
-    const callerChainId = 'eth1'
+    const callerChainId = 'eth0'
     // Override the default caller chain ID
     loomProvider.callerChainId = callerChainId
     // Ethereum account needs its own middleware
@@ -193,7 +193,7 @@ test('Test Signed Eth Tx Middleware Type 1', async t => {
   t.end()
 })
 
-test('Test Signed Eth Tx Middleware Type 2', async t => {
+test('Test Signed Eth Tx Middleware Type 1', async t => {
   try {
     const { client, signer, pubKey, loomProvider, contract, account } = await bootstrapTest(
       createTestHttpClient
@@ -206,8 +206,9 @@ test('Test Signed Eth Tx Middleware Type 2', async t => {
 
     // Set the mapping
     const ethAddress = await signer.getAddress()
+    const callerChainId = 'eth1'
     const from = new Address(client.chainId, LocalAddress.fromPublicKey(pubKey))
-    const to = new Address('eth', LocalAddress.fromHexString(ethAddress))
+    const to = new Address(callerChainId, LocalAddress.fromHexString(ethAddress))
 
     // Add mapping if not added yet
     if (!(await addressMapper.hasMappingAsync(from))) {
@@ -223,7 +224,6 @@ test('Test Signed Eth Tx Middleware Type 2', async t => {
       t.error(err)
     }
 
-    const callerChainId = 'eth'
     // Override the default caller chain ID
     loomProvider.callerChainId = callerChainId
     // Ethereum account needs its own middleware
@@ -259,7 +259,7 @@ test('Test Signed Eth Tx Middleware Type 2', async t => {
   t.end()
 })
 
-test('Test Signed Eth Tx Middleware Type 2 with Coin Contract', async t => {
+test('Test Signed Eth Tx Middleware Type 1 with Coin Contract', async t => {
   try {
     // Create the client
     const privKey = CryptoUtils.B64ToUint8Array(
@@ -280,11 +280,11 @@ test('Test Signed Eth Tx Middleware Type 2 with Coin Contract', async t => {
 
     // And get the signer
     const signer = await getJsonRPCSignerAsync('http://localhost:8545')
-
+    const callerChainId = 'eth1'
     // Set the mapping
     const ethAddress = await signer.getAddress()
     const from = new Address(client.chainId, LocalAddress.fromPublicKey(pubKey))
-    const to = new Address('eth', LocalAddress.fromHexString(ethAddress))
+    const to = new Address(callerChainId, LocalAddress.fromHexString(ethAddress))
 
     // Add mapping if not added yet
     if (!(await addressMapper.hasMappingAsync(from))) {
@@ -306,7 +306,7 @@ test('Test Signed Eth Tx Middleware Type 2 with Coin Contract', async t => {
     // Create Coin wrapper
     const coin = await Coin.createAsync(
       client,
-      new Address('eth', LocalAddress.fromHexString(ethAddress))
+      new Address(callerChainId, LocalAddress.fromHexString(ethAddress))
     )
 
     const spender = new Address(client.chainId, LocalAddress.fromPublicKey(pubKey))

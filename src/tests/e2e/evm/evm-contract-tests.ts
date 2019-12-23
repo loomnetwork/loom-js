@@ -6,8 +6,8 @@ import {
   LocalAddress,
   CryptoUtils,
   createDefaultTxMiddleware
-} from '../../index'
-import { createTestWSClient } from '../helpers'
+} from '../../../index'
+import { createTestWSClient } from '../../helpers'
 
 /**
  * Requires the SimpleStore solidity contract deployed on a loomchain.
@@ -134,7 +134,7 @@ test('EVM Contract Calls', async t => {
 
     client.disconnect()
   } catch (err) {
-    console.log(err)
+    t.fail(err)
   }
   t.end()
 })

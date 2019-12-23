@@ -35,10 +35,10 @@ ChainConfig:
   ContractEnabled: true
 Auth:
   Chains:
-    eth:
+    eth1:
       TxType: "eth"
       AccountType: 1
-    eth1:
+    eth0:
       TxType: "eth"
       AccountType: 0
     tron:

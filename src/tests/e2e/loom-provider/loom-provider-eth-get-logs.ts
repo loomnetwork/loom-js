@@ -1,10 +1,10 @@
 import test from 'tape'
 
-import { LocalAddress, CryptoUtils } from '../../index'
-import { createTestClient, execAndWaitForMillisecondsAsync } from '../helpers'
-import { LoomProvider } from '../../loom-provider'
-import { deployContract } from '../evm-helpers'
-import { numberToHex } from '../../crypto-utils'
+import { LocalAddress, CryptoUtils } from '../../../index'
+import { createTestClient, execAndWaitForMillisecondsAsync } from '../../helpers'
+import { LoomProvider } from '../../../loom-provider'
+import { deployContract } from '../../evm-helpers'
+import { numberToHex } from '../../../crypto-utils'
 
 /**
  * Requires the SimpleStore solidity contract deployed on a loomchain.
@@ -114,7 +114,6 @@ async function testGetLogsLatest(t: test.Test, loomProvider: LoomProvider, fromA
 
 async function testGetLogsAny(t: test.Test, loomProvider: LoomProvider, fromAddr: string) {
   const curBlock = await (loomProvider as any)._client.getBlockHeightAsync()
-  console.log(`current block: ${curBlock}`)
   const fromBlock = numberToHex(parseInt(curBlock, 10) + 1)
   await newTransactionToSetState(loomProvider, fromAddr)
 
@@ -130,7 +129,6 @@ async function testGetLogsAny(t: test.Test, loomProvider: LoomProvider, fromAddr
 
 async function testGetLogsAnyPending(t: test.Test, loomProvider: LoomProvider, fromAddr: string) {
   const curBlock = await (loomProvider as any)._client.getBlockHeightAsync()
-  console.log(`current block: ${curBlock}`)
   const fromBlock = numberToHex(parseInt(curBlock, 10) + 1)
   await newTransactionToSetState(loomProvider, fromAddr)
 
@@ -161,7 +159,7 @@ test('LoomProvider.getEVMLogsAsync', async t => {
     await testGetLogsAny(t, loomProvider, fromAddr)
     await testGetLogsAnyPending(t, loomProvider, fromAddr)
   } catch (err) {
-    console.log(err)
+    t.error(err)
   }
 
   if (client) {
