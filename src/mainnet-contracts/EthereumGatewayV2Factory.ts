@@ -748,3 +748,5 @@ const _abi = [
     type: "function"
   }
 ];
+
+export const abi = _abi;
