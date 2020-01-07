@@ -26,7 +26,7 @@
     "proto": "node ./scripts/gen-proto.js",
     "copy-contracts": "node ./scripts/copy-contracts.js",
     "prepublish": "yarn proto && yarn gen-contract-types && yarn build && webpack",
-    "gen-contract-types": "typechain \"src/mainnet-contracts/*.json\" --target=ethers --outDir src/mainnet-contracts"
+    "gen-contract-types": "typechain \"src/mainnet-contracts/*.json\" --target=ethers --outDir src/mainnet-contracts && node scripts/export-mainnet-contracts-abi.js"
   },
   "dependencies": {
     "@binance-chain/javascript-sdk": "^2.14.5",
