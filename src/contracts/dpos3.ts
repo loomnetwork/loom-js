@@ -32,9 +32,17 @@ import {
   ClaimDelegatorRewardsRequest,
   ClaimDelegatorRewardsResponse,
   DelegationState,
-  CandidateState
+  CandidateState,
+  State,
+  GetStateRequest,
+  GetStateResponse
 } from '../proto/dposv3_pb'
 import { unmarshalBigUIntPB, marshalBigUIntPB } from '../big-uint'
+
+export interface IState {
+  maxYearlyRewards: BN,
+  totalWeightedAmountStaked: BN
+}
 
 export interface ICandidate {
   address: Address
@@ -336,6 +344,23 @@ export class DPOS3 extends Contract {
     )
 
     return result.getAmount() ? unmarshalBigUIntPB(result.getAmount()!) : new BN(0)
+  }
+
+  async getStateAsync(): Promise<IState> {
+    const req = new GetStateRequest()
+    const res = await this.staticCallAsync(
+      'GetState',
+      req,
+      new GetStateResponse()
+    )
+    const state = res.getState()!
+    const params = state.getParams()!
+    const maxYearlyRewards = unmarshalBigUIntPB(params.getMaxYearlyReward()!)
+    const totalWeightedAmountStaked = unmarshalBigUIntPB(state.getTotalValidatorDelegations()!)
+    return {
+      maxYearlyRewards,
+      totalWeightedAmountStaked
+    }
   }
 
   private getDelegation(delegation: Delegation): IDelegation {
