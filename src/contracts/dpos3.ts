@@ -41,7 +41,7 @@ import { unmarshalBigUIntPB, marshalBigUIntPB } from '../big-uint'
 
 export interface IState {
   maxYearlyRewards: BN,
-  totalValidatorDelegations: BN
+  totalWeightedAmountStaked: BN
 }
 
 export interface ICandidate {
@@ -356,10 +356,10 @@ export class DPOS3 extends Contract {
     const state = res.getState()!
     const params = state.getParams()!
     const maxYearlyRewards = unmarshalBigUIntPB(params.getMaxYearlyReward()!)
-    const totalValidatorDelegations = unmarshalBigUIntPB(state.getTotalValidatorDelegations()!)
+    const totalWeightedAmountStaked = unmarshalBigUIntPB(state.getTotalValidatorDelegations()!)
     return {
       maxYearlyRewards,
-      totalValidatorDelegations
+      totalWeightedAmountStaked
     }
   }
 
