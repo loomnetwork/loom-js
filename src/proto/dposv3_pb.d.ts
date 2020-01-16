@@ -217,6 +217,9 @@ export class ValidatorStatistic extends jspb.Message {
   getUpdateLocktimeTier(): LocktimeTier;
   setUpdateLocktimeTier(value: LocktimeTier): void;
 
+  getJailed(): boolean;
+  setJailed(value: boolean): void;
+
   serializeBinary(): Uint8Array;
   toObject(includeInstance?: boolean): ValidatorStatistic.AsObject;
   static toObject(includeInstance: boolean, msg: ValidatorStatistic): ValidatorStatistic.AsObject;
@@ -237,6 +240,7 @@ export namespace ValidatorStatistic {
     recentlyMissedBlocks: number,
     updateWhitelistAmount?: proto_loom_pb.BigUInt.AsObject,
     updateLocktimeTier: LocktimeTier,
+    jailed: boolean,
   }
 }
 

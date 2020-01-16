@@ -40,7 +40,7 @@ import {
 import { unmarshalBigUIntPB, marshalBigUIntPB } from '../big-uint'
 
 export interface IState {
-  maxYearlyRewards: BN,
+  maxYearlyRewards: BN
   totalWeightedAmountStaked: BN
 }
 
@@ -69,6 +69,7 @@ export interface IValidator {
   delegationTotal: BN
   whitelistAmount: BN
   whitelistLocktimeTier: LocktimeTier
+  jailed: boolean
 }
 
 export interface IDelegation {
@@ -147,7 +148,6 @@ export class DPOS3 extends Contract {
       fee: new BN(candidate.getCandidate()!.getFee()),
       newFee: new BN(candidate.getCandidate()!.getNewFee()),
       candidateState: candidate.getCandidate()!.getState(),
-
       name: candidate.getCandidate()!.getName(),
       description: candidate.getCandidate()!.getDescription(),
       website: candidate.getCandidate()!.getWebsite()
@@ -174,7 +174,8 @@ export class DPOS3 extends Contract {
         : new BN(0),
       delegationTotal: validator.getDelegationTotal()
         ? unmarshalBigUIntPB(validator.getDelegationTotal()!)
-        : new BN(0)
+        : new BN(0),
+      jailed: validator.getJailed()
     }))
   }
 
@@ -348,11 +349,7 @@ export class DPOS3 extends Contract {
 
   async getStateAsync(): Promise<IState> {
     const req = new GetStateRequest()
-    const res = await this.staticCallAsync(
-      'GetState',
-      req,
-      new GetStateResponse()
-    )
+    const res = await this.staticCallAsync('GetState', req, new GetStateResponse())
     const state = res.getState()!
     const params = state.getParams()!
     const maxYearlyRewards = unmarshalBigUIntPB(params.getMaxYearlyReward()!)
