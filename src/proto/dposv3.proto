@@ -65,6 +65,7 @@ message ValidatorStatistic {
     uint64 recently_missed_blocks = 6;
     BigUInt update_whitelist_amount = 7;
     LocktimeTier update_locktime_tier = 8;
+    bool jailed = 9;
 }
 
 message CandidateV3 {
