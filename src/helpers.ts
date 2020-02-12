@@ -8,7 +8,7 @@ import { createJSONRPCClient, LocalAddress } from '.'
 import { Address } from './address'
 import { ethers } from 'ethers'
 import debug from 'debug'
-import { Transaction as EthereumTx } from 'ethereumjs-tx'
+import EthereumTx from 'ethereumjs-tx'
 import { sha256 } from 'ethereumjs-util'
 import { SignedTx, NonceTx, MessageTx, Transaction } from './proto/loom_pb'
 
@@ -223,7 +223,7 @@ export function getEthereumTxHash(data: any, chainId?: string): string {
     }
     msgTx.setTo(new Address(chainId, new LocalAddress(ethTx.to)).MarshalPB())
   }
-  msgTx.setFrom(new Address('eth', new LocalAddress(ethTx.from)).MarshalPB())
+  msgTx.setFrom(new Address('eth', new LocalAddress(ethTx.getSenderAddress())).MarshalPB())
   msgTx.setData(data)
 
   const tx = new Transaction()
@@ -239,5 +239,5 @@ export function getEthereumTxHash(data: any, chainId?: string): string {
   const signedTx = new SignedTx()
   signedTx.setInner(nonceTx.serializeBinary())
   const signedTxData = signedTx.serializeBinary()
-  return '0x' + sha256(signedTxData).toString('hex')
+  return '0x' + (sha256(signedTxData) as Buffer).toString('hex')
 }
