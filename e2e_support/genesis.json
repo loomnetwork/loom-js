@@ -78,6 +78,10 @@
           {
             "name": "evm:constantinople",
             "status": "WAITING"
+          },
+          {
+            "name": "tx:eth",
+            "status": "WAITING"
           }
         ]
       }
@@ -114,5 +118,18 @@
         ]
       }
     }
-  ]
+  ],
+  "config": {
+    "evm": {
+      "gas_limit": 0
+    },
+    "app_store": {
+      "num_evm_keys_to_prune": 0,
+      "iavl_flush_interval": 0,
+      "prune_evm_keys_interval": 0
+    },
+    "nonce_handler": {
+      "inc_nonce_on_failed_tx": true
+    }
+  }
 }
