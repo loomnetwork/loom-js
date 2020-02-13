@@ -64,15 +64,11 @@
             "status": "WAITING"
           },
           {
-            "name": "receipts:v3",
+            "name": "receipts:v3.4",
             "status": "WAITING"
           },
           {
             "name": "receipts:v3.1",
-            "status": "WAITING"
-          },
-          {
-            "name": "receipts:v3.2",
             "status": "WAITING"
           },
           {
@@ -82,7 +78,19 @@
           {
             "name": "tx:eth",
             "status": "WAITING"
-          }
+          },
+          {
+            "name": "chaincfg:v1.1",
+            "status": "WAITING"
+          },
+          {
+            "name": "chaincfg:v1.2",
+            "status": "WAITING"
+          },
+          {
+            "name": "chaincfg:v1.3",
+            "status": "WAITING"
+          },
         ]
       }
     },
