@@ -241,5 +241,6 @@ export function getEthereumTxHash(data: any, chainId?: string): string {
   const signedTx = new SignedTx()
   signedTx.setInner(nonceTx.serializeBinary())
   const signedTxData = signedTx.serializeBinary()
-  return '0x' + Buffer.from(sha256(Buffer.from(signedTxData))).toString('hex')
+  const bufferSignedTxData = Buffer.from(signedTxData)
+  return '0x' + Buffer.from(sha256(bufferSignedTxData)).toString('hex')
 }
