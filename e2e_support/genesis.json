@@ -90,7 +90,7 @@
           {
             "name": "chaincfg:v1.3",
             "status": "WAITING"
-          },
+          }
         ]
       }
     },
