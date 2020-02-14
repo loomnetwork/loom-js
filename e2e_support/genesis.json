@@ -3,26 +3,41 @@
     {
       "vm": "plugin",
       "format": "plugin",
-      "name": "BluePrint",
-      "location": "blueprint:0.0.1",
-      "init": {}
+      "name": "coin",
+      "location": "coin:1.0.0",
+      "init": null
     },
     {
       "vm": "plugin",
       "format": "plugin",
-      "name": "coin",
-      "location": "coin:1.0.0",
+      "name": "ethcoin",
+      "location": "ethcoin:1.0.0",
+      "init": null
+    },
+    {
+      "vm": "plugin",
+      "format": "plugin",
+      "name": "dposV2",
+      "location": "dposV2:2.0.0",
       "init": {
-        "accounts": [
+        "params": {
+          "validatorCount": "21",
+          "electionCycleLength": "604800"
+        },
+        "validators": [
           {
-            "owner": {
-              "chain_id": "default",
-              "local": "dHVZ95Bqnn3dsget6tyq72cJS3E="
-            },
-            "balance": 100
+            "pubKey": "3/dMfa7Pa4LaiWmeC49BWQxNDAaTwaxHPtilRWuKdNg=",
+            "power": "10"
           }
         ]
       }
+    },
+    {
+      "vm": "plugin",
+      "format": "plugin",
+      "name": "addressmapper",
+      "location": "addressmapper:0.1.0",
+      "init": null
     },
     {
       "vm": "plugin",
@@ -32,51 +47,11 @@
       "init": {
         "owner": {
           "chainId": "default",
-          "local": "Shas8xA3mAG/7I/3/5VQ0Dj/B3k="
+          "local": "2qG+PLWh48i3a0firVI55H0oAGA="
         },
         "features": [
           {
-            "name": "auth:sigtx:eth",
-            "status": "WAITING"
-          },
-          {
-            "name": "auth:sigtx:eth1",
-            "status": "WAITING"
-          },
-          {
-            "name": "auth:sigtx:tron",
-            "status": "WAITING"
-          },
-          {
-            "name": "auth:sigtx:binance",
-            "status": "WAITING"
-          },
-          {
-            "name": "addrmapper:v1.1",
-            "status": "WAITING"
-          },
-          {
-            "name": "mw:mulcsigtx:v1.1",
-            "status": "WAITING"
-          },
-          {
-            "name": "tg:binance-cm",
-            "status": "WAITING"
-          },
-          {
-            "name": "receipts:v3.4",
-            "status": "WAITING"
-          },
-          {
-            "name": "receipts:v3.1",
-            "status": "WAITING"
-          },
-          {
-            "name": "evm:constantinople",
-            "status": "WAITING"
-          },
-          {
-            "name": "tx:eth",
+            "name": "dpos:v3.1",
             "status": "WAITING"
           },
           {
@@ -90,38 +65,42 @@
           {
             "name": "chaincfg:v1.3",
             "status": "WAITING"
-          }
-        ]
-      }
-    },
-    {
-      "vm": "plugin",
-      "format": "plugin",
-      "name": "ethcoin",
-      "location": "ethcoin:1.0.0",
-      "init": null
-    },
-    {
-      "vm": "plugin",
-      "format": "plugin",
-      "name": "addressmapper",
-      "location": "addressmapper:0.1.0",
-      "init": null
-    },
-    {
-      "vm": "plugin",
-      "format": "plugin",
-      "name": "gateway",
-      "location": "gateway:0.1.0",
-      "init": {
-        "owner": {
-          "chain_id": "default",
-          "local": "c/IFoEFkm4+D3wdqLmFU9F3t3Sk="
-        },
-        "oracles": [
+          },
           {
-            "chain_id": "default",
-            "local": "RRKeOYv/IQpcmxBs3dgGz9rBWu4="
+            "name": "receipts:v2",
+            "status": "WAITING"
+          },
+          {
+            "name": "receipts:v3.4",
+            "status": "WAITING"
+          },
+          {
+            "name": "receipts:v3.1",
+            "status": "WAITING"
+          },
+          {
+            "name": "coin:v1.1",
+            "status": "WAITING"
+          },
+          {
+            "name": "appstore:v3.1",
+            "status": "WAITING"
+          },
+          {
+            "name": "auth:sigtx:eth",
+            "status": "WAITING"
+          },
+          {
+            "name": "tx:eth",
+            "status": "WAITING"
+          },
+          {
+            "name": "tx:check-value",
+            "status": "WAITING"
+          },
+          {
+            "name": "evm:constantinople",
+            "status": "WAITING"
           }
         ]
       }
@@ -137,7 +116,7 @@
       "prune_evm_keys_interval": 0
     },
     "nonce_handler": {
-      "inc_nonce_on_failed_tx": true
+      "inc_nonce_on_failed_tx": false
     }
   }
 }
