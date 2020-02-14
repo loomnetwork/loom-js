@@ -27,7 +27,7 @@
 
 // // Contracts
 // import './e2e/coin-tests'
-// import './e2e/address-mapper-tests'
+import './e2e/address-mapper-tests'
 // // TODO: Re-enable once this is updated to DPOSv2
 // //import './e2e/dpos-tests'
 
@@ -38,4 +38,4 @@
 // import './e2e/evm-contract-tests'
 
 // Verify hash test
-import './e2e/verify-hash-test'
+// import './e2e/verify-hash-test'
