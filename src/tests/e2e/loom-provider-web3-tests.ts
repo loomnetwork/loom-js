@@ -363,12 +363,12 @@ async function testWeb3GetStorageAt(t: any, useEthEndpoint: boolean) {
 
 test('LoomProvider + Web3 + Event with not matching topic (/query)', (t: any) =>
   testWeb3MismatchedTopic(t, false))
-test.skip('LoomProvider + Web3 + Event with not matching topic (/eth)', (t: any) =>
-  testWeb3MismatchedTopic(t, true))
+// test('LoomProvider + Web3 + Event with not matching topic (/eth)', (t: any) =>
+//   testWeb3MismatchedTopic(t, true))
 test('LoomProvider + Web3 + Multiple event topics (/query)', (t: any) =>
   testWeb3MultipleTopics(t, false))
-test.skip('LoomProvider + Web3 + Multiple event topics (/eth)', (t: any) =>
-  testWeb3MultipleTopics(t, true))
+// test('LoomProvider + Web3 + Multiple event topics (/eth)', (t: any) =>
+//   testWeb3MultipleTopics(t, true))
 test('LoomProvider + Web3 + Eth Sign (/query)', (t: any) => testWeb3Sign(t, false))
 test('LoomProvider + Web3 + Eth Sign (/eth)', (t: any) => testWeb3Sign(t, true))
 test('LoomProvider + Web3 + Get version (/query)', (t: any) => testWeb3NetId(t, false))
