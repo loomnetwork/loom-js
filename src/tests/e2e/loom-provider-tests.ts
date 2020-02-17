@@ -122,39 +122,39 @@ test('LoomProvider method net_version', async t => {
   t.end()
 })
 
-test('LoomProvider method eth_accounts', async t => {
-  const { loomProvider, from, client } = await newContractAndClient()
+// test('LoomProvider method eth_accounts', async t => {
+//   const { loomProvider, from, client } = await newContractAndClient()
 
-  try {
-    const id = 1
+//   try {
+//     const id = 1
 
-    const ethAccountsResult = await execAndWaitForMillisecondsAsync(
-      loomProvider.sendAsync({
-        id,
-        method: 'eth_accounts'
-      })
-    )
+//     const ethAccountsResult = await execAndWaitForMillisecondsAsync(
+//       loomProvider.sendAsync({
+//         id,
+//         method: 'eth_accounts'
+//       })
+//     )
 
-    t.deepEqual(
-      ethAccountsResult,
-      {
-        id: 1,
-        jsonrpc: '2.0',
-        result: [from]
-      },
-      'accounts should be available on eth_accounts command'
-    )
-  } catch (err) {
-    console.log(err)
-    t.error(err, 'Error found')
-  }
+//     t.deepEqual(
+//       ethAccountsResult,
+//       {
+//         id: 1,
+//         jsonrpc: '2.0',
+//         result: [from]
+//       },
+//       'accounts should be available on eth_accounts command'
+//     )
+//   } catch (err) {
+//     console.log(err)
+//     t.error(err, 'Error found')
+//   }
 
-  if (client) {
-    client.disconnect()
-  }
+//   if (client) {
+//     client.disconnect()
+//   }
 
-  t.end()
-})
+//   t.end()
+// })
 
 test('LoomProvider method eth_newBlockFilter', async t => {
   const { loomProvider, client } = await newContractAndClient()
