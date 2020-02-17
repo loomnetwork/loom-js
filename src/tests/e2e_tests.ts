@@ -38,4 +38,4 @@ import './e2e/address-mapper-tests'
 // import './e2e/evm-contract-tests'
 
 // Verify hash test
-// import './e2e/verify-hash-test'
+import './e2e/verify-hash-test'
