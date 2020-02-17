@@ -87,7 +87,6 @@ async function testBalanceOf(t: test.Test, createClient: () => Client) {
   acct1Client.disconnect()
   acct2Client.disconnect()
   t.end()
-
 }
 
 async function testTransfer(t: test.Test, createClient: () => Client) {
@@ -177,11 +176,21 @@ async function testTransferFrom(t: test.Test, createClient: () => Client) {
   t.end()
 }
 
-
-
-test("CoinTotalSupply", async t => { testTotalSupply(t, createTestHttpClient) })
-test("CoinBalanceOf", async t => { testBalanceOf(t, createTestHttpClient) })
-test("CoinTransfer", async t => { testTransfer(t, createTestHttpClient) })
-test("CoinApprove", async t => { testApprove(t, createTestHttpClient) })
-test("CoinAllowance", async t => { testAllowance(t, createTestHttpClient) })
-test("CoinTransferFrom", async t => { testTransferFrom(t, createTestHttpClient) })
+test('Coin.TotalSupply', async t => {
+  testTotalSupply(t, createTestHttpClient)
+})
+test('Coin.BalanceOf', async t => {
+  testBalanceOf(t, createTestHttpClient)
+})
+test('Coin.Transfer', async t => {
+  testTransfer(t, createTestHttpClient)
+})
+test('Coin.Approve', async t => {
+  testApprove(t, createTestHttpClient)
+})
+test('Coin.Allowance', async t => {
+  testAllowance(t, createTestHttpClient)
+})
+test('Coin.TransferFrom', async t => {
+  testTransferFrom(t, createTestHttpClient)
+})
