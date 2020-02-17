@@ -8,6 +8,9 @@ import { createJSONRPCClient, LocalAddress } from '.'
 import { Address } from './address'
 import { ethers } from 'ethers'
 import debug from 'debug'
+import EthereumTx from 'ethereumjs-tx'
+import { sha256 } from 'ethereumjs-util'
+import { SignedTx, NonceTx, MessageTx, Transaction } from './proto/loom_pb'
 
 export interface IParsedSigsArray {
   vs: Array<number>
@@ -197,4 +200,45 @@ export async function createDefaultEthSignClientAsync(
   ]
 
   return { client, callerAddress }
+}
+
+/**
+ * Derives the Loom tx hash for the given raw Ethereum tx.
+ *
+ * When a raw Ethereum tx is sent to a Loom chain (to the /eth/eth_sendRawTransaction endpoint) it's
+ * wrapped in a Loom tx, this function can be used to obtain the hash of that wrapper tx before the
+ * Ethereum tx is sent to the chain.
+ *
+ * @param data Serialized Ethereum tx (which must've been signed).
+ * @param chainId ID of the Loom chain the Ethereum tx will be sent to, this can be omitted if the
+ *                Ethereum tx creates a contract (rather than calls an existing one).
+ * @returns 0x-prefix hex-encoded hash of the Loom tx.
+ */
+export function getEthereumTxHash(data: any, chainId?: string): string {
+  const ethTx = new EthereumTx(data)
+  const msgTx = new MessageTx()
+  if (!ethTx.toCreationAddress()) {
+    if (!chainId) {
+      chainId = 'default'
+    }
+    msgTx.setTo(new Address(chainId, new LocalAddress(ethTx.to)).MarshalPB())
+  }
+  msgTx.setFrom(new Address('eth', new LocalAddress(ethTx.getSenderAddress())).MarshalPB())
+  msgTx.setData(data)
+
+  const tx = new Transaction()
+  tx.setId(4)
+  tx.setData(msgTx.serializeBinary())
+
+  // The first nonce for a SignedTx must be 1, but on Ethereum the first nonce must be zero,
+  // need to account for this difference to maintain compatibility with the Web3 libs & clients.
+  const nonceTx = new NonceTx()
+  nonceTx.setInner(tx.serializeBinary())
+  const nonce = new BN(ethTx.nonce).toNumber() + 1
+  nonceTx.setSequence(nonce)
+
+  const signedTx = new SignedTx()
+  signedTx.setInner(nonceTx.serializeBinary())
+  const signedTxData = signedTx.serializeBinary()
+  return '0x' + Buffer.from(sha256(Buffer.from(signedTxData))).toString('hex')
 }

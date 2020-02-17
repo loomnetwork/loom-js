@@ -23,7 +23,7 @@ export {
   SpeculativeNonceTxMiddleware,
   isInvalidTxNonceError
 } from './middleware'
-export { createDefaultTxMiddleware } from './helpers'
+export { createDefaultTxMiddleware, getEthereumTxHash } from './helpers'
 export { LoomProvider } from './loom-provider'
 
 import * as Contracts from './contracts'

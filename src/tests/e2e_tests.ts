@@ -36,3 +36,6 @@ import './e2e/contract-tests'
 
 // Simple Store Contract
 import './e2e/evm-contract-tests'
+
+// Verify hash test
+import './e2e/verify-hash-test'

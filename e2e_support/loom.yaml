@@ -30,7 +30,6 @@ TransferGateway:
   OracleStartupDelay: 5
   # Number of seconds to wait between reconnection attempts.
   OracleReconnectInterval: 5
-DPOSVersion: 2
 ChainConfig:
   ContractEnabled: true
 Auth:

@@ -27,12 +27,34 @@
     {
       "vm": "plugin",
       "format": "plugin",
+      "name": "dposV3",
+      "location": "dposV3:3.0.0",
+      "init": {
+        "params": {
+          "validatorCount": "21",
+          "oracleAddress": {
+            "chainId": "default",
+            "local": "b0GGkTSGHvFU96bKCfOTzMjQa+A="
+          }
+        },
+        "validators": [
+          {
+            "pubKey": "njP5/JHbQneK7m6ZD0fx+Uxehrp2W0L175ntOtNnrPY=",
+            "power": "10"
+          }
+        ],
+        "initCandidates": true
+      }
+    },
+    {
+      "vm": "plugin",
+      "format": "plugin",
       "name": "chainconfig",
       "location": "chainconfig:1.0.0",
       "init": {
         "owner": {
           "chainId": "default",
-          "local": "Shas8xA3mAG/7I/3/5VQ0Dj/B3k="
+          "local": "2qG+PLWh48i3a0firVI55H0oAGA="
         },
         "features": [
           {
@@ -52,19 +74,27 @@
             "status": "WAITING"
           },
           {
-            "name": "addrmapper:v1.1",
+            "name": "dpos:v3.1",
             "status": "WAITING"
           },
           {
-            "name": "mw:mulcsigtx:v1.1",
+            "name": "chaincfg:v1.1",
             "status": "WAITING"
           },
           {
-            "name": "tg:binance-cm",
+            "name": "chaincfg:v1.2",
             "status": "WAITING"
           },
           {
-            "name": "receipts:v3",
+            "name": "chaincfg:v1.3",
+            "status": "WAITING"
+          },
+          {
+            "name": "receipts:v2",
+            "status": "WAITING"
+          },
+          {
+            "name": "receipts:v3.4",
             "status": "WAITING"
           },
           {
@@ -72,11 +102,31 @@
             "status": "WAITING"
           },
           {
-            "name": "receipts:v3.2",
+            "name": "coin:v1.1",
+            "status": "WAITING"
+          },
+          {
+            "name": "appstore:v3.1",
+            "status": "WAITING"
+          },
+          {
+            "name": "tx:eth",
+            "status": "WAITING"
+          },
+          {
+            "name": "tx:check-value",
             "status": "WAITING"
           },
           {
             "name": "evm:constantinople",
+            "status": "WAITING"
+          },
+          {
+            "name": "addrmapper:v1.1",
+            "status": "WAITING"
+          },
+          {
+            "name": "mw:mulcsigtx:v1.1",
             "status": "WAITING"
           }
         ]
@@ -114,5 +164,18 @@
         ]
       }
     }
-  ]
+  ],
+  "config": {
+    "evm": {
+      "gas_limit": 0
+    },
+    "app_store": {
+      "num_evm_keys_to_prune": 0,
+      "iavl_flush_interval": 0,
+      "prune_evm_keys_interval": 0
+    },
+    "nonce_handler": {
+      "inc_nonce_on_failed_tx": true
+    }
+  }
 }

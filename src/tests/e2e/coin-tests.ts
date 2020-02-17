@@ -61,6 +61,7 @@ async function testTotalSupply(t: test.Test, createClient: () => Client) {
   t.assert(totalSupply.eq(toCoinE18(100)), 'Total Supply should be 100e18')
 
   acct1Client.disconnect()
+  t.end()
 }
 
 async function testBalanceOf(t: test.Test, createClient: () => Client) {
@@ -85,6 +86,7 @@ async function testBalanceOf(t: test.Test, createClient: () => Client) {
 
   acct1Client.disconnect()
   acct2Client.disconnect()
+  t.end()
 }
 
 async function testTransfer(t: test.Test, createClient: () => Client) {
@@ -110,6 +112,7 @@ async function testTransfer(t: test.Test, createClient: () => Client) {
 
   acct1Client.disconnect()
   acct2Client.disconnect()
+  t.end()
 }
 
 async function testApprove(t: test.Test, createClient: () => Client) {
@@ -122,6 +125,7 @@ async function testApprove(t: test.Test, createClient: () => Client) {
   await acct1Coin.approveAsync(spender, toCoinE18(1))
 
   acct1Client.disconnect()
+  t.end()
 }
 
 async function testAllowance(t: test.Test, createClient: () => Client) {
@@ -142,6 +146,7 @@ async function testAllowance(t: test.Test, createClient: () => Client) {
 
   acct1Client.disconnect()
   acct2Client.disconnect()
+  t.end()
 }
 
 async function testTransferFrom(t: test.Test, createClient: () => Client) {
@@ -167,18 +172,25 @@ async function testTransferFrom(t: test.Test, createClient: () => Client) {
 
   acct1Client.disconnect()
   acct2Client.disconnect()
+
+  t.end()
 }
 
-test('Coin', async t => {
-  try {
-    await testTotalSupply(t, createTestHttpClient)
-    await testBalanceOf(t, createTestHttpClient)
-    await testTransfer(t, createTestHttpClient)
-    await testApprove(t, createTestHttpClient)
-    await testAllowance(t, createTestHttpClient)
-    await testTransferFrom(t, createTestHttpClient)
-  } catch (err) {
-    t.fail(err)
-  }
-  t.end()
+test('Coin.TotalSupply', async t => {
+  testTotalSupply(t, createTestHttpClient)
+})
+test('Coin.BalanceOf', async t => {
+  testBalanceOf(t, createTestHttpClient)
+})
+test('Coin.Transfer', async t => {
+  testTransfer(t, createTestHttpClient)
+})
+test('Coin.Approve', async t => {
+  testApprove(t, createTestHttpClient)
+})
+test('Coin.Allowance', async t => {
+  testAllowance(t, createTestHttpClient)
+})
+test('Coin.TransferFrom', async t => {
+  testTransferFrom(t, createTestHttpClient)
 })

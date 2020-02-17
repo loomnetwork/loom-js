@@ -1,7 +1,7 @@
 import test from 'tape'
 
 import BN from 'bn.js'
-import { LocalAddress, CryptoUtils } from '../../index'
+import { LocalAddress, CryptoUtils, Client } from '../../index'
 import {
   createTestClient,
   execAndWaitForMillisecondsAsync,
@@ -122,39 +122,39 @@ test('LoomProvider method net_version', async t => {
   t.end()
 })
 
-test('LoomProvider method eth_accounts', async t => {
-  const { loomProvider, from, client } = await newContractAndClient()
+// test('LoomProvider method eth_accounts', async t => {
+//   const { loomProvider, from, client } = await newContractAndClient()
 
-  try {
-    const id = 1
+//   try {
+//     const id = 1
 
-    const ethAccountsResult = await execAndWaitForMillisecondsAsync(
-      loomProvider.sendAsync({
-        id,
-        method: 'eth_accounts'
-      })
-    )
+//     const ethAccountsResult = await execAndWaitForMillisecondsAsync(
+//       loomProvider.sendAsync({
+//         id,
+//         method: 'eth_accounts'
+//       })
+//     )
 
-    t.deepEqual(
-      ethAccountsResult,
-      {
-        id: 1,
-        jsonrpc: '2.0',
-        result: [from]
-      },
-      'accounts should be available on eth_accounts command'
-    )
-  } catch (err) {
-    console.log(err)
-    t.error(err, 'Error found')
-  }
+//     t.deepEqual(
+//       ethAccountsResult,
+//       {
+//         id: 1,
+//         jsonrpc: '2.0',
+//         result: [from]
+//       },
+//       'accounts should be available on eth_accounts command'
+//     )
+//   } catch (err) {
+//     console.log(err)
+//     t.error(err, 'Error found')
+//   }
 
-  if (client) {
-    client.disconnect()
-  }
+//   if (client) {
+//     client.disconnect()
+//   }
 
-  t.end()
-})
+//   t.end()
+// })
 
 test('LoomProvider method eth_newBlockFilter', async t => {
   const { loomProvider, client } = await newContractAndClient()
@@ -187,9 +187,10 @@ test('LoomProvider method eth_newBlockFilter', async t => {
 })
 
 test('LoomProvider method eth_blockNumber', async t => {
-  const { loomProvider, client } = await newContractAndClient()
-
+  let _client
   try {
+    const { loomProvider, client } = await newContractAndClient()
+    _client = client
     const id = 1
     const ethBlockNumber = await execAndWaitForMillisecondsAsync(
       loomProvider.sendAsync({
@@ -206,8 +207,8 @@ test('LoomProvider method eth_blockNumber', async t => {
     t.error(err, 'Error found')
   }
 
-  if (client) {
-    client.disconnect()
+  if (_client) {
+    _client.disconnect()
   }
 
   t.end()
@@ -512,9 +513,10 @@ test('LoomProvider method eth_getTransactionByHash', async t => {
 })
 
 test('LoomProvider method eth_subscribe', async t => {
-  const { loomProvider, client } = await newContractAndClient()
-
+  let _client
   try {
+    const { loomProvider, client } = await newContractAndClient()
+    _client = client
     const id = 1
 
     const ethSubscribeResult = await execAndWaitForMillisecondsAsync(
@@ -535,8 +537,8 @@ test('LoomProvider method eth_subscribe', async t => {
     t.error(err, 'Error found')
   }
 
-  if (client) {
-    client.disconnect()
+  if (_client) {
+    _client.disconnect()
   }
 
   t.end()
