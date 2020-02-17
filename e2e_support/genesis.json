@@ -1,11 +1,11 @@
 {
   "contracts": [
-    {	
-      "vm": "plugin",	
-      "format": "plugin",	
-      "name": "BluePrint",	
-      "location": "blueprint:0.0.1",	
-      "init": {}	
+    {
+      "vm": "plugin",
+      "format": "plugin",
+      "name": "BluePrint",
+      "location": "blueprint:0.0.1",
+      "init": {}
     },
     {
       "vm": "plugin",
@@ -30,20 +30,20 @@
       "name": "dposV3",
       "location": "dposV3:3.0.0",
       "init": {
-          "params": {
-              "validatorCount": "21",
-              "oracleAddress": {
-                  "chainId": "default",
-                  "local": "b0GGkTSGHvFU96bKCfOTzMjQa+A="
-              }
-          },
-          "validators": [
-              {
-                  "pubKey": "njP5/JHbQneK7m6ZD0fx+Uxehrp2W0L175ntOtNnrPY=",
-                  "power": "10"
-              }
-          ],
-          "initCandidates": true
+        "params": {
+          "validatorCount": "21",
+          "oracleAddress": {
+            "chainId": "default",
+            "local": "b0GGkTSGHvFU96bKCfOTzMjQa+A="
+          }
+        },
+        "validators": [
+          {
+            "pubKey": "njP5/JHbQneK7m6ZD0fx+Uxehrp2W0L175ntOtNnrPY=",
+            "power": "10"
+          }
+        ],
+        "initCandidates": true
       }
     },
     {
@@ -57,6 +57,22 @@
           "local": "2qG+PLWh48i3a0firVI55H0oAGA="
         },
         "features": [
+          {
+            "name": "auth:sigtx:eth",
+            "status": "WAITING"
+          },
+          {
+            "name": "auth:sigtx:eth1",
+            "status": "WAITING"
+          },
+          {
+            "name": "auth:sigtx:tron",
+            "status": "WAITING"
+          },
+          {
+            "name": "auth:sigtx:binance",
+            "status": "WAITING"
+          },
           {
             "name": "dpos:v3.1",
             "status": "WAITING"
@@ -144,7 +160,7 @@
         ]
       }
     }
-  ],  
+  ],
   "config": {
     "evm": {
       "gas_limit": 0
