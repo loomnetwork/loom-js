@@ -3,13 +3,6 @@
     {
       "vm": "plugin",
       "format": "plugin",
-      "name": "BluePrint",
-      "location": "blueprint:0.0.1",
-      "init": {}
-    },
-    {
-      "vm": "plugin",
-      "format": "plugin",
       "name": "coin",
       "location": "coin:1.0.0",
       "init": {
@@ -27,56 +20,38 @@
     {
       "vm": "plugin",
       "format": "plugin",
+      "name": "dposV3",
+      "location": "dposV3:3.0.0",
+      "init": {
+          "params": {
+              "validatorCount": "21",
+              "oracleAddress": {
+                  "chainId": "default",
+                  "local": "b0GGkTSGHvFU96bKCfOTzMjQa+A="
+              }
+          },
+          "validators": [
+              {
+                  "pubKey": "njP5/JHbQneK7m6ZD0fx+Uxehrp2W0L175ntOtNnrPY=",
+                  "power": "10"
+              }
+          ],
+          "initCandidates": true
+      }
+    },
+    {
+      "vm": "plugin",
+      "format": "plugin",
       "name": "chainconfig",
       "location": "chainconfig:1.0.0",
       "init": {
         "owner": {
           "chainId": "default",
-          "local": "Shas8xA3mAG/7I/3/5VQ0Dj/B3k="
+          "local": "2qG+PLWh48i3a0firVI55H0oAGA="
         },
         "features": [
           {
-            "name": "auth:sigtx:eth",
-            "status": "WAITING"
-          },
-          {
-            "name": "auth:sigtx:eth1",
-            "status": "WAITING"
-          },
-          {
-            "name": "auth:sigtx:tron",
-            "status": "WAITING"
-          },
-          {
-            "name": "auth:sigtx:binance",
-            "status": "WAITING"
-          },
-          {
-            "name": "addrmapper:v1.1",
-            "status": "WAITING"
-          },
-          {
-            "name": "mw:mulcsigtx:v1.1",
-            "status": "WAITING"
-          },
-          {
-            "name": "tg:binance-cm",
-            "status": "WAITING"
-          },
-          {
-            "name": "receipts:v3.4",
-            "status": "WAITING"
-          },
-          {
-            "name": "receipts:v3.1",
-            "status": "WAITING"
-          },
-          {
-            "name": "evm:constantinople",
-            "status": "WAITING"
-          },
-          {
-            "name": "tx:eth",
+            "name": "dpos:v3.1",
             "status": "WAITING"
           },
           {
@@ -89,6 +64,42 @@
           },
           {
             "name": "chaincfg:v1.3",
+            "status": "WAITING"
+          },
+          {
+            "name": "receipts:v2",
+            "status": "WAITING"
+          },
+          {
+            "name": "receipts:v3.4",
+            "status": "WAITING"
+          },
+          {
+            "name": "receipts:v3.1",
+            "status": "WAITING"
+          },
+          {
+            "name": "coin:v1.1",
+            "status": "WAITING"
+          },
+          {
+            "name": "appstore:v3.1",
+            "status": "WAITING"
+          },
+          {
+            "name": "auth:sigtx:eth",
+            "status": "WAITING"
+          },
+          {
+            "name": "tx:eth",
+            "status": "WAITING"
+          },
+          {
+            "name": "tx:check-value",
+            "status": "WAITING"
+          },
+          {
+            "name": "evm:constantinople",
             "status": "WAITING"
           }
         ]
@@ -126,7 +137,7 @@
         ]
       }
     }
-  ],
+  ],  
   "config": {
     "evm": {
       "gas_limit": 0
