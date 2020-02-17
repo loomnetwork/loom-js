@@ -60,7 +60,7 @@ start_chains() {
   LOOM_PID=$!
   sleep 5
 
-  # $LOOM_BIN deploy -a public_key_acc_1 -k private_key_acc_1 -n SimpleStore -b ./SimpleStore.bin
+  $LOOM_BIN deploy -a public_key_acc_1 -k private_key_acc_1 -n SimpleStore -b ./SimpleStore.bin
 }
 
 stop_chains() {
@@ -76,7 +76,7 @@ stop_chains() {
 }
 
 run_tests() {
-  # yarn test:node
+  yarn test:node
   # Disabled temporarily because it dies for some unknown reason on Travis
   #yarn test:browser
   yarn e2e:node
