@@ -120,6 +120,10 @@
           {
             "name": "evm:constantinople",
             "status": "WAITING"
+          },
+          {
+            "name": "addrmapper:v1.1",
+            "status": "WAITING"
           }
         ]
       }
