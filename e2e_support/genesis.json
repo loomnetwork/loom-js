@@ -124,6 +124,10 @@
           {
             "name": "addrmapper:v1.1",
             "status": "WAITING"
+          },
+          {
+            "name": "mw:mulcsigtx:v1.1",
+            "status": "WAITING"
           }
         ]
       }
