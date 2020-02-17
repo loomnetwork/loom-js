@@ -1,7 +1,7 @@
 import test from 'tape'
 
 import BN from 'bn.js'
-import { LocalAddress, CryptoUtils } from '../../index'
+import { LocalAddress, CryptoUtils, Client } from '../../index'
 import {
   createTestClient,
   execAndWaitForMillisecondsAsync,
@@ -187,9 +187,10 @@ test('LoomProvider method eth_newBlockFilter', async t => {
 })
 
 test('LoomProvider method eth_blockNumber', async t => {
-  const { loomProvider, client } = await newContractAndClient()
-
+  let _client
   try {
+    const { loomProvider, client } = await newContractAndClient()
+    _client = client
     const id = 1
     const ethBlockNumber = await execAndWaitForMillisecondsAsync(
       loomProvider.sendAsync({
@@ -206,8 +207,8 @@ test('LoomProvider method eth_blockNumber', async t => {
     t.error(err, 'Error found')
   }
 
-  if (client) {
-    client.disconnect()
+  if (_client) {
+    _client.disconnect()
   }
 
   t.end()
@@ -512,9 +513,10 @@ test('LoomProvider method eth_getTransactionByHash', async t => {
 })
 
 test('LoomProvider method eth_subscribe', async t => {
-  const { loomProvider, client } = await newContractAndClient()
-
+  let _client
   try {
+    const { loomProvider, client } = await newContractAndClient()
+    _client = client
     const id = 1
 
     const ethSubscribeResult = await execAndWaitForMillisecondsAsync(
@@ -535,8 +537,8 @@ test('LoomProvider method eth_subscribe', async t => {
     t.error(err, 'Error found')
   }
 
-  if (client) {
-    client.disconnect()
+  if (_client) {
+    _client.disconnect()
   }
 
   t.end()
