@@ -110,10 +110,6 @@
             "status": "WAITING"
           },
           {
-            "name": "auth:sigtx:eth",
-            "status": "WAITING"
-          },
-          {
             "name": "tx:eth",
             "status": "WAITING"
           },
