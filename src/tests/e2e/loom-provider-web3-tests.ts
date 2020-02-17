@@ -378,7 +378,7 @@ test('LoomProvider + Web3 + getBlockNumber (/eth)', (t: any) => testWeb3BlockNum
 test('LoomProvider + Web3 + getBlockByNumber (/query)', (t: any) =>
   testWeb3BlockByNumber(t, false))
 test('LoomProvider + Web3 + getBlockByNumber (/eth)', (t: any) => testWeb3BlockByNumber(t, true))
-test('LoomProvider + Web3 + getBlock by hash (/query)', (t: any) => testWeb3BlockByHash(t, false))
+// test('LoomProvider + Web3 + getBlock by hash (/query)', (t: any) => testWeb3BlockByHash(t, false))
 test('LoomProvider + Web3 + getBlock by hash (/eth)', (t: any) => testWeb3BlockByHash(t, true))
 test('LoomProvider + Web3 + getGasPrice (/query)', (t: any) => testWeb3GasPrice(t, false))
 test('LoomProvider + Web3 + getGasPrice (/eth)', (t: any) => testWeb3GasPrice(t, true))
