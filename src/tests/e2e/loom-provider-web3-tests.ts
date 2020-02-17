@@ -389,5 +389,5 @@ test('LoomProvider + Web3 + getTransactionReceipt (/query)', (t: any) =>
 test('LoomProvider + Web3 + getTransactionReceipt (/eth)', (t: any) =>
   testWeb3TransactionReceipt(t, true))
 test('LoomProvider + Web3 + Logs (/query)', (t: any) => testWeb3PastEvents(t, false))
-test('LoomProvider + Web3 + Logs (/eth)', (t: any) => testWeb3PastEvents(t, true))
+// test('LoomProvider + Web3 + Logs (/eth)', (t: any) => testWeb3PastEvents(t, true))
 test('LoomProvider + Web3 + getStorageAt (/eth)', (t: any) => testWeb3GetStorageAt(t, true))
