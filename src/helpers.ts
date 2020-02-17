@@ -11,7 +11,6 @@ import debug from 'debug'
 import EthereumTx from 'ethereumjs-tx'
 import { sha256 } from 'ethereumjs-util'
 import { SignedTx, NonceTx, MessageTx, Transaction } from './proto/loom_pb'
-import { formatParamType } from 'ethers/utils'
 
 export interface IParsedSigsArray {
   vs: Array<number>
@@ -241,6 +240,5 @@ export function getEthereumTxHash(data: any, chainId?: string): string {
   const signedTx = new SignedTx()
   signedTx.setInner(nonceTx.serializeBinary())
   const signedTxData = signedTx.serializeBinary()
-  const bufferSignedTxData = Buffer.from(signedTxData)
-  return '0x' + Buffer.from(sha256(bufferSignedTxData)).toString('hex')
+  return '0x' + Buffer.from(sha256(signedTxData)).toString('hex')
 }
