@@ -55,7 +55,7 @@ export interface IEthereumGateway {
 }
 
 export class EthereumGatewayV1 implements IEthereumGateway {
-  readonly version = 1
+  readonly version: 1 | 2 = 1
 
   constructor(readonly contract: EthereumGatewayV1Contract) {}
 
@@ -125,7 +125,7 @@ export class EthereumGatewayV1 implements IEthereumGateway {
 }
 
 export class EthereumGatewayV2 implements IEthereumGateway {
-  readonly version = 2
+  readonly version: 1 | 2 = 2
 
   constructor(
     readonly contract: EthereumGatewayV2Contract,
