@@ -134,24 +134,30 @@ export class DPOS3 extends Contract {
       new ListCandidatesResponse()
     )
 
-    return result.getCandidatesList().map((candidate: CandidateStatistic) => ({
-      address: Address.UnmarshalPB(candidate.getCandidate()!.getAddress()!),
-      pubKey: candidate.getCandidate()!.getPubKey_asU8(),
-      delegationTotal: unmarshalBigUIntPB(candidate.getStatistic()!.getDelegationTotal()!),
-      slashPercentage: candidate.getStatistic()!.getSlashPercentage()
-        ? unmarshalBigUIntPB(candidate.getStatistic()!.getSlashPercentage()!)
-        : new BN(0),
-      whitelistAmount: unmarshalBigUIntPB(candidate.getStatistic()!.getWhitelistAmount()!),
-      whitelistLocktimeTier: candidate.getStatistic()!.getLocktimeTier(),
-      maxReferralPercentage: candidate.getCandidate()!.getMaxReferralPercentage(),
+    return result.getCandidatesList().map((candidate: CandidateStatistic) => {
+      const c = candidate.getCandidate()!
+      // statistic may not exist yet for a candidate that was just registered (without being whitelisted)
+      const s = candidate.getStatistic()
+      return {
+        address: Address.UnmarshalPB(c.getAddress()!),
+        pubKey: c.getPubKey_asU8(),
+        delegationTotal:
+          s && s.getDelegationTotal() ? unmarshalBigUIntPB(s.getDelegationTotal()!) : new BN(0),
+        slashPercentage:
+          s && s.getSlashPercentage() ? unmarshalBigUIntPB(s.getSlashPercentage()!) : new BN(0),
+        whitelistAmount:
+          s && s.getWhitelistAmount() ? unmarshalBigUIntPB(s.getWhitelistAmount()!) : new BN(0),
+        whitelistLocktimeTier: s ? s.getLocktimeTier() : LocktimeTier.TIER_ZERO,
+        maxReferralPercentage: c.getMaxReferralPercentage(),
 
-      fee: new BN(candidate.getCandidate()!.getFee()),
-      newFee: new BN(candidate.getCandidate()!.getNewFee()),
-      candidateState: candidate.getCandidate()!.getState(),
-      name: candidate.getCandidate()!.getName(),
-      description: candidate.getCandidate()!.getDescription(),
-      website: candidate.getCandidate()!.getWebsite()
-    })) as Array<ICandidate>
+        fee: new BN(c.getFee()),
+        newFee: new BN(c.getNewFee()),
+        candidateState: c.getState(),
+        name: c.getName(),
+        description: c.getDescription(),
+        website: c.getWebsite()
+      }
+    })
   }
 
   async getValidatorsAsync(): Promise<Array<IValidator>> {
@@ -266,7 +272,7 @@ export class DPOS3 extends Contract {
   ): Promise<void> {
     const registerCandidateRequest = new RegisterCandidateRequestV3()
     registerCandidateRequest.setPubKey(pubKey)
-    registerCandidateRequest.setFee(fee.toString(10) as any)
+    registerCandidateRequest.setFee(fee.toNumber())
     registerCandidateRequest.setName(name)
     registerCandidateRequest.setDescription(description)
     registerCandidateRequest.setWebsite(website)
