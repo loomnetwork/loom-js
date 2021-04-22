@@ -35,9 +35,7 @@ import {
   CandidateState,
   State,
   GetStateRequest,
-  GetStateResponse,
-  UpdateCandidateInfo,
-  ChangeFee,
+  GetStateResponse
 } from '../proto/dposv3_pb'
 import { unmarshalBigUIntPB, marshalBigUIntPB } from '../big-uint'
 
@@ -126,28 +124,6 @@ export class DPOS3 extends Contract {
     )
 
     return new BN(result.getTimeUntilElection())
-  }
-
-  async updateCandidateInfoAsync(
-    name: string,
-    description: string,
-    website: string,
-    maxReferralPercentage: number,
-  ): Promise<void> {
-    const updateCandidateInfo = new UpdateCandidateInfo()
-    updateCandidateInfo.setName(name)
-    updateCandidateInfo.setDescription(description)
-    updateCandidateInfo.setWebsite(website)
-    updateCandidateInfo.setMaxReferralPercentage(maxReferralPercentage)
-    return this.callAsync<void>('UpdateCandidateInfo', updateCandidateInfo)
-  }
-
-  async changeFeeAsync(
-    fee: BN,
-  ): Promise<void> {
-    const changeFee = new ChangeFee()
-    changeFee.setFee(fee.toNumber())
-    return this.callAsync<void>('ChangeFee', changeFee)
   }
 
   async getCandidatesAsync(): Promise<Array<ICandidate>> {
