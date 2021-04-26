@@ -391,7 +391,7 @@ export class DPOS3 extends Contract {
     name: string,
     description: string,
     website: string,
-    maxReferralPercentage: number,
+    maxReferralPercentage: number
   ): Promise<void> {
     const updateCandidateInfo = new UpdateCandidateInfoRequestV3()
     updateCandidateInfo.setName(name)
@@ -401,13 +401,9 @@ export class DPOS3 extends Contract {
     return this.callAsync<void>('UpdateCandidateInfo', updateCandidateInfo)
   }
 
-  async changeFeeAsync(
-    fee: number,
-  ): Promise<void> {
+  async changeFeeAsync(fee: number): Promise<void> {
     const changeFee = new ChangeCandidateFeeRequestV3()
     changeFee.setFee(fee)
     return this.callAsync<void>('ChangeFee', changeFee)
   }
 }
-
-
