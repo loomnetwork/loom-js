@@ -386,6 +386,7 @@ export class DPOS3 extends Contract {
       referrer: delegation.getReferrer()
     } as IDelegation
   }
+
   async updateCandidateInfoAsync(
     name: string,
     description: string,
@@ -401,10 +402,10 @@ export class DPOS3 extends Contract {
   }
 
   async changeFeeAsync(
-    fee: BN,
+    fee: number,
   ): Promise<void> {
     const changeFee = new ChangeCandidateFeeRequestV3()
-    changeFee.setFee(fee.toNumber())
+    changeFee.setFee(fee)
     return this.callAsync<void>('ChangeFee', changeFee)
   }
 }
