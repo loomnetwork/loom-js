@@ -1096,6 +1096,38 @@ export namespace RegisterCandidateRequestV3 {
   }
 }
 
+export class UpdateCandidateInfoRequestV3 extends jspb.Message {
+  getName(): string;
+  setName(value: string): void;
+
+  getDescription(): string;
+  setDescription(value: string): void;
+
+  getWebsite(): string;
+  setWebsite(value: string): void;
+
+  getMaxReferralPercentage(): number;
+  setMaxReferralPercentage(value: number): void;
+
+  serializeBinary(): Uint8Array;
+  toObject(includeInstance?: boolean): UpdateCandidateInfoRequestV3.AsObject;
+  static toObject(includeInstance: boolean, msg: UpdateCandidateInfoRequestV3): UpdateCandidateInfoRequestV3.AsObject;
+  static extensions: {[key: number]: jspb.ExtensionFieldInfo<jspb.Message>};
+  static extensionsBinary: {[key: number]: jspb.ExtensionFieldBinaryInfo<jspb.Message>};
+  static serializeBinaryToWriter(message: UpdateCandidateInfoRequestV3, writer: jspb.BinaryWriter): void;
+  static deserializeBinary(bytes: Uint8Array): UpdateCandidateInfoRequestV3;
+  static deserializeBinaryFromReader(message: UpdateCandidateInfoRequestV3, reader: jspb.BinaryReader): UpdateCandidateInfoRequestV3;
+}
+
+export namespace UpdateCandidateInfoRequestV3 {
+  export type AsObject = {
+    name: string,
+    description: string,
+    website: string,
+    maxReferralPercentage: number,
+  }
+}
+
 export class ChangeCandidateFeeRequestV3 extends jspb.Message {
   getFee(): number;
   setFee(value: number): void;

@@ -35,7 +35,9 @@ import {
   CandidateState,
   State,
   GetStateRequest,
-  GetStateResponse
+  GetStateResponse,
+  ChangeCandidateFeeRequestV3,
+  UpdateCandidateInfoRequestV3
 } from '../proto/dposv3_pb'
 import { unmarshalBigUIntPB, marshalBigUIntPB } from '../big-uint'
 
@@ -383,5 +385,25 @@ export class DPOS3 extends Contract {
       state: delegation.getState(),
       referrer: delegation.getReferrer()
     } as IDelegation
+  }
+
+  async updateCandidateInfoAsync(
+    name: string,
+    description: string,
+    website: string,
+    maxReferralPercentage: number
+  ): Promise<void> {
+    const updateCandidateInfo = new UpdateCandidateInfoRequestV3()
+    updateCandidateInfo.setName(name)
+    updateCandidateInfo.setDescription(description)
+    updateCandidateInfo.setWebsite(website)
+    updateCandidateInfo.setMaxReferralPercentage(maxReferralPercentage)
+    return this.callAsync<void>('UpdateCandidateInfo', updateCandidateInfo)
+  }
+
+  async changeFeeAsync(fee: number): Promise<void> {
+    const changeFee = new ChangeCandidateFeeRequestV3()
+    changeFee.setFee(fee)
+    return this.callAsync<void>('ChangeFee', changeFee)
   }
 }

@@ -234,6 +234,13 @@ message RegisterCandidateRequestV3 {
     uint64 max_referral_percentage = 7;
 }
 
+message UpdateCandidateInfoRequestV3 {
+    string name = 1;
+    string description = 2;
+    string website = 3;
+    uint64 max_referral_percentage = 4;
+}
+
 message ChangeCandidateFeeRequestV3 {
     uint64 fee = 1;
 }
