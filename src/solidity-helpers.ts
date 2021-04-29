@@ -136,18 +136,13 @@ export class OfflineWeb3Signer implements IEthereumSigner {
    * @returns Promise that will be resolved with the signature bytes.
    */
   async signAsync(msg: string): Promise<Uint8Array> {
-    const ret = await this._web3.eth.accounts.sign(msg, this._account.privateKey)
-    // @ts-ignore
-    const sig = ret.signature.slice(2)
-    const r = ethutil.toBuffer('0x' + sig.substring(0, 64)) as Buffer
-    const s = ethutil.toBuffer('0x' + sig.substring(64, 128)) as Buffer
-    let v = parseInt(sig.substring(128, 130), 16)
-
-    return Buffer.concat([
-      ethutil.toBuffer(SIGNATURE_TYPE.GETH) as Buffer,
-      r,
-      s,
-      ethutil.toBuffer(v) as Buffer
-    ])
+    let flatSig = await this._web3.eth.accounts.sign(msg, this._account.privateKey)
+    const sig = ethers.utils.splitSignature(flatSig)
+    let v = sig.v!
+    if (v === 0 || v === 1) {
+      v += 27
+    }
+    flatSig = '0x01' + sig.r.slice(2) + sig.s.slice(2) + v.toString(16)
+    return ethutil.toBuffer(flatSig)
   }
 }
