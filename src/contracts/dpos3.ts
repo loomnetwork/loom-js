@@ -37,7 +37,10 @@ import {
   GetStateRequest,
   GetStateResponse,
   ChangeCandidateFeeRequestV3,
-  UpdateCandidateInfoRequestV3
+  UpdateCandidateInfoRequestV3,
+  DowntimeRecordRequest,
+  DowntimeRecordResponse,
+  DowntimeRecord
 } from '../proto/dposv3_pb'
 import { unmarshalBigUIntPB, marshalBigUIntPB } from '../big-uint'
 
@@ -394,7 +397,7 @@ export class DPOS3 extends Contract {
     name: string,
     description: string,
     website: string,
-    maxReferralPercentage: number,
+    maxReferralPercentage: number
   ): Promise<void> {
     const updateCandidateInfo = new UpdateCandidateInfoRequestV3()
     updateCandidateInfo.setName(name)
@@ -404,12 +407,17 @@ export class DPOS3 extends Contract {
     return this.callAsync<void>('UpdateCandidateInfo', updateCandidateInfo)
   }
 
-  async changeFeeAsync(
-    fee: number,
-  ): Promise<void> {
+  async changeFeeAsync(fee: number): Promise<void> {
     const changeFee = new ChangeCandidateFeeRequestV3()
     changeFee.setFee(fee)
     return this.callAsync<void>('ChangeFee', changeFee)
+  }
+
+  async getDowntimeRecordAsync(validator: Address): Promise<DowntimeRecord[]> {
+    const req = new DowntimeRecordRequest()
+    req.setValidator(validator.MarshalPB())
+    const res = await this.staticCallAsync('DowntimeRecord', req, new DowntimeRecordResponse())
+    return res.getDowntimeRecordsList()
   }
 }
 
