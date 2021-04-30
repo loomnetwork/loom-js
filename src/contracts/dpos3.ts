@@ -420,5 +420,3 @@ export class DPOS3 extends Contract {
     return res.getDowntimeRecordsList()
   }
 }
-
-
