@@ -256,6 +256,10 @@ message UpdateCandidateInfoRequest {
     uint64 max_referral_percentage = 4;
 }
 
+message UnjailRequest {
+    Address validator = 1;
+}
+
 message UnregisterCandidateRequestV3 {
 }
 
@@ -388,6 +392,10 @@ message DposElectionEvent {
 message DposSlashEvent {
     Address validator = 1;
     BigUInt slash_percentage = 2;
+}
+
+message DposUnjailEvent {
+    Address validator = 1;
 }
 
 message DposCandidateRegistersEvent {
