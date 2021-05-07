@@ -38,6 +38,7 @@ import {
   GetStateResponse,
   ChangeCandidateFeeRequestV3,
   UpdateCandidateInfoRequestV3,
+  UnjailRequest,
   DowntimeRecordRequest,
   DowntimeRecordResponse,
   DowntimeRecord
@@ -418,5 +419,11 @@ export class DPOS3 extends Contract {
     req.setValidator(validator.MarshalPB())
     const res = await this.staticCallAsync('DowntimeRecord', req, new DowntimeRecordResponse())
     return res.getDowntimeRecordsList()
+  }
+
+  async unjail(validator: Address): Promise<void> {
+    const req = new UnjailRequest()
+    req.setValidator(validator.MarshalPB())
+    await this.callAsync<void>('Unjail', req)
   }
 }

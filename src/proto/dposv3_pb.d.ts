@@ -1200,6 +1200,28 @@ export namespace UpdateCandidateInfoRequest {
   }
 }
 
+export class UnjailRequest extends jspb.Message {
+  hasValidator(): boolean;
+  clearValidator(): void;
+  getValidator(): proto_loom_pb.Address | undefined;
+  setValidator(value?: proto_loom_pb.Address): void;
+
+  serializeBinary(): Uint8Array;
+  toObject(includeInstance?: boolean): UnjailRequest.AsObject;
+  static toObject(includeInstance: boolean, msg: UnjailRequest): UnjailRequest.AsObject;
+  static extensions: {[key: number]: jspb.ExtensionFieldInfo<jspb.Message>};
+  static extensionsBinary: {[key: number]: jspb.ExtensionFieldBinaryInfo<jspb.Message>};
+  static serializeBinaryToWriter(message: UnjailRequest, writer: jspb.BinaryWriter): void;
+  static deserializeBinary(bytes: Uint8Array): UnjailRequest;
+  static deserializeBinaryFromReader(message: UnjailRequest, reader: jspb.BinaryReader): UnjailRequest;
+}
+
+export namespace UnjailRequest {
+  export type AsObject = {
+    validator?: proto_loom_pb.Address.AsObject,
+  }
+}
+
 export class UnregisterCandidateRequestV3 extends jspb.Message {
   serializeBinary(): Uint8Array;
   toObject(includeInstance?: boolean): UnregisterCandidateRequestV3.AsObject;
@@ -1889,6 +1911,28 @@ export namespace DposSlashEvent {
   export type AsObject = {
     validator?: proto_loom_pb.Address.AsObject,
     slashPercentage?: proto_loom_pb.BigUInt.AsObject,
+  }
+}
+
+export class DposUnjailEvent extends jspb.Message {
+  hasValidator(): boolean;
+  clearValidator(): void;
+  getValidator(): proto_loom_pb.Address | undefined;
+  setValidator(value?: proto_loom_pb.Address): void;
+
+  serializeBinary(): Uint8Array;
+  toObject(includeInstance?: boolean): DposUnjailEvent.AsObject;
+  static toObject(includeInstance: boolean, msg: DposUnjailEvent): DposUnjailEvent.AsObject;
+  static extensions: {[key: number]: jspb.ExtensionFieldInfo<jspb.Message>};
+  static extensionsBinary: {[key: number]: jspb.ExtensionFieldBinaryInfo<jspb.Message>};
+  static serializeBinaryToWriter(message: DposUnjailEvent, writer: jspb.BinaryWriter): void;
+  static deserializeBinary(bytes: Uint8Array): DposUnjailEvent;
+  static deserializeBinaryFromReader(message: DposUnjailEvent, reader: jspb.BinaryReader): DposUnjailEvent;
+}
+
+export namespace DposUnjailEvent {
+  export type AsObject = {
+    validator?: proto_loom_pb.Address.AsObject,
   }
 }
 
