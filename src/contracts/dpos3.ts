@@ -421,7 +421,7 @@ export class DPOS3 extends Contract {
     return res.getDowntimeRecordsList()
   }
 
-  async unjail(validator: Address): Promise<void> {
+  async unjailAsync(validator: Address): Promise<void> {
     const req = new UnjailRequest()
     req.setValidator(validator.MarshalPB())
     await this.callAsync<void>('Unjail', req)
