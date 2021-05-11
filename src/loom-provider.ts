@@ -233,6 +233,9 @@ export class LoomProvider {
       case 'data':
         this.notificationCallbacks.push(callback)
         break
+      case 'connected':
+        this._client.addListener(ClientEvent.Connected, callback)
+        break
       case 'connect':
         this._client.addListener(ClientEvent.Connected, callback)
         break
