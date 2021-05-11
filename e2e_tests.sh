@@ -49,7 +49,7 @@ setup_dappchain() {
   $LOOM_BIN init -f
   cp -R $REPO_ROOT/e2e_support/* .
   cp -R $REPO_ROOT/e2e_support/tm-config/* chaindata/config/
-  mkdir -p contracts
+  # mkdir -p contracts
   # cp $LOOM_BLUEPRINT_DIR/build/contracts/* contracts
 }
 
@@ -62,6 +62,7 @@ start_chains() {
   LOOM_PID=$!
   sleep 5
 
+  $LOOM_BIN deploy -a public_key_acc_1 -k private_key_acc_1 -n SimpleStore -b ./SimpleStore.bin
 }
 
 stop_chains() {
