@@ -6314,6 +6314,12 @@ scrypt-js@2.0.4:
   resolved "https://registry.yarnpkg.com/scrypt-js/-/scrypt-js-2.0.4.tgz#32f8c5149f0797672e551c07e230f834b6af5f16"
   integrity sha512-4KsaGcPnuhtCZQCxFxN3GVYIhKFPTdLd8PLC552XwbMndtD0cjRFAhDuuydXQ0h08ZfPgzqe6EKHozpuH74iDw==
 
+"scrypt@git+https://github.com/barrysteyn/node-scrypt.git":
+  version "6.0.3"
+  resolved "git+https://github.com/barrysteyn/node-scrypt.git#fb60a8d3c158fe115a624b5ffa7480f3a24b03fb"
+  dependencies:
+    nan "^2.14.0"
+
 scryptsy@2.1.0:
   version "2.1.0"
   resolved "https://registry.yarnpkg.com/scryptsy/-/scryptsy-2.1.0.tgz#8d1e8d0c025b58fdd25b6fa9a0dc905ee8faa790"

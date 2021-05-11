@@ -57,6 +57,6 @@ jobs:
       - name: Install xvfb for browser tests
         run: sudo apt-get install xvfb
       - run: chmod +x ./e2e_tests.sh
-      - run: yarn install
+      - run: npm_config_build_from_source=true yarn install
       - run: ./scripts/ci_e2e_test.sh
         working-directory: "."
