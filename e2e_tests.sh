@@ -7,6 +7,8 @@
 
 set -euxo pipefail
 
+ls $(go env GOPATH)
+
 # Prepare env
 DEFAULT_GOPATH=$(go env GOPATH)
 GANACHE_PORT=8545
