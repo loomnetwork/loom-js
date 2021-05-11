@@ -32,7 +32,7 @@ import './e2e/address-mapper-tests'
 //import './e2e/dpos-tests'
 
 // Weave Blueprint Contract
-import './e2e/contract-tests'
+// import './e2e/contract-tests'
 
 // Simple Store Contract
 import './e2e/evm-contract-tests'
