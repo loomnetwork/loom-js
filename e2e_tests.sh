@@ -92,7 +92,7 @@ cleanup() {
 if [ "${CI:-}" ]; then
   mkdir -p $LOOM_DIR
 
-  setup_weave_blueprint
+  # setup_weave_blueprint
   download_dappchain
 fi
 
