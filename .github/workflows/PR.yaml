@@ -30,6 +30,7 @@ jobs:
           key: ${{ runner.os }}-yarn-${{ hashFiles('**/yarn.lock') }}
           restore-keys: |
             ${{ runner.os }}-yarn-
+
       - name: Cache node_modules
         id: cache-node-modules
         uses: actions/cache@v2
@@ -39,12 +40,22 @@ jobs:
           restore-keys: |
             ${{ runner.os }}-${{ matrix.node-version }}-nodemodules-
 
-      - name: setup protoc3
-        run: ./scripts/ci_install_protoc3.sh
-      - name: Install xvfb for browser tests
-        run: sudo apt-get install xvfb
-      - run: chmod +x ./e2e_tests.sh
+      - name: Cache Go modules
+        uses: actions/cache@preview
+        with:
+          path: ~/go/pkg/mod
+          key: ${{ runner.os }}-build-${{ hashFiles('**/go.sum') }}
+          restore-keys: |
+            ${{ runner.OS }}-build-${{ env.cache-name }}-
+            ${{ runner.OS }}-build-
+            ${{ runner.OS }}-
+
+      # - name: setup protoc3
+      #   run: ./scripts/ci_install_protoc3.sh
+      # - name: Install xvfb for browser tests
+      #   run: sudo apt-get install xvfb
+      # - run: chmod +x ./e2e_tests.sh
       - run: yarn install
       # - run: yarn test
-      - run: ./scripts/ci_e2e_test.sh
-        working-directory: "."
+      # - run: ./scripts/ci_e2e_test.sh
+      #   working-directory: "."
