@@ -13,7 +13,7 @@ jobs:
     steps:
       - uses: actions/setup-go@v2
         with:
-          go-version: "1.10.2"
+          go-version: "^1.16.2"
       - uses: actions/checkout@v2
       - uses: actions/setup-node@master
         with:
@@ -42,7 +42,7 @@ jobs:
       - name: setup protoc3
         run: ./.travis_before_install.sh
       - name: Install xvfb for browser tests
-        run: apt-get install xvfb
+        run: sudo apt-get install xvfb
       - run: chmod +x ./e2e_tests.sh
       - run: yarn install
       # - run: yarn test
