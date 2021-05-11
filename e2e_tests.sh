@@ -87,7 +87,7 @@ cleanup() {
   export GOPATH=$DEFAULT_GOPATH
 }
 
-if [ "${TRAVIS:-}" ]; then
+if [ "${CI:-}" ]; then
   mkdir -p $LOOM_DIR
 
   setup_weave_blueprint
@@ -104,6 +104,6 @@ cleanup
 
 sleep 1
 
-if [ "${TRAVIS:-}" ]; then
+if [ "${CI:-}" ]; then
   rm -rf $LOOM_DIR
 fi
