@@ -58,6 +58,6 @@ jobs:
         run: sudo apt-get install xvfb
       - run: chmod +x ./e2e_tests.sh
       #      - run: npm_config_build_from_source=true yarn install
-      - run: npm install
+      - run: yarn install --ignore-optional
       - run: ./scripts/ci_e2e_test.sh
         working-directory: "."
