@@ -64,7 +64,7 @@ async function testWeb3Middleware(t: any, useEthEndpoint: boolean) {
   // Using a super simple custom middleware
   // Here you can pass your custom middleware or using a different middleware
   // Middlewares available on path "loom-js/src/middleware"
-  const setupMiddlewareFn = function(
+  const setupMiddlewareFn = function (
     client: Client, // Unused
     privateKey: Uint8Array | null
   ): ITxMiddlewareHandler[] {
@@ -141,5 +141,5 @@ async function testWeb3Middleware(t: any, useEthEndpoint: boolean) {
   }
 }
 
-test('LoomProvider + Web3 + Middleware (/query)', (t: any) => testWeb3Middleware(t, false))
+test.skip('LoomProvider + Web3 + Middleware (/query)', (t: any) => testWeb3Middleware(t, false))
 // test('LoomProvider + Web3 + Middleware (/eth)', (t: any) => testWeb3Middleware(t, true))
