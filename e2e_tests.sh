@@ -62,7 +62,6 @@ start_chains() {
   LOOM_PID=$!
   sleep 5
 
-  # $LOOM_BIN deploy -a public_key_acc_1 -k private_key_acc_1 -n SimpleStore -b ./SimpleStore.bin
 }
 
 stop_chains() {
@@ -74,7 +73,7 @@ stop_chains() {
     kill -9 $LOOM_PID
     LOOM_PID=""
   fi
-  pkill -f "${LOOM_DIR}/contracts/blueprint.0.0.1" || true
+  # pkill -f "${LOOM_DIR}/contracts/blueprint.0.0.1" || true
 }
 
 run_tests() {
