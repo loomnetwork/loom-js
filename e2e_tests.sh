@@ -50,7 +50,7 @@ setup_dappchain() {
   cp -R $REPO_ROOT/e2e_support/* .
   cp -R $REPO_ROOT/e2e_support/tm-config/* chaindata/config/
   mkdir -p contracts
-  cp $LOOM_BLUEPRINT_DIR/build/contracts/* contracts
+  # cp $LOOM_BLUEPRINT_DIR/build/contracts/* contracts
 }
 
 start_chains() {
