@@ -3,13 +3,6 @@
     {
       "vm": "plugin",
       "format": "plugin",
-      "name": "BluePrint",
-      "location": "blueprint:0.0.1",
-      "init": {}
-    },
-    {
-      "vm": "plugin",
-      "format": "plugin",
       "name": "coin",
       "location": "coin:1.0.0",
       "init": {
