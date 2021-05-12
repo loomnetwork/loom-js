@@ -54,7 +54,7 @@ setup_dappchain() {
 }
 
 start_chains() {
-  $REPO_ROOT/node_modules/.bin/ganache-cli -d -p $GANACHE_PORT >> ganache.log &
+$REPO_ROOT/node_modules/.bin/ganache-cli -d -p   >> ganache.log &
   GANACHE_PID=$!
 
   cd $LOOM_DIR
@@ -80,7 +80,7 @@ stop_chains() {
 run_tests() {
   yarn test:node
   # Disabled temporarily because it dies for some unknown reason on Travis
-  #yarn test:browser
+  yarn test:browser
   yarn e2e:node
 }
 
