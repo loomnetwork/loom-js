@@ -56,5 +56,6 @@ jobs:
         run: sudo apt-get install xvfb
       - run: chmod +x ./e2e_tests.sh
       - run: yarn install
-      - run: ./scripts/ci_e2e_test.sh
-        working-directory: "."
+      - run: xvfb-run --auto-servernum yarn test:browser
+      # - run: ./scripts/ci_e2e_test.sh
+      #   working-directory: "."
