@@ -62,6 +62,6 @@ jobs:
       - name: Run headless test
         uses: GabrielBB/xvfb-action@v1
         with:
-          run: yarn test:browser
+          run: yarn test:node
       # - run: ./scripts/ci_e2e_test.sh
       #   working-directory: "."
