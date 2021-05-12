@@ -12,7 +12,7 @@ jobs:
     strategy:
       matrix:
         # node-version: [14.x, 15.x]
-        node-version: [14.x]
+        node-version: [11.x]
     steps:
       - uses: actions/setup-go@v2
         with:
@@ -34,14 +34,14 @@ jobs:
           restore-keys: |
             ${{ runner.os }}-yarn-
 
-      # - name: Cache node_modules
-      #   id: cache-node-modules
-      #   uses: actions/cache@v2
-      #   with:
-      #     path: node_modules
-      #     key: ${{ runner.os }}-${{ matrix.node-version }}-nodemodules-${{ hashFiles('**/yarn.lock') }}
-      #     restore-keys: |
-      #       ${{ runner.os }}-${{ matrix.node-version }}-nodemodules-
+      - name: Cache node_modules
+        id: cache-node-modules
+        uses: actions/cache@v2
+        with:
+          path: node_modules
+          key: ${{ runner.os }}-${{ matrix.node-version }}-nodemodules-${{ hashFiles('**/yarn.lock') }}
+          restore-keys: |
+            ${{ runner.os }}-${{ matrix.node-version }}-nodemodules-
 
       - name: Cache Go modules
         uses: actions/cache@preview
@@ -58,7 +58,6 @@ jobs:
       - name: Install xvfb for browser tests
         run: sudo apt-get install xvfb
       - run: chmod +x ./e2e_tests.sh
-      #      - run: npm_config_build_from_source=true yarn install
-      - run: yarn install --ignore-optional
+      - run: yarn install
       - run: ./scripts/ci_e2e_test.sh
         working-directory: "."
