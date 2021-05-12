@@ -63,6 +63,5 @@ jobs:
         uses: GabrielBB/xvfb-action@v1
         with:
           run: yarn test:browser
-          working-directory: ./ #optional
       # - run: ./scripts/ci_e2e_test.sh
       #   working-directory: "."
