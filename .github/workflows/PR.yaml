@@ -9,10 +9,7 @@ on:
 jobs:
   build:
     runs-on: ubuntu-latest
-    strategy:
-      matrix:
-        # node-version: [14.x, 15.x]
-        node-version: [11.x]
+
     steps:
       - uses: actions/setup-go@v2
         with:
@@ -20,7 +17,7 @@ jobs:
       - uses: actions/checkout@v2
       - uses: actions/setup-node@master
         with:
-          node-version: ${{ matrix.node-version }}
+          node-version: "11.x"
 
       - name: Get yarn cache directory path
         id: yarn-cache-dir-path
