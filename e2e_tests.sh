@@ -54,7 +54,7 @@ setup_dappchain() {
 }
 
 start_chains() {
-$REPO_ROOT/node_modules/.bin/ganache-cli -d -p   >> ganache.log &
+  $REPO_ROOT/node_modules/.bin/ganache-cli -d -p $GANACHE_PORT >> ganache.log &
   GANACHE_PID=$!
 
   cd $LOOM_DIR
