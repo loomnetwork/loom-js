@@ -19,26 +19,8 @@ jobs:
         with:
           node-version: "11.x"
 
-      - name: Get yarn cache directory path
-        id: yarn-cache-dir-path
-        run: echo "::set-output name=dir::$(yarn cache dir)"
-      - name: Cache yarn cache
-        uses: actions/cache@v2
-        id: cache-yarn-cache
-        with:
-          path: ${{ steps.yarn-cache-dir-path.outputs.dir }}
-          key: ${{ runner.os }}-yarn-${{ hashFiles('**/yarn.lock') }}
-          restore-keys: |
-            ${{ runner.os }}-yarn-
-
-      - name: Cache node_modules
-        id: cache-node-modules
-        uses: actions/cache@v2
-        with:
-          path: node_modules
-          key: ${{ runner.os }}-${{ matrix.node-version }}-nodemodules-${{ hashFiles('**/yarn.lock') }}
-          restore-keys: |
-            ${{ runner.os }}-${{ matrix.node-version }}-nodemodules-
+      - name: install
+        uses: actions/install@v1
 
       # - name: Cache Go modules
       #   uses: actions/cache@preview
@@ -56,13 +38,6 @@ jobs:
       #   run: sudo apt-get install xvfb
       - run: chmod +x ./e2e_tests.sh
       - run: yarn install
-      # - run: yarn proto && yarn gen-contract-types && tsc
-      # - run: xvfb :99 -screen 0 1024x768x24 > /dev/null 2>&1 &
-      #   env:
-      #     DISPLAY: ":99"
-      # - run: yarn test:browser
-      #   env:
-      #     DISPLAY: ":99"
       - run: xvfb-run --auto-servernum yarn test:browser
         # env:
         #    DISPLAY: ":99"
