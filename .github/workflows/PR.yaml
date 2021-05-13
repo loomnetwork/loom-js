@@ -57,7 +57,8 @@ jobs:
       - run: chmod +x ./e2e_tests.sh
       - run: yarn install
       # - run: yarn proto && yarn gen-contract-types && tsc
-      - run: xvfb-run --auto-servernum yarn test:browser
+      - run: xvfb :99 -screen 0 1024x768x24 > /dev/null 2>&1 &
+      - run: yarn test:browser
       # - name: Run headless test
       #   uses: GabrielBB/xvfb-action@v1
       #   with:
