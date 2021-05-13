@@ -41,7 +41,11 @@ module.exports = {
     }),
     // Be default tests will run in Electron, but can use other browsers too,
     // see https://github.com/syarul/webpack-tape-run for plugin settings.
-    new WebpackTapeRun()
+    new WebpackTapeRun({
+      tapeRun: {
+        browser: 'chrome'
+      }
+    })
   ],
   // silence irrelevant messages
   performance: {
