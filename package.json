@@ -23,9 +23,9 @@
     "test:browser": "yarn build && webpack --config webpack.unit.tests.config.js",
     "test:e2e:local": "bash e2e_tests.sh",
     "e2e:node": "yarn build && tape -r dotenv/config dotenv_config_path=./.env.test dist/tests/e2e_tests.js | tap-spec",
-    "e2e:browser": "yarn build && && webpack --config webpack.e2e.test.config.js | tap-spec",
+    "e2e:browser": "yarn build && webpack --config webpack.e2e.test.config.js",
     "proto": "node ./scripts/gen-proto.js",
-    "prepublish": "yarn proto && yarn gen-contract-types && yarn build && webpack",
+    "prepublish": "yarn build && webpack",
     "gen-contract-types": "typechain \"src/mainnet-contracts/*.json\" --target=ethers --outDir src/mainnet-contracts && node scripts/export-mainnet-contracts-abi.js"
   },
   "dependencies": {
