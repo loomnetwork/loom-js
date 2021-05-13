@@ -78,7 +78,11 @@ stop_chains() {
 }
 
 run_tests() {
-  eval ${TEST_CMD:=yarn e2e:node}
+  # run yarn e2e:node if no TEST_CMD
+  # fo ci browser tests a diffrent command is used
+  # check github workflows
+  # eval ${TEST_CMD:=yarn e2e:node}
+  yarn e2e:node
 }
 
 cleanup() {
