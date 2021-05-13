@@ -55,5 +55,8 @@ jobs:
       - run: xvfb-run --auto-servernum yarn test:browser
       - run: yarn test:node
       - run: chmod +x ./e2e_tests.sh
-      - run: ./scripts/ci_e2e_test.sh
+      # - run: ./scripts/ci_e2e_test.sh
+      - run: ./e2e_test.sh
         working-directory: "."
+        env:
+          BUILD_ID: build-1346
