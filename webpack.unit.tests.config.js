@@ -4,6 +4,7 @@ const path = require('path');
 const WebpackTapeRun = require('webpack-tape-run');
 
 module.exports = {
+  target: 'web',
   mode: 'production',
   entry: './dist/tests/unit_tests.js',
   output: {
