@@ -28,7 +28,7 @@ test('Address', t => {
       'Address.toString() formats the address correctly'
     )
   } catch (err) {
-    console.log(err)
+    t.fail(err)
   }
   t.end()
 })
