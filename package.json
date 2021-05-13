@@ -80,7 +80,9 @@
     "typescript": "^2.9.2",
     "webpack": "^4.6.0",
     "webpack-cli": "^3.1.1",
-    "webpack-tape-run": "^0.0.7"
+    "webpack-tape-run": "^0.0.7",
+    "browser-run": "^10.1.0",
+    "tape-run": "^9.0.0"
   },
   "browserslist": "last 2 versions"
 }
