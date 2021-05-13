@@ -20,7 +20,7 @@ jobs:
           node-version: "11.x"
 
       - name: install
-        uses: actions/install@v1
+        uses: actions/install
 
       # - name: Cache Go modules
       #   uses: actions/cache@preview
