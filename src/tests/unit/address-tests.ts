@@ -4,6 +4,7 @@ import { Address, LocalAddress } from '../../address'
 
 test('Address', t => {
   try {
+    t.ok(window != undefined, "window")
     const chainId = 'default'
     const localAddrStr = '0x005B17864f3adbF53b1384F2E6f2120c6652F779'
     const localAddr = LocalAddress.fromHexString(localAddrStr)
