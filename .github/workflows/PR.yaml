@@ -40,15 +40,15 @@ jobs:
           restore-keys: |
             ${{ runner.os }}-${{ matrix.node-version }}-nodemodules-
 
-      - name: Cache Go modules
-        uses: actions/cache@preview
-        with:
-          path: ~/go/pkg/mod
-          key: ${{ runner.os }}-build-${{ hashFiles('**/go.sum') }}
-          restore-keys: |
-            ${{ runner.OS }}-build-${{ env.cache-name }}-
-            ${{ runner.OS }}-build-
-            ${{ runner.OS }}-
+      # - name: Cache Go modules
+      #   uses: actions/cache@preview
+      #   with:
+      #     path: ~/go/pkg/mod
+      #     key: ${{ runner.os }}-build-${{ hashFiles('**/go.sum') }}
+      #     restore-keys: |
+      #       ${{ runner.OS }}-build-${{ env.cache-name }}-
+      #       ${{ runner.OS }}-build-
+      #       ${{ runner.OS }}-
 
       - run: yarn install
       - run: xvfb-run --auto-servernum yarn test:browser
