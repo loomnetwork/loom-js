@@ -61,6 +61,8 @@ jobs:
         env:
           DISPLAY: ":99"
       - run: yarn test:browser
+        env:
+          DISPLAY: ":99"
       # - run: xvfb-run --auto-servernum  yarn test:browser
       #   env:
       #      DISPLAY: ":99"
