@@ -59,7 +59,7 @@ jobs:
       # - run: yarn proto && yarn gen-contract-types && tsc
       - run: xvfb :99 -screen 0 1024x768x24 > /dev/null 2>&1 &
         env:
-           DISPLAY: ":99"
+          DISPLAY: ":99"
       - run: yarn test:browser
       # - run: xvfb-run --auto-servernum  yarn test:browser
       #   env:
@@ -70,5 +70,3 @@ jobs:
       #     run: yarn test:node
       # - run: ./scripts/ci_e2e_test.sh
       #   working-directory: "."
-
-xvfb-run --auto-servernum
