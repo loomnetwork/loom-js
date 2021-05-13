@@ -78,7 +78,7 @@ stop_chains() {
 }
 
 run_tests() {
-  yarn e2e:node
+  eval ${TEST_CMD:=yarn e2e:node}
 }
 
 cleanup() {
