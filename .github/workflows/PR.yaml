@@ -2,11 +2,11 @@ name: CI
 
 on:
   pull_request:
-    branches: [master, ci-test]
+    branches: [master]
 
 jobs:
   build:
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-18.04
 
     steps:
       - uses: actions/setup-go@v2
@@ -38,21 +38,14 @@ jobs:
           restore-keys: |
             ${{ runner.os }}-${{ matrix.node-version }}-nodemodules-
 
-      - name: Cache Go modules
-        uses: actions/cache@preview
-        with:
-          path: ~/go/pkg/mod
-          key: ${{ runner.os }}-build-${{ hashFiles('**/go.sum') }}
-          restore-keys: |
-            ${{ runner.OS }}-build-${{ env.cache-name }}-
-            ${{ runner.OS }}-build-
-            ${{ runner.OS }}-
-
       - name: Setup protoc3
         run: ./scripts/ci_install_protoc3.sh
-      - name: Install xvfb for browser tests
-        run: sudo apt-get install xvfb
-      - run: chmod +x ./e2e_tests.sh
+
       - run: yarn install
-      - run: ./scripts/ci_e2e_test.sh
+      - run: xvfb-run --auto-servernum yarn test:browser
+      - run: yarn test:node
+      - run: chmod +x ./e2e_tests.sh
+      - run: ./e2e_tests.sh
         working-directory: "."
+        env:
+          BUILD_ID: build-1346

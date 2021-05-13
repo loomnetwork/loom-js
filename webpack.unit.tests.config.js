@@ -12,7 +12,7 @@ module.exports = {
     libraryTarget: 'umd',
     globalObject: 'this',
     // libraryExport: 'default',
-    library: 'loom_unit_tests'
+    // library: 'loom_unit_tests'
   },
   node: {
     fs: 'empty',
@@ -36,7 +36,9 @@ module.exports = {
   plugins: [
     // Be default tests will run in Electron, but can use other browsers too,
     // see https://github.com/syarul/webpack-tape-run for plugin settings.
-    new WebpackTapeRun()
+    new WebpackTapeRun({
+      reporter: "tap-spec"
+    })
   ],
   // silence irrelevant messages
   performance: {

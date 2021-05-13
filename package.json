@@ -13,18 +13,19 @@
   "license": "BSD-3-Clause",
   "main": "dist/index.js",
   "scripts": {
+    "prebuild": "yarn proto && yarn gen-contract-types",
     "build": "tsc",
     "build:browser": "tsc && webpack",
     "build:dev": "tsc --project es2017.tsconfig.json",
     "format": "prettier --write \"src/**/*.ts\"",
     "test": "yarn test:node && yarn test:browser",
-    "test:node": "yarn proto && yarn gen-contract-types && tsc && tape dist/tests/unit_tests.js | tap-spec",
-    "test:browser": "yarn proto && yarn gen-contract-types && tsc && webpack --config webpack.unit.tests.config.js | tap-spec",
+    "test:node": "yarn build && tape dist/tests/unit_tests.js | tap-spec",
+    "test:browser": "yarn build && webpack --config webpack.unit.tests.config.js",
     "test:e2e:local": "bash e2e_tests.sh",
-    "e2e:node": "yarn proto && yarn gen-contract-types && tsc && tape -r dotenv/config dotenv_config_path=./.env.test dist/tests/e2e_tests.js | tap-spec",
-    "e2e:browser": "yarn proto && yarn gen-contract-types && tsc && webpack --config webpack.e2e.test.config.js | tap-spec",
+    "e2e:node": "yarn build && tape -r dotenv/config dotenv_config_path=./.env.test dist/tests/e2e_tests.js | tap-spec",
+    "e2e:browser": "yarn build && webpack --config webpack.e2e.test.config.js",
     "proto": "node ./scripts/gen-proto.js",
-    "prepublish": "yarn proto && yarn gen-contract-types && yarn build && webpack",
+    "prepublish": "yarn build && webpack",
     "gen-contract-types": "typechain \"src/mainnet-contracts/*.json\" --target=ethers --outDir src/mainnet-contracts && node scripts/export-mainnet-contracts-abi.js"
   },
   "dependencies": {
@@ -44,7 +45,7 @@
     "rlp": "^2.1.0",
     "rpc-websockets": "^4.1.1",
     "tronweb": "^2.5.3",
-    "tslib": "^1.9.3",
+    "tslib": "2.2.0",
     "tweetnacl": "^1.0.0",
     "web3": "1.2.1"
   },
@@ -80,7 +81,9 @@
     "typescript": "^2.9.2",
     "webpack": "^4.6.0",
     "webpack-cli": "^3.1.1",
-    "webpack-tape-run": "^0.0.7"
+    "webpack-tape-run": "^0.0.7",
+    "browser-run": "^10.1.0",
+    "tape-run": "^9.0.0"
   },
   "browserslist": "last 2 versions"
 }
