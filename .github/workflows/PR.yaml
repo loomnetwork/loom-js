@@ -63,7 +63,7 @@ jobs:
       # - run: yarn test:browser
       #   env:
       #     DISPLAY: ":99"
-      - run: xvfb-run --auto-servernum  yarn test:browser
+      - run: xvfb-run --auto-servernum yarn test:browser
         # env:
         #    DISPLAY: ":99"
       # - run: ./scripts/ci_e2e_test.sh

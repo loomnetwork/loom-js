@@ -4,7 +4,6 @@ const path = require('path');
 const WebpackTapeRun = require('webpack-tape-run');
 
 module.exports = {
-  target: 'web',
   mode: 'production',
   entry: './dist/tests/unit_tests.js',
   output: {
@@ -37,12 +36,7 @@ module.exports = {
   plugins: [
     // Be default tests will run in Electron, but can use other browsers too,
     // see https://github.com/syarul/webpack-tape-run for plugin settings.
-    new WebpackTapeRun({
-      tapeRun: {
-        browser: "chrome"
-      },
-      reporter: 'tap-spec'
-    })
+    new WebpackTapeRun()
   ],
   // silence irrelevant messages
   performance: {
