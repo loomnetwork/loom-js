@@ -52,20 +52,10 @@ jobs:
 
       - name: Setup protoc3
         run: ./scripts/ci_install_protoc3.sh
-      # - name: Install xvfb for browser tests
-      #   run: sudo apt-get install xvfb
+
       - run: chmod +x ./e2e_tests.sh
       - run: yarn install
-      # - run: yarn proto && yarn gen-contract-types && tsc
-      # - run: xvfb :99 -screen 0 1024x768x24 > /dev/null 2>&1 &
-      #   env:
-      #     DISPLAY: ":99"
-      # - run: yarn test:browser
-      #   env:
-      #     DISPLAY: ":99"
       - run: xvfb-run --auto-servernum yarn test:browser
-      - run: yarn test:node
-        # env:
-        #    DISPLAY: ":99"
+      - run: yarn test:node && echo $?
       # - run: ./scripts/ci_e2e_test.sh
       #   working-directory: "."
