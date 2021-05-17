@@ -2,7 +2,7 @@ import test from 'tape'
 import BN from 'bn.js'
 
 import { LocalAddress, CryptoUtils } from '../../index'
-import { createTestClient, waitForMillisecondsAsync, createWeb3TestClient } from '../helpers'
+import { createTestClient, waitForMillisecondsAsync, createWeb3TestClient, execWithTimeOut } from '../helpers'
 
 import { LoomProvider } from '../../loom-provider'
 import { deployContract } from '../evm-helpers'
@@ -10,8 +10,12 @@ import { ecrecover, privateToPublic, fromRpcSig } from 'ethereumjs-util'
 import { soliditySha3 } from '../../solidity-helpers'
 import { bytesToHexAddr } from '../../crypto-utils'
 
-// import Web3 from 'web3'
-const Web3 = require('web3')
+import Web3 from 'web3'
+import { AbiItem } from 'web3-utils';
+import { ContractSendMethod, Contract } from 'web3-eth-contract'
+import { PromiEvent } from "web3-core"
+import { Client, ClientEvent } from "../../client"
+import { debug } from "console"
 
 /**
  * Requires the SimpleStore solidity contract deployed on a loomchain.
@@ -82,13 +86,14 @@ const newContractAndClient = async (useEthEndpoint: boolean) => {
 
   const result = await deployContract(loomProvider, contractData)
 
-  const contract = new web3.eth.Contract(ABI, result.contractAddress, { from })
+  const contract = new web3.eth.Contract(ABI as AbiItem[], result.contractAddress, { from })
 
   return { contract, client, web3, from, privKey }
 }
 
-async function testWeb3MismatchedTopic(t: any, useEthEndpoint: boolean) {
+async function testWeb3MismatchedTopic(t: test.Test, useEthEndpoint: boolean) {
   t.plan(2)
+  t.timeoutAfter(20000)
   const { contract, client } = await newContractAndClient(useEthEndpoint)
 
   try {
@@ -102,50 +107,61 @@ async function testWeb3MismatchedTopic(t: any, useEthEndpoint: boolean) {
       }
     })
 
-    const tx = await contract.methods.set(newValue).send()
+    // @ts-ignore
+    await client._writeClient.ensureConnectionAsync()
+
+    t.comment("contract.methods.set(newValue).send()")
+    const tx: any = contract.methods.set(newValue).send()
     t.equal(tx.status, true, 'SimpleStore.set should return correct status')
 
-    const resultOfGet = await contract.methods.get().call()
+    t.comment("contract.methods.get().call()")
+    const resultOfGet: any = await contract.methods.get().call()
     t.equal(+resultOfGet, newValue, `SimpleStore.get should return correct value`)
 
-    await waitForMillisecondsAsync(1000)
   } catch (err) {
-    console.log(err)
-  }
-
-  if (client) {
+    console.error(err)
+    t.fail(err)
+  } finally {
     client.disconnect()
   }
+
+
 }
 
-async function testWeb3MultipleTopics(t: any, useEthEndpoint: boolean) {
-  t.plan(3)
-  const { contract, client } = await newContractAndClient(useEthEndpoint)
-  try {
-    const newValue = 1
+async function testWeb3MultipleTopics(t: test.Test, useEthEndpoint: boolean) {
+  t.timeoutAfter(20000)
+  const newValue = 1
 
-    contract.events.NewValueSet({ filter: { _value: [1, 2, 3] } }, (err: Error, event: any) => {
-      if (err) t.error(err)
-      else {
+  const { contract, client, from } = await newContractAndClient(useEthEndpoint)
+
+  const assertions = new Promise((resolve, reject) => {
+    contract.events.NewValueSet(
+      { filter: { _value: [1, 2, 3] } },
+      async (err: Error, event: any) => {
+        t.error(err, "contract.events.NewValueSet should not fail")
         t.equal(+event.returnValues._value, newValue, `Return value should be ${newValue}`)
-      }
-    })
-    await waitForMillisecondsAsync(1000)
+        const resultOfGet: any = await contract.methods.get().call()
+        t.equal(+resultOfGet, newValue, `SimpleStore.get should return correct value`)
+        resolve(true)
+      })
+  })
 
-    const tx = await contract.methods.set(newValue).send()
-    t.equal(tx.status, true, 'SimpleStore.set should return correct status')
+  // @ts-ignore
+  // tx hash assertion should be removed here maybe... we're testing events
+  const txHash = new Promise((resolve, rej) => {
+    const set: ContractSendMethod = contract.methods.set(newValue)
+    set.send({ from })
+      .on("transactionHash", hash => {
+        t.pass("contract.methods.set emits transactionHash")
+        resolve(hash)
+      })
+  })
 
-    const resultOfGet = await contract.methods.get().call()
-    t.equal(+resultOfGet, newValue, `SimpleStore.get should return correct value`)
-  } catch (err) {
-    console.log(err)
-  }
-
-  if (client) {
-    client.disconnect()
-  }
+  await Promise.all([txHash, assertions])
+  client.disconnect()
 
   t.end()
+
 }
 
 async function testWeb3Sign(t: any, useEthEndpoint: boolean) {
@@ -283,13 +299,15 @@ async function testWeb3Balance(t: any, useEthEndpoint: boolean) {
   t.end()
 }
 
-async function testWeb3TransactionReceipt(t: any, useEthEndpoint: boolean) {
-  const { contract, client } = await newContractAndClient(useEthEndpoint)
+async function testWeb3TransactionReceipt(t: test.Test, useEthEndpoint: boolean) {
+  const { contract, client, from } = await newContractAndClient(useEthEndpoint)
+  let error
   try {
     const newValue = 1
 
-    const tx = await contract.methods.set(newValue).send()
-    console.log('tx', tx)
+    const sendOpts = { from: contract.defaultAccount! }
+
+    const tx: any = await (contract.methods.set(newValue) as ContractSendMethod).send({ from })
     // TODO: there is no blockTime property in tx.events.NewValueSet, it's a Loom extension that's
     //       not implemented on the /eth endpoint yet, re-enable this when we implement it again
     if (!useEthEndpoint) {
@@ -300,23 +318,28 @@ async function testWeb3TransactionReceipt(t: any, useEthEndpoint: boolean) {
 
     await waitForMillisecondsAsync(1000)
   } catch (err) {
-    console.log(err)
+    console.error(err)
+    error = err
   }
-
   if (client) {
     client.disconnect()
   }
+  t.error(error, "Unexpected error")
 
   t.end()
 }
 
-async function testWeb3PastEvents(t: any, useEthEndpoint: boolean) {
+async function testWeb3PastEvents(t: test.Test, useEthEndpoint: boolean) {
   const { contract, client, web3 } = await newContractAndClient(useEthEndpoint)
+  let error
+  t.plan(useEthEndpoint ? 4 : 3)
+  t.timeoutAfter(20000)
   try {
     const newValue = 1
 
     const blockNum = await web3.eth.getBlockNumber()
-    const tx = await contract.methods.set(newValue).send()
+    const tx: any = await contract.methods.set(newValue).send()
+    t.comment("tx.status is true")
     t.equal(tx.status, true, 'SimpleStore.set should return correct status')
 
     const events = await contract.getPastEvents('NewValueSet', {
@@ -327,18 +350,18 @@ async function testWeb3PastEvents(t: any, useEthEndpoint: boolean) {
     // TODO: there is no blockTime property on Ethereum events, it's a Loom extension that's
     //       not implemented on the /eth endpoint yet, re-enable this when we implement it again
     if (!useEthEndpoint) {
+      // @ts-ignore
       t.assert(events[0].blockTime > 0, 'blockTime should be greater than 0')
     }
     await waitForMillisecondsAsync(1000)
   } catch (err) {
     console.log(err)
+    error = err
   }
 
-  if (client) {
-    client.disconnect()
-  }
+  client.disconnect()
+  t.error(error, "Unexpected error")
 
-  t.end()
 }
 
 async function testWeb3GetStorageAt(t: any, useEthEndpoint: boolean) {
@@ -361,11 +384,11 @@ async function testWeb3GetStorageAt(t: any, useEthEndpoint: boolean) {
   t.end()
 }
 
-test('LoomProvider + Web3 + Event with not matching topic (/query)', (t: any) =>
+test('LoomProvider + Web3 + Event with not matching topic (/query)', (t: test.Test) =>
   testWeb3MismatchedTopic(t, false))
 // test('LoomProvider + Web3 + Event with not matching topic (/eth)', (t: any) =>
 //   testWeb3MismatchedTopic(t, true))
-test('LoomProvider + Web3 + Multiple event topics (/query)', (t: any) =>
+test.only('LoomProvider + Web3 + Multiple event topics (/query)', (t: any) =>
   testWeb3MultipleTopics(t, false))
 // test('LoomProvider + Web3 + Multiple event topics (/eth)', (t: any) =>
 //   testWeb3MultipleTopics(t, true))
