@@ -8,7 +8,7 @@ import { createJSONRPCClient, LocalAddress } from '.'
 import { Address } from './address'
 import { ethers } from 'ethers'
 import debug from 'debug'
-import EthereumTx from 'ethereumjs-tx'
+import { Transaction as EthereumTx } from 'ethereumjs-tx'
 import { sha256 } from 'ethereumjs-util'
 import { SignedTx, NonceTx, MessageTx, Transaction } from './proto/loom_pb'
 
