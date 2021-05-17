@@ -5,6 +5,7 @@ const WebpackTapeRun = require('webpack-tape-run');
 
 module.exports = {
   mode: 'production',
+  target: "web",
   entry: './dist/tests/unit_tests.js',
   output: {
     path: path.resolve(__dirname, './dist'),
@@ -29,16 +30,18 @@ module.exports = {
       {
         test: /\.(js)$/,
         exclude: /(node_modules)/,
-        use: 'babel-loader'
+        loader: 'babel-loader',
+        options:
+        {
+          presets: [
+            ['@babel/preset-env', { loose: true, modules: false }],
+          ],
+          sourceType: 'unambiguous'
+        }
       }
     ]
   },
   plugins: [
-    // Be default tests will run in Electron, but can use other browsers too,
-    // see https://github.com/syarul/webpack-tape-run for plugin settings.
-    new WebpackTapeRun({
-      reporter: "tap-spec"
-    })
   ],
   // silence irrelevant messages
   performance: {
