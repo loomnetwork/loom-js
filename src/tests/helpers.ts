@@ -69,8 +69,7 @@ export async function execAndWaitForMillisecondsAsync(promise: Promise<any>, ms:
   }
 }
 
-
-export function execWithTimeOut<T>(name: string, promise: Promise<T>, ms: number = 10000) {
-  const timeout = new Promise<T>((_, reject) => setTimeout(() => reject(`${name} timed out after ${ms}ms`), ms));
+export function rejectOnTimeOut<T>(promise: Promise<T>, ms: number = 10000) {
+  const timeout = new Promise<T>((_, reject) => setTimeout(reject, ms));
   return Promise.race([promise, timeout]);
 }
