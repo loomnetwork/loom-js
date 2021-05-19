@@ -24,11 +24,11 @@ test('LoomProvider/Ethers Get version (/eth)', (t: any) => testNetId(t, true))
 test('LoomProvider/Ethers getBlockNumber (/query)', (t: any) => testBlockNumber(t, false))
 test('LoomProvider/Ethers getBlockNumber (/eth)', (t: any) => testBlockNumber(t, true))
 
-// /query getBlockByNumber fails
+// /query getBlockByNumber fails: invalid hash (arg="hash", value=undefined, version=4.0.26)
 test.skip('LoomProvider/Ethers getBlockByNumber (/query)', (t) => testBlockByNumber(t, false))
 test('LoomProvider/Ethers getBlockByNumber (/eth)', (t) => testBlockByNumber(t, true))
 
-// /query getBlockByNumber fails
+// /query getBlockByNumber fails: invalid hash (arg="hash", value=undefined, version=4.0.26)
 test.skip('LoomProvider/Ethers getBlock by hash (/query)', (t) => testBlockByHash(t, false))
 test('LoomProvider/Ethers getBlock by hash (/eth)', (t) => testBlockByHash(t, true))
 
@@ -175,9 +175,6 @@ async function testBlockNumber(t: any, useEthEndpoint: boolean) {
     const blockNumber = await ethersProvider.getBlockNumber()
     t.assert(typeof blockNumber === 'number', 'Block number should be a number')
 
-    const blockInfo = await ethersProvider.getBlock(blockNumber, false)
-    t.equal(blockInfo.number, blockNumber, 'Block number should be equal')
-
   } catch (err) {
     t.error(err)
   }
@@ -190,7 +187,6 @@ async function testBlockByNumber(t: any, useEthEndpoint: boolean) {
   const { client, ethersProvider } = await newContractAndClient(useEthEndpoint)
   try {
     const blockNumber = await ethersProvider.getBlockNumber()
-    console.log(blockNumber)
     const blockInfo = await ethersProvider.getBlock(blockNumber, false)
     t.equal(blockInfo.number, blockNumber, 'Block number should be equal')
   } catch (err) {
@@ -206,7 +202,6 @@ async function testBlockByHash(t: test.Test, useEthEndpoint: boolean) {
   try {
     const blockNumber = await ethersProvider.getBlockNumber()
     const blockInfo = await ethersProvider.getBlock(blockNumber, false)
-    console.log(blockInfo)
     const blockInfoByHash = await ethersProvider.getBlock(blockInfo.hash, false)
     t.assert(blockInfoByHash, 'Should return block info by hash')
   } catch (error) {
@@ -253,7 +248,6 @@ async function testTransactionReceipt(t: test.Test, useEthEndpoint: boolean) {
     t.ok(contractReceipt.transactionHash, "Contract receipt has transactionHash")
 
     const receipt = await ethersProvider.getTransactionReceipt(contractReceipt.transactionHash!);
-    console.log(receipt)
     // TODO: there is no blockTime property in tx.events.NewValueSet, it's a Loom extension that's
     //       not implemented on the /eth endpoint yet, re-enable this when we implement it again
     // if (!useEthEndpoint) {
@@ -333,7 +327,7 @@ async function testMismatchedTopic(t: test.Test, useEthEndpoint: boolean) {
       address: contract.address,
       topics
     }
-    ethersProvider.on(f, console.log)
+    // ethersProvider.on(f, console.log)
 
     const SetFilter = contract.filters.NewValueSet
     const onTopicPromises = onTopicValues.map(v =>
@@ -357,9 +351,7 @@ async function testMismatchedTopic(t: test.Test, useEthEndpoint: boolean) {
     contract.addListener(contract.filters.NewValueSet(1), console.log)
 
     for (const v of onTopicValues) {
-      console.log(v)
       await contract.set(v, { gasLimit: 10000 })
-
     }
 
     await Promise.all(shouldTrigger)
