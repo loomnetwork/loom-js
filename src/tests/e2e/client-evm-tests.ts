@@ -62,7 +62,7 @@ test('Client EVM test (newPendingTransactionEvmFilterAsync)', async t => {
     const privateKey = CryptoUtils.generatePrivateKey()
     client = createTestClient()
 
-    client.on('error', err => t.error(err))
+    client.on('error', err => t.error(err, "Client error"))
 
     client.txMiddleware = createDefaultTxMiddleware(client, privateKey)
 
@@ -70,25 +70,19 @@ test('Client EVM test (newPendingTransactionEvmFilterAsync)', async t => {
     const filterId = await execAndWaitForMillisecondsAsync(
       client.newPendingTransactionEvmFilterAsync()
     )
-
-    if (!filterId) {
-      t.fail('Filter Id cannot be null')
-    }
+    t.ok(filterId, 'Filter Id cannot be null')
 
     // calls getevmfilterchanges
     const hash = await client.getEvmFilterChangesAsync(filterId as string)
+    t.ok(hash, 'Transaction cannot be null')
 
-    if (!hash) {
-      t.fail('Transaction cannot be null')
-    }
   } catch (err) {
-    console.error(err)
-    t.fail(err.message)
-  }
+    t.error(err)
 
-  if (client) {
-    client.disconnect()
+  } finally {
+    if (client) {
+      client.disconnect()
+    }
+    t.end()
   }
-
-  t.end()
 })

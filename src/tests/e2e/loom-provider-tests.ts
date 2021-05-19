@@ -39,7 +39,13 @@ const newContractAndClient = async () => {
   const contractData =
     '608060405234801561001057600080fd5b50600a600081905550610118806100286000396000f3006080604052600436106049576000357c0100000000000000000000000000000000000000000000000000000000900463ffffffff16806360fe47b114604e5780636d4ce63c146078575b600080fd5b348015605957600080fd5b5060766004803603810190808035906020019092919050505060a0565b005b348015608357600080fd5b50608a60e3565b6040518082815260200191505060405180910390f35b806000819055507fb922f092a64f1a076de6f21e4d7c6400b6e55791cc935e7bb8e7e90f7652f15b6000546040518082815260200191505060405180910390a150565b600080549050905600a165627a7a72305820fabe42649c29e53c4b9fad19100d72a1e825603058e1678432a76f94a10d352a0029'
 
-  const { contractAddress, transactionHash } = await deployContract(loomProvider, contractData)
+  let contractAddress
+  let transactionHash
+  try {
+    ({ contractAddress, transactionHash } = await deployContract(loomProvider, contractData))
+  } catch (e) {
+    console.error(e)
+  }
 
   client.on('error', msg => console.error('Error on client:', msg))
 
@@ -47,6 +53,7 @@ const newContractAndClient = async () => {
 }
 
 test('LoomProvider method eth_sign', async t => {
+  t.timeoutAfter(20 * 1000)
   const { loomProvider, from, privKey, client } = await newContractAndClient()
 
   try {
@@ -113,13 +120,13 @@ test('LoomProvider method net_version', async t => {
   } catch (err) {
     console.log(err)
     t.error(err, 'Error found')
-  }
 
-  if (client) {
-    client.disconnect()
+  } finally {
+    if (client) {
+      client.disconnect()
+    }
+    t.end()
   }
-
-  t.end()
 })
 
 // test('LoomProvider method eth_accounts', async t => {
@@ -175,15 +182,12 @@ test('LoomProvider method eth_newBlockFilter', async t => {
       'Hex identification should be returned on eth_newBlockFilter'
     )
   } catch (err) {
-    console.log(err)
     t.error(err, 'Error found')
-  }
-
-  if (client) {
+  } finally {
     client.disconnect()
+    t.end()
   }
 
-  t.end()
 })
 
 test('LoomProvider method eth_blockNumber', async t => {
@@ -226,7 +230,7 @@ test('LoomProvider method eth_getBlockByNumber (0x1)', async t => {
         params: ['0x1']
       })
     )
-
+    // XXX errors pass here...
     t.assert(
       ethNewBlockByNumberResult.result,
       'Block should be returned from eth_getBlockByNumber'
@@ -234,13 +238,13 @@ test('LoomProvider method eth_getBlockByNumber (0x1)', async t => {
   } catch (err) {
     console.log(err)
     t.error(err, 'Error found')
-  }
 
-  if (client) {
-    client.disconnect()
+  } finally {
+    if (client) {
+      client.disconnect()
+    }
+    t.end()
   }
-
-  t.end()
 })
 
 test('LoomProvider method eth_getBlockByNumber (latest)', async t => {
@@ -269,13 +273,13 @@ test('LoomProvider method eth_getBlockByNumber (latest)', async t => {
   } catch (err) {
     console.log(err)
     t.error(err, 'Error found')
-  }
 
-  if (client) {
-    client.disconnect()
+  } finally {
+    if (client) {
+      client.disconnect()
+    }
+    t.end()
   }
-
-  t.end()
 })
 
 test('LoomProvider method eth_sendTransaction', async t => {
@@ -309,13 +313,13 @@ test('LoomProvider method eth_sendTransaction', async t => {
   } catch (err) {
     console.log(err)
     t.error(err, 'Error found')
-  }
 
-  if (client) {
-    client.disconnect()
+  } finally {
+    if (client) {
+      client.disconnect()
+    }
+    t.end()
   }
-
-  t.end()
 })
 
 test('LoomProvider method eth_sendTransaction (deploy)', async t => {
@@ -354,13 +358,13 @@ test('LoomProvider method eth_sendTransaction (deploy)', async t => {
   } catch (err) {
     console.log(err)
     t.error(err, 'Error found')
-  }
 
-  if (client) {
-    client.disconnect()
+  } finally {
+    if (client) {
+      client.disconnect()
+    }
+    t.end()
   }
-
-  t.end()
 })
 
 test('LoomProvider method eth_getCode', async t => {
@@ -384,13 +388,13 @@ test('LoomProvider method eth_getCode', async t => {
   } catch (err) {
     console.log(err)
     t.error(err, 'Error found')
-  }
 
-  if (client) {
-    client.disconnect()
+  } finally {
+    if (client) {
+      client.disconnect()
+    }
+    t.end()
   }
-
-  t.end()
 })
 
 test('LoomProvider method eth_call', async t => {
@@ -424,13 +428,11 @@ test('LoomProvider method eth_call', async t => {
   } catch (err) {
     console.log(err)
     t.error(err, 'Error found')
-  }
 
-  if (client) {
+  } finally {
     client.disconnect()
+    t.end()
   }
-
-  t.end()
 })
 
 test('LoomProvider method eth_getTransactionReceipt', async t => {
@@ -472,18 +474,18 @@ test('LoomProvider method eth_getTransactionReceipt', async t => {
   } catch (err) {
     console.log(err)
     t.error(err, 'Error found')
-  }
 
-  if (client) {
-    client.disconnect()
+  } finally {
+    if (client) {
+      client.disconnect()
+    }
+    t.end()
   }
-
-  t.end()
 })
 
-test('LoomProvider method eth_getTransactionByHash', async t => {
+test('LoomProvider method eth_getTransactionByHash', async (t: test.Test) => {
   const { loomProvider, transactionHash, client } = await newContractAndClient()
-
+  t.timeoutAfter(10000)
   try {
     const id = 1
 
@@ -501,22 +503,22 @@ test('LoomProvider method eth_getTransactionByHash', async t => {
       'Hex identification should be returned for eth_getTransactionByHash command'
     )
   } catch (err) {
-    console.log(err)
+    console.error(err)
     t.error(err, 'Error found')
-  }
 
-  if (client) {
-    client.disconnect()
+  } finally {
+    if (client) {
+      client.disconnect()
+    }
+    t.end()
   }
-
-  t.end()
 })
 
 test('LoomProvider method eth_subscribe', async t => {
-  let _client
+  let client
+  let loomProvider
   try {
-    const { loomProvider, client } = await newContractAndClient()
-    _client = client
+    ({ loomProvider, client } = await newContractAndClient())
     const id = 1
 
     const ethSubscribeResult = await execAndWaitForMillisecondsAsync(
@@ -532,16 +534,17 @@ test('LoomProvider method eth_subscribe', async t => {
       /0x.+/.test(ethSubscribeResult.result),
       'Hex identification should be returned for eth_subscribe command'
     )
+
   } catch (err) {
     console.log(err)
     t.error(err, 'Error found')
-  }
 
-  if (_client) {
-    _client.disconnect()
+  } finally {
+    if (client) {
+      client.disconnect()
+    }
+    t.end()
   }
-
-  t.end()
 })
 
 test('LoomProvider method eth_uninstallFilter', async t => {
@@ -549,26 +552,22 @@ test('LoomProvider method eth_uninstallFilter', async t => {
 
   try {
     const id = 1
-    const ethUninstallFilter = await execAndWaitForMillisecondsAsync(
-      loomProvider.sendAsync({
-        id,
-        method: 'eth_uninstallFilter',
-        params: ['0x1']
-      })
-    )
+    const ethUninstallFilter = await loomProvider.sendAsync({
+      id,
+      method: 'eth_uninstallFilter',
+      params: ['0x1']
+    })
 
     t.equal(ethUninstallFilter.id, id, `Id for eth_subscribe should be equal ${id}`)
     t.equal(ethUninstallFilter.result, true, 'Uninstall filter should return true')
+
   } catch (err) {
-    console.log(err)
     t.error(err, 'Error found')
-  }
 
-  if (client) {
+  } finally {
     client.disconnect()
+    t.end()
   }
-
-  t.end()
 })
 
 test('LoomProvider adding custom method', async t => {
@@ -583,25 +582,20 @@ test('LoomProvider adding custom method', async t => {
       return '0x1'
     })
 
-    const ethBalanceResult = await execAndWaitForMillisecondsAsync(
-      loomProvider.sendAsync({
-        id,
-        method: 'eth_balance',
-        params: [from]
-      })
-    )
+    const ethBalanceResult = await loomProvider.sendAsync({
+      id,
+      method: 'eth_balance',
+      params: [from]
+    })
 
     t.equal(ethBalanceResult.result, '0x1', 'Balance should be 0x1')
   } catch (err) {
-    console.log(err)
+    console.error(err)
     t.error(err, 'Error found')
-  }
-
-  if (client) {
+  } finally {
     client.disconnect()
+    t.end()
   }
-
-  t.end()
 })
 
 test('LoomProvider overwriting existing method', async t => {
@@ -626,11 +620,9 @@ test('LoomProvider overwriting existing method', async t => {
   } catch (err) {
     console.log(err)
     t.error(err, 'Error found')
-  }
-
-  if (client) {
+  } finally {
     client.disconnect()
+    t.end()
   }
 
-  t.end()
 })

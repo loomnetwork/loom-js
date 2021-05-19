@@ -46,7 +46,7 @@ test('LoomProvider/Ethers getTransactionReceipt (/eth)', (t) => testTransactionR
 test.skip('LoomProvider/Ethers Logs (/query)', (t) => testPastEvents(t, false))
 test('LoomProvider/Ethers Logs (/eth)', (t: any) => testPastEvents(t, true))
 
-test.only('LoomProvider/Ethers getStorageAt (/eth)', (t: any) => testGetStorageAt(t, true))
+test('LoomProvider/Ethers getStorageAt (/eth)', (t: any) => testGetStorageAt(t, true))
 
 test.skip("LoomProvider/Ethers Event topics (/query)", (t) => testMismatchedTopic(t, true))
 test.skip("LoomProvider/Ethers Event topics (/eth)", (t) => testMismatchedTopic(t, true))

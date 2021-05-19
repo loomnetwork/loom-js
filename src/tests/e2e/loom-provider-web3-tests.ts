@@ -92,36 +92,30 @@ const newContractAndClient = async (useEthEndpoint: boolean) => {
 
 async function testWeb3MismatchedTopic(t: test.Test, useEthEndpoint: boolean) {
   let contract: Contract, client, from
-  const waitMs = 5000
+  // Time to wait until assuming unrleated event has effectively not been emitted
+  const waitMs = 10000
   const newValue = 1
   try {
     ({ contract, client, from } = await newContractAndClient(useEthEndpoint))
     const wrongTopicPromise = new Promise((resolve) =>
       contract.events.NewValueSet({ filter: { _value: [4, 5] } }, resolve)
     )
-    const rightTopicPromise = new Promise((resolve) =>
-      contract.events.NewValueSet({ filter: { _value: [1, 2] } }, resolve)
-    )
     contract.methods.set(newValue).send({ from })
     await Promise.all([
       rejectOnTimeOut(wrongTopicPromise, waitMs)
         .then(() => t.fail("Wrong Topic listener should not be triggered"))
         .catch(() => t.pass("Wrong topic listener not triggered within ms" + waitMs)),
-      rejectOnTimeOut(rightTopicPromise, waitMs)
-        .then(() => t.pass("Right Topic listener triggered"))
-        .catch(() => t.fail("Right Topic listener should have been triggered within mss" + waitMs)),
     ])
 
   } catch (err) {
-    console.error(err)
-    t.fail(err)
+    t.error(err)
+
   } finally {
     if (client) {
       client.disconnect()
     }
     t.end()
   }
-
 }
 
 async function testWeb3MultipleTopics(t: test.Test, useEthEndpoint: boolean) {
@@ -144,8 +138,6 @@ async function testWeb3MultipleTopics(t: test.Test, useEthEndpoint: boolean) {
       })
   })
 
-  // @ts-ignore
-  // tx hash assertion should be removed here maybe... we're testing events
   const txHash = new Promise(async (resolve, rej) => {
     const set: ContractSendMethod = contract.methods.set(newValue)
     set.send({ from })
@@ -160,11 +152,14 @@ async function testWeb3MultipleTopics(t: test.Test, useEthEndpoint: boolean) {
     // })
   })
 
-  await Promise.all([txHash, assertions])
-  client.disconnect()
-
-  t.end()
-
+  try {
+    await Promise.all([txHash, assertions])
+  } catch (err) {
+    t.error(err)
+  } finally {
+    client.disconnect()
+    t.end()
+  }
 }
 
 async function testWeb3Sign(t: any, useEthEndpoint: boolean) {
@@ -187,15 +182,14 @@ async function testWeb3Sign(t: any, useEthEndpoint: boolean) {
       bytesToHexAddr(privateToPublic(Buffer.from(privateHash, 'hex'))),
       'Should pubKey from ecrecover be valid'
     )
+
   } catch (err) {
-    console.log(err)
-  }
+    t.error(err)
 
-  if (client) {
+  } finally {
     client.disconnect()
+    t.end()
   }
-
-  t.end()
 }
 
 async function testWeb3NetId(t: any, useEthEndpoint: boolean) {
@@ -208,15 +202,14 @@ async function testWeb3NetId(t: any, useEthEndpoint: boolean) {
 
     const result = await web3.eth.net.getId()
     t.equal(`${netVersionFromChainId}`, `${result}`, 'Should version match')
+
   } catch (err) {
-    console.log(err)
-  }
+    t.error(err)
 
-  if (client) {
+  } finally {
     client.disconnect()
+    t.end()
   }
-
-  t.end()
 }
 
 async function testWeb3BlockNumber(t: any, useEthEndpoint: boolean) {
@@ -224,15 +217,14 @@ async function testWeb3BlockNumber(t: any, useEthEndpoint: boolean) {
   try {
     const blockNumber = await web3.eth.getBlockNumber()
     t.assert(typeof blockNumber === 'number', 'Block number should be a number')
+
   } catch (err) {
-    console.log(err)
-  }
+    t.error(err)
 
-  if (client) {
+  } finally {
     client.disconnect()
+    t.end()
   }
-
-  t.end()
 }
 
 async function testWeb3BlockByNumber(t: any, useEthEndpoint: boolean) {
@@ -242,11 +234,12 @@ async function testWeb3BlockByNumber(t: any, useEthEndpoint: boolean) {
     const blockInfo = await web3.eth.getBlock(blockNumber, false)
     t.equal(blockInfo.number, blockNumber, 'Block number should be equal')
   } catch (err) {
-    console.log(err)
-  }
+    t.error(err)
 
-  client.disconnect()
-  t.end()
+  } finally {
+    client.disconnect()
+    t.end()
+  }
 }
 
 async function testWeb3BlockByHash(t: test.Test, useEthEndpoint: boolean) {
@@ -257,28 +250,27 @@ async function testWeb3BlockByHash(t: test.Test, useEthEndpoint: boolean) {
     const blockInfo = await web3.eth.getBlock(blockNumber, false)
     const blockInfoByHash = await web3.eth.getBlock(blockInfo.hash, false)
     t.assert(blockInfoByHash, 'Should return block info by hash')
-  } catch (error) {
-    console.error(error)
-  }
 
-  client.disconnect()
-  t.end()
+  } catch (err) {
+    t.error(err)
+
+  } finally {
+    client.disconnect()
+    t.end()
+  }
 }
 
-async function testWeb3GasPrice(t: any, useEthEndpoint: boolean) {
+async function testWeb3GasPrice(t: test.Test, useEthEndpoint: boolean) {
   const { client, web3 } = await newContractAndClient(useEthEndpoint)
   try {
     const gasPrice = await web3.eth.getGasPrice()
     t.equal(gasPrice, null, "Gas price isn't used on Loomchain")
   } catch (err) {
-    console.log(err)
-  }
-
-  if (client) {
+    t.error(err)
+  } finally {
     client.disconnect()
+    t.end()
   }
-
-  t.end()
 }
 
 async function testWeb3Balance(t: any, useEthEndpoint: boolean) {
@@ -287,18 +279,15 @@ async function testWeb3Balance(t: any, useEthEndpoint: boolean) {
     const balance = await web3.eth.getBalance(from)
     t.equal(balance, '0', 'Default balance is 0')
   } catch (err) {
-    console.log(err)
-  }
-
-  if (client) {
+    t.error(err)
+  } finally {
     client.disconnect()
+    t.end()
   }
-
-  t.end()
 }
 
 async function testWeb3TransactionReceipt(t: test.Test, useEthEndpoint: boolean) {
-  t.timeoutAfter(60000)
+  t.timeoutAfter(60 * 1000)
   const { contract, client, from, web3 } = await newContractAndClient(useEthEndpoint)
   let error
   try {
@@ -322,31 +311,32 @@ async function testWeb3TransactionReceipt(t: test.Test, useEthEndpoint: boolean)
     t.equal(receipt.status, true, 'SimpleStore.set should return correct status')
 
   } catch (err) {
-    console.error(err)
     t.error(error, "Unexpected errors")
+  } finally {
+    client.disconnect()
+    t.end()
   }
 
-  client.disconnect()
-  t.end()
 }
 
 async function testWeb3PastEvents(t: test.Test, useEthEndpoint: boolean) {
-  const { contract, client, web3 } = await newContractAndClient(useEthEndpoint)
-  let error
-  t.plan(useEthEndpoint ? 4 : 3)
+  const { contract, client, web3, from } = await newContractAndClient(useEthEndpoint)
   t.timeoutAfter(20000)
   try {
     const newValue = 1
 
     const blockNum = await web3.eth.getBlockNumber()
-    const tx: any = await contract.methods.set(newValue).send()
-    t.comment("tx.status is true")
-    t.equal(tx.status, true, 'SimpleStore.set should return correct status')
+
+    const txHash = await new Promise(async (resolve, reject) => {
+      contract.methods.set(newValue).send({ from })
+        .on("transactionHash", resolve)
+        .on("error", reject)
+    })
+    await waitForMillisecondsAsync(5000)
 
     const events = await contract.getPastEvents('NewValueSet', {
       fromBlock: blockNum
     })
-    console.log('events', events)
     t.assert(events.length > 0, 'Should have more than 0 events')
     // TODO: there is no blockTime property on Ethereum events, it's a Loom extension that's
     //       not implemented on the /eth endpoint yet, re-enable this when we implement it again
@@ -354,15 +344,14 @@ async function testWeb3PastEvents(t: test.Test, useEthEndpoint: boolean) {
       // @ts-ignore
       t.assert(events[0].blockTime > 0, 'blockTime should be greater than 0')
     }
-    await waitForMillisecondsAsync(1000)
+
   } catch (err) {
-    console.log(err)
-    error = err
+    t.error(err, "Unexpected error")
+
+  } finally {
+    client.disconnect()
+    t.end()
   }
-
-  client.disconnect()
-  t.error(error, "Unexpected error")
-
 }
 
 async function testWeb3GetStorageAt(t: any, useEthEndpoint: boolean) {
@@ -376,13 +365,10 @@ async function testWeb3GetStorageAt(t: any, useEthEndpoint: boolean) {
     )
   } catch (err) {
     t.error(err)
-  }
-
-  if (client) {
+  } finally {
     client.disconnect()
+    t.end()
   }
-
-  t.end()
 }
 
 test('LoomProvider + Web3 + Event with not matching topic (/query)', (t: test.Test) =>
@@ -410,7 +396,7 @@ test('LoomProvider + Web3 + getBalance (/query)', (t: any) => testWeb3Balance(t,
 test('LoomProvider + Web3 + getBalance (/eth)', (t: any) => testWeb3Balance(t, true))
 test('LoomProvider + Web3 + getTransactionReceipt (/query)', (t: any) =>
   testWeb3TransactionReceipt(t, false))
-test('LoomProvider + Web3 + getTransactionReceipt (/eth)', (t: any) =>
+test('LoomProvider + Web3 + getTransactionReceipt (/eth)', (t) =>
   testWeb3TransactionReceipt(t, true))
 test('LoomProvider + Web3 + Logs (/query)', (t: any) => testWeb3PastEvents(t, false))
 // test('LoomProvider + Web3 + Logs (/eth)', (t: any) => testWeb3PastEvents(t, true))

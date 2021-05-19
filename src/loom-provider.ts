@@ -399,7 +399,7 @@ export class LoomProvider implements AbstractProvider {
   // Adapter function for sendAsync from truffle provider
   async sendAsync(payload: any, callback?: Function): Promise<any | void> {
     if (callback) {
-      await this.send(payload, callback)
+      return this.send(payload, callback)
     } else {
       return new Promise((resolve, reject) => {
         this.send(payload, (err: Error, result: any) => {
