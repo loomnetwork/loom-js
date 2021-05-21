@@ -58,8 +58,18 @@ export function waitForMillisecondsAsync(ms: number) {
   return new Promise(res => setTimeout(res, ms))
 }
 
-export async function execAndWaitForMillisecondsAsync(fn: Promise<any>, ms: number = 2000) {
-  const ret = await fn
-  await waitForMillisecondsAsync(ms)
-  return ret
+export async function execAndWaitForMillisecondsAsync(promise: Promise<any>, ms: number = 2000) {
+  try {
+    const ret = await promise
+    await waitForMillisecondsAsync(ms)
+    return ret
+  } catch (e) {
+    console.error(e)
+    throw e
+  }
+}
+
+export function rejectOnTimeOut<T>(promise: Promise<T>, ms: number = 10000) {
+  const timeout = new Promise<T>((_, reject) => setTimeout(reject, ms));
+  return Promise.race([promise, timeout]);
 }

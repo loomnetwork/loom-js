@@ -3,6 +3,9 @@ import BN from 'bn.js'
 import { ecsign, toBuffer } from 'ethereumjs-util'
 import retry from 'retry'
 
+import { AbstractProvider } from "web3-core"
+
+
 import { Client, ClientEvent, IChainEventArgs, ITxMiddlewareHandler } from './client'
 import { createDefaultTxMiddleware } from './helpers'
 import {
@@ -116,7 +119,7 @@ const numberToHexLC = (num: number): string => {
 /**
  * Web3 provider that interacts with EVM contracts deployed on Loom DAppChains.
  */
-export class LoomProvider {
+export class LoomProvider implements AbstractProvider {
   private _client: Client
   private _subscribed: boolean = false
   private _ethSubscriptions: Map<string, IEthSubscription>
@@ -396,7 +399,7 @@ export class LoomProvider {
   // Adapter function for sendAsync from truffle provider
   async sendAsync(payload: any, callback?: Function): Promise<any | void> {
     if (callback) {
-      await this.send(payload, callback)
+      return this.send(payload, callback)
     } else {
       return new Promise((resolve, reject) => {
         this.send(payload, (err: Error, result: any) => {

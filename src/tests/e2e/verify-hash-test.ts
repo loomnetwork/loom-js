@@ -7,10 +7,16 @@ import { deployContract } from '../evm-helpers'
 import { AddressMapper } from '../../contracts'
 import { OfflineWeb3Signer } from '../../solidity-helpers'
 
-const Web3 = require('web3')
+import Web3 from 'web3'
+import { AbiItem } from 'web3-utils';
+import { TransactionReceipt } from 'web3-core'
+// import { Transaction as EthereumTx } from "ethereumjs-tx"
 const EthereumTx = require('ethereumjs-tx')
+
 const TEST_ETH_ADDR = '0x41ef0087901189bB5134De780fC6b3392C7914E6'
 const TEST_ETH_PRIVATE_KEY = '0110000101110100011001010111001101110100011010110110010101111001'
+
+
 
 function signTransaction(unsignedTx: any) {
   const privateKey = new Buffer(TEST_ETH_PRIVATE_KEY, 'hex')
@@ -32,7 +38,7 @@ async function generateCallTransaction(value: any, contract: any, web3: any) {
   }
 }
 
-async function generateDeployTransaction(web3: any) {
+async function generateDeployTransaction(web3: Web3) {
   const contractData =
     '0x608060405234801561001057600080fd5b50600a60008190555061010e806100286000396000f3006080604052600436106049576000357c0100000000000000000000000000000000000000000000000000000000900463ffffffff16806360fe47b114604e5780636d4ce63c146078575b600080fd5b348015605957600080fd5b5060766004803603810190808035906020019092919050505060a0565b005b348015608357600080fd5b50608a60d9565b6040518082815260200191505060405180910390f35b806000819055506000547fb922f092a64f1a076de6f21e4d7c6400b6e55791cc935e7bb8e7e90f7652f15b60405160405180910390a250565b600080549050905600a165627a7a72305820b76f6c855a1f95260fc70490b16774074225da52ea165a58e95eb7a72a59d1700029'
   const nonce = await web3.eth.getTransactionCount(TEST_ETH_ADDR)
@@ -115,9 +121,9 @@ async function newContractAndClient() {
   }
   let contract: any
   try {
-    contract = new web3.eth.Contract(ABI, result.contractAddress, { from })
+    contract = new web3.eth.Contract(ABI as AbiItem[], result.contractAddress, { from })
   } catch (err) {
-    console.debug(err)
+    console.error(err)
   }
   return { contract, web3, from, privKey, client }
 }
@@ -157,21 +163,14 @@ test('getEthereumTxHash should generate correct tx hash for EVM call tx', async 
     const ethTxHash = getEthereumTxHash(signedTx)
     const txSigned = '0x' + signedTx.toString('hex')
 
-    let receipt: any
-    try {
-      receipt = await web3.eth.sendSignedTransaction(txSigned)
-    } catch (err) {
-      console.log('send tx error', err)
-    }
+    let receipt: TransactionReceipt
+    receipt = await web3.eth.sendSignedTransaction(txSigned)
 
     t.equal(receipt.transactionHash, ethTxHash, 'tx hash on receipt matches pre-generated hash')
   } catch (err) {
-    console.log(err)
     t.error(err, 'Error found')
   }
-  if (client) {
-    client.disconnect()
-  }
+  client.disconnect()
   t.end()
 })
 
@@ -183,20 +182,12 @@ test('getEthereumTxHash should generate correct tx hash for EVM deploy tx', asyn
     const ethTxHash = getEthereumTxHash(signedTx)
     const txSigned = '0x' + signedTx.toString('hex')
 
-    let receipt: any
-    try {
-      receipt = await web3.eth.sendSignedTransaction(txSigned)
-    } catch (err) {
-      console.log('send tx error', err)
-    }
-
+    let receipt: TransactionReceipt
+    receipt = await web3.eth.sendSignedTransaction(txSigned)
     t.equal(receipt.transactionHash, ethTxHash, 'tx hash on receipt matches pre-generated hash')
   } catch (err) {
-    console.log(err)
     t.error(err, 'Error found')
   }
-  if (client) {
-    client.disconnect()
-  }
+  client.disconnect()
   t.end()
 })

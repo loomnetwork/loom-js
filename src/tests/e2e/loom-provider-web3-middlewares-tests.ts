@@ -8,6 +8,7 @@ import { deployContract } from '../evm-helpers'
 import { SignedTxMiddleware } from '../../middleware'
 import { ITxMiddlewareHandler } from '../../client'
 import { NonceTx } from '../../proto/loom_pb'
+import { ContractSendMethod, Contract } from 'web3-eth-contract'
 
 // import Web3 from 'web3'
 const Web3 = require('web3')
@@ -54,8 +55,9 @@ class SuperSimpleMiddlware implements ITxMiddlewareHandler {
   }
 }
 
-async function testWeb3Middleware(t: any, useEthEndpoint: boolean) {
+async function testWeb3Middleware(t: test.Test, useEthEndpoint: boolean) {
   t.plan(2)
+  t.timeoutAfter(30 * 1000)
 
   const privKey = CryptoUtils.generatePrivateKey()
   const client = useEthEndpoint ? createWeb3TestClient() : createTestClient()
@@ -64,7 +66,7 @@ async function testWeb3Middleware(t: any, useEthEndpoint: boolean) {
   // Using a super simple custom middleware
   // Here you can pass your custom middleware or using a different middleware
   // Middlewares available on path "loom-js/src/middleware"
-  const setupMiddlewareFn = function(
+  const setupMiddlewareFn = function (
     client: Client, // Unused
     privateKey: Uint8Array | null
   ): ITxMiddlewareHandler[] {
@@ -77,7 +79,7 @@ async function testWeb3Middleware(t: any, useEthEndpoint: boolean) {
 
   const web3 = new Web3(loomProvider)
 
-  client.on('error', console.log)
+  client.on('error', console.error)
 
   const contractData =
     '0x608060405234801561001057600080fd5b50600a60008190555061010e806100286000396000f3006080604052600436106049576000357c0100000000000000000000000000000000000000000000000000000000900463ffffffff16806360fe47b114604e5780636d4ce63c146078575b600080fd5b348015605957600080fd5b5060766004803603810190808035906020019092919050505060a0565b005b348015608357600080fd5b50608a60d9565b6040518082815260200191505060405180910390f35b806000819055506000547fb922f092a64f1a076de6f21e4d7c6400b6e55791cc935e7bb8e7e90f7652f15b60405160405180910390a250565b600080549050905600a165627a7a72305820b76f6c855a1f95260fc70490b16774074225da52ea165a58e95eb7a72a59d1700029'
@@ -125,20 +127,22 @@ async function testWeb3Middleware(t: any, useEthEndpoint: boolean) {
       }
     })
 
-    const tx = await contract.methods.set(newValue).send()
-    t.equal(tx.status, true, 'SimpleStore.set should return correct status')
+    const txHash = await new Promise(async (resolve, rej) => {
+      const set: ContractSendMethod = contract.methods.set(newValue)
+      set.send({ from }).on("transactionHash", resolve)
+    })
+    waitForMillisecondsAsync(5000)
+    const receipt = await web3.eth.getTransactionReceipt(txHash);
+
+    t.equal(receipt.status, true, 'SimpleStore.set should return correct status')
 
     const resultOfGet = await contract.methods.get().call()
     t.equal(+resultOfGet, newValue, `SimpleStore.get should return correct value`)
 
-    await waitForMillisecondsAsync(1000)
   } catch (err) {
-    console.log(err)
+    t.error(err)
   }
-
-  if (client) {
-    client.disconnect()
-  }
+  client.disconnect()
 }
 
 test('LoomProvider + Web3 + Middleware (/query)', (t: any) => testWeb3Middleware(t, false))

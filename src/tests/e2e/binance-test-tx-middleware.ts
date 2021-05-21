@@ -118,10 +118,11 @@ async function bootstrapTest(
 }
 
 test('Test Signed Binance Tx Middleware Type 2', async t => {
+  let client, signer, pubKey, loomProvider, contract, account
   try {
-    const { client, signer, pubKey, loomProvider, contract, account } = await bootstrapTest(
+    ({ client, signer, pubKey, loomProvider, contract, account } = await bootstrapTest(
       createTestHttpClient
-    )
+    ))
 
     const addressMapper = await AddressMapper.createAsync(
       client,
@@ -138,7 +139,7 @@ test('Test Signed Binance Tx Middleware Type 2', async t => {
       try {
         await addressMapper.addBinanceIdentityMappingAsync(from, to, signer)
       } catch (error) {
-        console.log('failed to map accounts : ' + error)
+        t.error(error, 'failed to map accounts')
       }
     }
 
@@ -182,9 +183,12 @@ test('Test Signed Binance Tx Middleware Type 2', async t => {
       `Should be the same sender from loomchain ${from.local.toString()}`
     )
   } catch (err) {
-    console.error(err)
-    t.fail(err.message)
+    t.error(err)
+  } finally {
+    if (client) {
+      client.disconnect()
+    }
+    t.end()
   }
 
-  t.end()
 })
