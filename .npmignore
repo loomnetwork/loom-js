@@ -1,4 +1,5 @@
 /.vscode/
+/.github/
 /dist/tests/
 /dist/browser_tests.js
 /scripts/
@@ -7,6 +8,7 @@
 /e2e_support/
 .babelrc
 .editorconfig
+.gitattributes
 .env.test
 .prettierignore
 .prettierrc
