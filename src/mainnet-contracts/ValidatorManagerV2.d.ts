@@ -15,10 +15,10 @@ interface ValidatorManagerV2Interface extends Interface {
     setLoom: TypedFunctionDescription<{
       encode([_loomAddress, _signersIndexes, _v, _r, _s]: [
         string,
-        (BigNumberish)[],
-        (BigNumberish)[],
-        (Arrayish)[],
-        (Arrayish)[]
+        BigNumberish[],
+        BigNumberish[],
+        Arrayish[],
+        Arrayish[]
       ]): string;
     }>;
 
@@ -26,21 +26,21 @@ interface ValidatorManagerV2Interface extends Interface {
       encode([_num, _denom, _signersIndexes, _v, _r, _s]: [
         BigNumberish,
         BigNumberish,
-        (BigNumberish)[],
-        (BigNumberish)[],
-        (Arrayish)[],
-        (Arrayish)[]
+        BigNumberish[],
+        BigNumberish[],
+        Arrayish[],
+        Arrayish[]
       ]): string;
     }>;
 
     rotateValidators: TypedFunctionDescription<{
       encode([_newValidators, _newPowers, _signersIndexes, _v, _r, _s]: [
-        (string)[],
-        (BigNumberish)[],
-        (BigNumberish)[],
-        (BigNumberish)[],
-        (Arrayish)[],
-        (Arrayish)[]
+        string[],
+        BigNumberish[],
+        BigNumberish[],
+        BigNumberish[],
+        Arrayish[],
+        Arrayish[]
       ]): string;
     }>;
   };
@@ -83,38 +83,38 @@ export class ValidatorManagerV2 extends Contract {
 
     checkThreshold(
       _message: Arrayish,
-      _signersIndexes: (BigNumberish)[],
-      _v: (BigNumberish)[],
-      _r: (Arrayish)[],
-      _s: (Arrayish)[]
+      _signersIndexes: BigNumberish[],
+      _v: BigNumberish[],
+      _r: Arrayish[],
+      _s: Arrayish[]
     ): Promise<void>;
 
     setLoom(
       _loomAddress: string,
-      _signersIndexes: (BigNumberish)[],
-      _v: (BigNumberish)[],
-      _r: (Arrayish)[],
-      _s: (Arrayish)[],
+      _signersIndexes: BigNumberish[],
+      _v: BigNumberish[],
+      _r: Arrayish[],
+      _s: Arrayish[],
       overrides?: TransactionOverrides
     ): Promise<ContractTransaction>;
 
     setQuorum(
       _num: BigNumberish,
       _denom: BigNumberish,
-      _signersIndexes: (BigNumberish)[],
-      _v: (BigNumberish)[],
-      _r: (Arrayish)[],
-      _s: (Arrayish)[],
+      _signersIndexes: BigNumberish[],
+      _v: BigNumberish[],
+      _r: Arrayish[],
+      _s: Arrayish[],
       overrides?: TransactionOverrides
     ): Promise<ContractTransaction>;
 
     rotateValidators(
-      _newValidators: (string)[],
-      _newPowers: (BigNumberish)[],
-      _signersIndexes: (BigNumberish)[],
-      _v: (BigNumberish)[],
-      _r: (Arrayish)[],
-      _s: (Arrayish)[],
+      _newValidators: string[],
+      _newPowers: BigNumberish[],
+      _signersIndexes: BigNumberish[],
+      _v: BigNumberish[],
+      _r: Arrayish[],
+      _s: Arrayish[],
       overrides?: TransactionOverrides
     ): Promise<ContractTransaction>;
 
@@ -123,8 +123,8 @@ export class ValidatorManagerV2 extends Contract {
     nonce(): Promise<BigNumber>;
     threshold_num(): Promise<number>;
     totalPower(): Promise<BigNumber>;
-    getPowers(): Promise<(BigNumber)[]>;
-    getValidators(): Promise<(string)[]>;
+    getPowers(): Promise<BigNumber[]>;
+    getValidators(): Promise<string[]>;
   };
 
   filters: {
@@ -134,28 +134,28 @@ export class ValidatorManagerV2 extends Contract {
   estimate: {
     setLoom(
       _loomAddress: string,
-      _signersIndexes: (BigNumberish)[],
-      _v: (BigNumberish)[],
-      _r: (Arrayish)[],
-      _s: (Arrayish)[]
+      _signersIndexes: BigNumberish[],
+      _v: BigNumberish[],
+      _r: Arrayish[],
+      _s: Arrayish[]
     ): Promise<BigNumber>;
 
     setQuorum(
       _num: BigNumberish,
       _denom: BigNumberish,
-      _signersIndexes: (BigNumberish)[],
-      _v: (BigNumberish)[],
-      _r: (Arrayish)[],
-      _s: (Arrayish)[]
+      _signersIndexes: BigNumberish[],
+      _v: BigNumberish[],
+      _r: Arrayish[],
+      _s: Arrayish[]
     ): Promise<BigNumber>;
 
     rotateValidators(
-      _newValidators: (string)[],
-      _newPowers: (BigNumberish)[],
-      _signersIndexes: (BigNumberish)[],
-      _v: (BigNumberish)[],
-      _r: (Arrayish)[],
-      _s: (Arrayish)[]
+      _newValidators: string[],
+      _newPowers: BigNumberish[],
+      _signersIndexes: BigNumberish[],
+      _v: BigNumberish[],
+      _r: Arrayish[],
+      _s: Arrayish[]
     ): Promise<BigNumber>;
   };
 }

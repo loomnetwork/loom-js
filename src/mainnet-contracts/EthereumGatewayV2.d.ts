@@ -24,10 +24,10 @@ interface EthereumGatewayV2Interface extends Interface {
       encode([amount, contractAddress, _signersIndexes, _v, _r, _s]: [
         BigNumberish,
         string,
-        (BigNumberish)[],
-        (BigNumberish)[],
-        (Arrayish)[],
-        (Arrayish)[]
+        BigNumberish[],
+        BigNumberish[],
+        Arrayish[],
+        Arrayish[]
       ]): string;
     }>;
 
@@ -44,10 +44,10 @@ interface EthereumGatewayV2Interface extends Interface {
         BigNumberish,
         BigNumberish,
         string,
-        (BigNumberish)[],
-        (BigNumberish)[],
-        (Arrayish)[],
-        (Arrayish)[]
+        BigNumberish[],
+        BigNumberish[],
+        Arrayish[],
+        Arrayish[]
       ]): string;
     }>;
 
@@ -55,20 +55,20 @@ interface EthereumGatewayV2Interface extends Interface {
       encode([uid, contractAddress, _signersIndexes, _v, _r, _s]: [
         BigNumberish,
         string,
-        (BigNumberish)[],
-        (BigNumberish)[],
-        (Arrayish)[],
-        (Arrayish)[]
+        BigNumberish[],
+        BigNumberish[],
+        Arrayish[],
+        Arrayish[]
       ]): string;
     }>;
 
     withdrawETH: TypedFunctionDescription<{
       encode([amount, _signersIndexes, _v, _r, _s]: [
         BigNumberish,
-        (BigNumberish)[],
-        (BigNumberish)[],
-        (Arrayish)[],
-        (Arrayish)[]
+        BigNumberish[],
+        BigNumberish[],
+        Arrayish[],
+        Arrayish[]
       ]): string;
     }>;
 
@@ -86,8 +86,8 @@ interface EthereumGatewayV2Interface extends Interface {
       encode([_operator, _from, _types, _amounts, _data]: [
         string,
         string,
-        (BigNumberish)[],
-        (BigNumberish)[],
+        BigNumberish[],
+        BigNumberish[],
         Arrayish
       ]): string;
     }>;
@@ -212,10 +212,10 @@ export class EthereumGatewayV2 extends Contract {
     withdrawERC20(
       amount: BigNumberish,
       contractAddress: string,
-      _signersIndexes: (BigNumberish)[],
-      _v: (BigNumberish)[],
-      _r: (Arrayish)[],
-      _s: (Arrayish)[],
+      _signersIndexes: BigNumberish[],
+      _v: BigNumberish[],
+      _r: Arrayish[],
+      _s: Arrayish[],
       overrides?: TransactionOverrides
     ): Promise<ContractTransaction>;
 
@@ -234,29 +234,29 @@ export class EthereumGatewayV2 extends Contract {
       tokenId: BigNumberish,
       amount: BigNumberish,
       contractAddress: string,
-      _signersIndexes: (BigNumberish)[],
-      _v: (BigNumberish)[],
-      _r: (Arrayish)[],
-      _s: (Arrayish)[],
+      _signersIndexes: BigNumberish[],
+      _v: BigNumberish[],
+      _r: Arrayish[],
+      _s: Arrayish[],
       overrides?: TransactionOverrides
     ): Promise<ContractTransaction>;
 
     withdrawERC721(
       uid: BigNumberish,
       contractAddress: string,
-      _signersIndexes: (BigNumberish)[],
-      _v: (BigNumberish)[],
-      _r: (Arrayish)[],
-      _s: (Arrayish)[],
+      _signersIndexes: BigNumberish[],
+      _v: BigNumberish[],
+      _r: Arrayish[],
+      _s: Arrayish[],
       overrides?: TransactionOverrides
     ): Promise<ContractTransaction>;
 
     withdrawETH(
       amount: BigNumberish,
-      _signersIndexes: (BigNumberish)[],
-      _v: (BigNumberish)[],
-      _r: (Arrayish)[],
-      _s: (Arrayish)[],
+      _signersIndexes: BigNumberish[],
+      _v: BigNumberish[],
+      _r: Arrayish[],
+      _s: Arrayish[],
       overrides?: TransactionOverrides
     ): Promise<ContractTransaction>;
 
@@ -272,8 +272,8 @@ export class EthereumGatewayV2 extends Contract {
     onERC721XBatchReceived(
       _operator: string,
       _from: string,
-      _types: (BigNumberish)[],
-      _amounts: (BigNumberish)[],
+      _types: BigNumberish[],
+      _amounts: BigNumberish[],
       _data: Arrayish,
       overrides?: TransactionOverrides
     ): Promise<ContractTransaction>;
@@ -351,10 +351,10 @@ export class EthereumGatewayV2 extends Contract {
     withdrawERC20(
       amount: BigNumberish,
       contractAddress: string,
-      _signersIndexes: (BigNumberish)[],
-      _v: (BigNumberish)[],
-      _r: (Arrayish)[],
-      _s: (Arrayish)[]
+      _signersIndexes: BigNumberish[],
+      _v: BigNumberish[],
+      _r: Arrayish[],
+      _s: Arrayish[]
     ): Promise<BigNumber>;
 
     toggleAllowToken(tokenAddress: string, allow: boolean): Promise<BigNumber>;
@@ -365,27 +365,27 @@ export class EthereumGatewayV2 extends Contract {
       tokenId: BigNumberish,
       amount: BigNumberish,
       contractAddress: string,
-      _signersIndexes: (BigNumberish)[],
-      _v: (BigNumberish)[],
-      _r: (Arrayish)[],
-      _s: (Arrayish)[]
+      _signersIndexes: BigNumberish[],
+      _v: BigNumberish[],
+      _r: Arrayish[],
+      _s: Arrayish[]
     ): Promise<BigNumber>;
 
     withdrawERC721(
       uid: BigNumberish,
       contractAddress: string,
-      _signersIndexes: (BigNumberish)[],
-      _v: (BigNumberish)[],
-      _r: (Arrayish)[],
-      _s: (Arrayish)[]
+      _signersIndexes: BigNumberish[],
+      _v: BigNumberish[],
+      _r: Arrayish[],
+      _s: Arrayish[]
     ): Promise<BigNumber>;
 
     withdrawETH(
       amount: BigNumberish,
-      _signersIndexes: (BigNumberish)[],
-      _v: (BigNumberish)[],
-      _r: (Arrayish)[],
-      _s: (Arrayish)[]
+      _signersIndexes: BigNumberish[],
+      _v: BigNumberish[],
+      _r: Arrayish[],
+      _s: Arrayish[]
     ): Promise<BigNumber>;
 
     onERC721XReceived(
@@ -399,8 +399,8 @@ export class EthereumGatewayV2 extends Contract {
     onERC721XBatchReceived(
       _operator: string,
       _from: string,
-      _types: (BigNumberish)[],
-      _amounts: (BigNumberish)[],
+      _types: BigNumberish[],
+      _amounts: BigNumberish[],
       _data: Arrayish
     ): Promise<BigNumber>;
 

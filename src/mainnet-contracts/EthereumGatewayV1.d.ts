@@ -33,18 +33,18 @@ interface EthereumGatewayV1Interface extends Interface {
     addValidator: TypedFunctionDescription<{
       encode([_validator, _v, _r, _s]: [
         string,
-        (BigNumberish)[],
-        (Arrayish)[],
-        (Arrayish)[]
+        BigNumberish[],
+        Arrayish[],
+        Arrayish[]
       ]): string;
     }>;
 
     removeValidator: TypedFunctionDescription<{
       encode([_validator, _v, _r, _s]: [
         string,
-        (BigNumberish)[],
-        (Arrayish)[],
-        (Arrayish)[]
+        BigNumberish[],
+        Arrayish[],
+        Arrayish[]
       ]): string;
     }>;
 
@@ -91,8 +91,8 @@ interface EthereumGatewayV1Interface extends Interface {
       encode([_operator, _from, _types, _amounts, _data]: [
         string,
         string,
-        (BigNumberish)[],
-        (BigNumberish)[],
+        BigNumberish[],
+        BigNumberish[],
         Arrayish
       ]): string;
     }>;
@@ -246,17 +246,17 @@ export class EthereumGatewayV1 extends Contract {
 
     addValidator(
       _validator: string,
-      _v: (BigNumberish)[],
-      _r: (Arrayish)[],
-      _s: (Arrayish)[],
+      _v: BigNumberish[],
+      _r: Arrayish[],
+      _s: Arrayish[],
       overrides?: TransactionOverrides
     ): Promise<ContractTransaction>;
 
     removeValidator(
       _validator: string,
-      _v: (BigNumberish)[],
-      _r: (Arrayish)[],
-      _s: (Arrayish)[],
+      _v: BigNumberish[],
+      _r: Arrayish[],
+      _s: Arrayish[],
       overrides?: TransactionOverrides
     ): Promise<ContractTransaction>;
 
@@ -303,8 +303,8 @@ export class EthereumGatewayV1 extends Contract {
     onERC721XBatchReceived(
       _operator: string,
       _from: string,
-      _types: (BigNumberish)[],
-      _amounts: (BigNumberish)[],
+      _types: BigNumberish[],
+      _amounts: BigNumberish[],
       _data: Arrayish,
       overrides?: TransactionOverrides
     ): Promise<ContractTransaction>;
@@ -399,16 +399,16 @@ export class EthereumGatewayV1 extends Contract {
 
     addValidator(
       _validator: string,
-      _v: (BigNumberish)[],
-      _r: (Arrayish)[],
-      _s: (Arrayish)[]
+      _v: BigNumberish[],
+      _r: Arrayish[],
+      _s: Arrayish[]
     ): Promise<BigNumber>;
 
     removeValidator(
       _validator: string,
-      _v: (BigNumberish)[],
-      _r: (Arrayish)[],
-      _s: (Arrayish)[]
+      _v: BigNumberish[],
+      _r: Arrayish[],
+      _s: Arrayish[]
     ): Promise<BigNumber>;
 
     toggleAllowAnyToken(_allow: boolean): Promise<BigNumber>;
@@ -441,8 +441,8 @@ export class EthereumGatewayV1 extends Contract {
     onERC721XBatchReceived(
       _operator: string,
       _from: string,
-      _types: (BigNumberish)[],
-      _amounts: (BigNumberish)[],
+      _types: BigNumberish[],
+      _amounts: BigNumberish[],
       _data: Arrayish
     ): Promise<BigNumber>;
 
