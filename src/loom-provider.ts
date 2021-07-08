@@ -308,6 +308,8 @@ export class LoomProvider implements AbstractProvider {
     this._ethRPCMethods.set('eth_newBlockFilter', this._ethCallSupportedMethod)
     this._ethRPCMethods.set('eth_newFilter', this._ethCallSupportedMethod)
     this._ethRPCMethods.set('eth_uninstallFilter', this._ethCallSupportedMethod)
+    this._ethRPCMethods.set('debug_traceTransaction', this._ethCallSupportedMethod)
+    this._ethRPCMethods.set('debug_storageRangeAt', this._ethCallSupportedMethod)
     this._ethRPCMethods.set('eth_getStorageAt', this._ethCallSupportedMethod)
     this._ethRPCMethods.set('eth_subscribe', this._ethSubscribe)
     this._ethRPCMethods.set('eth_unsubscribe', this._ethUnsubscribe)
@@ -428,7 +430,7 @@ export class LoomProvider implements AbstractProvider {
     const prepareMethodToCall = (method: string) => {
       const methodToCall = this._ethRPCMethods.get(method)
       if (!methodToCall) {
-        throw Error(`Method "${payload.method}" not supported on this provider`)
+        throw Error(`Method "${payload.method}"piers not supported on this provider`)
       }
       return methodToCall
     }
