@@ -266,6 +266,7 @@ export class LoomProvider implements AbstractProvider {
     this._ethRPCMethods.set('eth_sendTransaction', this._ethSendTransaction)
     this._ethRPCMethods.set('eth_sign', this._ethSign)
     this._ethRPCMethods.set('net_version', this._netVersion)
+    this._ethRPCMethods.set('web3_clientVersion', this._clientVersion)
   }
 
   /**
@@ -710,6 +711,10 @@ export class LoomProvider implements AbstractProvider {
 
   private _netVersion() {
     return this._netVersionFromChainId
+  }
+
+  private _clientVersion() {
+    return `Loom/loom-js/v${require('../package.json').version}`
   }
 
   // PRIVATE FUNCTIONS IMPLEMENTATIONS
