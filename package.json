@@ -84,8 +84,5 @@
     "webpack-cli": "^3.1.1",
     "webpack-tape-run": "^0.0.7"
   },
-  "optionalDependencies": {
-    "node-hid": "2.1.1"
-  },
   "browserslist": "last 2 versions"
 }
