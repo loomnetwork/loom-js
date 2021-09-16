@@ -43,7 +43,7 @@ jobs:
       - name: Setup protoc3
         run: ./scripts/ci_install_protoc3.sh
 
-      - run: yarn install --ignore-optional
+      - run: yarn install
       - run: xvfb-run --auto-servernum yarn test:browser
       - run: yarn test:node
       - run: chmod +x ./e2e_tests.sh
