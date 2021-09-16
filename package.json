@@ -67,7 +67,7 @@
     "browser-run": "^10.1.0",
     "dotenv": "^5.0.1",
     "dotenv-webpack": "^1.5.5",
-    "ganache-cli": "^6.1.8",
+    "ganache-cli": "^6.12.2",
     "prettier": "1.12.1",
     "shelljs": "^0.8.2",
     "tap-spec": "^5.0.0",
