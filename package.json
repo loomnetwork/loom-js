@@ -29,7 +29,6 @@
     "gen-contract-types": "typechain \"src/mainnet-contracts/*.json\" --target=ethers --outDir src/mainnet-contracts && node scripts/export-mainnet-contracts-abi.js"
   },
   "dependencies": {
-    "@binance-chain/javascript-sdk": "^2.14.5",
     "abi-decoder": "^1.2.0",
     "axios": "^0.18.0",
     "bn.js": "^4.11.8",
