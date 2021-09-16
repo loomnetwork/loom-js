@@ -9,6 +9,9 @@ jobs:
     runs-on: ubuntu-18.04
 
     steps:
+      # node module usb build needs this
+      - name: Install libudev-dev
+        run: sudo apt-get install libudev-dev
       - uses: actions/setup-go@v2
         with:
           go-version: "1.10.2"
