@@ -17,7 +17,6 @@ export {
   SignedTxMiddleware,
   SignedEthTxMiddleware,
   SignedTronTxMiddleware,
-  SignedBinanceTxMiddleware,
   NonceTxMiddleware,
   CachedNonceTxMiddleware,
   SpeculativeNonceTxMiddleware,
