@@ -24,27 +24,19 @@ const Web3 = require('web3')
  * Requires the SimpleStore solidity contract deployed on a loomchain.
  * go-loom/examples/plugins/evmexample/contract/SimpleStore.sol
  *
- * pragma solidity ^0.4.24;
+ * pragma solidity ^0.4.25;
  *
  * contract SimpleStore {
- *   uint256 value;
+ *   mapping(address => uint256) balances;
  *
- *   constructor() public {
- *       value = 10;
+ *   function setBalance(uint256 _val) external {
+ *     balances[msg.sender] = _val;
  *   }
  *
- *   event NewValueSet(uint indexed _value, address sender);
- *
- *   function set(uint _value) public {
- *     value = _value;
- *     emit NewValueSet(value, msg.sender);
- *   }
- *
- *   function get() public view returns (uint) {
- *     return value;
+ *   function getBalance() public view returns(uint256) {
+ *     return balances[msg.sender];
  *   }
  * }
- *
  */
 
 const toCoinE18 = (amount: number): BN => {
@@ -79,27 +71,13 @@ async function bootstrapTest(
 
   // Contract data and ABI
   const contractData =
-    '608060405234801561001057600080fd5b50600a60008190555061014e806100286000396000f30060806040526004361061004c576000357c0100000000000000000000000000000000000000000000000000000000900463ffffffff16806360fe47b1146100515780636d4ce63c1461007e575b600080fd5b34801561005d57600080fd5b5061007c600480360381019080803590602001909291905050506100a9565b005b34801561008a57600080fd5b50610093610119565b6040518082815260200191505060405180910390f35b806000819055506000547f7e0b7a35f017ec94e71d7012fe8fa8011f1dab6090674f92de08f8092ab30dda33604051808273ffffffffffffffffffffffffffffffffffffffff1673ffffffffffffffffffffffffffffffffffffffff16815260200191505060405180910390a250565b600080549050905600a165627a7a7230582041f33d6a8b78928e192affcb980ca6bef9b6f5b7da5aa4b2d75b1208720caeeb0029'
+    '0x608060405234801561001057600080fd5b50610161806100206000396000f30060806040526004361061004c576000357c0100000000000000000000000000000000000000000000000000000000900463ffffffff16806312065fe014610051578063fb1669ca1461007c575b600080fd5b34801561005d57600080fd5b506100666100a9565b6040518082815260200191505060405180910390f35b34801561008857600080fd5b506100a7600480360381019080803590602001909291905050506100ef565b005b60008060003373ffffffffffffffffffffffffffffffffffffffff1673ffffffffffffffffffffffffffffffffffffffff16815260200190815260200160002054905090565b806000803373ffffffffffffffffffffffffffffffffffffffff1673ffffffffffffffffffffffffffffffffffffffff16815260200190815260200160002081905550505600a165627a7a72305820059fdd56c7f8ab9199eb7d3ba789fa9fefee42e42017a5593586c9c90ce3e8760029'
 
   const ABI = [
     {
-      constant: false,
-      inputs: [
-        {
-          name: '_value',
-          type: 'uint256'
-        }
-      ],
-      name: 'set',
-      outputs: [],
-      payable: false,
-      stateMutability: 'nonpayable',
-      type: 'function'
-    },
-    {
       constant: true,
       inputs: [],
-      name: 'get',
+      name: 'getBalance',
       outputs: [
         {
           name: '',
@@ -111,27 +89,18 @@ async function bootstrapTest(
       type: 'function'
     },
     {
-      inputs: [],
-      payable: false,
-      stateMutability: 'nonpayable',
-      type: 'constructor'
-    },
-    {
-      anonymous: false,
+      constant: false,
       inputs: [
         {
-          indexed: true,
-          name: '_value',
+          name: '_val',
           type: 'uint256'
-        },
-        {
-          indexed: false,
-          name: 'sender',
-          type: 'address'
         }
       ],
-      name: 'NewValueSet',
-      type: 'event'
+      name: 'setBalance',
+      outputs: [],
+      payable: false,
+      stateMutability: 'nonpayable',
+      type: 'function'
     }
   ]
 
@@ -172,7 +141,8 @@ test('Test Signed Eth Tx Middleware Type 1', async t => {
     t.assert(middlewaresUsed![0] instanceof NonceTxMiddleware, 'Nonce2TxMiddleware used')
     t.assert(middlewaresUsed![1] instanceof SignedEthTxMiddleware, 'SignedEthTxMiddleware used')
 
-    let tx = await contract.methods.set(1).send({ from: ethAddress })
+    const valueToTest = 1
+    const tx = await contract.methods.setBalance(valueToTest).send({ from: ethAddress })
 
     t.equal(
       tx.status,
@@ -180,11 +150,9 @@ test('Test Signed Eth Tx Middleware Type 1', async t => {
       `SimpleStore.set should return correct status for address (to) ${ethAddress}`
     )
 
-    t.equal(
-      tx.events.NewValueSet.returnValues.sender,
-      ethAddress,
-      `Sender should be same sender from eth ${ethAddress}`
-    )
+    const balance = await contract.methods.getBalance().call({ from: ethAddress })
+
+    t.equal(balance, `${valueToTest}`, `Balance for address ${ethAddress} should ${valueToTest}`)
   } catch (err) {
     console.error(err)
     t.fail(err.message)
@@ -239,18 +207,17 @@ test('Test Signed Eth Tx Middleware Type 2', async t => {
     )
     t.assert(middlewaresUsed![1] instanceof SignedEthTxMiddleware, 'SignedEthTxMiddleware used')
 
-    let tx = await contract.methods.set(1).send({ from: to.local.toString() })
+    const valueToTest = 1
+    let tx = await contract.methods.setBalance(valueToTest).send({ from: to.local.toString() })
     t.equal(
       tx.status,
       true,
       `SimpleStore.set should return correct status for address (to) ${to.local.toString()}`
     )
 
-    t.equal(
-      tx.events.NewValueSet.returnValues.sender.toLowerCase(),
-      from.local.toString(),
-      `Should be the same sender from loomchain ${from.local.toString()}`
-    )
+    const balance = await contract.methods.getBalance().call({ from: ethAddress })
+
+    t.equal(balance, `${valueToTest}`, `Balance for address ${ethAddress} should ${valueToTest}`)
   } catch (err) {
     console.error(err)
     t.fail(err.message)
