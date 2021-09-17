@@ -29,7 +29,6 @@
     "gen-contract-types": "typechain \"src/mainnet-contracts/*.json\" --target=ethers --outDir src/mainnet-contracts && node scripts/export-mainnet-contracts-abi.js"
   },
   "dependencies": {
-    "@binance-chain/javascript-sdk": "^2.14.5",
     "abi-decoder": "^1.2.0",
     "axios": "^0.18.0",
     "bn.js": "^4.11.8",
@@ -68,7 +67,7 @@
     "browser-run": "^10.1.0",
     "dotenv": "^5.0.1",
     "dotenv-webpack": "^1.5.5",
-    "ganache-cli": "^6.1.8",
+    "ganache-cli": "^6.12.2",
     "prettier": "1.12.1",
     "shelljs": "^0.8.2",
     "tap-spec": "^5.0.0",
