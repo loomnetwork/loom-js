@@ -140,9 +140,6 @@ LoomProvider combined with Web3 supports the following `JSON RPC` calls
 
 ### Custom Loom provider methods
 
-Install the loom-js beta version:
-`yarn add loom-js@beta`
-
 Sometimes the project requires few functions that aren't provided directly from LoomProvider in this case is possible to add a custom Eth RPC method. You can add it as such:
 
 ```js
@@ -155,9 +152,6 @@ loomProviderObj.addCustomMethod('eth_balance', payload => {
 The first param should be the Ethereum RPC call method to add on LoomProvider and the second parameter a callback function with the result
 
 ### Overwrite Loom provider methods
-
-Install the loom-js beta version:
-`yarn add loom-js@beta`
 
 If the project requires to overwrite a RPC function that already exists on LoomProvider. You can add it as such:
 
