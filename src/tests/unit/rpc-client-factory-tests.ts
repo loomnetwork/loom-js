@@ -44,7 +44,7 @@ test('RPC Client Factory', t => {
       autoConnect
     })
     t.ok(client instanceof DualRPCClient, 'Should create DualRPCClient for https + ws urls')
-  } catch (err) {
+  } catch (err: any) {
     t.fail(err)
   }
   t.end()

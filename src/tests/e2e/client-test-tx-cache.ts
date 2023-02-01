@@ -154,7 +154,7 @@ test('Client tx already in cache error (Websocket)', async t => {
       cacheErrCount++
     }
     t.equal(cacheErrCount, 1, 'expect to receive cache error')
-  } catch (err) {
+  } catch (err: any) {
     console.error(err)
     t.fail(err.message)
   }
@@ -197,7 +197,7 @@ test('Client tx already in cache error (HTTP)', async t => {
       cacheErrCount++
     }
     t.equal(cacheErrCount, 1, 'expect to receive cache error')
-  } catch (err) {
+  } catch (err: any) {
     console.error(err)
     t.fail(err.message)
   }
@@ -254,7 +254,7 @@ test('Test CachedNonceTxMiddleware - failed tx', async t => {
     }
 
     t.equal(cacheErrCount, 1, 'expect to receive only one cache error')
-  } catch (err) {
+  } catch (err: any) {
     console.error(err)
     t.fail(err.message)
   }
@@ -337,7 +337,7 @@ test('Test CachedNonceTxMiddleware - duplicate tx', async t => {
     }
 
     t.equal(cacheErrCount, 1, 'expect to receive only one cache error')
-  } catch (err) {
+  } catch (err: any) {
     console.error(err)
     t.fail(err.message)
   }
@@ -408,7 +408,7 @@ test('Test SpeculativeNonceTxMiddleware - failed tx', async t => {
     }
 
     t.equal(cacheErrCount, 1, 'expect to receive only one cache error')
-  } catch (err) {
+  } catch (err: any) {
     console.error(err)
     t.fail(err.message)
   }
@@ -493,7 +493,7 @@ test('Test SpeculativeNonceTxMiddleware - duplicate tx', async t => {
     }
 
     t.equal(cacheErrCount, 1, 'expect to receive only one cache error')
-  } catch (err) {
+  } catch (err: any) {
     console.error(err)
     t.fail(err.message)
   }
@@ -547,7 +547,7 @@ test('Test SpeculativeNonceTxMiddleware - rapid txs', async t => {
     await Promise.all(promises)
 
     t.equal(errCount, 0, 'expect to receive no errors')
-  } catch (err) {
+  } catch (err: any) {
     console.error(err)
     t.fail(err.message)
   }

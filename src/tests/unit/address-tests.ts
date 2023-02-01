@@ -26,7 +26,7 @@ test('Address', t => {
       addrStr.toLowerCase(),
       'Address.toString() formats the address correctly'
     )
-  } catch (err) {
+  } catch (err: any) {
     t.fail(err)
   }
   t.end()

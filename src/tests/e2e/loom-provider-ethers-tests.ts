@@ -357,7 +357,7 @@ async function testMismatchedTopic(t: test.Test, useEthEndpoint: boolean) {
     await Promise.all(shouldTrigger)
     await Promise.all(shouldNotTrigger)
     console.log("done")
-  } catch (err) {
+  } catch (err: any) {
     console.error(err)
     t.fail(err)
   }

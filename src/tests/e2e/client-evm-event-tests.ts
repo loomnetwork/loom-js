@@ -103,7 +103,7 @@ test('Client EVM Event test', async t => {
     await client.commitTxAsync<Transaction>(tx)
 
     console.log('Disconnected')
-  } catch (err) {
+  } catch (err: any) {
     console.error(err)
     t.fail(err.message)
   }

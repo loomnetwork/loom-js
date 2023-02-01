@@ -97,7 +97,7 @@ test('WSRPCClient', async t => {
       reconnectInterval: 100
     })
     await testClientReestablishedEventSubscriptionAfterReconnect(t, client)
-  } catch (err) {
+  } catch (err: any) {
     t.fail(err)
   }
 
@@ -128,7 +128,7 @@ test('DualRPCClient', async t => {
     })
 
     await testClientReestablishedEventSubscriptionAfterReconnect(t, client!)
-  } catch (err) {
+  } catch (err: any) {
     t.fail(err)
   }
 

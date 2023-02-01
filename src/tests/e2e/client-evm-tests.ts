@@ -44,7 +44,7 @@ test('Client EVM test (newBlockEvmFilterAsync)', async t => {
     }
 
     t.assert(block.getHash(), 'Block should have a hash')
-  } catch (err) {
+  } catch (err: any) {
     console.error(err)
     t.fail(err.message)
   }
