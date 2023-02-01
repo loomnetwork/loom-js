@@ -81,9 +81,6 @@ The shell must be able to locate the `protoc` binary, which can be obtained from
 
 ### Custom Middlewares
 
-Install the loom-js beta version:
-`yarn add loom-js@beta`
-
 LoomProvider takes a custom function that lets you customize what middlewares it runs. For example, we have an experimental nonce caching middleware that has more advanced nonce tracking. You can add it as such:
 
 ```js
