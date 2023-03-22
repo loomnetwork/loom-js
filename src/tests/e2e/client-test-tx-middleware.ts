@@ -185,7 +185,7 @@ test('Test Signed Eth Tx Middleware Type 1', async t => {
       ethAddress,
       `Sender should be same sender from eth ${ethAddress}`
     )
-  } catch (err) {
+  } catch (err: any) {
     console.error(err)
     t.fail(err.message)
   }
@@ -251,7 +251,7 @@ test('Test Signed Eth Tx Middleware Type 2', async t => {
       from.local.toString(),
       `Should be the same sender from loomchain ${from.local.toString()}`
     )
-  } catch (err) {
+  } catch (err: any) {
     console.error(err)
     t.fail(err.message)
   }
@@ -322,7 +322,7 @@ test('Test Signed Eth Tx Middleware Type 2 with Coin Contract', async t => {
     // Using owner and spender as the same just for test
     const allowance = await coin.getAllowanceAsync(spender, spender)
     t.equal(allowance.toString(), '1000000000000000000', 'Allowance should ok')
-  } catch (err) {
+  } catch (err: any) {
     console.error(err)
     t.fail(err.message)
   }

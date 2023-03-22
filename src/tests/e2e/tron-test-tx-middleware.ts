@@ -177,7 +177,7 @@ test('Test Signed Tron Tx Middleware Type 2', async t => {
       from.local.toString(),
       `Should be the same sender from loomchain ${from.local.toString()}`
     )
-  } catch (err) {
+  } catch (err: any) {
     console.error(err)
     t.fail(err.message)
   }

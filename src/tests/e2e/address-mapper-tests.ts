@@ -57,7 +57,7 @@ async function testAddIdentity(t: test.Test, createClient: () => Client) {
 test('Address Mapper', async t => {
   try {
     await testAddIdentity(t, createTestHttpClient)
-  } catch (err) {
+  } catch (err: any) {
     t.fail(err)
   }
   t.end()

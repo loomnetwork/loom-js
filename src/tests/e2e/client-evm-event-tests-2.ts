@@ -123,7 +123,7 @@ test('Client EVM Event test (two filters)', async t => {
     await callTransactionAsync(client, caller, address, functionSetAgain)
 
     waitForMillisecondsAsync(2000)
-  } catch (err) {
+  } catch (err: any) {
     console.error(err)
     t.fail(err.message)
   }
