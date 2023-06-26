@@ -1,3 +1,5 @@
 src/mainnet-contracts/*.ts
+src/mainnet-contracts/factories/*.ts
 src/proto/*.d.ts
 src/tests/tests_pb.d.ts
+src/tests/e2e/test-contract/*.ts

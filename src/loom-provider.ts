@@ -3,8 +3,7 @@ import BN from 'bn.js'
 import { ecsign, toBuffer } from 'ethereumjs-util'
 import retry from 'retry'
 
-import { AbstractProvider } from "web3-core"
-
+import { AbstractProvider } from 'web3-core'
 
 import { Client, ClientEvent, IChainEventArgs, ITxMiddlewareHandler } from './client'
 import { createDefaultTxMiddleware } from './helpers'
