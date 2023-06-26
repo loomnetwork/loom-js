@@ -66,7 +66,7 @@ async function testWeb3Middleware(t: test.Test, useEthEndpoint: boolean) {
   // Using a super simple custom middleware
   // Here you can pass your custom middleware or using a different middleware
   // Middlewares available on path "loom-js/src/middleware"
-  const setupMiddlewareFn = function (
+  const setupMiddlewareFn = function(
     client: Client, // Unused
     privateKey: Uint8Array | null
   ): ITxMiddlewareHandler[] {
@@ -129,16 +129,15 @@ async function testWeb3Middleware(t: test.Test, useEthEndpoint: boolean) {
 
     const txHash = await new Promise(async (resolve, rej) => {
       const set: ContractSendMethod = contract.methods.set(newValue)
-      set.send({ from }).on("transactionHash", resolve)
+      set.send({ from }).on('transactionHash', resolve)
     })
     waitForMillisecondsAsync(5000)
-    const receipt = await web3.eth.getTransactionReceipt(txHash);
+    const receipt = await web3.eth.getTransactionReceipt(txHash)
 
     t.equal(receipt.status, true, 'SimpleStore.set should return correct status')
 
     const resultOfGet = await contract.methods.get().call()
     t.equal(+resultOfGet, newValue, `SimpleStore.get should return correct value`)
-
   } catch (err) {
     t.error(err)
   }

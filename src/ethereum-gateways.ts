@@ -1,19 +1,20 @@
 import BN from 'bn.js'
 import debug from 'debug'
-import { ethers, Contract, ContractTransaction } from 'ethers'
+import { ethers, ContractTransaction } from 'ethers'
 import { CryptoUtils } from '.'
 import { parseSigs } from './helpers'
 import { IWithdrawalReceipt } from './contracts/transfer-gateway'
 import { TransferGatewayTokenKind as TokenKind } from './proto/transfer_gateway_pb.js'
-import { TransactionOverrides } from './mainnet-contracts'
-import { ValidatorManagerV2Factory } from './mainnet-contracts/ValidatorManagerV2Factory'
-import { EthereumGatewayV2Factory } from './mainnet-contracts/EthereumGatewayV2Factory'
-import { EthereumGatewayV1Factory } from './mainnet-contracts/EthereumGatewayV1Factory'
+import { ValidatorManagerV2__factory as ValidatorManagerV2Factory } from './mainnet-contracts/factories/ValidatorManagerV2__factory'
+import { EthereumGatewayV2__factory as EthereumGatewayV2Factory } from './mainnet-contracts/factories/EthereumGatewayV2__factory'
+import { EthereumGatewayV1__factory as EthereumGatewayV1Factory } from './mainnet-contracts/factories/EthereumGatewayV1__factory'
 import { ValidatorManagerV2 as ValidatorManagerContractV2 } from './mainnet-contracts/ValidatorManagerV2'
 import { EthereumGatewayV1 as EthereumGatewayV1Contract } from './mainnet-contracts/EthereumGatewayV1'
 import { EthereumGatewayV2 as EthereumGatewayV2Contract } from './mainnet-contracts/EthereumGatewayV2'
 
 const log = debug('loom.ethereum')
+
+type TransactionOverrides = ethers.utils.UnsignedTransaction
 
 /**
  * Thin wrapper over Ethereum Gateway contracts that smoothes over differences between versions.
@@ -21,8 +22,6 @@ const log = debug('loom.ethereum')
  */
 export interface IEthereumGateway {
   readonly version: 1 | 2
-  /** Underlying ethers.js contract instance. */
-  readonly contract: Contract
 
   /**
    * Withdraws ERC20, ERC721, ERC721X tokens, or ETH from the Ethereum Gateway.

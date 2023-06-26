@@ -42,7 +42,7 @@ const newContractAndClient = async () => {
   let contractAddress
   let transactionHash
   try {
-    ({ contractAddress, transactionHash } = await deployContract(loomProvider, contractData))
+    ;({ contractAddress, transactionHash } = await deployContract(loomProvider, contractData))
   } catch (e) {
     console.error(e)
   }
@@ -120,7 +120,6 @@ test('LoomProvider method net_version', async t => {
   } catch (err) {
     console.log(err)
     t.error(err, 'Error found')
-
   } finally {
     if (client) {
       client.disconnect()
@@ -187,7 +186,6 @@ test('LoomProvider method eth_newBlockFilter', async t => {
     client.disconnect()
     t.end()
   }
-
 })
 
 test('LoomProvider method eth_blockNumber', async t => {
@@ -238,7 +236,6 @@ test('LoomProvider method eth_getBlockByNumber (0x1)', async t => {
   } catch (err) {
     console.log(err)
     t.error(err, 'Error found')
-
   } finally {
     if (client) {
       client.disconnect()
@@ -273,7 +270,6 @@ test('LoomProvider method eth_getBlockByNumber (latest)', async t => {
   } catch (err) {
     console.log(err)
     t.error(err, 'Error found')
-
   } finally {
     if (client) {
       client.disconnect()
@@ -313,7 +309,6 @@ test('LoomProvider method eth_sendTransaction', async t => {
   } catch (err) {
     console.log(err)
     t.error(err, 'Error found')
-
   } finally {
     if (client) {
       client.disconnect()
@@ -358,7 +353,6 @@ test('LoomProvider method eth_sendTransaction (deploy)', async t => {
   } catch (err) {
     console.log(err)
     t.error(err, 'Error found')
-
   } finally {
     if (client) {
       client.disconnect()
@@ -388,7 +382,6 @@ test('LoomProvider method eth_getCode', async t => {
   } catch (err) {
     console.log(err)
     t.error(err, 'Error found')
-
   } finally {
     if (client) {
       client.disconnect()
@@ -428,7 +421,6 @@ test('LoomProvider method eth_call', async t => {
   } catch (err) {
     console.log(err)
     t.error(err, 'Error found')
-
   } finally {
     client.disconnect()
     t.end()
@@ -474,7 +466,6 @@ test('LoomProvider method eth_getTransactionReceipt', async t => {
   } catch (err) {
     console.log(err)
     t.error(err, 'Error found')
-
   } finally {
     if (client) {
       client.disconnect()
@@ -505,7 +496,6 @@ test('LoomProvider method eth_getTransactionByHash', async (t: test.Test) => {
   } catch (err) {
     console.error(err)
     t.error(err, 'Error found')
-
   } finally {
     if (client) {
       client.disconnect()
@@ -518,7 +508,7 @@ test('LoomProvider method eth_subscribe', async t => {
   let client
   let loomProvider
   try {
-    ({ loomProvider, client } = await newContractAndClient())
+    ;({ loomProvider, client } = await newContractAndClient())
     const id = 1
 
     const ethSubscribeResult = await execAndWaitForMillisecondsAsync(
@@ -534,11 +524,9 @@ test('LoomProvider method eth_subscribe', async t => {
       /0x.+/.test(ethSubscribeResult.result),
       'Hex identification should be returned for eth_subscribe command'
     )
-
   } catch (err) {
     console.log(err)
     t.error(err, 'Error found')
-
   } finally {
     if (client) {
       client.disconnect()
@@ -560,10 +548,8 @@ test('LoomProvider method eth_uninstallFilter', async t => {
 
     t.equal(ethUninstallFilter.id, id, `Id for eth_subscribe should be equal ${id}`)
     t.equal(ethUninstallFilter.result, true, 'Uninstall filter should return true')
-
   } catch (err) {
     t.error(err, 'Error found')
-
   } finally {
     client.disconnect()
     t.end()
@@ -624,5 +610,4 @@ test('LoomProvider overwriting existing method', async t => {
     client.disconnect()
     t.end()
   }
-
 })

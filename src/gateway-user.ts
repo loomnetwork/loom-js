@@ -19,11 +19,11 @@ const log = debug('gateway-user')
 const coinMultiplier = new BN(10).pow(new BN(18))
 
 import { ERC20 } from './mainnet-contracts/ERC20'
-import { ERC20Factory } from './mainnet-contracts/ERC20Factory'
-import { EthereumGatewayV2Factory } from './mainnet-contracts/EthereumGatewayV2Factory'
-import { EthereumGatewayV1Factory } from './mainnet-contracts/EthereumGatewayV1Factory'
+import { ERC20__factory as ERC20Factory } from './mainnet-contracts/factories/ERC20__factory'
+import { EthereumGatewayV2__factory as EthereumGatewayV2Factory } from './mainnet-contracts/factories/EthereumGatewayV2__factory'
+import { EthereumGatewayV1__factory as EthereumGatewayV1Factory } from './mainnet-contracts/factories/EthereumGatewayV1__factory'
 import { EthereumGatewayV2 as EthereumGatewayV2Contract } from './mainnet-contracts/EthereumGatewayV2'
-import { ValidatorManagerV2Factory } from './mainnet-contracts/ValidatorManagerV2Factory'
+import { ValidatorManagerV2__factory as ValidatorManagerV2Factory } from './mainnet-contracts/factories/ValidatorManagerV2__factory'
 import { ValidatorManagerV2 as ValidatorManagerContractV2 } from './mainnet-contracts/ValidatorManagerV2'
 
 const ERC20Prefix = '\x10Withdraw ERC20:\n'

@@ -8,15 +8,13 @@ import { AddressMapper } from '../../contracts'
 import { OfflineWeb3Signer } from '../../solidity-helpers'
 
 import Web3 from 'web3'
-import { AbiItem } from 'web3-utils';
+import { AbiItem } from 'web3-utils'
 import { TransactionReceipt } from 'web3-core'
 // import { Transaction as EthereumTx } from "ethereumjs-tx"
 const EthereumTx = require('ethereumjs-tx')
 
 const TEST_ETH_ADDR = '0x41ef0087901189bB5134De780fC6b3392C7914E6'
 const TEST_ETH_PRIVATE_KEY = '0110000101110100011001010111001101110100011010110110010101111001'
-
-
 
 function signTransaction(unsignedTx: any) {
   const privateKey = new Buffer(TEST_ETH_PRIVATE_KEY, 'hex')
