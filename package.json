@@ -42,7 +42,6 @@
     "ripemd160": "^2.0.1",
     "rlp": "^2.1.0",
     "rpc-websockets": "^4.1.1",
-    "tronweb": "^2.5.3",
     "tslib": "^2.5.0",
     "tweetnacl": "^1.0.0",
     "web3": "1.8.2"
