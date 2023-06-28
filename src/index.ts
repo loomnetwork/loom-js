@@ -16,7 +16,6 @@ export { unmarshalBigUIntPB, marshalBigUIntPB } from './big-uint'
 export {
   SignedTxMiddleware,
   SignedEthTxMiddleware,
-  SignedTronTxMiddleware,
   NonceTxMiddleware,
   CachedNonceTxMiddleware,
   SpeculativeNonceTxMiddleware,
@@ -53,8 +52,6 @@ export { DPOSUser } from './dpos-user'
 export { DPOSUserV3 } from './dpos-user-v3'
 export { GatewayVersion, GatewayUser } from './gateway-user'
 export { CrossChainUser } from './crosschain-user'
-
-export { TronWebSigner } from './tron-web-signer'
 
 export {
   createEthereumGatewayAsync,

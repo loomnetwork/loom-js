@@ -10,7 +10,6 @@ import {
 } from '../../index'
 import { createTestHttpClient } from '../helpers'
 import { EthersSigner, getJsonRPCSignerAsync } from '../../solidity-helpers'
-import { ethers, Signer } from 'ethers'
 
 async function getClientAndContract(
   createClient: () => Client
