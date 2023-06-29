@@ -187,7 +187,7 @@ async function testBlockByNumber(t: any, useEthEndpoint: boolean) {
   const { client, ethersProvider } = await newContractAndClient(useEthEndpoint)
   try {
     const blockNumber = await ethersProvider.getBlockNumber()
-    const blockInfo = await ethersProvider.getBlock(blockNumber, false)
+    const blockInfo = await ethersProvider.getBlock(blockNumber)
     t.equal(blockInfo.number, blockNumber, 'Block number should be equal')
   } catch (err) {
     t.error(err)
@@ -201,8 +201,8 @@ async function testBlockByHash(t: test.Test, useEthEndpoint: boolean) {
   const { client, ethersProvider } = await newContractAndClient(useEthEndpoint)
   try {
     const blockNumber = await ethersProvider.getBlockNumber()
-    const blockInfo = await ethersProvider.getBlock(blockNumber, false)
-    const blockInfoByHash = await ethersProvider.getBlock(blockInfo.hash, false)
+    const blockInfo = await ethersProvider.getBlock(blockNumber)
+    const blockInfoByHash = await ethersProvider.getBlock(blockInfo.hash)
     t.assert(blockInfoByHash, 'Should return block info by hash')
   } catch (error) {
     console.error(error)
@@ -348,7 +348,7 @@ async function testMismatchedTopic(t: test.Test, useEthEndpoint: boolean) {
         .catch(() => false)
         .then(called => t.false(called, "Off topic  listener should not be called"))
     )
-    contract.addListener(contract.filters.NewValueSet(1), console.log)
+    contract.on(contract.filters.NewValueSet(1), console.log)
 
     for (const v of onTopicValues) {
       await contract.set(v, { gasLimit: 10000 })

@@ -2,16 +2,9 @@
 /* tslint:disable */
 /* eslint-disable */
 
-import { Contract, Signer } from "ethers";
-import { Provider } from "ethers/providers";
-
-import { ERC20 } from "../ERC20";
-
-export class ERC20__factory {
-  static connect(address: string, signerOrProvider: Signer | Provider): ERC20 {
-    return new Contract(address, _abi, signerOrProvider) as ERC20;
-  }
-}
+import { Contract, Signer, utils } from "ethers";
+import type { Provider } from "@ethersproject/providers";
+import type { ERC20, ERC20Interface } from "../ERC20";
 
 const _abi = [
   {
@@ -187,6 +180,16 @@ const _abi = [
     stateMutability: "nonpayable",
     type: "function",
   },
-];
+] as const;
+
+export class ERC20__factory {
+  static readonly abi = _abi;
+  static createInterface(): ERC20Interface {
+    return new utils.Interface(_abi) as ERC20Interface;
+  }
+  static connect(address: string, signerOrProvider: Signer | Provider): ERC20 {
+    return new Contract(address, _abi, signerOrProvider) as ERC20;
+  }
+}
 
 export const abi = _abi;
