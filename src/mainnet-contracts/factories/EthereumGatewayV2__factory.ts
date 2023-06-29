@@ -2,19 +2,12 @@
 /* tslint:disable */
 /* eslint-disable */
 
-import { Contract, Signer } from "ethers";
-import { Provider } from "ethers/providers";
-
-import { EthereumGatewayV2 } from "../EthereumGatewayV2";
-
-export class EthereumGatewayV2__factory {
-  static connect(
-    address: string,
-    signerOrProvider: Signer | Provider
-  ): EthereumGatewayV2 {
-    return new Contract(address, _abi, signerOrProvider) as EthereumGatewayV2;
-  }
-}
+import { Contract, Signer, utils } from "ethers";
+import type { Provider } from "@ethersproject/providers";
+import type {
+  EthereumGatewayV2,
+  EthereumGatewayV2Interface,
+} from "../EthereumGatewayV2";
 
 const _abi = [
   {
@@ -748,6 +741,19 @@ const _abi = [
     stateMutability: "view",
     type: "function",
   },
-];
+] as const;
+
+export class EthereumGatewayV2__factory {
+  static readonly abi = _abi;
+  static createInterface(): EthereumGatewayV2Interface {
+    return new utils.Interface(_abi) as EthereumGatewayV2Interface;
+  }
+  static connect(
+    address: string,
+    signerOrProvider: Signer | Provider
+  ): EthereumGatewayV2 {
+    return new Contract(address, _abi, signerOrProvider) as EthereumGatewayV2;
+  }
+}
 
 export const abi = _abi;

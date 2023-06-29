@@ -1,6 +1,6 @@
 import BN from 'bn.js'
 import debug from 'debug'
-import { ethers, ContractTransaction } from 'ethers'
+import { ethers, ContractTransaction, Overrides } from 'ethers'
 import { CryptoUtils } from '.'
 import { parseSigs } from './helpers'
 import { IWithdrawalReceipt } from './contracts/transfer-gateway'
@@ -13,8 +13,6 @@ import { EthereumGatewayV1 as EthereumGatewayV1Contract } from './mainnet-contra
 import { EthereumGatewayV2 as EthereumGatewayV2Contract } from './mainnet-contracts/EthereumGatewayV2'
 
 const log = debug('loom.ethereum')
-
-type TransactionOverrides = ethers.utils.UnsignedTransaction
 
 /**
  * Thin wrapper over Ethereum Gateway contracts that smoothes over differences between versions.
@@ -30,7 +28,7 @@ export interface IEthereumGateway {
    */
   withdrawAsync(
     receipt: IWithdrawalReceipt,
-    overrides?: TransactionOverrides
+    overrides?: Overrides
   ): Promise<ContractTransaction>
 
   /**
@@ -44,7 +42,7 @@ export interface IEthereumGateway {
   depositERC20Async(
     amount: number | string | BN,
     contractAddress: string,
-    overrides?: TransactionOverrides
+    overrides?: Overrides
   ): Promise<ContractTransaction>
 
   /**
@@ -60,7 +58,7 @@ export class EthereumGatewayV1 implements IEthereumGateway {
 
   async withdrawAsync(
     receipt: IWithdrawalReceipt,
-    overrides?: TransactionOverrides
+    overrides?: Overrides
   ): Promise<ethers.ContractTransaction> {
     const signature = CryptoUtils.bytesToHexAddr(receipt.oracleSignature)
 
@@ -113,7 +111,7 @@ export class EthereumGatewayV1 implements IEthereumGateway {
   async depositERC20Async(
     amount: number | string | BN,
     contractAddress: string,
-    overrides?: TransactionOverrides
+    overrides?: Overrides
   ): Promise<ContractTransaction> {
     return this.contract.functions.depositERC20(amount.toString(), contractAddress, overrides)
   }
@@ -133,9 +131,9 @@ export class EthereumGatewayV2 implements IEthereumGateway {
 
   async withdrawAsync(
     receipt: IWithdrawalReceipt,
-    overrides?: TransactionOverrides
+    overrides?: Overrides
   ): Promise<ethers.ContractTransaction> {
-    const validators = await this.vmc.functions.getValidators()
+    const validators = await this.vmc.getValidators()
     const hash = createWithdrawalHash(receipt, this.contract.address)
 
     const { vs, rs, ss, valIndexes } = parseSigs(
@@ -205,7 +203,7 @@ export class EthereumGatewayV2 implements IEthereumGateway {
   async depositERC20Async(
     amount: number | string | BN,
     contractAddress: string,
-    overrides?: TransactionOverrides
+    overrides?: Overrides
   ): Promise<ContractTransaction> {
     return this.contract.functions.depositERC20(amount.toString(), contractAddress, overrides)
   }
@@ -230,7 +228,7 @@ export async function createEthereumGatewayAsync(
 
   switch (version) {
     case 2:
-      const vmcAddress = await gatewayContract.functions.vmc()
+      const vmcAddress = await gatewayContract.vmc()
       const vmcContract = ValidatorManagerV2Factory.connect(vmcAddress, provider)
       return new EthereumGatewayV2(gatewayContract, vmcContract)
 

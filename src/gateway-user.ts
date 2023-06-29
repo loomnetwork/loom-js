@@ -355,7 +355,7 @@ export class GatewayUser extends CrossChainUser {
   ): Promise<ethers.ContractTransaction> {
     if (this._version === 2 && this._ethereumVMC !== undefined) {
       const hash = await this.createWithdrawalHash(amount)
-      const validators = await this._ethereumVMC!.functions.getValidators()
+      const validators = await this._ethereumVMC!.getValidators()
       const { vs, rs, ss, valIndexes } = parseSigs(sig, hash, validators)
 
       return this._ethereumGateway.functions.withdrawERC20(

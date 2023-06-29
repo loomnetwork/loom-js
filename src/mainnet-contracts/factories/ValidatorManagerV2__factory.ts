@@ -2,19 +2,12 @@
 /* tslint:disable */
 /* eslint-disable */
 
-import { Contract, Signer } from "ethers";
-import { Provider } from "ethers/providers";
-
-import { ValidatorManagerV2 } from "../ValidatorManagerV2";
-
-export class ValidatorManagerV2__factory {
-  static connect(
-    address: string,
-    signerOrProvider: Signer | Provider
-  ): ValidatorManagerV2 {
-    return new Contract(address, _abi, signerOrProvider) as ValidatorManagerV2;
-  }
-}
+import { Contract, Signer, utils } from "ethers";
+import type { Provider } from "@ethersproject/providers";
+import type {
+  ValidatorManagerV2,
+  ValidatorManagerV2Interface,
+} from "../ValidatorManagerV2";
 
 const _abi = [
   {
@@ -355,6 +348,19 @@ const _abi = [
     stateMutability: "view",
     type: "function",
   },
-];
+] as const;
+
+export class ValidatorManagerV2__factory {
+  static readonly abi = _abi;
+  static createInterface(): ValidatorManagerV2Interface {
+    return new utils.Interface(_abi) as ValidatorManagerV2Interface;
+  }
+  static connect(
+    address: string,
+    signerOrProvider: Signer | Provider
+  ): ValidatorManagerV2 {
+    return new Contract(address, _abi, signerOrProvider) as ValidatorManagerV2;
+  }
+}
 
 export const abi = _abi;
