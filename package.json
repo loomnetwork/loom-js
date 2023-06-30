@@ -62,7 +62,7 @@
     "@types/debug": "^0.0.30",
     "@types/ethereumjs-util": "^5.2.0",
     "@types/google-protobuf": "^3.2.7",
-    "@types/node": "^10.0.3",
+    "@types/node": "^16.0.0",
     "@types/retry": "^0.10.2",
     "@types/shelljs": "^0.8.0",
     "@types/tape": "^4.2.32",
@@ -85,5 +85,8 @@
     "webpack-cli": "^3.1.1",
     "webpack-tape-run": "^0.0.7"
   },
-  "browserslist": "last 2 versions"
+  "browserslist": "last 2 versions",
+  "engines": {
+    "node": ">= 16.0.0"
+  }
 }
