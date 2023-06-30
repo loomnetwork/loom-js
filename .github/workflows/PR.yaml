@@ -44,8 +44,11 @@ jobs:
       - run: yarn install
       - run: xvfb-run --auto-servernum yarn test:browser
       - run: yarn test:node
-      - run: chmod +x ./e2e_tests.sh
-      - run: ./e2e_tests.sh
-        working-directory: "."
-        env:
-          BUILD_ID: build-1346
+      # e2e tests currently sporadically fail with Error: Failed to check for transaction receipt
+      # which originates from the test contract deployment, re-enable once the underlying issue is
+      # resolved
+      #- run: chmod +x ./e2e_tests.sh
+      #- run: ./e2e_tests.sh
+      #  working-directory: "."
+      #  env:
+      #    BUILD_ID: build-1346
