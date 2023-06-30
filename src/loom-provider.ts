@@ -264,6 +264,7 @@ export class LoomProvider implements AbstractProvider {
     )
     this._ethRPCMethods.set('eth_sendTransaction', this._ethSendTransaction)
     this._ethRPCMethods.set('eth_sign', this._ethSign)
+    this._ethRPCMethods.set('personal_sign', this._personalSign)
     this._ethRPCMethods.set('net_version', this._netVersion)
   }
 
@@ -632,18 +633,24 @@ export class LoomProvider implements AbstractProvider {
 
   private async _ethSign(payload: IEthRPCPayload) {
     const address = payload.params[0]
+    const msg = payload.params[1]
     const privateKey = this.accounts.get(address)
 
     if (!privateKey) {
       throw Error('Account is not valid, private key not found')
     }
 
-    const msg = payload.params[1]
     const hash = soliditySha3('\x19Ethereum Signed Message:\n32', msg).slice(2)
     const privateHash = soliditySha3(privateKey).slice(2)
 
     const sig = ecsign(Buffer.from(hash, 'hex'), Buffer.from(privateHash, 'hex'))
     return bytesToHexAddrLC(Buffer.concat([sig.r, sig.s, toBuffer(sig.v)]))
+  }
+
+  private async _personalSign(payload: IEthRPCPayload) {
+    // order of address & message params passed to personal_sign is inverse of eth_sign
+    payload.params = [payload.params[1], payload.params[0]]
+    await this._ethSign(payload)
   }
 
   private async _ethSubscribeLegacy(payload: IEthRPCPayload) {
