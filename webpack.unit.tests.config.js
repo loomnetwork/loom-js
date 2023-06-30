@@ -1,7 +1,6 @@
 // This config is used to run tests in the browser.
 
 const path = require('path');
-const WebpackTapeRun = require('webpack-tape-run');
 
 module.exports = {
   mode: 'production',
@@ -23,7 +22,6 @@ module.exports = {
     path: 'empty',
   },
   externals: {
-    ethers: 'ethers',
     shelljs: 'shelljs',
   },
   module: {

@@ -23,7 +23,6 @@ module.exports = {
     path: 'empty',
   },
   externals: {
-    ethers: 'ethers',
     shelljs: 'shelljs',
   },
   module: {
