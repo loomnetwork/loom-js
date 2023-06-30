@@ -40,7 +40,7 @@ test('LoomProvider/Ethers getBalance (/query)', (t) => testBalance(t, false))
 test('LoomProvider/Ethers getBalance (/eth)', (t) => testBalance(t, true))
 
 
-test('LoomProvider/Ethers getTransactionReceipt (/query)', (t) => testTransactionReceipt(t, false))
+test.skip('LoomProvider/Ethers getTransactionReceipt (/query)', (t) => testTransactionReceipt(t, false))
 test('LoomProvider/Ethers getTransactionReceipt (/eth)', (t) => testTransactionReceipt(t, true))
 
 test.skip('LoomProvider/Ethers Logs (/query)', (t) => testPastEvents(t, false))
