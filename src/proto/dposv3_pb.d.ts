@@ -563,6 +563,11 @@ export class RedelegateRequest extends jspb.Message {
   getReferrer(): string;
   setReferrer(value: string): void;
 
+  hasDelegatorAddress(): boolean;
+  clearDelegatorAddress(): void;
+  getDelegatorAddress(): proto_loom_pb.Address | undefined;
+  setDelegatorAddress(value?: proto_loom_pb.Address): void;
+
   serializeBinary(): Uint8Array;
   toObject(includeInstance?: boolean): RedelegateRequest.AsObject;
   static toObject(includeInstance: boolean, msg: RedelegateRequest): RedelegateRequest.AsObject;
@@ -581,6 +586,7 @@ export namespace RedelegateRequest {
     amount?: proto_loom_pb.BigUInt.AsObject,
     newLocktimeTier: number,
     referrer: string,
+    delegatorAddress?: proto_loom_pb.Address.AsObject,
   }
 }
 

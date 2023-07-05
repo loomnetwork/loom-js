@@ -137,6 +137,7 @@ message RedelegateRequest {
     BigUInt amount = 4;
     uint64 new_locktime_tier = 5;
     string referrer = 6; // wallet that sent the delegation
+    Address delegator_address = 7;
 }
 
 message ConsolidateDelegationsRequest {
