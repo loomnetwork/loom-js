@@ -556,6 +556,28 @@ test('LoomProvider method eth_uninstallFilter', async t => {
   }
 })
 
+test('LoomProvider client version', async t => {
+  const { loomProvider, client } = await newContractAndClient()
+
+  try {
+    const id = 1
+    const clientVersion = await loomProvider.sendAsync({
+      id,
+      method: 'web3_clientVersion'
+    })
+
+    t.assert(/Loom\/loom-js\/v/.test(clientVersion.result), 'Client version should be ok')
+  } catch (err) {
+    t.error(err, 'Error found')
+  }
+
+  if (client) {
+    client.disconnect()
+  }
+
+  t.end()
+})
+
 test('LoomProvider adding custom method', async t => {
   const { loomProvider, from, client } = await newContractAndClient()
 
